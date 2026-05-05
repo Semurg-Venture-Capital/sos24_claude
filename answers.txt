@@ -1,0 +1,30 @@
+1.1) SOS24 sos24.uz 
+1.2) Pozhe
+1.3) Da kegin beriladi
+
+2.1) NAPP orqali bor ishlayabdi (Xojiakbar)
+2.2) NAPP orqal aylanib kelamiiz (Xojiakbar)
+2.3) NAPP
+
+3.1) Maksimal hammasini realizatsiya qilamiz, (e-imzo oxireida vaqtimiz bo'lsa)
+3.2) Playmobile bor (Jamshid)
+4.1) O'zimiz billing qilamiz (Uzcard)
+4.2) To'liq
+4.3) O'zimiziki + boshqalar
+5.1) Davlatdan bazoviy bor + o'zimizi tarifikatsiyamiz bor,
+5.2) Kalkulyator bor, Maxmod akadan kutamiz (Undraytying)
+5.3) Menedjer qiladi, o'zgaruvchan bo'ladi
+6.1) Elektron mobil ilova orqali, our app
+6.2) Da
+6.3) Default 60, lekin bizda  tarif va savol javobga nisbatan o'zgaruvchan bo'ladi
+6.4) Daa budet (AVTO SERVIS, MNED KOLINIKALAR UCHUN ALOXIDA KABINET KERAK? O'ZLARINI ASSETSDLARINI TAKLIF QILADIGON VA KLIENTSKIY BAZAGA EGA BO'LADIGONB)
+7.1) Lotin, Kiril, Russ, Engliz
+7.2) Yuris bor
+8.1) PostHog
+8.2) Sentry 
+8.3) Self server
+9.1) Client
+9.2) Call centre 24/7 own
+9.3) 1C integration
+10.1) Berilgan
+10.2) Qilish kerak

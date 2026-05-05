@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SOS24 — Платформа автострахования Узбекистана · Презентация структуры</title>
+<style>
+  :root {
+    --bg: #f7f8fc;
+    --surface: #ffffff;
+    --ink: #0f172a;
+    --ink-2: #475569;
+    --ink-3: #94a3b8;
+    --line: #e5e9f2;
+    --primary: #2c5cff;
+    --primary-2: #1e40af;
+    --primary-soft: #eaf0ff;
+    --accent: #ff8a3d;
+    --accent-soft: #fff2e6;
+    --success: #10b981;
+    --success-soft: #e7faf2;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --gradient: linear-gradient(135deg, #2c5cff 0%, #6e48ff 50%, #ff5fa8 100%);
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 16px rgba(15,23,42,.06), 0 2px 6px rgba(15,23,42,.04);
+    --shadow-lg: 0 16px 40px rgba(15,23,42,.08), 0 4px 12px rgba(15,23,42,.04);
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 24px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Layout */
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 80px 0; }
+  section + section { border-top: 1px solid var(--line); }
+
+  /* Top nav */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,.85);
+    backdrop-filter: saturate(150%) blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; max-width: 1200px; margin: 0 auto;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px; font-weight: 700;
+  }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--gradient);
+    display: grid; place-items: center;
+    color: #fff; font-weight: 800; font-size: 14px;
+  }
+  .nav ul {
+    display: flex; gap: 22px; list-style: none; padding: 0; margin: 0;
+  }
+  .nav a { color: var(--ink-2); font-size: 14px; font-weight: 500; }
+  .nav a:hover { color: var(--ink); text-decoration: none; }
+  @media (max-width: 720px) { .nav ul { display: none; } }
+
+  /* Hero */
+  .hero {
+    padding: 96px 0 64px;
+    background:
+      radial-gradient(900px 400px at 80% -10%, rgba(110,72,255,.18), transparent 60%),
+      radial-gradient(700px 300px at -10% 10%, rgba(44,92,255,.18), transparent 60%);
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--primary-soft); color: var(--primary-2);
+    font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+  h1 {
+    font-size: 56px; line-height: 1.05; margin: 18px 0 16px;
+    letter-spacing: -.02em; font-weight: 800;
+  }
+  h1 .grad {
+    background: var(--gradient); -webkit-background-clip: text;
+    background-clip: text; color: transparent;
+  }
+  .lead {
+    font-size: 19px; color: var(--ink-2); max-width: 720px;
+  }
+  .hero-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; margin-top: 40px;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--r-md); padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat .v { font-size: 28px; font-weight: 800; }
+  .stat .k { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+  @media (max-width: 800px) {
+    h1 { font-size: 40px; }
+    .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Section title */
+  .sec-head { margin-bottom: 36px; }
+  .sec-head h2 {
+    font-size: 34px; line-height: 1.15; margin: 6px 0 8px;
+    letter-spacing: -.01em; font-weight: 800;
+  }
+  .sec-head p { color: var(--ink-2); margin: 0; max-width: 760px; font-size: 16px; }
+  .sec-tag {
+    color: var(--primary); font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* Pillars */
+  .pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .pillar {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--r-lg); padding: 28px;
+    box-shadow: var(--shadow-md);
+    position: relative; overflow: hidden;
+  }
+  .pillar::after {
+    content: ""; position: absolute; right: -50px; top: -50px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: var(--primary-soft); opacity: .8;
+  }
+  .pillar > * { position: relative; }
+  .p-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: grid; place-items: center; margin-bottom: 16px;
+    background: var(--primary-soft); color: var(--primary-2);
+  }
+  .pillar.alt .p-icon { background: var(--accent-soft); color: #b35a1b; }
+  .pillar.alt::after { background: var(--accent-soft); }
+  .pillar.green .p-icon { background: var(--success-soft); color: #047857; }
+  .pillar.green::after { background: var(--success-soft); }
+  .pillar h3 { margin: 0 0 8px; font-size: 20px; }
+  .pillar p { margin: 0; color: var(--ink-2); font-size: 15px; }
+  @media (max-width: 900px) { .pillars { grid-template-columns: 1fr; } }
+
+  /* Architecture */
+  .arch {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--r-lg); padding: 32px;
+    box-shadow: var(--shadow-md);
+  }
+  .arch-row {
+    display: grid; gap: 16px; margin-bottom: 16px;
+  }
+  .arch-row.clients { grid-template-columns: repeat(3, 1fr); }
+  .arch-row.middle { grid-template-columns: 1fr; }
+  .arch-row.services { grid-template-columns: repeat(5, 1fr); }
+  .arch-row.data { grid-template-columns: repeat(3, 1fr); }
+  .arch-node {
+    border: 1px dashed var(--line); border-radius: var(--r-md);
+    padding: 16px; background: #fbfcff; text-align: center;
+  }
+  .arch-node.primary {
+    background: var(--primary-soft); border-color: #c4d2ff;
+    color: var(--primary-2);
+  }
+  .arch-node.accent {
+    background: var(--accent-soft); border-color: #ffd1ad;
+    color: #b35a1b;
+  }
+  .arch-node.success {
+    background: var(--success-soft); border-color: #aceac9;
+    color: #047857;
+  }
+  .arch-node strong { display: block; font-size: 15px; }
+  .arch-node span { font-size: 12px; color: var(--ink-2); }
+  .arch-arrow {
+    text-align: center; color: var(--ink-3); font-size: 22px; line-height: 1;
+    margin: -4px 0;
+  }
+  @media (max-width: 900px) {
+    .arch-row.clients, .arch-row.services, .arch-row.data { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* Modules grid */
+  .platforms { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .platform {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--r-lg); padding: 24px;
+    box-shadow: var(--shadow-sm);
+    display: flex; flex-direction: column;
+  }
+  .platform header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .platform-badge {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--primary); color: #fff; display: grid; place-items: center;
+    font-weight: 800; font-size: 14px;
+  }
+  .platform.web .platform-badge { background: var(--accent); }
+  .platform.admin .platform-badge { background: var(--ink); }
+  .platform h3 { margin: 0; font-size: 18px; }
+  .platform .sub { color: var(--ink-2); font-size: 13px; margin: 0 0 14px; }
+  .mlist { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .mlist li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px;
+    font-size: 14px;
+  }
+  .mlist .id {
+    flex: 0 0 auto; padding: 2px 8px; border-radius: 6px;
+    background: var(--primary-soft); color: var(--primary-2);
+    font-weight: 700; font-size: 11px;
+  }
+  .platform.web .mlist .id { background: var(--accent-soft); color: #b35a1b; }
+  .platform.admin .mlist .id { background: #f1f5f9; color: var(--ink-2); }
+  @media (max-width: 1000px) { .platforms { grid-template-columns: 1fr; } }
+
+  /* Features grid for differentiators */
+  .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .feature {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--r-md); padding: 20px;
+  }
+  .feature .ic {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--primary-soft); color: var(--primary-2);
+    display: grid; place-items: center; margin-bottom: 12px;
+  }
+  .feature h4 { margin: 0 0 4px; font-size: 15px; }
+  .feature p { margin: 0; color: var(--ink-2); font-size: 13px; }
+  @media (max-width: 1000px) { .features { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
+
+  /* Stack */
+  .stack { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stack-card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--r-md); padding: 20px;
+  }
+  .stack-card h4 {
+    margin: 0 0 10px; font-size: 13px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--ink-2);
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border-radius: 8px;
+    background: #f1f5f9; color: var(--ink); font-size: 13px; font-weight: 600;
+    margin: 0 6px 6px 0;
+  }
+  .chip.p { background: var(--primary-soft); color: var(--primary-2); }
+  .chip.a { background: var(--accent-soft); color: #b35a1b; }
+  .chip.g { background: var(--success-soft); color: #047857; }
+  @media (max-width: 900px) { .stack { grid-template-columns: 1fr 1fr; } }
+
+  /* Roadmap timeline */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: ""; position: absolute; left: 12px; top: 6px; bottom: 6px;
+    width: 2px; background: linear-gradient(to bottom, var(--primary), var(--accent));
+  }
+  .tl-item { position: relative; padding-bottom: 28px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-dot {
+    position: absolute; left: -28px; top: 4px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--primary);
+  }
+  .tl-item.now .tl-dot { background: var(--primary); }
+  .tl-item.future .tl-dot { border-color: var(--ink-3); }
+  .tl-head {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .tl-head h4 { margin: 0; font-size: 17px; }
+  .badge {
+    padding: 2px 10px; border-radius: 999px; font-size: 11px;
+    font-weight: 700; letter-spacing: .04em;
+  }
+  .badge.now { background: var(--primary); color: #fff; }
+  .badge.next { background: var(--accent-soft); color: #b35a1b; }
+  .badge.future { background: #f1f5f9; color: var(--ink-2); }
+  .tl-item p { margin: 6px 0 0; color: var(--ink-2); font-size: 14px; }
+
+  /* Process */
+  .process { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .step {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--r-md); padding: 22px;
+    position: relative;
+  }
+  .step .num {
+    position: absolute; right: 16px; top: 14px;
+    font-size: 40px; font-weight: 800; color: var(--primary-soft);
+    line-height: 1;
+  }
+  .step h4 { margin: 0 0 6px; font-size: 16px; }
+  .step p { margin: 0; color: var(--ink-2); font-size: 13px; }
+  @media (max-width: 900px) { .process { grid-template-columns: 1fr 1fr; } }
+
+  /* Open questions */
+  .qbox {
+    background: linear-gradient(135deg, #fff7ee 0%, #fff 60%);
+    border: 1px solid #ffd1ad; border-radius: var(--r-lg);
+    padding: 28px;
+  }
+  .qbox h3 { margin-top: 0; }
+  .qbox ul { padding-left: 20px; margin: 12px 0 0; color: var(--ink-2); }
+  .qbox li { margin: 6px 0; }
+
+  /* Footer */
+  footer {
+    padding: 40px 0 60px; color: var(--ink-2); font-size: 13px;
+    text-align: center;
+  }
+  footer .brand { justify-content: center; margin-bottom: 8px; }
+
+  /* Icons */
+  .ic svg, .p-icon svg, .feature .ic svg { width: 22px; height: 22px; stroke-width: 2; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <span>SOS24 <span style="color:var(--ink-3); font-weight:500">/ sos24.uz</span></span>
+    </div>
+    <ul>
+      <li><a href="#overview">Обзор</a></li>
+      <li><a href="#architecture">Архитектура</a></li>
+      <li><a href="#modules">Модули</a></li>
+      <li><a href="#stack">Стек</a></li>
+      <li><a href="#roadmap">Роадмап</a></li>
+      <li><a href="#process">Процесс</a></li>
+    </ul>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="overview">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span>Презентация · Этап 0 · Документация · 2026-05-05</span>
+    <h1>SOS24 — помощник <span class="grad">24/7 на дороге</span></h1>
+    <p class="lead">
+      Мобильное приложение, веб-лендинг, админ-панель и B2B-кабинет партнёров
+      для продажи и обслуживания полисов <strong>ОСАГО</strong> и
+      <strong>КАСКО</strong>. С электронным полисом, онлайн-урегулированием
+      убытков, вызовом аварийного комиссара и партнёрской сетью (СТО, медклиники).
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><div class="v">4</div><div class="k">Платформы (mobile, landing, admin, partner)</div></div>
+      <div class="stat"><div class="v">45+</div><div class="k">Модулей в первой итерации</div></div>
+      <div class="stat"><div class="v">4</div><div class="k">Локали (uz-Latn, uz-Cyrl, ru, en)</div></div>
+      <div class="stat"><div class="v">24/7</div><div class="k">Поддержка и вызов комиссара</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLARS -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-tag">Что мы строим</span>
+      <h2>Три опоры продукта</h2>
+      <p>Продукт держится на трёх ключевых сценариях, которые закрывают полный жизненный цикл клиента — от покупки полиса до получения выплаты.</p>
+    </div>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="p-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5 4a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3>Покупка полиса за 2 минуты</h3>
+        <p>Госномер → автозаполнение → расчёт → оплата → e-полис с QR. Без визита в офис, на трёх языках.</p>
+      </div>
+      <div class="pillar alt">
+        <div class="p-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0L3.16 16.25A2 2 0 005 19z"/></svg>
+        </div>
+        <h3>ДТП — заявление с места</h3>
+        <p>Фото 360°, гео-метка, европротокол, статус выплаты в реальном времени. Чат с менеджером внутри заявления.</p>
+      </div>
+      <div class="pillar green">
+        <div class="p-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <h3>Электронный полис</h3>
+        <p>QR-код для проверки инспектором ГАИ, PDF-копия, автоматическое продление и push-напоминание о сроках.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIFFERENTIATORS -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-tag">Чем отличается</span>
+      <h2>Локальная специфика, заложенная в архитектуру</h2>
+      <p>Не «универсальный страховой агрегатор», а продукт, спроектированный под Узбекистан с первого дня.</p>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <div class="ic"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h.01M11 15h2"/><rect x="3" y="5" width="18" height="14" rx="2" stroke-linecap="round"/></svg></div>
+        <h4>Uzcard прямой эквайринг</h4>
+        <p>Свой биллинг с приоритетом на Uzcard. Click / Payme / Uzum — опционально.</p>
+      </div>
+      <div class="feature">
+        <div class="ic"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7l9-4 9 4M5 9v10a2 2 0 002 2h10a2 2 0 002-2V9"/></svg></div>
+        <h4>Госданные через NAPP</h4>
+        <p>Авто, ВУ и реестр электронных полисов — единый шлюз через NAPP.</p>
+      </div>
+      <div class="feature">
+        <div class="ic"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+        <h4>Европротокол + комиссар</h4>
+        <p>Цифровое оформление ДТП с подписями участников и вызов аварийного комиссара.</p>
+      </div>
+      <div class="feature">
+        <div class="ic"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m4 16l4-12-12 4 8 8z"/></svg></div>
+        <h4>4 локали</h4>
+        <p>Узбекский (латиница и кириллица), русский, английский — с первого релиза.</p>
+      </div>
+      <div class="feature">
+        <div class="ic"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg></div>
+        <h4>B2B-кабинет партнёров</h4>
+        <p>Отдельный кабинет для СТО и медклиник — каталог услуг, заявки, финансы, рейтинг.</p>
+      </div>
+      <div class="feature">
+        <div class="ic"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6-4h6m2-6H7a2 2 0 00-2 2v16l4-4h10a2 2 0 002-2V4a2 2 0 00-2-2z"/></svg></div>
+        <h4>Self-hosted и 1С</h4>
+        <p>Развёртывание на инфраструктуре заказчика. Интеграция с 1С для бухгалтерии.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-tag">Архитектура</span>
+      <h2>Четыре клиента, единое API, self-hosted</h2>
+      <p>Монорепо с общими TypeScript-типами. Бэкенд на NestJS — модульная сервисная архитектура. Всё разворачивается на инфраструктуре заказчика, без облачных SaaS.</p>
+    </div>
+    <div class="arch">
+      <div class="arch-row clients">
+        <div class="arch-node primary"><strong>Mobile App</strong><span>React Native · iOS · Android</span></div>
+        <div class="arch-node accent"><strong>Web Landing</strong><span>Next.js · sos24.uz</span></div>
+        <div class="arch-node"><strong>Admin Panel</strong><span>Next.js · приватный</span></div>
+        <div class="arch-node"><strong>Partner Cabinet</strong><span>Next.js · B2B</span></div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-row middle">
+        <div class="arch-node"><strong>API Gateway</strong><span>HTTPS · REST · WebSocket · OpenAPI · Auth · Rate-limit</span></div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-row services">
+        <div class="arch-node primary"><strong>Auth</strong><span>SMS-OTP · MyID · OneID</span></div>
+        <div class="arch-node primary"><strong>Policies</strong><span>ОСАГО · КАСКО</span></div>
+        <div class="arch-node primary"><strong>Claims</strong><span>ДТП · комиссар</span></div>
+        <div class="arch-node primary"><strong>Payments</strong><span>Uzcard own billing</span></div>
+        <div class="arch-node primary"><strong>Partners</strong><span>СТО · медклиники</span></div>
+        <div class="arch-node primary"><strong>NAPP gw</strong><span>авто · ВУ · реестр</span></div>
+        <div class="arch-node primary"><strong>1C sync</strong><span>бухгалтерия</span></div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-row data">
+        <div class="arch-node success"><strong>PostgreSQL</strong><span>основные данные</span></div>
+        <div class="arch-node success"><strong>Redis</strong><span>сессии · OTP · очереди</span></div>
+        <div class="arch-node success"><strong>MinIO</strong><span>фото · PDF · self-hosted S3</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section id="modules">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-tag">Модули</span>
+      <h2>Структура трёх продуктов</h2>
+      <p>Полный список ключевых модулей. Детали каждого — в техническом плане (<code>PLAN.md</code>) и ТЗ для дизайнера (<code>STITCH.md</code>).</p>
+    </div>
+    <div class="platforms">
+      <!-- Mobile -->
+      <div class="platform">
+        <header>
+          <div class="platform-badge">M</div>
+          <div>
+            <h3>Mobile App (Client)</h3>
+            <p class="sub">React Native · iOS + Android</p>
+          </div>
+        </header>
+        <ul class="mlist">
+          <li><span class="id">M1</span><span><strong>Onboarding & Auth</strong> — SMS-OTP (Playmobile) + MyID + OneID</span></li>
+          <li><span class="id">M2</span><span><strong>Профиль</strong> — паспорт, водительское, настройки</span></li>
+          <li><span class="id">M3</span><span><strong>Гараж</strong> — авто с автозаполнением через NAPP</span></li>
+          <li><span class="id">M4</span><span><strong>Каталог продуктов</strong> — ОСАГО, КАСКО</span></li>
+          <li><span class="id">M5</span><span><strong>Калькулятор</strong> — гос. база + надбавки страховой</span></li>
+          <li><span class="id">M6</span><span><strong>Оформление полиса</strong> — чекаут</span></li>
+          <li><span class="id">M7</span><span><strong>Платежи</strong> — Uzcard, рассрочка</span></li>
+          <li><span class="id">M8</span><span><strong>Мои полисы</strong> — e-полис QR, PDF, аннуляция (100%)</span></li>
+          <li><span class="id">M9</span><span><strong>Урегулирование убытков</strong> — фото, гео, европротокол, вызов комиссара</span></li>
+          <li><span class="id">M10</span><span><strong>Статус выплат</strong> — трекер с переменным SLA</span></li>
+          <li><span class="id">M11</span><span><strong>Уведомления</strong> — push-центр</span></li>
+          <li><span class="id">M12</span><span><strong>Документы</strong> — договоры, чеки</span></li>
+          <li><span class="id">M13</span><span><strong>Поддержка</strong> — чат, call-центр 24/7</span></li>
+          <li><span class="id">M14</span><span><strong>Локализация</strong> — uz-Latn, uz-Cyrl, ru, en</span></li>
+          <li><span class="id">M16</span><span><strong>Партнёры</strong> — СТО и медклиники в приложении</span></li>
+        </ul>
+      </div>
+
+      <!-- Landing -->
+      <div class="platform web">
+        <header>
+          <div class="platform-badge">L</div>
+          <div>
+            <h3>Web Landing</h3>
+            <p class="sub">Next.js · публичный сайт</p>
+          </div>
+        </header>
+        <ul class="mlist">
+          <li><span class="id">L1</span><span><strong>Hero + быстрый калькулятор</strong></span></li>
+          <li><span class="id">L2</span><span><strong>Страницы продуктов</strong> ОСАГО / КАСКО</span></li>
+          <li><span class="id">L3</span><span><strong>«Как это работает»</strong> — 3-4 шага</span></li>
+          <li><span class="id">L4</span><span><strong>Преимущества и партнёры</strong></span></li>
+          <li><span class="id">L5</span><span><strong>FAQ</strong></span></li>
+          <li><span class="id">L6</span><span><strong>Блог</strong> — управление из админки</span></li>
+          <li><span class="id">L7</span><span><strong>Контакты</strong> + карта офиса</span></li>
+          <li><span class="id">L8</span><span><strong>App Store / Google Play</strong> бейджи</span></li>
+          <li><span class="id">L9</span><span><strong>SEO</strong> — 4 локали</span></li>
+          <li><span class="id">L10</span><span><strong>Юр. документы</strong> — оферта, политика</span></li>
+          <li><span class="id">L11</span><span><strong>Лендинг «Партнёрам»</strong> — заявки от СТО / медклиник</span></li>
+        </ul>
+      </div>
+
+      <!-- Admin -->
+      <div class="platform admin">
+        <header>
+          <div class="platform-badge">A</div>
+          <div>
+            <h3>Admin Panel</h3>
+            <p class="sub">Next.js · внутренняя</p>
+          </div>
+        </header>
+        <ul class="mlist">
+          <li><span class="id">A1</span><span><strong>Логин + 2FA</strong> — роли (вкл. partner_manager)</span></li>
+          <li><span class="id">A2</span><span><strong>Dashboard</strong> — KPI, графики, партнёры</span></li>
+          <li><span class="id">A3</span><span><strong>Пользователи</strong></span></li>
+          <li><span class="id">A4</span><span><strong>Полисы</strong> — выдача, аннуляция (100% возврат)</span></li>
+          <li><span class="id">A5</span><span><strong>Заявления + диспетчер комиссаров</strong></span></li>
+          <li><span class="id">A6</span><span><strong>Платежи</strong> — транзакции, возвраты, выгрузка в 1С</span></li>
+          <li><span class="id">A7</span><span><strong>Тарифы</strong> — двухуровневый конструктор</span></li>
+          <li><span class="id">A8</span><span><strong>CMS лендинга</strong> — на 4 языках</span></li>
+          <li><span class="id">A9</span><span><strong>Push-кампании</strong> — сегменты</span></li>
+          <li><span class="id">A10</span><span><strong>Отчёты</strong> — выгрузка, в т. ч. для 1С</span></li>
+          <li><span class="id">A11</span><span><strong>Аудит-лог</strong></span></li>
+          <li><span class="id">A12</span><span><strong>Настройки</strong> — статусы интеграций (NAPP, Uzcard, 1C, MyID)</span></li>
+          <li><span class="id">A13</span><span><strong>Модерация партнёров</strong> — KYC СТО / медклиник</span></li>
+        </ul>
+      </div>
+
+      <!-- Partner -->
+      <div class="platform">
+        <header>
+          <div class="platform-badge">P</div>
+          <div>
+            <h3>Partner Cabinet (B2B)</h3>
+            <p class="sub">Next.js · СТО, медклиники</p>
+          </div>
+        </header>
+        <ul class="mlist">
+          <li><span class="id">P1</span><span><strong>Логин</strong> + 2FA для сотрудников партнёра</span></li>
+          <li><span class="id">P2</span><span><strong>Профиль организации</strong> — лицензия, реквизиты</span></li>
+          <li><span class="id">P3</span><span><strong>Каталог услуг / активов</strong> — что предлагает партнёр</span></li>
+          <li><span class="id">P4</span><span><strong>Заявки</strong> — клиенты из приложения</span></li>
+          <li><span class="id">P5</span><span><strong>Расписание</strong> — слоты, занятость</span></li>
+          <li><span class="id">P6</span><span><strong>Финансы</strong> — начисления, выплаты, акты</span></li>
+          <li><span class="id">P7</span><span><strong>Отзывы и рейтинг</strong></span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section id="stack">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-tag">Технологии</span>
+      <h2>Стек проекта</h2>
+      <p>Современный, проверенный, с минимальным количеством движущихся частей. Один TypeScript на всю систему.</p>
+    </div>
+    <div class="stack">
+      <div class="stack-card">
+        <h4>Mobile</h4>
+        <span class="chip p">React Native</span>
+        <span class="chip">TypeScript</span>
+        <span class="chip">Expo / RN CLI</span>
+        <span class="chip">React Query</span>
+        <span class="chip">i18next</span>
+      </div>
+      <div class="stack-card">
+        <h4>Web (Landing + Admin + Partner)</h4>
+        <span class="chip a">Next.js 14</span>
+        <span class="chip">TypeScript</span>
+        <span class="chip">Tailwind CSS</span>
+        <span class="chip">shadcn/ui</span>
+      </div>
+      <div class="stack-card">
+        <h4>Backend (self-hosted)</h4>
+        <span class="chip g">NestJS</span>
+        <span class="chip">PostgreSQL</span>
+        <span class="chip">Redis</span>
+        <span class="chip">MinIO (S3)</span>
+        <span class="chip">BullMQ</span>
+        <span class="chip">OpenAPI</span>
+      </div>
+      <div class="stack-card">
+        <h4>Интеграции и инфра</h4>
+        <span class="chip p">Uzcard own billing</span>
+        <span class="chip p">NAPP</span>
+        <span class="chip p">Playmobile (SMS)</span>
+        <span class="chip p">1C</span>
+        <span class="chip">MyID / OneID</span>
+        <span class="chip">PostHog</span>
+        <span class="chip">Sentry</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-tag">План</span>
+      <h2>Роадмап до запуска</h2>
+      <p>Точные даты — после получения дизайн-макетов и ответов на вопросы клиента (см. <code>QUESTIONS.md</code>).</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-item now">
+        <div class="tl-dot"></div>
+        <div class="tl-head"><h4>Этап 0 — Документация и дизайн</h4><span class="badge now">сейчас</span></div>
+        <p>Презентация модулей, технический план, ТЗ для дизайнера, лист открытых вопросов. Дизайнер делает дизайн-систему и макеты в Google Stitch.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-head"><h4>Этап 1 — Скаффолдинг (self-hosted)</h4><span class="badge next">далее</span></div>
+        <p>Монорепо, схема БД, Auth (SMS-OTP через Playmobile), self-hosted инфраструктура (Postgres, Redis, MinIO), CI/CD.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-head"><h4>Этап 2 — MVP мобильного приложения</h4><span class="badge future">далее</span></div>
+        <p>Гараж с NAPP, каталог, калькулятор (госбаза), оформление, Uzcard прямой эквайринг, e-полис QR, 4 локали.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-head"><h4>Этап 3 — MVP админки</h4><span class="badge future">далее</span></div>
+        <p>Логин с ролями, дашборд, пользователи, полисы (с полным возвратом), платежи, конструктор тарифов, аудит-лог.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-head"><h4>Этап 4 — Урегулирование убытков</h4><span class="badge future">далее</span></div>
+        <p>Заявление о ДТП, электронный европротокол, вызов аварийного комиссара, диспетчер в админке, чат поддержки (CRM call-центра).</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-head"><h4>Этап 5 — Партнёрская сеть (B2B)</h4><span class="badge future">далее</span></div>
+        <p>Кабинет партнёра (P1–P7), партнёры в мобильном приложении (M16), модерация и KYC партнёров, лендинг «Партнёрам».</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-head"><h4>Этап 6 — Лендинг и расширения</h4><span class="badge future">далее</span></div>
+        <p>Все модули лендинга на 4 языках, CMS, push-кампании, 1С интеграция, опционально Click / Payme / Uzum.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-head"><h4>Этап 7 — MyID / OneID, e-IMZO</h4><span class="badge future">далее</span></div>
+        <p>Полноценная идентификация: MyID и OneID (фаза 1), e-IMZO (фаза 2 / по остаточному принципу).</p>
+      </div>
+      <div class="tl-item future">
+        <div class="tl-dot"></div>
+        <div class="tl-head"><h4>Этап 8 — Стабилизация и запуск</h4><span class="badge future">релиз</span></div>
+        <p>Нагрузочное тестирование, аудит безопасности, публикация в App Store / Google Play (аккаунты — на стороне клиента).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-tag">Процесс</span>
+      <h2>Как мы работаем</h2>
+      <p>Прозрачно. Каждый артефакт фиксируется в репозитории. Дизайнер, разработка и менеджмент видят одну и ту же картину.</p>
+    </div>
+    <div class="process">
+      <div class="step">
+        <div class="num">1</div>
+        <h4>Документация</h4>
+        <p><code>PLAN.md</code> для разработки, <code>STITCH.md</code> для дизайна, <code>QUESTIONS.md</code> для клиента, <code>TASKS.md</code> с флоу команды.</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h4>Дизайн в Stitch</h4>
+        <p>Дизайнер собирает дизайн-систему, рисует экраны, готовит прототип ключевых флоу.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h4>Согласование</h4>
+        <p>Клиент утверждает презентацию и макеты, отвечает на открытые вопросы.</p>
+      </div>
+      <div class="step">
+        <div class="num">4</div>
+        <h4>Разработка</h4>
+        <p>Поэтапная реализация по роадмапу. Демо в конце каждого этапа.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OPEN QUESTIONS -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-tag">Вопросы к обсуждению</span>
+      <h2>Что нужно от клиента до старта</h2>
+      <p>Раунд 1 ответов получен 2026-05-05. Полный список — в <code>QUESTIONS.md</code>. Здесь — открытые блоки, без которых нельзя стартовать разработку.</p>
+    </div>
+    <div class="qbox">
+      <h3>Открытые блоки (раунд 2)</h3>
+      <ul>
+        <li><strong>Юр. лицо и лицензии</strong> — реквизиты, ИНН, лицензия на ОСАГО / КАСКО.</li>
+        <li><strong>NAPP</strong> — договор, API-документация, тестовая среда, контакт Хожиакбара.</li>
+        <li><strong>Свой платёжный шлюз через Uzcard</strong> — договор, какой именно интерфейс Uzcard, PCI-DSS план.</li>
+        <li><strong>Формула КАСКО</strong> — от заказчика / андеррайтера (Махмуд-ака).</li>
+        <li><strong>Партнёрский кабинет</strong> — модель монетизации, KYC, типы партнёров, медклиники.</li>
+        <li><strong>Self-hosted инфраструктура</strong> — спецификации серверов, доступы DevOps, политика бэкапов.</li>
+        <li><strong>1С</strong> — редакция, конфигурация, какие справочники синкаются.</li>
+        <li><strong>MyID / OneID</strong> — договоры и доступ к API.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <span>SOS24 · sos24.uz</span>
+    </div>
+    <div>Этап 0 — документация · Дизайн ведётся в Google Stitch · Разработка после согласования</div>
+  </div>
+</footer>
+
+</body>
+</html>
