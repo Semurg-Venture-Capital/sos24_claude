@@ -259,8 +259,8 @@ LAYOUT
   - "Без ограничений" (text #9A9AA0).
 - 16 px gap.
 - Driver cards (each radius 16, border 1 #EAEAEC, padding 16, gap 12):
-  - Driver 1 (filled): avatar circle 48 px (initials "ОА" Mont Bold 16 white on #010101), "Одилхон А." Inter SemiBold 16, "32 года · 8 лет стажа" Inter Regular 13 #9A9AA0. Right: edit pencil icon + delete trash icon.
-  - Driver 2 (filled): "Шахзода А." "28 лет · 4 года стажа".
+  - Driver 1 (filled): avatar circle 48 px (initials "КЮ" Mont Bold 16 white on #010101), "Карим Ю." Inter SemiBold 16, "32 года · 8 лет стажа" Inter Regular 13 #9A9AA0. Right: edit pencil icon + delete trash icon.
+  - Driver 2 (filled): "Севара Ю." "28 лет · 4 года стажа".
 - 16 px gap.
 - "Добавить водителя" outline button, height 52, radius 12, dashed border 1.5 #9A9AA0, leading + icon, text Inter SemiBold 14 #010101 centered.
 - Sticky CTA "Далее".

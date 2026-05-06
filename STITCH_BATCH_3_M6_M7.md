@@ -34,11 +34,11 @@ LAYOUT
   - **Продукт** (small label Inter SemiBold 12 #9A9AA0 uppercase top-left, "Изменить" link top-right Inter Medium 13 #E61428).
     - Body: Mont Bold 16 "КАСКО · 1 год", Inter Regular 13 #9A9AA0 "Начало 12 мая 2026 — 11 мая 2027".
   - **Страхователь** ("Изменить" right):
-    - Body: Mont Bold 16 "Алиев Одилхон", Inter Regular 13 #9A9AA0 "+998 90 123 45 67 · AB1234567".
+    - Body: Mont Bold 16 "Юсупов Карим", Inter Regular 13 #9A9AA0 "+998 90 123 45 67 · AB1234567".
   - **Автомобиль** ("Изменить" right):
     - Body: row with 48×48 car photo (rounded 8) + Mont Bold 16 "Chevrolet Cobalt 2020" + Inter Regular 13 #9A9AA0 "01 A 123 BB · VIN KL1...".
   - **Водители** ("Изменить" right):
-    - Body: Mont Bold 16 "2 водителя", Inter Regular 13 #9A9AA0 "Алиев О., Алиева Ш.". Small chip-row below: 2 mini avatar chips with initials.
+    - Body: Mont Bold 16 "2 водителя", Inter Regular 13 #9A9AA0 "Юсупов К., Юсупова С.". Small chip-row below: 2 mini avatar chips with initials.
 - 16 px gap.
 - Price hero card (radius 24, fill #010101, padding 24, height 130):
   - Top row: Inter SemiBold 12 white 70% "К ОПЛАТЕ".
@@ -91,7 +91,7 @@ LAYOUT (shared)
 - Stack of input rows (each row: small label Inter SemiBold 12 #9A9AA0 uppercase, 4 px gap, input field height 56, radius 12, border 1 #EAEAEC, focus border #E61428 2 px). Inputs vary by step:
 
   **M6.2 — Страхователь:**
-  - "ФИО" (text, prefilled "Алиев Одилхон")
+  - "ФИО" (text, prefilled "Юсупов Карим")
   - "Дата рождения" (date picker, "12.03.1994")
   - "Серия и номер паспорта" (mask "AB 1234567")
   - "Кем выдан" (text)

@@ -84,8 +84,8 @@ LAYOUT
 - Frame 393×852, white background.
 - Status bar with 9:41 + Dynamic Island, dark icons.
 - Header (height 64, no bottom border):
-  - Left: 40 round avatar with initials "ОА" Mont Bold 14 white on #E61428.
-  - Center-left next to avatar: Inter Regular 13 #9A9AA0 "Доброе утро,"; below Mont Bold 18 #010101 "Одилхон".
+  - Left: 40 round avatar with initials "КЮ" Mont Bold 14 white on #E61428.
+  - Center-left next to avatar: Inter Regular 13 #9A9AA0 "Доброе утро,"; below Mont Bold 18 #010101 "Карим".
   - Right: 24 outline bell icon with red dot badge (#E61428, 6 px).
 - 24 px horizontal padding.
 - 16 px gap.
@@ -317,7 +317,7 @@ LAYOUT
   - "Продукт" → "КАСКО"
   - "Автомобиль" → "Chevrolet Cobalt 2020"
   - "Госномер" → "01 A 123 BB"
-  - "Страхователь" → "Алиев Одилхон"
+  - "Страхователь" → "Юсупов Карим"
   - "Период" → "12 мая 2026 — 11 мая 2027"
   - "Стоимость" → "3 240 000 сум"
   - Each row: Inter Regular 14 #9A9AA0 left + Inter SemiBold 14 #010101 right.

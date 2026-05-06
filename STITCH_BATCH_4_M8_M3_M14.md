@@ -27,7 +27,7 @@ LAYOUT
 - Status bar: 9:41 + Dynamic Island.
 - Top bar (height 64, NOT a typical title bar — this is a personalized header):
   - Left (24 px from edge): 40 px round avatar with user initials in Mont Bold 14 white on #E61428 background.
-  - Center-left next to avatar: Inter Regular 13 #9A9AA0 "Доброе утро,"; below it Mont Bold 18 #010101 "Одилхон".
+  - Center-left next to avatar: Inter Regular 13 #9A9AA0 "Доброе утро,"; below it Mont Bold 18 #010101 "Карим".
   - Right (24 px from edge): 24 px outline bell icon with red dot badge (#E61428, 6 px) when unread; tap → M11.
 - 24 px horizontal padding for the rest.
 - 16 px gap.
@@ -190,7 +190,7 @@ LAYOUT
   - "Продукт" → "КАСКО"
   - "Автомобиль" → "Chevrolet Cobalt 2020"
   - "Госномер" → "01 A 123 BB"
-  - "Страхователь" → "Алиев Одилхон"
+  - "Страхователь" → "Юсупов Карим"
   - "Водители" → "2 водителя"
   - "Период" → "12 мая 2026 — 11 мая 2027"
   - "Стоимость" → "3 240 000 сум"
