@@ -1,2 +1,81 @@
+# Claude / agent state
 .claude/
+
+# Private working files
 pdf/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.fleet/
+*.swp
+*.swo
+
+# React Native / Expo
+.expo/
+.expo-shared/
+expo-env.d.ts
+ios/Pods/
+android/.gradle/
+android/.idea/
+android/app/build/
+android/build/
+android/local.properties
+ios/build/
+ios/.xcode.env.local
+*.jks
+*.keystore
+*.mobileprovision
+*.p8
+*.p12
+
+# Next.js
+next-env.d.ts
+
+# NestJS
+dist/
+
+# Test / Coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Misc
+*.pem
+.eslintcache
+.stylelintcache
+.cache/
+.parcel-cache/

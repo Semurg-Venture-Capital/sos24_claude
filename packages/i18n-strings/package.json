@@ -1,0 +1,12 @@
+{
+  "name": "@sos24/i18n-strings",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Общие переводы для всех клиентов SOS24. 4 локали: uz-Latn, uz-Cyrl, ru, en.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./locales/*": "./src/locales/*.json"
+  }
+}

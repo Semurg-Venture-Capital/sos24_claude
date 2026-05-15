@@ -1,0 +1,18 @@
+{
+  "name": "@sos24/api-types",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Общие TypeScript типы для API SOS24. Генерируются из OpenAPI-схемы NestJS.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "echo 'TODO: openapi-typescript ../../apps/api/openapi.json -o ./src/generated.ts'",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

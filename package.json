@@ -1,0 +1,31 @@
+{
+  "name": "sos24",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SOS24 — автостраховая платформа (mobile + web + B2B + API). Монорепо.",
+  "packageManager": "pnpm@11.1.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:mobile": "turbo run dev --filter=mobile",
+    "dev:api": "turbo run dev --filter=api",
+    "dev:admin": "turbo run dev --filter=admin",
+    "dev:partner": "turbo run dev --filter=partner",
+    "dev:landing": "turbo run dev --filter=landing",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
+    "clean": "turbo run clean && rimraf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.6.0",
+    "rimraf": "^6.0.1"
+  }
+}

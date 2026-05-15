@@ -1,0 +1,19 @@
+{
+  "name": "@sos24/config-eslint",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Общие ESLint-конфиги для всех приложений SOS24 (Node, Next.js, React Native).",
+  "type": "module",
+  "exports": {
+    "./base": "./base.js",
+    "./next": "./next.js",
+    "./react-native": "./react-native.js",
+    "./node": "./node.js"
+  },
+  "files": [
+    "base.js",
+    "next.js",
+    "react-native.js",
+    "node.js"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "extends": "./base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "jsx": "react-jsx",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "noEmit": true,
+    "types": ["react-native", "jest"]
+  }
+}
