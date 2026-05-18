@@ -12,8 +12,10 @@ module.exports = function (api) {
       'babel-preset-expo',
     ],
     plugins: [
-      // react-native-reanimated/plugin must come last
-      'react-native-reanimated/plugin',
+      // Reanimated 4 переехал на отдельный пакет react-native-worklets.
+      // Babel-плагин теперь react-native-worklets/plugin (не react-native-reanimated/plugin).
+      // Должен быть последним в списке плагинов.
+      'react-native-worklets/plugin',
     ],
   };
 };
