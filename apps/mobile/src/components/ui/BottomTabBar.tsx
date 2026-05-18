@@ -1,6 +1,6 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
-import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
+import { GlassContainer, GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
@@ -18,18 +18,24 @@ const ICONS: Record<string, (active: boolean) => ReactNode> = {
   Profile: (active) => <TabIconUser active={active} color={active ? tokens.inkDark : 'rgba(20,20,20,0.32)'} />,
 };
 
-// iOS 26+ → Apple Liquid Glass, остальные → BlurView fallback.
 const USE_LIQUID_GLASS = isLiquidGlassAvailable();
 
-// Bottom tab — структура двух слоёв (как App Store iOS 26 и Telegram):
-//   1. Background layer (overflow:hidden, borderRadius:999) — glass-капсула
-//      округлой формы. ТОЛЬКО визуальный эффект, без детей.
-//   2. Tabs layer (overflow:visible) — табы поверх стекла. Может выходить
-//      за верхнюю границу бара при pop-анимации (scale + translateY).
+// Animated wrapper для GlassView — нужен чтобы transform.scale работал через
+// useNativeDriver. createAnimatedComponent оборачивает native-компонент.
+const AnimatedGlassView = Animated.createAnimatedComponent(GlassView);
+
+// Bottom tab bar.
+// ────────────────────────────────────────────────────────────────────────
+// Liquid Glass путь (iOS 26+):
+//   GlassContainer со spacing объединяет несколько GlassView в один
+//   «жидкий» пузырь — соседи мерджатся в общую форму, при scale одного
+//   из них «бар вытягивается» вокруг него → эффект как «лупа» в App Store.
+//   Каждый таб — отдельный GlassView, scale через Animated на нём.
 //
-// Без этого разделения было два конфликтующих требования: glass нужно
-// клипать к капсуле (иначе квадрат), но pop-таб нельзя клипать (иначе
-// обрезается). Решение — две независимые подсветки в общем родителе.
+// Fallback путь (Android / iOS < 26 / web):
+//   Single BlurView для всего бара + отдельный белый pop-индикатор
+//   под пальцем. Без morph-эффекта, но визуально приятно.
+// ────────────────────────────────────────────────────────────────────────
 export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
   const [barWidth, setBarWidth] = useState(0);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
@@ -94,36 +100,56 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
         shadowOpacity: 0.55,
         shadowRadius: 40,
         elevation: 12,
-        // overflow по умолчанию visible — pop-таб НЕ обрезается + тень
       }}
     >
-      {/* СЛОЙ 1: Glass-капсула. overflow:hidden даёт скруглённую форму. */}
-      <View
-        pointerEvents="none"
+      {USE_LIQUID_GLASS ? (
+        <LiquidGlassBar
+          routes={state.routes}
+          activeIndex={state.index}
+          previewIndex={previewIndex}
+        />
+      ) : (
+        <FallbackBar
+          routes={state.routes}
+          activeIndex={state.index}
+          previewIndex={previewIndex}
+        />
+      )}
+    </View>
+  );
+}
+
+interface BarProps {
+  routes: BottomTabBarProps['state']['routes'];
+  activeIndex: number;
+  previewIndex: number | null;
+}
+
+// ── Liquid Glass путь: каждый таб = отдельный GlassView внутри GlassContainer.
+// spacing управляет порогом слияния — при достаточном расстоянии соседи мерджатся
+// в единую форму. При scale одного из них бар «вытягивается» вокруг него (morph).
+function LiquidGlassBar({ routes, activeIndex, previewIndex }: BarProps) {
+  return (
+    <>
+      <GlassContainer
+        spacing={20}
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
+          flex: 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 6,
+          paddingVertical: 6,
+          gap: 4,
           borderRadius: 999,
-          overflow: 'hidden',
-          borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.5)',
         }}
       >
-        {USE_LIQUID_GLASS ? (
-          <GlassView glassEffectStyle="regular" style={{ flex: 1 }} />
-        ) : (
-          <BlurView
-            intensity={32}
-            tint="light"
-            style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)' }}
-          />
-        )}
-      </View>
+        {routes.map((route, i) => (
+          <GlassTabSegment key={route.key} preview={previewIndex === i} />
+        ))}
+      </GlassContainer>
 
-      {/* СЛОЙ 2: Табы поверх. БЕЗ overflow:hidden — pop виден над баром. */}
+      {/* Icons overlay поверх glass — одинаковая разметка как у GlassContainer,
+          табы-иконки центрированы над каждым glass-сегментом. */}
       <View
         pointerEvents="none"
         style={{
@@ -139,26 +165,116 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
           gap: 4,
         }}
       >
-        {state.routes.map((route, i) => (
-          <TabItem
+        {routes.map((route, i) => (
+          <View
+            key={route.key}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+          >
+            {ICONS[route.name]?.(activeIndex === i)}
+          </View>
+        ))}
+      </View>
+    </>
+  );
+}
+
+// Один glass-сегмент в bar'е. Scale во время preview → бар morph'ит через
+// GlassContainer-merge. translateY чуть приподнимает наружу.
+function GlassTabSegment({ preview }: { preview: boolean }) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: preview ? 1.25 : 1,
+      useNativeDriver: true,
+      friction: 6,
+      tension: 140,
+    }).start();
+    Animated.spring(translateY, {
+      toValue: preview ? -4 : 0,
+      useNativeDriver: true,
+      friction: 6,
+      tension: 140,
+    }).start();
+  }, [preview, scale, translateY]);
+
+  return (
+    <AnimatedGlassView
+      glassEffectStyle="regular"
+      isInteractive
+      style={{
+        flex: 1,
+        height: 56,
+        borderRadius: 999,
+        transform: [{ scale }, { translateY }],
+      }}
+    />
+  );
+}
+
+// ── Fallback (Android / web / старый iOS): один BlurView + pop-индикатор.
+function FallbackBar({ routes, activeIndex, previewIndex }: BarProps) {
+  return (
+    <>
+      {/* Background blur capsule */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          borderRadius: 999,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: 'rgba(255,255,255,0.5)',
+        }}
+      >
+        <BlurView
+          intensity={32}
+          tint="light"
+          style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)' }}
+        />
+      </View>
+
+      {/* Tabs with animated pop pill (без морфа) */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 6,
+          paddingVertical: 6,
+          gap: 4,
+        }}
+      >
+        {routes.map((route, i) => (
+          <FallbackTabItem
             key={route.key}
             routeName={route.name}
-            active={state.index === i}
+            active={activeIndex === i}
             preview={previewIndex === i}
           />
         ))}
       </View>
-    </View>
+    </>
   );
 }
 
-interface TabItemProps {
+interface FallbackTabItemProps {
   routeName: string;
   active: boolean;
   preview: boolean;
 }
 
-function TabItem({ routeName, active, preview }: TabItemProps) {
+function FallbackTabItem({ routeName, active, preview }: FallbackTabItemProps) {
   const scale = useRef(new Animated.Value(1)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const bgOpacity = useRef(new Animated.Value(0)).current;
@@ -183,8 +299,6 @@ function TabItem({ routeName, active, preview }: TabItemProps) {
     }).start();
   }, [preview, scale, translateY, bgOpacity]);
 
-  const iconFn = ICONS[routeName];
-
   return (
     <Animated.View
       pointerEvents="none"
@@ -196,7 +310,6 @@ function TabItem({ routeName, active, preview }: TabItemProps) {
         transform: [{ scale }, { translateY }],
       }}
     >
-      {/* Белая пилюля под пальцем — чисто белая для контраста на glass-фоне. */}
       <Animated.View
         style={{
           position: 'absolute',
@@ -214,7 +327,7 @@ function TabItem({ routeName, active, preview }: TabItemProps) {
           elevation: 4,
         }}
       />
-      {iconFn?.(active)}
+      {ICONS[routeName]?.(active)}
     </Animated.View>
   );
 }
