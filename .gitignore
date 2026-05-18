@@ -4,6 +4,9 @@
 # Private working files
 pdf/
 
+# Raw design archive (распакованная SOS24/ остаётся как референс)
+SOS24.zip
+
 # Dependencies
 node_modules/
 .pnpm-store/

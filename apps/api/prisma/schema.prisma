@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Locale {
+  uz_Latn
+  uz_Cyrl
+  ru
+  en
+}
+
+model User {
+  id          String    @id @default(cuid())
+  phone       String    @unique
+  name        String?
+  surname     String?
+  patronymic  String?
+  birthDate   DateTime? @db.Date
+  locale      Locale    @default(ru)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("users")
+}
