@@ -18,19 +18,18 @@ const ICONS: Record<string, (active: boolean) => ReactNode> = {
   Profile: (active) => <TabIconUser active={active} color={active ? tokens.inkDark : 'rgba(20,20,20,0.32)'} />,
 };
 
-// На iOS 26+ — Apple Liquid Glass; на остальных платформах BlurView fallback.
+// iOS 26+ → Apple Liquid Glass, остальные → BlurView fallback.
 const USE_LIQUID_GLASS = isLiquidGlassAvailable();
 
-// Bottom tab с pop-эффектом как в Telegram:
-// - tap или drag по бару → previewIndex отслеживает таб под пальцем
-// - таб под пальцем: scale 1.18 + translateY -8 + полупрозрачная пилюля
-// - до отпускания — preview, после release — navigate
+// Bottom tab — структура двух слоёв (как App Store iOS 26 и Telegram):
+//   1. Background layer (overflow:hidden, borderRadius:999) — glass-капсула
+//      округлой формы. ТОЛЬКО визуальный эффект, без детей.
+//   2. Tabs layer (overflow:visible) — табы поверх стекла. Может выходить
+//      за верхнюю границу бара при pop-анимации (scale + translateY).
 //
-// Структура (важно для корректного pop без клиппинга):
-// - Внешний View (shadow, position:absolute, overflow:visible) — НЕ клипает
-//   pop-таб, который выходит за верхнюю границу бара
-// - GlassView / BlurView с borderRadius:999 — округлая капсула через
-//   layer-level cornerRadius (без overflow:hidden, чтобы дети могли вылезать)
+// Без этого разделения было два конфликтующих требования: glass нужно
+// клипать к капсуле (иначе квадрат), но pop-таб нельзя клипать (иначе
+// обрезается). Решение — две независимые подсветки в общем родителе.
 export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
   const [barWidth, setBarWidth] = useState(0);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
@@ -80,30 +79,6 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
     setBarWidth(e.nativeEvent.layout.width);
   };
 
-  const tabs = state.routes.map((route, i) => (
-    <TabItem
-      key={route.key}
-      routeName={route.name}
-      active={state.index === i}
-      preview={previewIndex === i}
-    />
-  ));
-
-  // Стиль для glass/blur контейнера. borderRadius:999 округляет
-  // native-слой эффекта (UIVisualEffectView на iOS, BlurView на Android).
-  // overflow по умолчанию visible — pop-таб виден над верхней границей.
-  const innerStyle = {
-    flex: 1,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    paddingHorizontal: 6,
-    paddingVertical: 6,
-    gap: 4,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
-  };
-
   return (
     <View
       onLayout={onLayout}
@@ -114,29 +89,65 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
         right: 22,
         bottom: 22,
         height: 68,
-        borderRadius: 999,
-        // overflow по умолчанию visible — pop-эффект НЕ обрезается;
-        // тень iOS тоже видна без клиппинга.
         shadowColor: 'rgb(201,201,201)',
         shadowOffset: { width: 0, height: 24 },
         shadowOpacity: 0.55,
         shadowRadius: 40,
         elevation: 12,
+        // overflow по умолчанию visible — pop-таб НЕ обрезается + тень
       }}
     >
-      {USE_LIQUID_GLASS ? (
-        <GlassView glassEffectStyle="regular" isInteractive style={innerStyle}>
-          {tabs}
-        </GlassView>
-      ) : (
-        <BlurView
-          intensity={32}
-          tint="light"
-          style={{ ...innerStyle, backgroundColor: 'rgba(255,255,255,0.5)' }}
-        >
-          {tabs}
-        </BlurView>
-      )}
+      {/* СЛОЙ 1: Glass-капсула. overflow:hidden даёт скруглённую форму. */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          borderRadius: 999,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: 'rgba(255,255,255,0.5)',
+        }}
+      >
+        {USE_LIQUID_GLASS ? (
+          <GlassView glassEffectStyle="regular" style={{ flex: 1 }} />
+        ) : (
+          <BlurView
+            intensity={32}
+            tint="light"
+            style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)' }}
+          />
+        )}
+      </View>
+
+      {/* СЛОЙ 2: Табы поверх. БЕЗ overflow:hidden — pop виден над баром. */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 6,
+          paddingVertical: 6,
+          gap: 4,
+        }}
+      >
+        {state.routes.map((route, i) => (
+          <TabItem
+            key={route.key}
+            routeName={route.name}
+            active={state.index === i}
+            preview={previewIndex === i}
+          />
+        ))}
+      </View>
     </View>
   );
 }
@@ -147,7 +158,6 @@ interface TabItemProps {
   preview: boolean;
 }
 
-// Один таб с pop-анимацией. pointerEvents="none" — все жесты у родителя.
 function TabItem({ routeName, active, preview }: TabItemProps) {
   const scale = useRef(new Animated.Value(1)).current;
   const translateY = useRef(new Animated.Value(0)).current;
@@ -161,7 +171,7 @@ function TabItem({ routeName, active, preview }: TabItemProps) {
       tension: 140,
     }).start();
     Animated.spring(translateY, {
-      toValue: preview ? -8 : 0,
+      toValue: preview ? -6 : 0,
       useNativeDriver: true,
       friction: 6,
       tension: 140,
@@ -186,8 +196,7 @@ function TabItem({ routeName, active, preview }: TabItemProps) {
         transform: [{ scale }, { translateY }],
       }}
     >
-      {/* Фон-пилюля под пальцем. Высокая opacity для контраста на glass-фоне.
-          Лёгкая тень снизу даёт ощущение «приподнятости». */}
+      {/* Белая пилюля под пальцем — чисто белая для контраста на glass-фоне. */}
       <Animated.View
         style={{
           position: 'absolute',
