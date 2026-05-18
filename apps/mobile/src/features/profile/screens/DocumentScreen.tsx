@@ -7,11 +7,13 @@ import Svg, { Path } from 'react-native-svg';
 import { CalendarIcon } from '../../../components/icons/CalendarIcon';
 import { IconCamera } from '../../../components/icons/LineIcons';
 import { BackButton } from '../../../components/ui/BackButton';
+import { DismissKeyboardView } from '../../../components/ui/DismissKeyboardView';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { StatusPill } from '../../../components/ui/StatusPill';
 import { TextField } from '../../../components/ui/TextField';
+import { useKeyboardHeight } from '../../../lib/useKeyboardHeight';
 import { tokens } from '../../../theme/colors';
 import { MOCK_DOCUMENTS } from '../mockProfile';
 import type { ProfileStackParamList } from '../../../navigation/types';
@@ -28,6 +30,7 @@ const INFO_TEXT: Record<string, string> = {
 export function DocumentScreen() {
   const nav = useNavigation<Nav>();
   const route = useRoute<R>();
+  const kbHeight = useKeyboardHeight();
   const doc = MOCK_DOCUMENTS[route.params.kind];
   const isPassport = doc.kind === 'passport';
 
@@ -47,6 +50,7 @@ export function DocumentScreen() {
 
   return (
     <PhoneFrame>
+      <DismissKeyboardView>
       <View
         style={{
           flexDirection: 'row',
@@ -138,11 +142,12 @@ export function DocumentScreen() {
         </View>
       </ScrollView>
 
-      <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 }}>
+      <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 + kbHeight }}>
         <RedButton onPress={onSave} disabled={submitting}>
           {submitting ? 'Сохранение...' : 'Сохранить'}
         </RedButton>
       </View>
+      </DismissKeyboardView>
     </PhoneFrame>
   );
 }

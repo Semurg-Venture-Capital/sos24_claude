@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { IconSearch } from '../../../components/icons/LineIcons';
 import { BackButton } from '../../../components/ui/BackButton';
+import { DismissKeyboardView } from '../../../components/ui/DismissKeyboardView';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { TextField } from '../../../components/ui/TextField';
+import { useKeyboardHeight } from '../../../lib/useKeyboardHeight';
 import { tokens } from '../../../theme/colors';
 import { VEHICLE_TYPE_LABELS, getVehicleById, nappLookup } from '../mockGarage';
 import type { GarageStackParamList } from '../../../navigation/types';
@@ -19,6 +21,7 @@ type R = RouteProp<GarageStackParamList, 'GarageEdit'>;
 export function GarageEditScreen() {
   const nav = useNavigation<Nav>();
   const route = useRoute<R>();
+  const kbHeight = useKeyboardHeight();
   const existing = route.params?.id ? getVehicleById(route.params.id) : undefined;
 
   const [plate, setPlate] = useState(existing?.plate ?? '');
@@ -67,6 +70,7 @@ export function GarageEditScreen() {
 
   return (
     <PhoneFrame>
+      <DismissKeyboardView>
       <View
         style={{
           flexDirection: 'row',
@@ -211,11 +215,12 @@ export function GarageEditScreen() {
         </View>
       </ScrollView>
 
-      <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 }}>
+      <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 + kbHeight }}>
         <RedButton onPress={onSave} disabled={!canSubmit || submitting}>
           {submitting ? 'Сохранение...' : 'Сохранить'}
         </RedButton>
       </View>
+      </DismissKeyboardView>
     </PhoneFrame>
   );
 }

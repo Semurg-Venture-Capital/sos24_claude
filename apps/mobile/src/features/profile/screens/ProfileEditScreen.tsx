@@ -7,9 +7,11 @@ import { CalendarIcon } from '../../../components/icons/CalendarIcon';
 import { IconCamera } from '../../../components/icons/LineIcons';
 import { Avatar } from '../../../components/ui/Avatar';
 import { BackButton } from '../../../components/ui/BackButton';
+import { DismissKeyboardView } from '../../../components/ui/DismissKeyboardView';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
 import { TextField } from '../../../components/ui/TextField';
+import { useKeyboardHeight } from '../../../lib/useKeyboardHeight';
 import { tokens } from '../../../theme/colors';
 import { MOCK_USER } from '../mockProfile';
 import type { ProfileStackParamList } from '../../../navigation/types';
@@ -19,6 +21,7 @@ type Nav = NativeStackNavigationProp<ProfileStackParamList, 'ProfileEdit'>;
 // M2.2 — Редактирование профиля. Спецификация: SOS24_Mobile_Screens.md §M2.2.
 export function ProfileEditScreen() {
   const nav = useNavigation<Nav>();
+  const kbHeight = useKeyboardHeight();
   const [name, setName] = useState(MOCK_USER.name);
   const [surname, setSurname] = useState(MOCK_USER.surname);
   const [patronymic, setPatronymic] = useState(MOCK_USER.patronymic ?? '');
@@ -36,6 +39,7 @@ export function ProfileEditScreen() {
 
   return (
     <PhoneFrame>
+      <DismissKeyboardView>
       <View
         style={{
           flexDirection: 'row',
@@ -125,7 +129,7 @@ export function ProfileEditScreen() {
         </View>
       </ScrollView>
 
-      <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 }}>
+      <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 + kbHeight }}>
         <RedButton
           onPress={onSave}
           disabled={submitting || !name.trim() || !surname.trim()}
@@ -133,6 +137,7 @@ export function ProfileEditScreen() {
           {submitting ? 'Сохранение...' : 'Сохранить'}
         </RedButton>
       </View>
+      </DismissKeyboardView>
     </PhoneFrame>
   );
 }

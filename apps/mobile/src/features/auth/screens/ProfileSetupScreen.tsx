@@ -4,6 +4,7 @@ import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { updateProfile, type MeResponse } from '../../../api/auth';
 import { CalendarIcon } from '../../../components/icons/CalendarIcon';
 import { BackButton } from '../../../components/ui/BackButton';
+import { DismissKeyboardView } from '../../../components/ui/DismissKeyboardView';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
@@ -11,6 +12,7 @@ import { Segmented } from '../../../components/ui/Segmented';
 import { StepperBar } from '../../../components/ui/StepperBar';
 import { TextField } from '../../../components/ui/TextField';
 import { setLocale } from '../../../lib/i18n';
+import { useKeyboardHeight } from '../../../lib/useKeyboardHeight';
 import { useAuthStore } from '../../../stores/authStore';
 import { tokens } from '../../../theme/colors';
 
@@ -25,6 +27,7 @@ const LOCALES: Array<{ label: string; value: MeResponse['locale'] }> = [
 export function ProfileSetupScreen() {
   const { t } = useTranslation();
   const status = useAuthStore((s) => s.status);
+  const kbHeight = useKeyboardHeight();
 
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
@@ -63,6 +66,7 @@ export function ProfileSetupScreen() {
 
   return (
     <PhoneFrame>
+      <DismissKeyboardView>
       {/* Top: back button + stepper */}
       <View
         style={{
@@ -150,11 +154,12 @@ export function ProfileSetupScreen() {
         </View>
       </ScrollView>
 
-      <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 }}>
+      <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 + kbHeight }}>
         <RedButton onPress={onSubmit} disabled={!canSubmit || submitting}>
           {submitting ? <ActivityIndicator color="#fff" /> : t('auth.profileSetup.submit')}
         </RedButton>
       </View>
+      </DismissKeyboardView>
     </PhoneFrame>
   );
 }

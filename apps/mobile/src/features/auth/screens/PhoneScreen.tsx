@@ -6,10 +6,12 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { requestOtp } from '../../../api/auth';
 import { UzFlag } from '../../../components/icons/UzFlag';
 import { BackButton } from '../../../components/ui/BackButton';
+import { DismissKeyboardView } from '../../../components/ui/DismissKeyboardView';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { TextField } from '../../../components/ui/TextField';
+import { useKeyboardHeight } from '../../../lib/useKeyboardHeight';
 import { tokens } from '../../../theme/colors';
 import type { AuthStackParamList } from '../../../navigation/types';
 
@@ -34,6 +36,7 @@ function formatPhone(digits: string): string {
 export function PhoneScreen() {
   const nav = useNavigation<Nav>();
   const { t } = useTranslation();
+  const kbHeight = useKeyboardHeight();
   const [digits, setDigits] = useState('');
   const [focused, setFocused] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -58,59 +61,63 @@ export function PhoneScreen() {
 
   return (
     <PhoneFrame>
-      {/* Back button row */}
-      <View
-        style={{
-          position: 'absolute',
-          top: 56,
-          left: 24,
-          right: 24,
-          flexDirection: 'row',
-          alignItems: 'center',
-          zIndex: 3,
-        }}
-      >
-        <BackButton onPress={() => nav.goBack()} />
-      </View>
-
-      {/* Content */}
-      <View style={{ position: 'absolute', top: 140, left: 24, right: 24, gap: 32 }}>
-        <ScreenHeading
-          title={t('auth.phone.title')}
-          subtitle={t('auth.phone.subtitle')}
-        />
-        <TextField
-          label={t('auth.phone.label') as string}
-          value={formatPhone(digits)}
-          onChangeText={(text) => {
-            const onlyDigits = text.replace(/\D/g, '').slice(0, 9);
-            setDigits(onlyDigits);
+      <DismissKeyboardView>
+        {/* Back button row */}
+        <View
+          style={{
+            position: 'absolute',
+            top: 56,
+            left: 24,
+            right: 24,
+            flexDirection: 'row',
+            alignItems: 'center',
+            zIndex: 3,
           }}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          focused={focused}
-          error={!!error}
-          hint={error ?? undefined}
-          keyboardType="phone-pad"
-          placeholder="(XX) XXX-XX-XX"
-          prefix={
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <UzFlag />
-              <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 17, color: tokens.inkDark }}>
-                +998
-              </Text>
-              <View style={{ width: 1, height: 22, backgroundColor: tokens.hairline, marginLeft: 4, marginRight: 4 }} />
-            </View>
-          }
-        />
-      </View>
+        >
+          <BackButton onPress={() => nav.goBack()} />
+        </View>
 
-      {/* Submit */}
-      <View style={{ position: 'absolute', left: 24, right: 24, bottom: 64 }}>
-        <RedButton onPress={onSubmit} disabled={!valid || submitting}>
-          {submitting ? <ActivityIndicator color="#fff" /> : t('auth.phone.submit')}
-        </RedButton>
-      </View>
+        {/* Content */}
+        <View style={{ position: 'absolute', top: 140, left: 24, right: 24, gap: 32 }}>
+          <ScreenHeading
+            title={t('auth.phone.title')}
+            subtitle={t('auth.phone.subtitle')}
+          />
+          <TextField
+            label={t('auth.phone.label') as string}
+            value={formatPhone(digits)}
+            onChangeText={(text) => {
+              const onlyDigits = text.replace(/\D/g, '').slice(0, 9);
+              setDigits(onlyDigits);
+            }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            focused={focused}
+            error={!!error}
+            hint={error ?? undefined}
+            keyboardType="phone-pad"
+            returnKeyType="done"
+            onSubmitEditing={onSubmit}
+            placeholder="(XX) XXX-XX-XX"
+            prefix={
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <UzFlag />
+                <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 17, color: tokens.inkDark }}>
+                  +998
+                </Text>
+                <View style={{ width: 1, height: 22, backgroundColor: tokens.hairline, marginLeft: 4, marginRight: 4 }} />
+              </View>
+            }
+          />
+        </View>
+
+        {/* Submit — поднимается над клавиатурой */}
+        <View style={{ position: 'absolute', left: 24, right: 24, bottom: 64 + kbHeight }}>
+          <RedButton onPress={onSubmit} disabled={!valid || submitting}>
+            {submitting ? <ActivityIndicator color="#fff" /> : t('auth.phone.submit')}
+          </RedButton>
+        </View>
+      </DismissKeyboardView>
     </PhoneFrame>
   );
 }
