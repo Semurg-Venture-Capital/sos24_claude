@@ -1,8 +1,13 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
-import type { ReactNode } from 'react';
-import { Pressable, View } from 'react-native';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import {
+  type LayoutChangeEvent,
+  PanResponder,
+  Pressable,
+  View,
+} from 'react-native';
 import { TabIconCar, TabIconHome, TabIconShield, TabIconUser } from '../icons/TabIcons';
 import { tokens } from '../../theme/colors';
 
@@ -14,14 +19,48 @@ const ICONS: Record<string, (active: boolean) => ReactNode> = {
 };
 
 // На iOS 26+ доступна Liquid Glass API от Apple — рендерится через UIVisualEffectView
-// с эффектом, как в iOS 26 системных tab bar / Control Center. Проверяем
-// доступность на этапе рендера: если поддерживается — используем GlassView,
-// иначе fallback на BlurView (старые iOS, Android, web).
+// (как в системных tab bar / Control Center). На остальных платформах fallback на BlurView.
 const USE_LIQUID_GLASS = isLiquidGlassAvailable();
 
-// Кастомный bottom-tab бар: glass-капсула 68px высотой, активный таб — белая
-// pill внутри. Эталон: SOS24/sos-system.jsx → BottomTabBar.
+// Bottom-tab бар: glass-капсула 68px высотой. Активный таб отличается заливкой
+// иконки (TabIcons автоматически filled на active). Поверх — PanResponder:
+// тап → обычная навигация через Pressable, слайд пальцем по бару → меняет
+// табы в реальном времени (как iOS-segment scrubber).
 export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
+  const [barWidth, setBarWidth] = useState(0);
+  const numTabs = state.routes.length;
+
+  const navigateByX = useCallback(
+    (x: number) => {
+      if (barWidth <= 0) return;
+      const idx = Math.min(numTabs - 1, Math.max(0, Math.floor((x / barWidth) * numTabs)));
+      const target = state.routes[idx];
+      if (target && state.index !== idx) {
+        navigation.navigate(target.name);
+      }
+    },
+    [barWidth, numTabs, state.index, state.routes, navigation],
+  );
+
+  // PanResponder активируется только при движении пальца > 4px,
+  // чтобы тапы (без drag) проходили через дочерние Pressable.
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onStartShouldSetPanResponderCapture: () => false,
+        onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 4,
+        onMoveShouldSetPanResponderCapture: (_, gesture) => Math.abs(gesture.dx) > 4,
+        onPanResponderGrant: (e) => navigateByX(e.nativeEvent.locationX),
+        onPanResponderMove: (e) => navigateByX(e.nativeEvent.locationX),
+      }),
+    [navigateByX],
+  );
+
+  const onLayout = (e: LayoutChangeEvent) => {
+    setBarWidth(e.nativeEvent.layout.width);
+  };
+
   const tabs = state.routes.map((route, i) => {
     const active = state.index === i;
     const iconFn = ICONS[route.name];
@@ -35,7 +74,7 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
           borderRadius: 999,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: active ? 'rgba(255,255,255,0.92)' : 'transparent',
+          backgroundColor: 'transparent', // выбранный таб больше не подсвечивается белой плиткой
         }}
       >
         {iconFn?.(active)}
@@ -55,6 +94,8 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
 
   return (
     <View
+      onLayout={onLayout}
+      {...panResponder.panHandlers}
       style={{
         position: 'absolute',
         left: 22,
@@ -71,11 +112,7 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
       }}
     >
       {USE_LIQUID_GLASS ? (
-        <GlassView
-          glassEffectStyle="regular"
-          isInteractive
-          style={innerStyle}
-        >
+        <GlassView glassEffectStyle="regular" isInteractive style={innerStyle}>
           {tabs}
         </GlassView>
       ) : (
