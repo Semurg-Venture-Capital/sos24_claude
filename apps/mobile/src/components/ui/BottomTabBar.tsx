@@ -18,15 +18,19 @@ const ICONS: Record<string, (active: boolean) => ReactNode> = {
   Profile: (active) => <TabIconUser active={active} color={active ? tokens.inkDark : 'rgba(20,20,20,0.32)'} />,
 };
 
-// На iOS 26+ доступен Apple Liquid Glass — UIVisualEffectView с эффектом
-// из системного tab bar / Control Center. На остальных платформах fallback BlurView.
+// На iOS 26+ — Apple Liquid Glass; на остальных платформах BlurView fallback.
 const USE_LIQUID_GLASS = isLiquidGlassAvailable();
 
-// Bottom-tab бар с pop-эффектом по типу Telegram:
-// - tap/drag по бару → previewIndex обновляется, под пальцем таб увеличивается
-//   и поднимается вверх с полупрозрачной пилюлей-фоном
-// - на отпускании пальца — navigate на тот таб, на котором палец завершил жест
-// - до отпускания таб не переключается (preview не равен navigation state.index)
+// Bottom tab с pop-эффектом как в Telegram:
+// - tap или drag по бару → previewIndex отслеживает таб под пальцем
+// - таб под пальцем: scale 1.18 + translateY -8 + полупрозрачная пилюля
+// - до отпускания — preview, после release — navigate
+//
+// Структура (важно для корректного pop без клиппинга):
+// - Внешний View (shadow, position:absolute, overflow:visible) — НЕ клипает
+//   pop-таб, который выходит за верхнюю границу бара
+// - GlassView / BlurView с borderRadius:999 — округлая капсула через
+//   layer-level cornerRadius (без overflow:hidden, чтобы дети могли вылезать)
 export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
   const [barWidth, setBarWidth] = useState(0);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
@@ -52,8 +56,6 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
     [xToIndex, navigation, state.index, state.routes],
   );
 
-  // PanResponder перехватывает все жесты на баре (включая обычный tap).
-  // Дочерние tab-айтемы имеют pointerEvents="none", так что не претендуют на жесты.
   const panResponder = useMemo(
     () =>
       PanResponder.create({
@@ -87,12 +89,17 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
     />
   ));
 
+  // Стиль для glass/blur контейнера. borderRadius:999 округляет
+  // native-слой эффекта (UIVisualEffectView на iOS, BlurView на Android).
+  // overflow по умолчанию visible — pop-таб виден над верхней границей.
   const innerStyle = {
     flex: 1,
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    padding: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
     gap: 4,
+    borderRadius: 999,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.5)',
   };
@@ -108,6 +115,8 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
         bottom: 22,
         height: 68,
         borderRadius: 999,
+        // overflow по умолчанию visible — pop-эффект НЕ обрезается;
+        // тень iOS тоже видна без клиппинга.
         shadowColor: 'rgb(201,201,201)',
         shadowOffset: { width: 0, height: 24 },
         shadowOpacity: 0.55,
@@ -115,24 +124,19 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
         elevation: 12,
       }}
     >
-      {/* overflow:visible на внешнем View, чтобы pop'нутый таб не подрезался
-          по верхнему краю при scale > 1 и translateY < 0. Glass-обёртка
-          внутри имеет overflow:hidden — округлая капсула без артефактов. */}
-      <View style={{ flex: 1, borderRadius: 999, overflow: 'hidden' }}>
-        {USE_LIQUID_GLASS ? (
-          <GlassView glassEffectStyle="regular" isInteractive style={innerStyle}>
-            {tabs}
-          </GlassView>
-        ) : (
-          <BlurView
-            intensity={32}
-            tint="light"
-            style={{ ...innerStyle, backgroundColor: 'rgba(255,255,255,0.5)' }}
-          >
-            {tabs}
-          </BlurView>
-        )}
-      </View>
+      {USE_LIQUID_GLASS ? (
+        <GlassView glassEffectStyle="regular" isInteractive style={innerStyle}>
+          {tabs}
+        </GlassView>
+      ) : (
+        <BlurView
+          intensity={32}
+          tint="light"
+          style={{ ...innerStyle, backgroundColor: 'rgba(255,255,255,0.5)' }}
+        >
+          {tabs}
+        </BlurView>
+      )}
     </View>
   );
 }
@@ -143,8 +147,7 @@ interface TabItemProps {
   preview: boolean;
 }
 
-// Один таб: иконка + анимированный pop-эффект во время preview.
-// pointerEvents="none" — жесты захватываются внешним PanResponder.
+// Один таб с pop-анимацией. pointerEvents="none" — все жесты у родителя.
 function TabItem({ routeName, active, preview }: TabItemProps) {
   const scale = useRef(new Animated.Value(1)).current;
   const translateY = useRef(new Animated.Value(0)).current;
@@ -152,20 +155,20 @@ function TabItem({ routeName, active, preview }: TabItemProps) {
 
   useEffect(() => {
     Animated.spring(scale, {
-      toValue: preview ? 1.22 : 1,
+      toValue: preview ? 1.18 : 1,
       useNativeDriver: true,
       friction: 6,
-      tension: 120,
+      tension: 140,
     }).start();
     Animated.spring(translateY, {
-      toValue: preview ? -6 : 0,
+      toValue: preview ? -8 : 0,
       useNativeDriver: true,
       friction: 6,
-      tension: 120,
+      tension: 140,
     }).start();
     Animated.timing(bgOpacity, {
       toValue: preview ? 1 : 0,
-      duration: 140,
+      duration: 160,
       useNativeDriver: true,
     }).start();
   }, [preview, scale, translateY, bgOpacity]);
@@ -178,13 +181,13 @@ function TabItem({ routeName, active, preview }: TabItemProps) {
       style={{
         flex: 1,
         height: 56,
-        borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
         transform: [{ scale }, { translateY }],
       }}
     >
-      {/* Полупрозрачная пилюля под пальцем (только во время preview) */}
+      {/* Фон-пилюля под пальцем. Высокая opacity для контраста на glass-фоне.
+          Лёгкая тень снизу даёт ощущение «приподнятости». */}
       <Animated.View
         style={{
           position: 'absolute',
@@ -193,8 +196,13 @@ function TabItem({ routeName, active, preview }: TabItemProps) {
           right: 0,
           bottom: 0,
           borderRadius: 999,
-          backgroundColor: 'rgba(255,255,255,0.6)',
+          backgroundColor: '#ffffff',
           opacity: bgOpacity,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.18,
+          shadowRadius: 10,
+          elevation: 4,
         }}
       />
       {iconFn?.(active)}
