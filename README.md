@@ -110,17 +110,35 @@ pnpm --filter mobile run web
 Нужен **телефон и компьютер в одной Wi-Fi сети** (или VPN, который их объединяет).
 
 1. Установи Expo Go на телефон ([Play Market](https://play.google.com/store/apps/details?id=host.exp.exponent) / [App Store](https://apps.apple.com/app/expo-go/id982107779))
-2. На компьютере запусти:
+2. На компьютере запусти **в LAN-режиме** (Metro привязывается к 0.0.0.0 и в QR кладёт LAN-IP компа, а не 127.0.0.1):
    ```powershell
+   pnpm --filter mobile run lan
+   # или с очисткой кэша Metro:
+   pnpm --filter mobile run lan:clear
+   # короче через корневой скрипт:
    pnpm dev:mobile
    ```
 3. Появится QR-код в терминале — отсканируй из Expo Go (Android) или Камеры (iOS).
 
+> **Хочешь конкретный IP** (например, если у компа несколько сетей и Expo выбирает не тот): задай переменную перед запуском:
+> ```powershell
+> # Windows PowerShell:
+> $env:REACT_NATIVE_PACKAGER_HOSTNAME = "192.168.1.42"; pnpm --filter mobile run lan
+> # macOS / Linux:
+> REACT_NATIVE_PACKAGER_HOSTNAME=192.168.1.42 pnpm --filter mobile run lan
+> ```
+> IP компа узнаёшь через `ipconfig` (Windows) или `ifconfig` / `ipconfig getifaddr en0` (macOS).
+
 **Если телефон и компьютер не в одной сети** (например, ты на RDP) — используй tunnel:
 ```powershell
-pnpm --filter mobile exec expo start --tunnel
+pnpm --filter mobile run tunnel
 ```
 Это пробросит Metro через серверы Expo, можно подключаться откуда угодно. **Backend в этом режиме недоступен** — увидишь только дизайн, авторизация и API-вызовы не будут работать. Для полного флоу с бэком нужна общая сеть.
+
+**Только локальные тесты на этой машине** (например, iOS-симулятор на этом же Mac):
+```powershell
+pnpm --filter mobile run localhost
+```
 
 > **Первый запуск** Metro может пересобирать кеш ~30 секунд. Не пугайся.
 
