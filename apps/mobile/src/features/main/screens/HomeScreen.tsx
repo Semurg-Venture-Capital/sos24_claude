@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScrollView, Text, View } from 'react-native';
 import { IconBell } from '../../../components/icons/IconBell';
 import { IconBurger } from '../../../components/icons/IconBurger';
@@ -22,6 +24,9 @@ import { SosBanner } from '../../../components/ui/SosBanner';
 import { SosLogo } from '../../../components/ui/SosLogo';
 import { TopBar } from '../../../components/ui/TopBar';
 import { tokens } from '../../../theme/colors';
+import type { MainStackParamList } from '../../../navigation/types';
+
+type RootNav = NativeStackNavigationProp<MainStackParamList>;
 
 // TODO: mock-данные — заменить на /me/policies и /partners когда подключим API.
 const MOCK_POLICIES = [
@@ -48,6 +53,24 @@ function greetingByHour(hour: number): string {
 // Эталон: SOS24/screens.jsx → ScreenHomeV2.
 export function HomeScreen() {
   const greeting = greetingByHour(new Date().getHours());
+  const nav = useNavigation();
+
+  // Purchase-стек живёт на уровне MainStack (sibling к Tabs).
+  // Используем getParent() для надёжного перехода — useNavigation() внутри
+  // HomeScreen возвращает navigation таба, а Purchase route на уровне выше.
+  const openCatalog = () => {
+    const root = nav.getParent<RootNav>();
+    if (root) {
+      root.navigate('Purchase', { screen: 'Catalog' });
+    }
+  };
+
+  const openProduct = (type: 'osago' | 'kasko') => {
+    const root = nav.getParent<RootNav>();
+    if (root) {
+      root.navigate('Purchase', { screen: 'ProductDetail', params: { type } });
+    }
+  };
 
   return (
     <PhoneFrame>
@@ -129,7 +152,7 @@ export function HomeScreen() {
                   warn={p.warn}
                 />
               ))}
-              <AddPolicyTile />
+              <AddPolicyTile onPress={openCatalog} />
             </HScroll>
           </View>
 
@@ -143,8 +166,17 @@ export function HomeScreen() {
             <SectionRow title="Быстрые действия" />
             <View style={{ paddingHorizontal: 24, gap: 10 }}>
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <ActionTile dark icon={<QuickIconOSAGO />} label="Оформить ОСАГО" />
-                <ActionTile icon={<QuickIconKASKO />} label="Оформить КАСКО" />
+                <ActionTile
+                  dark
+                  icon={<QuickIconOSAGO />}
+                  label="Оформить ОСАГО"
+                  onPress={() => openProduct('osago')}
+                />
+                <ActionTile
+                  icon={<QuickIconKASKO />}
+                  label="Оформить КАСКО"
+                  onPress={() => openProduct('kasko')}
+                />
               </View>
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <ActionTile icon={<QuickIconCommissar />} label={'Вызвать\nкомиссара'} />
