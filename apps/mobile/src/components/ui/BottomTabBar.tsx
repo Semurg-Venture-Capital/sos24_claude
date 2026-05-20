@@ -1,6 +1,7 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import {
+  GlassContainer,
   GlassView,
   isGlassEffectAPIAvailable,
   isLiquidGlassAvailable,
@@ -23,7 +24,6 @@ const ICONS: Record<string, (active: boolean) => ReactNode> = {
   Profile: (active) => <TabIconUser active={active} color={active ? tokens.inkDark : 'rgba(20,20,20,0.32)'} />,
 };
 
-// Двойная проверка для iOS 26 beta-стабильности.
 let USE_LIQUID_GLASS = false;
 try {
   USE_LIQUID_GLASS = isLiquidGlassAvailable() && isGlassEffectAPIAvailable();
@@ -31,19 +31,27 @@ try {
   USE_LIQUID_GLASS = false;
 }
 
+// AnimatedGlassView через Reanimated (createAnimatedComponent) — нужно чтобы
+// transform.scale работал на native GlassView. Reanimated 4 (babel-плагин
+// react-native-worklets/plugin).
+const AnimatedGlassView = Animated.createAnimatedComponent(GlassView);
+
 const HORIZONTAL_PADDING = 6;
 const GAP = 4;
 const BAR_HEIGHT = 68;
 const TAB_HEIGHT = 56;
+const PREVIEW_SCALE = 1.16;
 
-// Bottom tab. Структура двух слоёв:
-//   1. Background: GlassView (iOS 26+) или BlurView, клиппинг к капсуле
-//   2. Tabs: ряд табов поверх, каждый со своей pop-анимацией (Reanimated)
-//      без клиппинга, чтобы pop мог приподниматься над баром
+// Bottom tab bar.
+// ───────────────────────────────────────────────────────────
+// Liquid Glass путь (iOS 26+):
+//   GlassContainer (flex-layout, как в доке expo-glass-effect) содержит N
+//   GlassView — по одному на таб, каждый с фиксированной шириной.
+//   spacing мерджит соседей в единую жидкую форму → визуально цельный бар.
+//   При preview таб scale'ится → бар «вытягивается» вокруг него (morph-лупа).
 //
-// GlassContainer с merge-эффектом пока не используется — он плохо ладит
-// с absolute-позиционированными детьми (HostFunction exception). Морф можно
-// добавить позже отдельной задачей через flex-layout детей.
+// Fallback (Android / iOS<26 / web): BlurView капсула + per-tab pop-пилюля.
+// ───────────────────────────────────────────────────────────
 export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
   const [barWidth, setBarWidth] = useState(0);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
@@ -93,6 +101,12 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
     setBarWidth(e.nativeEvent.layout.width);
   };
 
+  // Ширина одного таба внутри GlassContainer (flex-layout требует явные размеры).
+  const tabWidth =
+    barWidth > 0
+      ? (barWidth - 2 * HORIZONTAL_PADDING - (numTabs - 1) * GAP) / numTabs
+      : 0;
+
   return (
     <View
       onLayout={onLayout}
@@ -110,7 +124,161 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
         elevation: 12,
       }}
     >
-      {/* Слой 1: фон-капсула (glass или blur, клиппинг для скругления) */}
+      {USE_LIQUID_GLASS && tabWidth > 0 ? (
+        <LiquidGlassBar
+          routes={state.routes}
+          activeIndex={state.index}
+          previewIndex={previewIndex}
+          tabWidth={tabWidth}
+        />
+      ) : (
+        <FallbackBar
+          routes={state.routes}
+          activeIndex={state.index}
+          previewIndex={previewIndex}
+        />
+      )}
+    </View>
+  );
+}
+
+interface LiquidBarProps {
+  routes: BottomTabBarProps['state']['routes'];
+  activeIndex: number;
+  previewIndex: number | null;
+  tabWidth: number;
+}
+
+// ── Liquid Glass: N glass-табов в одном GlassContainer (flex row, sized children).
+function LiquidGlassBar({ routes, activeIndex, previewIndex, tabWidth }: LiquidBarProps) {
+  return (
+    <>
+      <GlassContainer
+        spacing={16}
+        style={{
+          flex: 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: HORIZONTAL_PADDING,
+          gap: GAP,
+        }}
+      >
+        {routes.map((route, i) => (
+          <GlassTab key={route.key} width={tabWidth} preview={previewIndex === i} />
+        ))}
+      </GlassContainer>
+
+      {/* Иконки — overlay поверх стекла, та же flex-разметка. */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: HORIZONTAL_PADDING,
+          gap: GAP,
+        }}
+      >
+        {routes.map((route, i) => (
+          <IconSlot
+            key={route.key}
+            routeName={route.name}
+            active={activeIndex === i}
+            preview={previewIndex === i}
+          />
+        ))}
+      </View>
+    </>
+  );
+}
+
+// Один glass-таб. При preview scale'ится — GlassContainer пере-мерджит соседей,
+// бар «вытягивается» вокруг увеличенного таба.
+function GlassTab({ width, preview }: { width: number; preview: boolean }) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withSpring(preview ? PREVIEW_SCALE : 1, {
+      damping: 13,
+      stiffness: 210,
+      mass: 0.8,
+    });
+  }, [preview, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <AnimatedGlassView
+      glassEffectStyle="regular"
+      isInteractive
+      style={[
+        { width, height: TAB_HEIGHT, borderRadius: TAB_HEIGHT / 2 },
+        animatedStyle,
+      ]}
+    />
+  );
+}
+
+// Иконка таба в overlay. Скейлится синхронно с glass-табом.
+function IconSlot({
+  routeName,
+  active,
+  preview,
+}: {
+  routeName: string;
+  active: boolean;
+  preview: boolean;
+}) {
+  const scale = useSharedValue(1);
+  const translateY = useSharedValue(0);
+
+  useEffect(() => {
+    scale.value = withSpring(preview ? PREVIEW_SCALE : 1, {
+      damping: 13,
+      stiffness: 210,
+      mass: 0.8,
+    });
+    translateY.value = withSpring(preview ? -2 : 0, {
+      damping: 13,
+      stiffness: 210,
+      mass: 0.8,
+    });
+  }, [preview, scale, translateY]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }, { translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        { flex: 1, height: TAB_HEIGHT, alignItems: 'center', justifyContent: 'center' },
+        animatedStyle,
+      ]}
+    >
+      {ICONS[routeName]?.(active)}
+    </Animated.View>
+  );
+}
+
+interface FallbackBarProps {
+  routes: BottomTabBarProps['state']['routes'];
+  activeIndex: number;
+  previewIndex: number | null;
+}
+
+// ── Fallback (Android / web / iOS<26): BlurView + per-tab pop-пилюля.
+function FallbackBar({ routes, activeIndex, previewIndex }: FallbackBarProps) {
+  return (
+    <>
       <View
         pointerEvents="none"
         style={{
@@ -125,18 +293,13 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
           borderColor: 'rgba(255,255,255,0.5)',
         }}
       >
-        {USE_LIQUID_GLASS ? (
-          <GlassView glassEffectStyle="regular" style={{ flex: 1 }} />
-        ) : (
-          <BlurView
-            intensity={32}
-            tint="light"
-            style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)' }}
-          />
-        )}
+        <BlurView
+          intensity={32}
+          tint="light"
+          style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)' }}
+        />
       </View>
 
-      {/* Слой 2: табы поверх — не клипуются, pop может приподниматься выше бара */}
       <View
         pointerEvents="none"
         style={{
@@ -148,30 +311,31 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
           flexDirection: 'row',
           alignItems: 'center',
           paddingHorizontal: HORIZONTAL_PADDING,
-          paddingVertical: 6,
           gap: GAP,
         }}
       >
-        {state.routes.map((route, i) => (
-          <TabItem
+        {routes.map((route, i) => (
+          <FallbackTabItem
             key={route.key}
             routeName={route.name}
-            active={state.index === i}
+            active={activeIndex === i}
             preview={previewIndex === i}
           />
         ))}
       </View>
-    </View>
+    </>
   );
 }
 
-interface TabItemProps {
+function FallbackTabItem({
+  routeName,
+  active,
+  preview,
+}: {
   routeName: string;
   active: boolean;
   preview: boolean;
-}
-
-function TabItem({ routeName, active, preview }: TabItemProps) {
+}) {
   const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
   const bgOpacity = useSharedValue(0);
@@ -194,16 +358,10 @@ function TabItem({ routeName, active, preview }: TabItemProps) {
     <Animated.View
       pointerEvents="none"
       style={[
-        {
-          flex: 1,
-          height: TAB_HEIGHT,
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
+        { flex: 1, height: TAB_HEIGHT, alignItems: 'center', justifyContent: 'center' },
         containerStyle,
       ]}
     >
-      {/* Белая пилюля под пальцем — высокий контраст на glass-фоне */}
       <Animated.View
         style={[
           {
