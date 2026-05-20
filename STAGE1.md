@@ -2,13 +2,13 @@
 
 > Журнал реальных работ Этапа 1. Что сделано, что отложено, где остановились, как продолжить.
 >
-> **Последнее обновление:** 2026-05-18
+> **Последнее обновление:** 2026-05-20
 
 ---
 
 ## Где остановились
 
-После окончания C12 (Профиль + Гараж) есть полный визуальный прототип основного флоу:
+Полный визуальный прототип основного флоу (C1–C12) + пакет фиксов после тестов на Expo Go + начат гибридный заход на нативность iOS:
 
 ```
 Логин → Онбординг → Авторизация (OTP=6330) → Home →
@@ -21,6 +21,10 @@
 ```
 
 Всё фронтенд работает на mock-данных. Backend имеет только модуль авторизации (OTP=6330) + модель `User`. Остального бэка — нет.
+
+**Активные ветки git:**
+- `main` — рабочая, совместима с Expo Go. Кастомный bottom tab bar с Liquid Glass (`expo-glass-effect`) + Reanimated pop-анимация + swipe-to-switch. Морф-«капельки» нет.
+- `feat/native-tabs` — переход на **нативный** `UITabBarController` (iOS 26 Liquid Glass от Apple). Готова, но **требует dev build** — Expo Go несовместим (см. ниже). Не смержена в main намеренно.
 
 ---
 
@@ -60,6 +64,33 @@
 - **Secure store:** `expo-secure-store` на web → AsyncStorage fallback (нативные модули SecureStore не работают в web).
 - **Modal navigation:** `presentation: 'modal'` для PurchaseStack — на native снизу, на web → обычный push (react-native-web модальные стеки рендерит криво).
 - **Prisma 6, не 7** — v7 ESM-only, несовместим с CommonJS NestJS. Зафиксировано в `[[reference-prisma-version]]`.
+
+### Пакет фиксов после тестов на Expo Go (2026-05-18 — 2026-05-20)
+- **Prisma postinstall** — `apps/api/package.json` получил `postinstall: prisma generate`, иначе на свежем clone типы `@prisma/client` пустые.
+- **NativeWind JSX-wrapper отключён** — `jsxImportSource: 'nativewind'` и `nativewind/babel` убраны из `babel.config.js`. Wrapper ломал inline-`style` функции на `Pressable` в Expo Go iOS (контейнер-стили не применялись). `className` в проекте нигде не используется — потерь нет; Tailwind-токены остаются справочником в `tailwind.config.js` / `theme/colors.ts`.
+- **Expo `--lan` режим** — скрипты `lan` / `lan:clear` / `localhost` / `tunnel` в `apps/mobile/package.json`. Metro биндится к LAN-IP, не 127.0.0.1.
+- **Клавиатура** — `DismissKeyboardView` (тап вне поля закрывает) + `useKeyboardHeight` (bottom-кнопка поднимается над клавиатурой) на всех формах: Phone, ProfileSetup, ProfileEdit, Document, GarageEdit.
+- **Home quick-actions** — навигация «Оформить ОСАГО/КАСКО» / AddPolicyTile была потеряна, восстановлена через `getParent()` (Purchase route на уровне MainStack).
+- **Reanimated 4** — babel-плагин `react-native-reanimated/plugin` → `react-native-worklets/plugin` (Reanimated 4 вынес worklets в отдельный пакет `react-native-worklets`). Без этого — краш `Exception in HostFunction: NativeWorklets`.
+- **Liquid Glass на bottom tab bar** — добавлен `expo-glass-effect`. На `main` — кастомный бар с `GlassView` (iOS 26+) / `BlurView` fallback. Морф-«капелька» как в App Store **не получилась** на кастомных GlassView (merge считается по layout-bounds, не transform) → решено перейти на нативный таб-бар (ветка `feat/native-tabs`).
+
+### Ветка `feat/native-tabs` — нативный iOS tab bar
+Решение (с согласия дизайнера): отказаться от кастомной плавающей капсулы в пользу **родного `UITabBarController`** — на iOS 26 он сам даёт Liquid Glass + морфинг от Apple.
+- `react-native-screens` 4.16 → **4.25.1** (требование native bottom tabs)
+- `MainNavigator` → `createNativeBottomTabNavigator` из `@react-navigation/bottom-tabs/unstable`
+- Иконки — SF Symbols (`house`/`shield`/`car`/`person`)
+- Кастомный `BottomTabBar.tsx` удалён
+- `eas.json` с профилем `development`
+- **Expo Go несовместим** — после апгрейда `react-native-screens` нужен dev build. Поэтому ветка отдельная, в `main` не мержена.
+- TODO: SF Symbols на Android не рендерятся — нужны PNG-иконки табов.
+
+### Подход к нативности — «гибрид точечно» (зафиксировано 2026-05-20)
+Кастомный дизайн SOS24 остаётся на RN. Нативные компоненты — **только точечно**, где они объективно лучше и не конфликтуют с брендом. Roadmap:
+- **H1 — нативный date picker** (`@react-native-community/datetimepicker`) — даты рождения/выдачи/периода. Сейчас текстовый ввод `ГГГГ-ММ-ДД`.
+- **H2 — haptics** (`expo-haptics`) — отклик при свайпе табов, успехе оплаты, ошибке OTP.
+- **H3 — нативный bottom sheet** — выбор языка/темы в Профиле.
+- **H4 — context menu** — long-press на полисе/карточке.
+Полный SwiftUI-переход через `@expo/ui` отклонён — потеря кастомного дизайна + alpha-статус.
 
 ---
 
@@ -117,20 +148,38 @@ docker compose up -d db
 pnpm --filter api exec prisma migrate deploy
 ```
 
-### Каждый раз
+### Каждый раз (ветка `main`, Expo Go)
 ```powershell
 # Терминал 1 — API
 pnpm dev:api
 # → http://localhost:3030, swagger на /api-docs
 
-# Терминал 2 — Mobile (web превью)
-pnpm --filter mobile run web
-# → http://localhost:8081
-
-# или Expo Go (нужен телефон и компьютер в одной сети)
-pnpm dev:mobile
-# → сканируешь QR из Expo Go
+# Терминал 2 — Mobile
+pnpm --filter mobile run web        # web-превью на :8081
+pnpm --filter mobile run lan        # Expo Go (LAN), QR в терминале
+pnpm --filter mobile run lan:clear  # то же с очисткой кэша Metro
+pnpm --filter mobile run tunnel     # если телефон не в одной сети
 ```
+
+### Ветка `feat/native-tabs` — тестирование (нужен dev build, не Expo Go)
+```bash
+git checkout feat/native-tabs
+pnpm install
+
+# Вариант 1 — Mac + Xcode 26 + бесплатный Apple ID (на устройство, 7 дней):
+cd apps/mobile
+npx expo prebuild --platform ios
+npx expo run:ios --device
+
+# Вариант 2 — Mac + Xcode 26 → iOS Simulator (без Apple ID вообще):
+npx expo run:ios
+
+# Вариант 3 — EAS cloud build (нужен Apple Developer Program $99/год):
+eas login
+eas device:create
+eas build --profile development --platform ios
+```
+Для iOS 26 Liquid Glass нужен **Xcode 26+**. После установки dev-client работает как Expo Go (Metro + hot reload). Подробнее — раздел «Что дальше».
 
 ### Тестовый аккаунт
 - Любой телефон в формате `+998XXXXXXXXX`
@@ -140,24 +189,24 @@ pnpm dev:mobile
 
 ## Что дальше — варианты
 
-После C12 на выбор:
+### Вариант 0 — Протестировать `feat/native-tabs` на Mac
+На Mac (куда переезжает разработка): `git checkout feat/native-tabs` → `npx expo run:ios` (симулятор) или `--device`. Нужен **Xcode 26+** для iOS 26 Liquid Glass. Если нативные табы устраивают — мержим ветку в `main` (но тогда `main` тоже потеряет совместимость с Expo Go — весь дальнейший тест только через dev build / симулятор).
 
-### Вариант 1 — Этап D (Backend)
+### Вариант 1 — Гибрид-нативность H1 (date picker)
+Самый дешёвый видимый выигрыш. `@react-native-community/datetimepicker` вместо текстового ввода дат. Работает и в Expo Go, и в dev build.
+
+### Вариант 2 — Этап D (Backend)
 **Объём:** ~1 неделя.
-Создаём модели, эндпоинты, заменяем моки на реальные данные. После — продаваемый прототип с полной end-to-end работой (регистрация → данные авто из БД → реальный расчёт → создание полиса → видим в списке).
+Модели Prisma (Vehicle/Policy/Driver/Document/Card/Claim/Partner), эндпоинты, замена моков на реальные данные через TanStack Query, seed-скрипт. После — полный end-to-end (регистрация → данные авто из БД → реальный расчёт → создание полиса → видим в списке).
 
-### Вариант 2 — Этап C13 (оставшиеся экраны)
+### Вариант 3 — Этап C13 (оставшиеся экраны)
 **Объём:** ~3-4 дня.
-Доделать визуально все оставшиеся placeholder'ы (ДТП, выплаты, партнёры, поддержка, документы, уведомления). Останется только бэк и реальные интеграции.
+Доделать placeholder'ы: M9 ДТП, M10 выплаты, M11 уведомления, M12 документы, M13 поддержка, M16 партнёры.
 
-### Вариант 3 — Закрыть технические долги
-**Объём:** ~1-2 дня.
-- Вытащить все русские строки в i18n (~30 мин на экран × 12 экранов)
-- Настроить `pnpm lint`
-- Перейти на feature-ветки + PR-флоу
-- Добавить первые тесты на auth-флоу
+### Вариант 4 — Технические долги
+i18n-ключи (русские строки в JSX → `t()`), `pnpm lint`, тесты.
 
-**Рекомендация:** Этап D следующим — основной коммерческий флоу заработает «вживую». C13 и долги можно догонять параллельно.
+**Рекомендация:** определиться с tab bar (Вариант 0 — протестировать на Mac, мержить или нет), затем Этап D — основной коммерческий флоу «вживую».
 
 ---
 
