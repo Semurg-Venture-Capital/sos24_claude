@@ -11,9 +11,14 @@ import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
 import { SecureNote } from '../../../components/ui/SecureNote';
 import { TextLink } from '../../../components/ui/TextLink';
+import { WalletPayOption } from '../../../components/ui/WalletPayOption';
+import { PRODUCTS } from '../productData';
 import { MOCK_CARS, calculatePrice, usePurchaseStore } from '../store';
 import { tokens } from '../../../theme/colors';
 import type { PurchaseStackParamList } from '../../../navigation/types';
+
+// Мок-баланс кошелька SOS24. Бэк ещё не реализован — потом тянем из /me/wallet.
+const MOCK_WALLET_BALANCE = 500000;
 
 type Nav = NativeStackNavigationProp<PurchaseStackParamList, 'Payment'>;
 
@@ -34,11 +39,15 @@ export function PaymentScreen() {
   const nav = useNavigation<Nav>();
   const state = usePurchaseStore();
   const calc = calculatePrice(state);
-  const [selectedCard, setSelectedCard] = useState(MOCK_CARDS[0].id);
+  // selectedMethod = 'wallet' | <card.id>. Default — кошелёк, если хватает баланса, иначе первая карта.
+  const defaultMethod = MOCK_WALLET_BALANCE >= calc.total ? 'wallet' : MOCK_CARDS[0].id;
+  const [selectedMethod, setSelectedMethod] = useState<string>(defaultMethod);
   const [submitting, setSubmitting] = useState(false);
 
-  const productLabel = state.productType === 'kasko' ? 'КАСКО' : 'ОСАГО';
+  const productLabel = state.productType ? PRODUCTS[state.productType].name : '—';
   const car = MOCK_CARS.find((c) => c.id === state.carId);
+  // Для не-авто продуктов (health/home/finance) скрываем строку с авто.
+  const isVehicleProduct = state.productType === 'osago' || state.productType === 'kasko';
 
   const onPay = async () => {
     setSubmitting(true);
@@ -89,7 +98,9 @@ export function PaymentScreen() {
             </Text>
           </View>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
-            {productLabel} · {car?.name ?? '—'} · {state.periodMonths} мес
+            {isVehicleProduct
+              ? `${productLabel} · ${car?.name ?? '—'} · ${state.periodMonths} мес`
+              : productLabel}
           </Text>
         </View>
 
@@ -110,14 +121,20 @@ export function PaymentScreen() {
           </View>
 
           <View style={{ gap: 10 }}>
+            <WalletPayOption
+              balance={MOCK_WALLET_BALANCE}
+              amount={calc.total}
+              selected={selectedMethod === 'wallet'}
+              onPress={() => setSelectedMethod('wallet')}
+            />
             {MOCK_CARDS.map((c) => (
               <CardOption
                 key={c.id}
                 brand={c.brand}
                 last4={c.last4}
                 expiry={c.expiry}
-                selected={c.id === selectedCard}
-                onPress={() => setSelectedCard(c.id)}
+                selected={c.id === selectedMethod}
+                onPress={() => setSelectedMethod(c.id)}
               />
             ))}
             <NewCardOption />

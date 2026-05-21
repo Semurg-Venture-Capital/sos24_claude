@@ -3,7 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { BackButton } from '../../../components/ui/BackButton';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
@@ -11,9 +11,13 @@ import { RedButton } from '../../../components/ui/RedButton';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { SummaryBlock } from '../../../components/ui/SummaryBlock';
 import { Tag } from '../../../components/ui/Tag';
+import { PRODUCTS } from '../productData';
 import { MOCK_CARS, MOCK_DRIVERS, calculatePrice, usePurchaseStore } from '../store';
 import { tokens } from '../../../theme/colors';
 import type { PurchaseStackParamList } from '../../../navigation/types';
+
+// Mock-промокоды. SOS10 даёт 10%, дальше — бэк.
+const PROMOS: Record<string, number> = { SOS10: 0.1 };
 
 type Nav = NativeStackNavigationProp<PurchaseStackParamList, 'Checkout'>;
 
@@ -32,7 +36,32 @@ export function CheckoutScreen() {
 
   const car = MOCK_CARS.find((c) => c.id === state.carId);
   const drivers = MOCK_DRIVERS.filter((d) => state.driverIds.includes(d.id));
-  const productLabel = state.productType === 'kasko' ? 'КАСКО' : 'ОСАГО';
+  const productLabel = state.productType ? PRODUCTS[state.productType].name : '—';
+  const isVehicleProduct = state.productType === 'osago' || state.productType === 'kasko';
+
+  // Промокод
+  const [promo, setPromo] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const discountRate = appliedPromo ? PROMOS[appliedPromo] : 0;
+  const discount = Math.round(calc.total * discountRate);
+  const finalTotal = calc.total - discount;
+
+  const applyPromo = () => {
+    const code = promo.trim().toUpperCase();
+    if (!code) return;
+    if (PROMOS[code]) {
+      setAppliedPromo(code);
+      setPromoError(null);
+    } else {
+      setPromoError('Промокод не найден');
+    }
+  };
+  const removePromo = () => {
+    setAppliedPromo(null);
+    setPromo('');
+    setPromoError(null);
+  };
 
   return (
     <PhoneFrame>
@@ -55,7 +84,7 @@ export function CheckoutScreen() {
       >
         <ScreenHeading title="Оформление полиса" subtitle="Проверьте данные перед оплатой" />
 
-        {car && (
+        {isVehicleProduct && car && (
           <SummaryBlock
             eyebrow="Автомобиль"
             editable
@@ -68,27 +97,132 @@ export function CheckoutScreen() {
           />
         )}
 
-        <SummaryBlock
-          eyebrow="Водители"
-          editable
-          onEdit={() => nav.navigate('CalcDrivers')}
-          rows={
-            state.driverLimit === 'unlimited'
-              ? [{ label: 'Без ограничений', value: '' }]
-              : drivers.map((d) => ({ label: d.name, value: `стаж ${d.experience}` }))
-          }
-        />
+        {isVehicleProduct && (
+          <SummaryBlock
+            eyebrow="Водители"
+            editable
+            onEdit={() => nav.navigate('CalcDrivers')}
+            rows={
+              state.driverLimit === 'unlimited'
+                ? [{ label: 'Без ограничений', value: '' }]
+                : drivers.map((d) => ({ label: d.name, value: `стаж ${d.experience}` }))
+            }
+          />
+        )}
 
-        <SummaryBlock
-          eyebrow="Период"
-          editable
-          onEdit={() => nav.navigate('CalcPeriod')}
-          rows={[
-            { label: 'Срок', value: `${state.periodMonths} месяцев` },
-            { label: 'Начало', value: pretty(state.startDate) },
-            { label: 'Окончание', value: pretty(state.endDate) },
-          ]}
-        />
+        {isVehicleProduct && (
+          <SummaryBlock
+            eyebrow="Период"
+            editable
+            onEdit={() => nav.navigate('CalcPeriod')}
+            rows={[
+              { label: 'Срок', value: `${state.periodMonths} месяцев` },
+              { label: 'Начало', value: pretty(state.startDate) },
+              { label: 'Окончание', value: pretty(state.endDate) },
+            ]}
+          />
+        )}
+
+        {/* Промокод */}
+        <View style={{ gap: 8, marginTop: 4 }}>
+          <Text
+            style={{
+              fontFamily: 'Manrope_500Medium',
+              fontSize: 11,
+              color: tokens.inkMuted,
+              letterSpacing: 0.88,
+              textTransform: 'uppercase',
+              paddingLeft: 4,
+            }}
+          >
+            Промокод
+          </Text>
+          {appliedPromo ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingVertical: 14,
+                paddingHorizontal: 18,
+                borderRadius: 18,
+                backgroundColor: 'rgba(105,228,183,0.18)',
+                borderWidth: 1,
+                borderColor: 'rgba(105,228,183,0.5)',
+              }}
+            >
+              <View style={{ gap: 2 }}>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>
+                  {appliedPromo} · −{Math.round(discountRate * 100)}%
+                </Text>
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>
+                  Скидка {discount.toLocaleString('ru-RU')} сум применена
+                </Text>
+              </View>
+              <Pressable onPress={removePromo} hitSlop={10}>
+                <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>
+                  Убрать
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={{ gap: 6 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  paddingLeft: 16,
+                  paddingRight: 6,
+                  paddingVertical: 6,
+                  borderRadius: 18,
+                  backgroundColor: 'rgba(255,255,255,0.6)',
+                  borderWidth: 1,
+                  borderColor: promoError ? tokens.red : tokens.hairline,
+                }}
+              >
+                <TextInput
+                  value={promo}
+                  onChangeText={(t) => {
+                    setPromo(t);
+                    if (promoError) setPromoError(null);
+                  }}
+                  placeholder="Введите промокод"
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  style={{
+                    flex: 1,
+                    fontFamily: 'Manrope_500Medium',
+                    fontSize: 15,
+                    color: tokens.ink,
+                    paddingVertical: 10,
+                  }}
+                  onSubmitEditing={applyPromo}
+                />
+                <Pressable
+                  onPress={applyPromo}
+                  disabled={!promo.trim()}
+                  style={({ pressed }) => ({
+                    paddingHorizontal: 14,
+                    paddingVertical: 10,
+                    borderRadius: 14,
+                    backgroundColor: promo.trim() ? tokens.ink : 'rgba(20,20,20,0.15)',
+                    opacity: pressed ? 0.85 : 1,
+                  })}
+                >
+                  <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>
+                    Применить
+                  </Text>
+                </Pressable>
+              </View>
+              {promoError && (
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.red, paddingLeft: 4 }}>
+                  {promoError}
+                </Text>
+              )}
+            </View>
+          )}
+        </View>
 
         {/* Total dark card */}
         <View
@@ -131,12 +265,35 @@ export function CheckoutScreen() {
                 lineHeight: 40,
               }}
             >
-              {calc.total.toLocaleString('ru-RU')}
+              {finalTotal.toLocaleString('ru-RU')}
             </Text>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMutedDark }}>
               сум
             </Text>
           </View>
+          {appliedPromo && (
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMutedDark }}>
+                Без скидки
+              </Text>
+              <Text
+                style={{
+                  fontFamily: 'Manrope_500Medium',
+                  fontSize: 13,
+                  color: tokens.inkMutedDark,
+                  textDecorationLine: 'line-through',
+                }}
+              >
+                {calc.total.toLocaleString('ru-RU')} сум
+              </Text>
+            </View>
+          )}
           <View
             style={{
               flexDirection: 'row',
@@ -201,7 +358,7 @@ export function CheckoutScreen() {
             disabled={!accepted}
             onPress={() => nav.navigate('Payment')}
           >
-            Перейти к оплате · {calc.total.toLocaleString('ru-RU')} сум
+            Перейти к оплате · {finalTotal.toLocaleString('ru-RU')} сум
           </RedButton>
         </View>
       </View>

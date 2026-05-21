@@ -4,7 +4,7 @@ import { SosMark } from '../../../components/icons/SosMark';
 import { tokens } from '../../../theme/colors';
 
 // Иллюстрация для онбординг-слайда 2: мини-телефон с картой и пином,
-// плюс плавающий статус-пилл «Комиссар в пути».
+// плюс плавающий статус-пилл «Инспектор в пути».
 export function IllusOnboardingHelp() {
   return (
     <View style={{ width: 320, height: 280 }}>
@@ -105,7 +105,7 @@ export function IllusOnboardingHelp() {
         </View>
         <View style={{ flexDirection: 'column' }}>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>
-            Комиссар в пути
+            Инспектор в пути
           </Text>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkDark }}>
             ~ 12 минут

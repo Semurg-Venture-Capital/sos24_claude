@@ -1,13 +1,15 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconBell } from '../../../components/icons/IconBell';
 import { IconBurger } from '../../../components/icons/IconBurger';
 import {
-  QuickIconCommissar,
-  QuickIconHistory,
-  QuickIconKASKO,
-  QuickIconOSAGO,
+  QuickIconAdjuster,
+  QuickIconEuroProtocol,
+  QuickIconPartners,
+  QuickIconPolicy,
 } from '../../../components/icons/QuickActionIcons';
 import { SunIcon } from '../../../components/icons/SunIcon';
 import { ActionTile } from '../../../components/ui/ActionTile';
@@ -54,6 +56,7 @@ function greetingByHour(hour: number): string {
 export function HomeScreen() {
   const greeting = greetingByHour(new Date().getHours());
   const nav = useNavigation();
+  const insets = useSafeAreaInsets();
 
   // Purchase-стек живёт на уровне MainStack (sibling к Tabs).
   // Используем getParent() для надёжного перехода — useNavigation() внутри
@@ -73,32 +76,11 @@ export function HomeScreen() {
   };
 
   return (
-    <PhoneFrame>
+    <PhoneFrame bottomSafeArea={false} topSafeArea={false}>
       <View style={{ flex: 1 }}>
-        {/* Top bar: burger / logo pill / bell. Position absolute over scroll */}
-        <View style={{ paddingTop: 8, paddingBottom: 8 }}>
-          <TopBar
-            leading={
-              <IconButton>
-                <IconBurger color={tokens.inkDark} />
-              </IconButton>
-            }
-            center={
-              <GlassPill style={{ height: 48, paddingHorizontal: 18 }}>
-                <SosLogo size="md" />
-              </GlassPill>
-            }
-            trailing={
-              <IconButton badge>
-                <IconBell color={tokens.inkDark} />
-              </IconButton>
-            }
-          />
-        </View>
-
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 120, gap: 18 }}
+          contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 120, gap: 18 }}
           showsVerticalScrollIndicator={false}
         >
           {/* Greeting + weather */}
@@ -168,19 +150,19 @@ export function HomeScreen() {
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <ActionTile
                   dark
-                  icon={<QuickIconOSAGO />}
-                  label="Оформить ОСАГО"
+                  icon={<QuickIconPolicy />}
+                  label={'Страховой\nполис'}
                   onPress={() => openProduct('osago')}
                 />
                 <ActionTile
-                  icon={<QuickIconKASKO />}
-                  label="Оформить КАСКО"
+                  icon={<QuickIconAdjuster />}
+                  label="Аджастер"
                   onPress={() => openProduct('kasko')}
                 />
               </View>
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <ActionTile icon={<QuickIconCommissar />} label={'Вызвать\nкомиссара'} />
-                <ActionTile icon={<QuickIconHistory />} label={'История\nполисов'} />
+                <ActionTile icon={<QuickIconPartners />} label="Партнёры" />
+                <ActionTile icon={<QuickIconEuroProtocol />} label="Европротокол" />
               </View>
             </View>
           </View>
@@ -207,6 +189,45 @@ export function HomeScreen() {
             </View>
           </View>
         </ScrollView>
+
+        {/* Fade-overlay сверху: контент мягко исчезает за status bar / DI. */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={[tokens.pageBg, 'rgba(228,228,228,0)']}
+          style={{ position: 'absolute', left: 0, right: 0, top: 0, height: insets.top + 24 }}
+        />
+
+        {/* TopBar — floating, без фона. Контент скроллится под ним.
+            Сдвинут на safe-area top inset, чтобы не уходить под dynamic island. */}
+        <View style={{ position: 'absolute', top: insets.top, left: 0, right: 0, paddingTop: 8, paddingBottom: 8 }}>
+          <TopBar
+            leading={
+              <IconButton>
+                <IconBurger color={tokens.inkDark} />
+              </IconButton>
+            }
+            center={
+              <GlassPill style={{ height: 48, paddingHorizontal: 18 }}>
+                <SosLogo size="md" />
+              </GlassPill>
+            }
+            trailing={
+              <IconButton badge>
+                <IconBell color={tokens.inkDark} />
+              </IconButton>
+            }
+          />
+        </View>
+
+        {/* Fade-overlay над native tab bar: контент мягко исчезает к низу.
+            Начальный цвет = pageBg с альфой 0 (не 'transparent', который
+            rgba(0,0,0,0) и даёт грязный серый в середине gradient).
+            pointerEvents=none — не блокирует тапы по контенту/tab bar. */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={['rgba(228,228,228,0)', tokens.pageBg]}
+          style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 110 }}
+        />
       </View>
     </PhoneFrame>
   );

@@ -5,7 +5,9 @@ import {
   BenefitBolt,
   BenefitCarLock,
   BenefitCommissar,
+  BenefitHospital,
   BenefitMap,
+  BenefitProperty,
   BenefitShield,
   BenefitWrench,
 } from '../../../components/icons/BenefitIcons';
@@ -65,15 +67,54 @@ export function CatalogScreen() {
             subtitle="Комплексное страхование автомобиля"
             benefits={[
               { icon: <BenefitCarLock color="#fff" />, label: 'Угон и ущерб от третьих лиц' },
-              { icon: <BenefitCommissar color="#fff" />, label: 'Вызов комиссара 24/7' },
+              { icon: <BenefitCommissar color="#fff" />, label: 'Вызов инспектора 24/7' },
               { icon: <BenefitWrench color="#fff" />, label: 'Сеть партнёрских СТО' },
             ]}
             price="от 4 200 000"
             onPress={() => nav.navigate('ProductDetail', { type: 'kasko' })}
           />
+          <ProductCard
+            tone="light"
+            eyebrow="Жизнь и здоровье"
+            name="Здоровье"
+            subtitle="Защита при болезни и несчастных случаях"
+            benefits={[
+              { icon: <BenefitHospital color={tokens.red} />, label: 'Госпитализация и амбулаторное лечение' },
+              { icon: <BenefitMap color={tokens.red} />, label: 'Сеть клиник по всему Узбекистану' },
+              { icon: <BenefitShield color={tokens.red} />, label: 'Выплаты до 50 000 000 сум' },
+            ]}
+            price="от 1 200 000"
+            onPress={() => nav.navigate('ProductDetail', { type: 'health' })}
+          />
+          <ProductCard
+            tone="light"
+            eyebrow="Имущество"
+            name="Дом и имущество"
+            subtitle="Защита квартиры или дома от рисков"
+            benefits={[
+              { icon: <BenefitProperty color={tokens.red} />, label: 'Пожар, залив, стихийные бедствия' },
+              { icon: <BenefitCarLock color={tokens.red} />, label: 'Кража со взломом и грабёж' },
+              { icon: <BenefitShield color={tokens.red} />, label: 'Ответственность перед соседями' },
+            ]}
+            price="от 2 800 000"
+            onPress={() => nav.navigate('ProductDetail', { type: 'home' })}
+          />
+          <ProductCard
+            tone="light"
+            eyebrow="Финансовая защита"
+            name="Финансовая защита"
+            subtitle="Поддержка при потере дохода"
+            benefits={[
+              { icon: <BenefitShield color={tokens.red} />, label: 'Покрытие кредитных платежей' },
+              { icon: <BenefitBolt color={tokens.red} />, label: 'Выплата при потере работы' },
+              { icon: <BenefitWrench color={tokens.red} />, label: 'Юридическое сопровождение' },
+            ]}
+            price="от 800 000"
+            onPress={() => nav.navigate('ProductDetail', { type: 'finance' })}
+          />
           <DiscountStripe
             title="Скидка 10% при оплате до 31 мая"
-            hint="Промокод применится автоматически"
+            hint="Промокод SOS10 применится автоматически"
           />
         </View>
       </ScrollView>

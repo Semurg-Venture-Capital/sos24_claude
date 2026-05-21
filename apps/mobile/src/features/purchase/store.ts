@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ProductType } from './productData';
+import { PRODUCTS, type ProductType } from './productData';
 
 // Состояние калькулятора покупки. Хранит выбор между шагами 1-4.
 // Сбрасывается при старте новой покупки (resetForProduct).
@@ -111,11 +111,24 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
 }));
 
 // Рендер цены — простая мок-функция, чтобы шаг 4 показывал что-то осмысленное.
+// Для не-авто продуктов (health/home/finance) — фикс-цена из PRODUCTS.fixedPrice,
+// без коэффициентов.
 export function calculatePrice(state: PurchaseState): {
   base: number;
   total: number;
   coefficients: Array<{ label: string; value: string }>;
 } {
+  if (!state.productType) return { base: 0, total: 0, coefficients: [] };
+  const product = PRODUCTS[state.productType];
+
+  if (product.fixedPrice !== undefined) {
+    return {
+      base: product.fixedPrice,
+      total: product.fixedPrice,
+      coefficients: [{ label: 'Стоимость полиса', value: product.fixedPrice.toLocaleString('ru-RU') }],
+    };
+  }
+
   const isOsago = state.productType === 'osago';
   const base = isOsago ? 320000 : 4200000;
 

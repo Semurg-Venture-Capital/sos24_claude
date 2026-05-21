@@ -67,6 +67,8 @@ export function DocumentScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 140, gap: 20 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
       >
         <View style={{ gap: 12 }}>
           <ScreenHeading title={doc.title} subtitle={INFO_TEXT[doc.kind]} />

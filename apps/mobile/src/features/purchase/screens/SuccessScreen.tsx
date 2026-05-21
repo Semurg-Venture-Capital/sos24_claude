@@ -1,5 +1,5 @@
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { CloseIcon } from '../../../components/icons/CloseIcon';
 import { DownloadIcon } from '../../../components/icons/DownloadIcon';
 import { BlurView } from 'expo-blur';
@@ -14,6 +14,8 @@ import { TextLink } from '../../../components/ui/TextLink';
 import { MOCK_CARS, usePurchaseStore } from '../store';
 import { tokens } from '../../../theme/colors';
 
+import { PRODUCTS } from '../productData';
+
 const MONTHS_SHORT = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 function ddmmyyyy(iso: string): string {
   const d = new Date(iso);
@@ -24,7 +26,8 @@ function ddmmyyyy(iso: string): string {
 export function SuccessScreen() {
   const nav = useNavigation();
   const state = usePurchaseStore();
-  const productLabel = state.productType === 'kasko' ? 'КАСКО' : 'ОСАГО';
+  const productLabel = state.productType ? PRODUCTS[state.productType].name : '—';
+  const isVehicleProduct = state.productType === 'osago' || state.productType === 'kasko';
   const car = MOCK_CARS.find((c) => c.id === state.carId);
 
   // Закрыть Purchase-флоу и переключиться на нужный таб.
@@ -164,10 +167,10 @@ export function SuccessScreen() {
                   lineHeight: 24,
                 }}
               >
-                {car?.plate ?? '—'}
+                {isVehicleProduct ? (car?.plate ?? '—') : productLabel}
               </Text>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMutedDark, marginTop: 4 }}>
-                {car?.name ?? '—'}
+                {isVehicleProduct ? (car?.name ?? '—') : 'Полис активирован'}
               </Text>
             </View>
             <PolicyQR value={fakePolicyNumber} size={64} padding={6} />
@@ -178,7 +181,13 @@ export function SuccessScreen() {
       {/* Action buttons */}
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36, gap: 10 }}>
         <RedButton onPress={() => closeAndGo('Policies')}>Мои полисы</RedButton>
-        <OutlineButton onPress={() => {}}>↓ Скачать PDF</OutlineButton>
+        <OutlineButton
+          onPress={() =>
+            Alert.alert('Скоро', 'Скачивание PDF-полиса будет доступно в следующем обновлении.')
+          }
+        >
+          ↓ Скачать PDF
+        </OutlineButton>
         <View style={{ alignItems: 'center', marginTop: 8 }}>
           <TextLink onPress={() => closeAndGo('Home')}>На главную</TextLink>
         </View>

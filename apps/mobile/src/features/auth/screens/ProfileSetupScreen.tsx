@@ -88,6 +88,7 @@ export function ProfileSetupScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingTop: 140, paddingHorizontal: 24, paddingBottom: 140 }}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
       >
         <ScreenHeading
           title={t('auth.profileSetup.title')}

@@ -87,6 +87,8 @@ export function GarageEditScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 140, gap: 20 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
       >
         <ScreenHeading
           title={isEdit ? 'Редактировать авто' : 'Добавить автомобиль'}
