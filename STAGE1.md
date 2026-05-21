@@ -2,162 +2,270 @@
 
 > Журнал реальных работ Этапа 1. Что сделано, что отложено, где остановились, как продолжить.
 >
-> **Последнее обновление:** 2026-05-18
+> **Последнее обновление:** 2026-05-20
 
 ---
 
 ## Где остановились
 
-После окончания C12 (Профиль + Гараж) есть полный визуальный прототип основного флоу:
+**Полный end-to-end флоу страхового полиса на реальном API.** От Home → Catalog → ProductDetail → Calc (4 шага для ОСАГО/КАСКО, фикс-цена для health/home/finance) → Checkout (промокод SOS10) → Payment (кошелёк + карты) → Success — всё через бэкенд, никаких mock-ов в этой цепочке.
 
 ```
-Логин → Онбординг → Авторизация (OTP=6330) → Home →
-   ├─ Полисы (M8) → Деталь → QR на весь экран
-   ├─ Гараж (M3) → Добавить авто (NAPP-мок-поиск)
-   ├─ Профиль (M2) → Редактирование → Документы (паспорт/ВУ)
-   └─ Quick action «Оформить ОСАГО/КАСКО» →
-           Каталог (M4) → ProductDetail → Калькулятор (M5, 4 шага) →
-           Чекаут (M6) → Оплата (M7.1) → Успех (M7.2)
+Логин (+998993286330 / OTP=6330) → Home (имя из /me, полисы из /me/policies)
+   ├─ Полисы (M8) → /me/policies, /policies/:id → Деталь + QR ⚠️ экран на моках
+   ├─ Гараж (M3) → /me/vehicles (read), Add через /napp/vehicle/:plate ⚠️ GarageEdit на моках
+   ├─ Профиль (M2) → /me, /me/documents → Document edit /me/documents/:kind
+   └─ Quick action «Страховой полис / Аджастер» →
+           Catalog (5 продуктов, statiс) → ProductDetail (по type) →
+           Calc Vehicle (/me/vehicles) → Drivers (/me/drivers) → Period → Result →
+           Checkout (/promo/validate + /policies) → Payment (/me/wallet + /me/cards + /payments/uzcard) →
+           Success (/policies/:id с реальным policyNumber + QR)
 ```
 
-Всё фронтенд работает на mock-данных. Backend имеет только модуль авторизации (OTP=6330) + модель `User`. Остального бэка — нет.
+**Текущая ветка:** `feat/native-tabs`. **6 новых коммитов** относительно `main` (см. `git log main..feat/native-tabs`). `main` устарела — для продакшена пора мержить.
+
+**Тестовый юзер:** `+998993286330` (Азиз Каримов), OTP всегда `6330`. Сид создаёт 2 авто (Cobalt + Sonata), 2 водителя, паспорт+ВУ (VERIFIED), 2 ACTIVE полиса, кошелёк 500 000, 2 карты, промокод `SOS10` (−10%).
 
 ---
 
 ## Что сделано
 
-### Этап A — Backend foundation
-- A1 — `docker-compose.yml`: Postgres 16 на `localhost:5434`
-- A2 — Prisma 6 + миграция `init`: модель `User` (phone, name, surname, patronymic, birthDate, locale, timestamps)
-- A3 — `AuthModule`: `POST /auth/request-otp`, `POST /auth/verify-otp` (статичный код `6330`), `POST /auth/refresh`
-- A4 — `UsersModule`: `GET /me`, `PATCH /me/profile` (JwtAuthGuard)
-- A5 — Swagger на `/api-docs`, ValidationPipe, CORS
-- JWT access 15м + refresh 30д, секреты в `.env`
+### Этап A — Backend foundation (раньше)
+- `docker-compose.yml`: Postgres 16 на `localhost:5434`
+- Prisma 6 + миграция `init`: модель `User`
+- `AuthModule`: `POST /auth/request-otp`, `POST /auth/verify-otp` (OTP=`6330`), `POST /auth/refresh`
+- `UsersModule`: `GET /me`, `PATCH /me/profile`
+- Swagger на `/api-docs`, ValidationPipe, CORS, JWT 15м/30д
 
-### Этап B — Mobile foundation
-- B1 — Зависимости: NativeWind v4 + Tailwind 3.4, React Navigation v7 (stack + bottom-tabs), TanStack Query, Zustand, RHF + Zod, axios, AsyncStorage, expo-secure-store, expo-blur, expo-font, expo-linear-gradient, react-native-svg, react-native-qrcode-svg, react-native-reanimated, i18next + react-i18next
-- B2 — NativeWind theme + Neue Montreal (8 файлов в `assets/fonts/`) + Manrope из `@expo-google-fonts/manrope`
-- B3 — i18n: 4 локали (`uz-Latn`, `uz-Cyrl`, `ru`, `en`), ru — основная, остальные клоны с теми же ключами
-- B4 — Навигация: `RootNavigator` переключает AuthStack ↔ MainNavigator по `auth.status`; tokens через expo-secure-store (на web → AsyncStorage)
-- B5 — `api/client.ts` (axios) с автоматическим refresh при 401; `authStore` (Zustand) с `hydrate`/`setSession`/`signOut`
+### Этап B — Mobile foundation (раньше)
+- Зависимости: NativeWind v4 + Tailwind 3.4, React Navigation v7, TanStack Query, Zustand, RHF + Zod, axios, AsyncStorage, expo-secure-store, expo-blur, expo-font, expo-linear-gradient, react-native-svg, react-native-qrcode-svg, react-native-reanimated, i18next + react-i18next
+- 4 локали (`uz-Latn`, `uz-Cyrl`, `ru`, `en`), ru — основная
+- `RootNavigator` переключает AuthStack ↔ MainNavigator
+- `api/client.ts` с автоматическим refresh при 401, `authStore` Zustand
 
-### Этап C — Экраны
-Все 6 экранов M1 (Splash, Onboarding 1–3, AuthChoose, Phone, OTP, ProfileSetup) — **пиксельно** по эталону `SOS24/screens.jsx`. Остальные блоки — где есть пиксельный эталон, переносили его; где только спецификация — собирали из готовых компонентов UI-кита.
-
+### Этап C — Экраны (раньше)
 | Блок | Что | Источник |
 |---|---|---|
-| **C0** | UI-кит примитивов (PhoneFrame, GlassPill, RedButton, TextField, OtpBoxes, Segmented, StepperBar, …) | дизайн |
-| **C1–C6** | M1 — авторизация (Splash, Onboarding, AuthChoose, Phone, OTP, ProfileSetup) | пиксель |
-| **C7** | Home + Bottom Tab Bar (4 таба, glass-капсула, белая активная pill); TopBar; ActionTile; PolicyCardActive; PartnerCard; PromoBanner; SosBanner | пиксель |
-| **C8** | M8 Мои полисы — список (StatPill, PolicyListCard, PolicyListCardCompact), деталь (SummaryBlock, большой dark-card с настоящим QR через `react-native-qrcode-svg`), QR на весь экран | пиксель |
-| **C9** | M4 Каталог — ProductCard (light/dark), ProductDetail (Section, BenefitRow, ExceptionRow, StepRow, FaqRow аккордеон), DiscountStripe | пиксель |
-| **C10** | M5 Калькулятор ОСАГО — 4 шага: CarCard, DriverCard, AddTile, PeriodOption, WarningBox, CoefRow, WizardFrame. Zustand `usePurchaseStore` хранит состояние между шагами | пиксель |
-| **C11** | M6 Чекаут (SummaryBlock с «Изменить», Checkbox оферты) → M7.1 Оплата (CardOption, NewCardOption, SecureNote, PayLockIcon) → M7.2 Успех (SuccessTick анимированный, PolicyMiniCard) → M7.3 Мои карты (SavedCardBig с градиентом по бренду) | пиксель |
-| **C12** | M2 Профиль (header-card, ListRow в стиле iOS, Toggle, StatusPill, Avatar) + редактирование + Documents. M3 Гараж — список + добавить авто с NAPP-мок-поиском (Avatar, ListRow, FAB) | по спецификации, без пиксельного эталона |
+| C0 | UI-кит ~40 примитивов | дизайн |
+| C1–C6 | M1 — авторизация | пиксель |
+| C7 | Home + Bottom Tab Bar | пиксель |
+| C8 | M8 Полисы — список + деталь + QR | пиксель |
+| C9 | M4 Каталог + ProductDetail | пиксель |
+| C10 | M5 Калькулятор 4 шага | пиксель |
+| C11 | M6 Чекаут → M7 Оплата → Успех → MyCards | пиксель |
+| C12 | M2 Профиль + Редактор + Documents, M3 Гараж + Add | спецификация |
 
-### Дополнительные технические решения
-- **Storage:** `react-native-mmkv` заменён на `@react-native-async-storage/async-storage` (Expo Go и web совместимость). См. `[[reference-nativewind-pnpm]]` в памяти.
-- **Secure store:** `expo-secure-store` на web → AsyncStorage fallback (нативные модули SecureStore не работают в web).
-- **Modal navigation:** `presentation: 'modal'` для PurchaseStack — на native снизу, на web → обычный push (react-native-web модальные стеки рендерит криво).
-- **Prisma 6, не 7** — v7 ESM-only, несовместим с CommonJS NestJS. Зафиксировано в `[[reference-prisma-version]]`.
+### Этап D — Дизайн-обновление 2026-05-20
+Дизайнер обновил эталоны (`SOS24/`). Перенесено в код:
+- **Home плитки 2×2 пересобраны:** Страховой полис / Аджастер / Партнёры / Европротокол + новые Lucide-style иконки в `QuickActionIcons.tsx`
+- **SosBanner новый текст:** «SOS — экстренная помощь» / «ДТП, мед. помощь, угон — поможем разобраться»
+- **Глобальный ребрендинг «комиссар» → «инспектор»** (4 i18n локали + IllusOnboardingHelp + CatalogScreen + ProductDetailScreen)
+- **Catalog: 5 продуктов** (добавлены Здоровье, Дом и имущество, Финансовая защита) + контент ProductDetail для них (covers/exceptions/steps/FAQ в стиле бренда)
+- Для не-авто продуктов CTA «Рассчитать» сразу ведёт в Checkout (фикс-цена, без калькулятора авто)
+- Поле промокода в Checkout (`SOS10` → −10%)
+- `WalletPayOption` компонент — кошелёк SOS24 с балансом, sufficient/insufficient
+
+### Этап E — Liquid Glass + UI-улучшения 2026-05-20
+- **`expo-glass-effect`** для iOS 26 Liquid Glass: `GlassPill`, `IconButton`, `PartnerCard`, `ActionTile (light)` переведены с BlurView. На iOS<26 / Android — фоллбэк BlurView из самого пакета. `borderRadius`+`overflow:hidden` на самом GlassView (иначе обрезается родителем)
+- **Floating TopBar** на Home: `position:absolute`, контент скроллится под ним
+- **Fade-overlay сверху и снизу** на Home: `pageBg α=0 → pageBg α=1` (важно — не `transparent`, иначе будет грязный серый интерполяционный)
+- **PhoneFrame пропсы** `topSafeArea` / `bottomSafeArea` — для fullbleed экранов
+- **Клавиатура:** PhoneScreen сдвигает heading-блок при kbOpen; ProfileSetup/ProfileEdit/Document/GarageEdit получили `keyboardShouldPersistTaps="handled"` + `automaticallyAdjustKeyboardInsets`
+
+### Эксперимент: @expo/ui SwiftUI glass-кнопки (отклонён)
+Попробовали заменить `RedButton`/`OutlineButton` на AuthChoose на `<Button buttonStyle('glassProminent')>` через `@expo/ui/swift-ui`. **Не подошло:** SwiftUI glass Button hugging по контенту, `frame({width,height})` не растягивает. Откатили, оставили `RedButton`/`OutlineButton`. `@expo/ui` остался в зависимостях для будущих use-case (DatePicker, Menu, inline-pills). Память: `[[feedback-expo-ui-glass-button-fixed-size]]`.
+
+### Этап D-2 — Backend для остального (2026-05-20)
+**8 новых модулей, ~30 endpoints, 4 миграции, seed.**
+
+**S1 — Vehicles + NAPP mock:**
+- `Vehicle` (User 1:N, unique [userId,plate])
+- `VehiclesModule`: `GET/POST/PATCH/DELETE /me/vehicles` + `GET /me/vehicles/:id`
+- `NappModule`: `GET /napp/vehicle/:plate` (deterministic mock из пула 8 моделей по hash plate)
+
+**S2 — Documents:**
+- `Document` enum `PASSPORT`/`DRIVER_LICENSE`, unique [userId,kind]
+- `DocumentsModule`: `GET /me/documents`, `GET/PUT /me/documents/:kind` (upsert)
+- Валидация: PINFL обязателен для паспорта (400)
+
+**S3 — Policies + Drivers + Promo:**
+- `Policy` (5 ProductType, статусы DRAFT→PENDING_PAYMENT→ACTIVE→EXPIRED/CANCELLED)
+- `Driver` — **отдельная сущность** для доверенности (один юзер может вписать в полис нескольких водителей, в т.ч. чужих по ФИО+ВУ без аккаунта)
+- `PolicyDriver` M:N
+- `Promo` (code unique, discountPct, validFrom/Until, maxUses)
+- `DriversModule` CRUD `/me/drivers`
+- `PromoModule`: `POST /promo/validate` (404 если истёк/исчерпан/неактивен)
+- `PoliciesModule`: `POST /policies/calculate` (коэф-ты для ОСАГО/КАСКО, фикс для health/home/finance), `POST /policies` (создаёт DRAFT), `GET /me/policies`, `GET /policies/:id`
+- `pricing.ts`: BASE_PRICE + коэф-ты периода (12=1.0, 6=0.55, 3=0.32), территории (Ташкент 1.15), стажа (8лет 0.95), лимита водителей (LIMITED 0.9, UNLIMITED 1.25)
+
+**S4 — Cards + Wallet + Payments mock:**
+- `Card` (token mock-Uzcard tokenization, brand UZCARD/HUMO/VISA/MC, last4, expiry, isDefault)
+- `Wallet` (1:1 user, balance), `WalletTransaction` (TOPUP/PAYMENT/REFUND/BONUS)
+- `Payment` (status PENDING/SUCCESS/FAILED/REFUNDED)
+- `CardsModule`, `WalletModule`, `PaymentsModule`
+- `POST /payments/uzcard` — **mock-Uzcard**: 1.5с задержка, **90% success / 10% random fail**. При SUCCESS списывает с кошелька (если method=WALLET) и активирует полис через `PoliciesService.activate` (генерация policyNumber + qrPayload)
+
+**Сид (`prisma/seed.ts`, `pnpm --filter api exec prisma db seed`):**
+- Пользователь `+998993286330` (Азиз Каримов Эркинович, родился 1990-05-14)
+- 2 авто: Chevrolet Cobalt `01 A 123 BB` 2021, Hyundai Sonata `10 R 555 AC` 2019
+- Документы VERIFIED: паспорт AA 4587213 + ВУ AB 2345678 (категории B,C)
+- 2 водителя: сам + жена (Каримова М.Х., 4 года стажа, по доверенности)
+- 2 ACTIVE полиса: КАСКО Cobalt (№ 1225 7821 3344) + ОСАГО Sonata (№ 1224 5566 7788)
+- Промо `SOS10` (10% до 2026-12-31)
+- Кошелёк 500 000 сум + 2 карты (Uzcard 4582 default + Humo 1190)
+
+### Этап F — Mobile integration (S6) 2026-05-20
+**API-слой полностью:** `apps/mobile/src/api/` — types.ts + 9 domain-файлов (auth, vehicles, documents, drivers, policies, promo, cards, wallet, payments). Каждый файл содержит TypeScript-типы, функции-обёртки axios и React Query хуки (useX / useCreateX / ... ) в одном месте.
+
+**Интеграция в экранах:**
+| Экран | API |
+|---|---|
+| Home | `useMe` (имя), `usePolicies('ACTIVE')` (карточки полисов) |
+| GarageList | `useVehicles` |
+| Profile | `useMe`, `useDocuments` (статусы паспорта+ВУ) |
+| Document edit | `useDocument(kind)`, `useUpsertDocument(kind)` |
+| CalcVehicle | `useVehicles` + auto-select first |
+| CalcDrivers | `useDrivers` + auto-select all при LIMITED |
+| Checkout | `useValidatePromo` (промокод server-side), `useCreatePolicy` (создаёт draft + сохраняет `draftPolicyId` в store) |
+| Payment | `usePolicy(draftPolicyId)` (точная totalPrice), `useWallet` (real balance), `useCards`, `usePayPolicy` (mock Uzcard) |
+| Success | `usePolicy(draftPolicyId)` — реальный policyNumber + qrPayload + vehicle |
+
+**Маппинг enum** lowercase mobile ↔ UPPERCASE API в `CheckoutScreen` (TYPE_TO_API), `PaymentScreen` (BRAND_MAP), `Document/ProfileScreen` (statusFromApi).
+
+### Прочие фиксы 2026-05-20
+- **JWT TTL .env**: `JWT_ACCESS_TTL=15m`, `JWT_REFRESH_TTL=30d` (не `900`/`2592000` — jsonwebtoken-гетча). Память: `[[reference-jwt-ttl-format]]`.
+- **SDK 54 → 55** (RN 0.83.6, react 19.2) — был нужен для `@expo/ui`, оставили после эксперимента
+- **`react-native-screens` 4.25.1** пин поверх SDK 55 default 4.23 — нужно для нативного `createNativeBottomTabNavigator`
+- **Xcode 26.5** на Mac mini M4 — native tab bar (`UITabBarController`) с iOS 26 Liquid Glass через ветку `feat/native-tabs`. main-ветка с Expo Go — устаревший fallback
 
 ---
 
 ## Что НЕ сделано (отложено)
 
-### Этап D — Backend для остального
-Большой кусок:
-- Модели Prisma: `Vehicle`, `Policy`, `Driver`, `Document`, `Card` (платёжные методы), `Claim` (заявление), `Partner`
-- Эндпоинты:
-  - `GET/POST/PATCH/DELETE /me/vehicles` (CRUD авто + NAPP-обогащение)
-  - `GET/POST/PATCH /me/documents` (паспорт + ВУ + статус верификации)
-  - `POST /policies/calculate` (тарифный калькулятор)
-  - `POST /policies` (создание чекаут-черновика)
-  - `POST /payments/uzcard` (имитация платежа)
-  - `GET /me/policies`, `GET /policies/:id` (со статусом и QR-данными)
-  - `POST /me/cards` (платёжные карты)
-- Замена mock-данных на mobile на реальные API-вызовы через TanStack Query
-- Seed-скрипт с тестовыми данными для демонстрации
+### Backend — S5 Partners
+Прямо следующий sprint. `Partner` модель + `GET /partners` (фильтр по локации/типу). Сейчас Home показывает `MOCK_PARTNERS` — 4 захардкоженные карточки. **~2-3ч.**
 
-### Этап C13 — Оставшиеся экраны
-В дизайне только placeholder'ы, нужна предварительная отрисовка дизайнером **или** аналогично C12 — собирать из спеки:
-- M9 — Урегулирование (заявление о ДТП): начало, вызов комиссара, европротокол wizard, обычное заявление
-- M10 — Статус выплат: список заявлений, трекер
+### Mobile — недоделанные интеграции
+- **`GarageEditScreen`** — форма добавления авто работает на `MOCK_VEHICLES`. Подключить `useCreateVehicle` + `useUpdateVehicle` + `useNappLookup`. ~30 мин.
+- **`MyCardsScreen`** — `useCards` + `useCreateCard` + `useDeleteCard`. ~30 мин.
+- **`PoliciesListScreen` / `PolicyDetailScreen`** — пока на mock'е, нужны `usePolicies()` + `usePolicy(id)`. ~30 мин.
+
+### Этап C13 — Оставшиеся экраны (дизайн нужен от дизайнера)
+- M9 — Урегулирование (заявление о ДТП, европротокол)
+- M10 — Статус выплат
 - M11 — Уведомления
 - M12 — Документы (PDF-полисы)
-- M13 — Поддержка: точка входа, чат
-- M16 — Партнёры: каталог, деталь, запись
+- M13 — Поддержка
+- M16 — Партнёры (каталог, деталь, запись)
 
 ### Технические долги
-- **i18n:** на M1 экранах используются `t()`-ключи, **но на C7–C12 (Home, Polices, каталог, калькулятор, оплата, профиль, гараж)** русские строки захардкожены прямо в JSX. Чтобы соблюсти DEVELOPMENT.md §7, нужно пройтись по всем экранам, вынести строки в `packages/i18n-strings/src/locales/ru.json`, заменить на `t('...')`. См. `[[feedback-dev-md-lazy]]`.
-- **Git-флоу:** все коммиты идут в `main`, без feature-веток (`feat/<scope>-<name>`). Можно перейти на ветки, когда стабилизируем поток.
-- **Lint:** `pnpm lint` не настроен в monorepo (eslint-конфиги в `apps/api/eslint.config.mjs` есть, но `lint` не подключен к turbo pipeline).
-- **Тесты:** ни юнит, ни E2E — нет. Когда подключим backend, начинаем с интеграционных тестов на auth/me + поездочного e2e через Maestro.
+- **i18n** — на C7–C12 русские строки захардкожены в JSX, не вынесены в `packages/i18n-strings`. См. `[[feedback-dev-md-lazy]]`. Большой проход.
+- **Lint** — `pnpm lint` не подключен к turbo pipeline (eslint-конфиги в `apps/api` есть)
+- **Тесты** — ни юнит, ни E2E. Когда подключим S5 — начнём с интеграционных на auth/me/policies + e2e через Maestro
+- **Git-флоу** — feat/native-tabs стала «всем подряд». Стоит мержить в main и начать дробить ветки.
+- **Sentry / Pino structured logs** — отложили в S4
 
-### Дизайнерская часть
-- Дизайнер пока не сделал пиксельный дизайн для M2/M3/M9/M10/M11/M12/M13/M16. Текущая версия M2/M3 (C12) — рабочая, но без визуальной полировки.
+### Открытые бизнес-вопросы клиенту
+См. `QUESTIONS.md`. Главные: Uzcard-договор, NAPP-API, лицензии, тарифы КАСКО от Махмуд-аки, спеки серверов. Не блокируют разработку UI/моков, блокируют релиз.
 
 ---
 
 ## Как запустить (Quick Start)
 
 ### С нуля (новый комп)
-```powershell
-# 1. Клонировать репозиторий
+```bash
+# 1. Клонировать
 git clone <repo-url>
-cd Maxmud
+cd sos24_claude
 
-# 2. Зависимости
+# 2. Toolchain (один раз)
+nvm install 22 && nvm use 22
+corepack enable && corepack prepare pnpm@11.1.2 --activate
+
+# 3. Зависимости
 pnpm install
 
-# 3. Поднять БД
-docker compose up -d db
+# 4. БД
+docker compose up -d --wait db
 
-# 4. Применить миграции
+# 5. apps/api/.env (создать) — пример:
+# DATABASE_URL=postgresql://sos24:sos24@localhost:5434/sos24?schema=public
+# JWT_ACCESS_SECRET=<openssl rand -hex 32>
+# JWT_REFRESH_SECRET=<openssl rand -hex 32>
+# JWT_ACCESS_TTL=15m    ← ВАЖНО: формат "15m", не "900" (см. [[reference-jwt-ttl-format]])
+# JWT_REFRESH_TTL=30d
+# PORT=3030
+
+# 6. Миграции + seed
 pnpm --filter api exec prisma migrate deploy
+pnpm --filter api exec prisma db seed
+
+# 7. iOS (на Mac):
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer  # один раз
+brew install cocoapods  # один раз
 ```
 
-### Каждый раз
-```powershell
+### Каждый раз (на `feat/native-tabs`, dev-build)
+```bash
 # Терминал 1 — API
 pnpm dev:api
-# → http://localhost:3030, swagger на /api-docs
+# → http://localhost:3030, swagger /api-docs
 
-# Терминал 2 — Mobile (web превью)
-pnpm --filter mobile run web
-# → http://localhost:8081
+# Терминал 2 — iOS симулятор + Metro
+cd apps/mobile
+xcrun simctl boot "iPhone 17 Pro" && open -a Simulator
+npx expo run:ios --device "iPhone 17 Pro"
+# первый билд ~5-10 мин, потом инкрементально
+```
 
-# или Expo Go (нужен телефон и компьютер в одной сети)
-pnpm dev:mobile
-# → сканируешь QR из Expo Go
+### Альтернативы для mobile
+```bash
+# Веб-превью (без iOS, для быстрой проверки)
+pnpm --filter mobile run web   # → http://localhost:8081
+
+# main-ветка с Expo Go (устаревшая)
+git checkout main
+pnpm --filter mobile run lan
 ```
 
 ### Тестовый аккаунт
-- Любой телефон в формате `+998XXXXXXXXX`
-- OTP-код всегда `6330` (хардкод на бэке, см. `apps/api/src/auth/auth.service.ts:DEV_OTP_CODE`)
+- **Телефон:** `+998993286330` (из seed, с готовыми данными)
+- **OTP:** `6330` (хардкод на бэке, `auth.service.ts:DEV_OTP_CODE`)
+- Любой другой номер тоже сработает (OTP тот же), создаст пустого юзера
 
 ---
 
 ## Что дальше — варианты
 
-После C12 на выбор:
+### Вариант A — S5 Partners (~2-3ч)
+`Partner` модель + `GET /partners`, заменить `MOCK_PARTNERS` на Home. Это закрывает последний mock в основном флоу. **Рекомендую.**
 
-### Вариант 1 — Этап D (Backend)
-**Объём:** ~1 неделя.
-Создаём модели, эндпоинты, заменяем моки на реальные данные. После — продаваемый прототип с полной end-to-end работой (регистрация → данные авто из БД → реальный расчёт → создание полиса → видим в списке).
+### Вариант B — Дотянуть mobile-интеграцию (~1.5ч)
+GarageEdit, MyCards, PoliciesList/PolicyDetail на API-хуки. Закрывает все оставшиеся mock'и в боковых экранах.
 
-### Вариант 2 — Этап C13 (оставшиеся экраны)
-**Объём:** ~3-4 дня.
-Доделать визуально все оставшиеся placeholder'ы (ДТП, выплаты, партнёры, поддержка, документы, уведомления). Останется только бэк и реальные интеграции.
+### Вариант C — Этап C13 (~3-4 дня)
+Дизайны M9/M10/M11/M12/M13/M16 от дизайнера → переносим. Без дизайна — можно собирать по спеке (как было с M2/M3 в C12), но риск переделок.
 
-### Вариант 3 — Закрыть технические долги
-**Объём:** ~1-2 дня.
-- Вытащить все русские строки в i18n (~30 мин на экран × 12 экранов)
-- Настроить `pnpm lint`
-- Перейти на feature-ветки + PR-флоу
-- Добавить первые тесты на auth-флоу
+### Вариант D — i18n cleanup + lint + тесты (~2 дня)
+Вынести строки в i18n, настроить lint в turbo, написать первые integration-тесты на auth+/me/policies.
 
-**Рекомендация:** Этап D следующим — основной коммерческий флоу заработает «вживую». C13 и долги можно догонять параллельно.
+### Вариант E — Подготовка к merge в main
+Сейчас `feat/native-tabs` стала magnetom. Раздробить коммиты, мержить в main, начать feature-branch flow.
+
+**Рекомендованный порядок:** A → B → E (merge) → D → C13.
+
+---
+
+## Память Claude (~/.claude memory)
+
+В `/Users/odya/.claude/projects/-Users-odya-Documents-projects-sos24-claude/memory/` накопились reference/feedback файлы. Главные:
+- `reference-jwt-ttl-format.md` — формат TTL в `.env`
+- `feedback-expo-ui-glass-button-fixed-size.md` — @expo/ui Button hugging
+- `reference-test-user.md` — состав seed
+- `reference-api-module-layout.md` — паттерн `apps/mobile/src/api/<domain>.ts`
+- `reference-enum-case-mapping.md` — UPPERCASE backend ↔ lowercase mobile
+
+`MEMORY.md` — индекс. Читается автоматически.
 
 ---
 
@@ -166,21 +274,17 @@ pnpm dev:mobile
 | Файл / папка | Что внутри |
 |---|---|
 | `CLAUDE.md` | главный контекст проекта |
-| `DEVELOPMENT.md` | процесс разработки (ветки, конвенции, i18n, команды) |
+| `DEVELOPMENT.md` | инженерный процесс |
 | `PLAN.md` | архитектура и модули |
-| `STAGE1.md` | **этот файл** — журнал реальных работ |
-| `TASKS.md` | подготовительные задачи Этапа 0 (legacy) |
+| `STAGE1.md` | **этот файл** — журнал работ |
 | `QUESTIONS.md` | открытые вопросы клиенту |
 | `DESIGN_SYSTEM.md` | дизайн-токены |
-| `SOS24/` | дизайн-референсы от фронтендера (HTML + JSX) |
-| `apps/api/` | NestJS бэкенд (Prisma + JWT + OTP) |
-| `apps/mobile/` | Expo + React Native приложение |
-| `apps/mobile/src/components/ui/` | ~40 переиспользуемых компонентов UI-кита |
-| `apps/mobile/src/components/icons/` | SVG-иконки (`react-native-svg`) |
-| `apps/mobile/src/features/auth/` | M1 — авторизация |
-| `apps/mobile/src/features/policies/` | M8 — Мои полисы |
-| `apps/mobile/src/features/purchase/` | M4/M5/M6/M7 — каталог, калькулятор, оплата |
-| `apps/mobile/src/features/profile/` | M2 — Профиль |
-| `apps/mobile/src/features/garage/` | M3 — Гараж |
-| `apps/mobile/src/features/main/screens/HomeScreen.tsx` | Home + bottom tab navigation |
-| `apps/mobile/src/navigation/*Navigator.tsx` | стеки навигации |
+| `SOS24/` | дизайн-эталоны |
+| `apps/api/` | NestJS бэк (8 модулей, Prisma 6, seed) |
+| `apps/api/src/{auth,users,vehicles,napp,documents,drivers,policies,promo,cards,wallet,payments}` | модули |
+| `apps/api/prisma/{schema.prisma,migrations,seed.ts}` | БД |
+| `apps/mobile/` | Expo + RN |
+| `apps/mobile/src/api/` | API-слой: types, 9 domain-файлов с хуками |
+| `apps/mobile/src/components/ui/` | UI-кит ~40 примитивов |
+| `apps/mobile/src/features/{auth,policies,purchase,profile,garage,main}/` | бизнес-фичи |
+| `apps/mobile/src/navigation/*Navigator.tsx` | стеки |
