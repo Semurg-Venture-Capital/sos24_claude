@@ -1,8 +1,11 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { useMe } from '../../../api/auth';
+import { usePolicy } from '../../../api/policies';
+import type { ProductType } from '../../../api/types';
 import { BackButton } from '../../../components/ui/BackButton';
 import { IconButton } from '../../../components/ui/IconButton';
 import { OutlineButton } from '../../../components/ui/OutlineButton';
@@ -13,17 +16,58 @@ import { SosLogo } from '../../../components/ui/SosLogo';
 import { SummaryBlock } from '../../../components/ui/SummaryBlock';
 import { Tag } from '../../../components/ui/Tag';
 import { tokens } from '../../../theme/colors';
-import { getPolicyById } from '../mockPolicies';
 import type { PoliciesStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<PoliciesStackParamList, 'PolicyDetail'>;
 type R = RouteProp<PoliciesStackParamList, 'PolicyDetail'>;
 
+const TYPE_LABELS: Record<ProductType, string> = {
+  OSAGO: 'ОСАГО',
+  KASKO: 'КАСКО',
+  HEALTH: 'Здоровье',
+  HOME: 'Дом',
+  FINANCE: 'Финансы',
+};
+
+function formatDate(iso: string): string {
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+function computeDaysLeft(endDate: string): number {
+  const end = new Date(endDate);
+  const now = new Date();
+  return Math.max(0, Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+function formatPolicyNumber(n: string | null): string {
+  if (!n) return '—';
+  const clean = n.replace(/\s/g, '');
+  const parts = clean.match(/.{1,4}/g) ?? [];
+  return parts.join(' ');
+}
+
+function formatMoney(amount: number): string {
+  return amount.toLocaleString('ru-RU') + ' сум';
+}
+
 // M8.2 — детальная карточка полиса. Эталон: ScreenPolicyDetail.
 export function PolicyDetailScreen() {
   const nav = useNavigation<Nav>();
   const route = useRoute<R>();
-  const policy = getPolicyById(route.params.id);
+
+  const { data: policy, isLoading } = usePolicy(route.params.id);
+  const { data: me } = useMe();
+
+  if (isLoading) {
+    return (
+      <PhoneFrame>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color={tokens.red} />
+        </View>
+      </PhoneFrame>
+    );
+  }
 
   if (!policy) {
     return (
@@ -34,6 +78,22 @@ export function PolicyDetailScreen() {
       </PhoneFrame>
     );
   }
+
+  const typeLabel = TYPE_LABELS[policy.type] ?? policy.type;
+  const plate = policy.vehicle?.plate ?? '—';
+  const car = policy.vehicle ? `${policy.vehicle.brand} ${policy.vehicle.model}` : typeLabel;
+  const carYear = policy.vehicle?.year;
+  const daysLeft = computeDaysLeft(policy.endDate);
+  const isExpired = policy.status === 'EXPIRED' || policy.status === 'CANCELLED';
+  const isExpiring = !isExpired && daysLeft < 30;
+  const qrValue = policy.qrPayload ?? `sos24:${policy.policyNumber ?? policy.id}`;
+  const holderName =
+    me && (me.name || me.surname)
+      ? `${me.surname ?? ''} ${me.name?.[0] ?? ''}.`.trim()
+      : '—';
+
+  const tagTone = isExpiring ? 'yellow' : isExpired ? 'glass' : 'green';
+  const tagLabel = isExpiring ? `${daysLeft} дн.` : isExpired ? 'Истёк' : 'Активен';
 
   return (
     <PhoneFrame>
@@ -109,14 +169,12 @@ export function PolicyDetailScreen() {
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <SosLogo size="md" color="#fff" />
-            <Tag tone={policy.status === 'expiring' ? 'yellow' : policy.status === 'expired' ? 'glass' : 'green'}>
-              {policy.status === 'expiring' ? `${policy.daysLeft} дн.` : policy.status === 'expired' ? 'Истёк' : 'Активен'}
-            </Tag>
+            <Tag tone={tagTone}>{tagLabel}</Tag>
           </View>
 
           {/* QR centered */}
           <View style={{ alignItems: 'center', paddingVertical: 8 }}>
-            <PolicyQR value={`sos24:${policy.number}`} size={180} padding={10} />
+            <PolicyQR value={qrValue} size={180} padding={10} />
           </View>
 
           {/* Bottom row: type+plate (left), expand button (right) */}
@@ -131,7 +189,7 @@ export function PolicyDetailScreen() {
                   textTransform: 'uppercase',
                 }}
               >
-                {policy.type} · {policy.termMonths} мес
+                {typeLabel} · {policy.periodMonths} мес
               </Text>
               <Text
                 style={{
@@ -142,11 +200,13 @@ export function PolicyDetailScreen() {
                   lineHeight: 28,
                 }}
               >
-                {policy.plate}
+                {plate}
               </Text>
-              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMutedDark, marginTop: 4 }}>
-                {policy.car} · {policy.carYear}
-              </Text>
+              {car && (
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMutedDark, marginTop: 4 }}>
+                  {car}{carYear ? ` · ${carYear}` : ''}
+                </Text>
+              )}
             </View>
             <Pressable
               onPress={() => nav.navigate('PolicyQrFullscreen', { id: policy.id })}
@@ -175,19 +235,13 @@ export function PolicyDetailScreen() {
         <SummaryBlock
           eyebrow="Полис"
           rows={[
-            { label: 'Номер', value: policy.formattedNumber.replace('№ ', '') },
-            { label: 'Страхователь', value: policy.holder },
-            { label: 'Период', value: policy.period },
-            { label: 'Страховая сумма', value: policy.insuredAmount },
-            { label: 'Премия', value: policy.premium },
+            { label: 'Номер', value: formatPolicyNumber(policy.policyNumber) },
+            { label: 'Страхователь', value: holderName },
+            { label: 'Период', value: `${formatDate(policy.startDate)} — ${formatDate(policy.endDate)}` },
+            { label: 'Страховая премия', value: formatMoney(policy.totalPrice) },
+            ...(policy.discount > 0 ? [{ label: 'Скидка', value: `−${formatMoney(policy.discount)}` }] : []),
           ]}
         />
-        {policy.drivers.length > 0 && (
-          <SummaryBlock
-            eyebrow="Водители"
-            rows={policy.drivers.map((d) => ({ label: d.name, value: d.experience }))}
-          />
-        )}
       </ScrollView>
 
       {/* Sticky actions */}

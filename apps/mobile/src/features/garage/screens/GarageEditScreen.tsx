@@ -1,7 +1,8 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
+import { useCreateVehicle, useNappLookup, useUpdateVehicle, useVehicle } from '../../../api/vehicles';
 import { IconSearch } from '../../../components/icons/LineIcons';
 import { BackButton } from '../../../components/ui/BackButton';
 import { DismissKeyboardView } from '../../../components/ui/DismissKeyboardView';
@@ -11,7 +12,6 @@ import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { TextField } from '../../../components/ui/TextField';
 import { useKeyboardHeight } from '../../../lib/useKeyboardHeight';
 import { tokens } from '../../../theme/colors';
-import { VEHICLE_TYPE_LABELS, getVehicleById, nappLookup } from '../mockGarage';
 import type { GarageStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<GarageStackParamList, 'GarageEdit'>;
@@ -22,50 +22,80 @@ export function GarageEditScreen() {
   const nav = useNavigation<Nav>();
   const route = useRoute<R>();
   const kbHeight = useKeyboardHeight();
-  const existing = route.params?.id ? getVehicleById(route.params.id) : undefined;
 
-  const [plate, setPlate] = useState(existing?.plate ?? '');
-  const [brand, setBrand] = useState(existing?.brand ?? '');
-  const [model, setModel] = useState(existing?.model ?? '');
-  const [year, setYear] = useState(existing?.year ? String(existing.year) : '');
-  const [color, setColor] = useState(existing?.color ?? '');
-  const [vin, setVin] = useState(existing?.vin ?? '');
-  const [type, setType] = useState<'car' | 'suv' | 'truck' | 'motorcycle'>(existing?.type ?? 'car');
-  const [engineCC, setEngineCC] = useState(existing?.engineCC ? String(existing.engineCC) : '');
-  const [powerHP, setPowerHP] = useState(existing?.powerHP ? String(existing.powerHP) : '');
-  const [lookupStatus, setLookupStatus] = useState<'idle' | 'loading' | 'found' | 'notFound'>(
-    'idle',
-  );
-  const [submitting, setSubmitting] = useState(false);
+  const vehicleId = route.params?.id;
+  const isEdit = !!vehicleId;
 
-  const isEdit = !!existing;
+  const { data: existing } = useVehicle(vehicleId);
+  const createMutation = useCreateVehicle();
+  const updateMutation = useUpdateVehicle();
+  const nappMutation = useNappLookup();
+
+  const [plate, setPlate] = useState('');
+  const [brand, setBrand] = useState('');
+  const [model, setModel] = useState('');
+  const [year, setYear] = useState('');
+  const [color, setColor] = useState('');
+  const [vin, setVin] = useState('');
+  const [engine, setEngine] = useState('');
+  const [power, setPower] = useState('');
+  const [lookupStatus, setLookupStatus] = useState<'idle' | 'loading' | 'found' | 'notFound'>('idle');
+
+  useEffect(() => {
+    if (existing) {
+      setPlate(existing.plate);
+      setBrand(existing.brand);
+      setModel(existing.model);
+      setYear(String(existing.year));
+      setColor(existing.color ?? '');
+      setVin(existing.vin ?? '');
+      setEngine(existing.engine ?? '');
+      setPower(existing.power ?? '');
+    }
+  }, [existing]);
 
   const onLookup = async () => {
     if (!plate.trim()) return;
     setLookupStatus('loading');
-    const result = await nappLookup(plate.trim());
-    if (result) {
-      setBrand(result.brand ?? '');
-      setModel(result.model ?? '');
-      setYear(result.year ? String(result.year) : '');
-      setColor(result.color ?? '');
-      setVin(result.vin ?? '');
-      setType(result.type ?? 'car');
-      setEngineCC(result.engineCC ? String(result.engineCC) : '');
-      setPowerHP(result.powerHP ? String(result.powerHP) : '');
+    try {
+      const result = await nappMutation.mutateAsync(plate.trim());
+      setBrand(result.brand);
+      setModel(result.model);
+      setYear(String(result.year));
+      setColor(result.color);
+      setVin(result.vin);
+      setEngine(result.engine);
+      setPower(result.power);
       setLookupStatus('found');
-    } else {
+    } catch {
       setLookupStatus('notFound');
     }
   };
 
   const onSave = async () => {
-    setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 600));
-    setSubmitting(false);
-    nav.goBack();
+    const input = {
+      plate: plate.trim().toUpperCase(),
+      brand: brand.trim(),
+      model: model.trim(),
+      year: Number(year),
+      ...(engine.trim() && { engine: engine.trim() }),
+      ...(power.trim() && { power: power.trim() }),
+      ...(vin.trim() && { vin: vin.trim() }),
+      ...(color.trim() && { color: color.trim() }),
+    };
+    try {
+      if (isEdit && vehicleId) {
+        await updateMutation.mutateAsync({ id: vehicleId, input });
+      } else {
+        await createMutation.mutateAsync(input);
+      }
+      nav.goBack();
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось сохранить автомобиль. Попробуйте ещё раз.');
+    }
   };
 
+  const submitting = createMutation.isPending || updateMutation.isPending;
   const canSubmit = !!(plate.trim() && brand.trim() && model.trim() && year.trim());
 
   return (
@@ -95,7 +125,7 @@ export function GarageEditScreen() {
           subtitle="Введите гос. номер — данные подтянутся из NAPP"
         />
 
-        {/* Plate field — bigger, with Lookup */}
+        {/* Plate field with NAPP lookup */}
         <View style={{ gap: 10 }}>
           <TextField
             label="Гос. номер"
@@ -197,8 +227,8 @@ export function GarageEditScreen() {
             <View style={{ flex: 1 }}>
               <TextField
                 label="Объём двигателя, см³"
-                value={engineCC}
-                onChangeText={setEngineCC}
+                value={engine}
+                onChangeText={setEngine}
                 placeholder="1500"
                 keyboardType="number-pad"
               />
@@ -206,14 +236,13 @@ export function GarageEditScreen() {
             <View style={{ flex: 1 }}>
               <TextField
                 label="Мощность, л.с."
-                value={powerHP}
-                onChangeText={setPowerHP}
+                value={power}
+                onChangeText={setPower}
                 placeholder="105"
                 keyboardType="number-pad"
               />
             </View>
           </View>
-          <TextField label="Тип" value={VEHICLE_TYPE_LABELS[type]} editable={false} />
         </View>
       </ScrollView>
 
@@ -229,11 +258,7 @@ export function GarageEditScreen() {
 
 function FindButton({ onPress, disabled }: { onPress: () => void; disabled?: boolean }) {
   return (
-    <View
-      style={{
-        opacity: disabled ? 0.5 : 1,
-      }}
-    >
+    <View style={{ opacity: disabled ? 0.5 : 1 }}>
       <Text
         onPress={disabled ? undefined : onPress}
         style={{
