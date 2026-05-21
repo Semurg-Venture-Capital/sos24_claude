@@ -27,7 +27,7 @@ export class AuthService {
   async verifyOtp(
     phone: string,
     code: string,
-  ): Promise<{ tokens: TokenPair; isNewUser: boolean; verificationStatus: string }> {
+  ): Promise<{ tokens: TokenPair; isNewUser: boolean; verificationStatus: string; role: string }> {
     if (code !== DEV_OTP_CODE) {
       throw new UnauthorizedException('Invalid OTP code');
     }
@@ -36,8 +36,23 @@ export class AuthService {
     const user = existing ?? (await this.prisma.user.create({ data: { phone } }));
     const isNewUser = !existing;
 
-    const tokens = await this.issueTokens(user.id, user.phone);
-    return { tokens, isNewUser, verificationStatus: user.verificationStatus };
+    const tokens = await this.issueTokens(user.id, user.phone, user.role);
+    return { tokens, isNewUser, verificationStatus: user.verificationStatus, role: user.role };
+  }
+
+  async adminLogin(
+    phone: string,
+    code: string,
+  ): Promise<{ tokens: TokenPair; role: string }> {
+    if (code !== DEV_OTP_CODE) {
+      throw new UnauthorizedException('Invalid OTP code');
+    }
+    const user = await this.prisma.user.findUnique({ where: { phone } });
+    if (!user || user.role !== 'ADMIN') {
+      throw new UnauthorizedException('Not an admin account');
+    }
+    const tokens = await this.issueTokens(user.id, user.phone, user.role);
+    return { tokens, role: user.role };
   }
 
   async refresh(refreshToken: string): Promise<TokenPair> {
@@ -53,11 +68,11 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user) throw new UnauthorizedException('User not found');
 
-    return this.issueTokens(user.id, user.phone);
+    return this.issueTokens(user.id, user.phone, user.role);
   }
 
-  private async issueTokens(userId: string, phone: string): Promise<TokenPair> {
-    const payload = { sub: userId, phone };
+  private async issueTokens(userId: string, phone: string, role: string = 'USER'): Promise<TokenPair> {
+    const payload = { sub: userId, phone, role };
     const accessTtl = this.config.getOrThrow<string>('JWT_ACCESS_TTL') as unknown as number;
     const refreshTtl = this.config.getOrThrow<string>('JWT_REFRESH_TTL') as unknown as number;
     const accessToken = await this.jwt.signAsync(payload, {

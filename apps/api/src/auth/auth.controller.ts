@@ -21,8 +21,16 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Подтвердить OTP-код. Возвращает пару JWT.' })
   async verifyOtp(@Body() dto: VerifyOtpDto) {
-    const { tokens, isNewUser, verificationStatus } = await this.authService.verifyOtp(dto.phone, dto.code);
-    return { ...tokens, isNewUser, verificationStatus };
+    const { tokens, isNewUser, verificationStatus, role } = await this.authService.verifyOtp(dto.phone, dto.code);
+    return { ...tokens, isNewUser, verificationStatus, role };
+  }
+
+  @Post('admin/login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Логин для Admin Panel. Телефон + OTP, роль ADMIN обязательна.' })
+  async adminLogin(@Body() dto: VerifyOtpDto) {
+    const { tokens, role } = await this.authService.adminLogin(dto.phone, dto.code);
+    return { ...tokens, role };
   }
 
   @Post('refresh')

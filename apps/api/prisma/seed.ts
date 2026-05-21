@@ -17,6 +17,8 @@ async function main() {
       patronymic: 'Эркинович',
       birthDate: new Date('1990-05-14'),
       locale: 'ru',
+      role: 'ADMIN',
+      verificationStatus: 'MYID_VERIFIED',
     },
     create: {
       phone: TEST_PHONE,
@@ -25,6 +27,8 @@ async function main() {
       patronymic: 'Эркинович',
       birthDate: new Date('1990-05-14'),
       locale: 'ru',
+      role: 'ADMIN',
+      verificationStatus: 'MYID_VERIFIED',
     },
   });
 

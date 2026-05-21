@@ -77,6 +77,11 @@ enum VerificationStatus {
   MYID_VERIFIED
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id                 String             @id @default(cuid())
   phone              String             @unique
@@ -87,6 +92,7 @@ model User {
   locale             Locale             @default(ru)
   pinfl              String?            @unique
   verificationStatus VerificationStatus @default(NOT_VERIFIED)
+  role               UserRole           @default(USER)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
