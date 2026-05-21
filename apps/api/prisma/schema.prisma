@@ -82,6 +82,12 @@ enum UserRole {
   ADMIN
 }
 
+enum PartnerType {
+  STO
+  CLINIC
+  TOWING
+}
+
 model User {
   id                 String             @id @default(cuid())
   phone              String             @unique
@@ -298,6 +304,26 @@ model WalletTransaction {
 
   @@index([walletId, createdAt])
   @@map("wallet_transactions")
+}
+
+model Partner {
+  id        String      @id @default(cuid())
+  name      String
+  type      PartnerType
+  address   String
+  phone     String?
+  rating    Float       @default(0)
+  isOpen    Boolean     @default(true)
+  city      String      @default("Ташкент")
+  lat       Float?
+  lng       Float?
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([type])
+  @@index([city])
+  @@map("partners")
 }
 
 model Payment {

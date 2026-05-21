@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
+import { PartnersModule } from './partners/partners.module';
 import { CardsModule } from './cards/cards.module';
 import { DocumentsModule } from './documents/documents.module';
 import { DriversModule } from './drivers/drivers.module';
@@ -32,6 +33,7 @@ import { WalletModule } from './wallet/wallet.module';
     NappModule,
     MyidModule,
     AdminModule,
+    PartnersModule,
   ],
 })
 export class AppModule {}

@@ -243,6 +243,24 @@ async function main() {
   console.log(`  Card: ${cardUzcard.brand} •••• ${cardUzcard.last4} (default)`);
   console.log(`  Card: ${cardHumo.brand} •••• ${cardHumo.last4}`);
 
+  // Partners
+  const partnerSeed = [
+    { name: 'AutoFix СТО',  type: 'STO'    as const, address: 'ул. Амира Темура, 47', phone: '+998712345678', rating: 4.8, isOpen: true,  city: 'Ташкент', lat: 41.2995, lng: 69.2401 },
+    { name: 'Медсервис',    type: 'CLINIC' as const, address: 'ул. Навои, 15',        phone: '+998712345679', rating: 4.6, isOpen: true,  city: 'Ташкент', lat: 41.3050, lng: 69.2500 },
+    { name: 'АвтоЦентр',   type: 'STO'    as const, address: 'пр. Мустакиллик, 88',  phone: '+998712345680', rating: 4.5, isOpen: false, city: 'Ташкент', lat: 41.2900, lng: 69.2350 },
+    { name: 'Эвак-24',     type: 'TOWING' as const, address: 'ул. Катартал, 12',     phone: '+998712345681', rating: 4.9, isOpen: true,  city: 'Ташкент', lat: 41.3100, lng: 69.2600 },
+    { name: 'МедПомощь',   type: 'CLINIC' as const, address: 'ул. Чиланзар, 5',      phone: '+998712345682', rating: 4.4, isOpen: true,  city: 'Ташкент', lat: 41.2850, lng: 69.2280 },
+    { name: 'ТехПомощь СТО', type: 'STO'  as const, address: 'ул. Юнусобод, 33',     phone: '+998712345683', rating: 4.7, isOpen: true,  city: 'Ташкент', lat: 41.3200, lng: 69.2700 },
+  ];
+  for (const p of partnerSeed) {
+    await prisma.partner.upsert({
+      where: { id: `seed-partner-${p.name}` },
+      update: p,
+      create: { id: `seed-partner-${p.name}`, ...p },
+    });
+  }
+  console.log(`  Partners: ${partnerSeed.length} upserted`);
+
   console.log('Seed completed.');
 }
 

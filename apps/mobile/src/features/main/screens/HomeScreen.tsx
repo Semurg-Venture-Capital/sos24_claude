@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMe } from '../../../api/auth';
+import { usePartners } from '../../../api/partners';
 import { usePolicies, type Policy } from '../../../api/policies';
 import { IconBell } from '../../../components/icons/IconBell';
 import { IconBurger } from '../../../components/icons/IconBurger';
@@ -32,13 +33,9 @@ import type { MainStackParamList } from '../../../navigation/types';
 
 type RootNav = NativeStackNavigationProp<MainStackParamList>;
 
-// TODO: партнёры — mock пока, заменим в S5 (PartnersModule на бэке).
-const MOCK_PARTNERS = [
-  { name: 'AutoFix СТО', type: 'СТО', rating: '4.8', distance: '0.4 км', open: true },
-  { name: 'Медсервис', type: 'Клиника', rating: '4.6', distance: '1.2 км', open: true },
-  { name: 'АвтоЦентр', type: 'СТО', rating: '4.5', distance: '2.1 км', open: false },
-  { name: 'Эвак-24', type: 'Эвак.', rating: '4.9', distance: '3.0 км', open: true },
-];
+const PARTNER_TYPE_LABEL: Record<string, string> = {
+  STO: 'СТО', CLINIC: 'Клиника', TOWING: 'Эвакуатор',
+};
 
 function greetingByHour(hour: number): string {
   if (hour < 5) return 'Доброй ночи';
@@ -73,6 +70,7 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { data: me } = useMe();
   const { data: policies } = usePolicies('ACTIVE');
+  const { data: partners = [] } = usePartners();
   const displayName = me?.name ?? 'Гость';
 
   // Purchase-стек живёт на уровне MainStack (sibling к Tabs).
@@ -191,8 +189,15 @@ export function HomeScreen() {
           <View style={{ gap: 12 }}>
             <SectionRow title="Партнёры рядом" linkLabel="Все" />
             <HScroll>
-              {MOCK_PARTNERS.map((p) => (
-                <PartnerCard key={p.name} {...p} />
+              {partners.map((p) => (
+                <PartnerCard
+                  key={p.id}
+                  name={p.name}
+                  type={PARTNER_TYPE_LABEL[p.type] ?? p.type}
+                  rating={p.rating.toFixed(1)}
+                  distance={p.address}
+                  open={p.isOpen}
+                />
               ))}
             </HScroll>
           </View>
