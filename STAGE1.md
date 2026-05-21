@@ -8,7 +8,19 @@
 
 ## Где остановились
 
-**MyID верификация реализована (S7).** Обязательный шаг после OTP: нельзя войти в приложение без прохождения MyID. Данные профиля (ФИО, ПИНФЛ, паспорт) заполняются из MyID. В дев-режиме — мок (`MYID_MOCK=true` + "Симулировать MyID" кнопка в `__DEV__`).
+**Админ-панель (S8) готова и подключена к реальному API.** Dashboard с KPI + графики (Recharts), таблицы полисов и пользователей с поиском/фильтрами/пагинацией. JWT auth через двухшаговую форму (phone → OTP → проверка role=ADMIN). Все данные из `GET /admin/stats`, `GET /admin/users`, `GET /admin/policies`.
+
+```
+Дерево запущенных процессов:
+  pnpm dev:api          → http://localhost:3030 (NestJS)
+  npx next dev :3035    → http://localhost:3035 (Admin Next.js)
+  npx expo run:ios      → iPhone 17 Pro симулятор (Mobile)
+
+Вход в админку:
+  +998993286330 / OTP 6330 → role=ADMIN → Dashboard
+```
+
+**MyID верификация реализована (S7).** Обязательный шаг после OTP: нельзя войти в приложение без прохождения MyID. В дев-режиме — мок (`MYID_MOCK=true` + "Симулировать MyID" кнопка в `__DEV__`).
 
 ```
 Логин (+998993286330 / OTP=6330)
@@ -142,6 +154,35 @@
 2. Установить `myid-rn-sdk` (закрытый GitLab) + написать Expo Config Plugin
 3. Заменить TODO в `MyIdOnboardingScreen.startMyId()` на `MyIdClient.start()`
 
+### Этап S8 — Admin Panel (2026-05-21)
+
+Веб-админка страховой компании на реальных данных из API.
+
+**Бэкенд (`apps/api`):**
+- `UserRole` enum (`USER` / `ADMIN`) добавлен в Prisma schema + миграция `20260521130000_add_user_role`
+- Сид: тестовый юзер `+998993286330` получил `role: ADMIN` + `verificationStatus: MYID_VERIFIED`
+- `JwtPayload` расширен полем `role`; `issueTokens` принимает `role`, пишет в токен
+- `POST /auth/admin/login` — проверяет OTP **и** `user.role === ADMIN`; возвращает JWT + role
+- `AdminGuard` (`apps/api/src/admin/admin.guard.ts`) — чтение `request.user.role === 'ADMIN'` без запроса в БД
+- `AdminModule` (`apps/api/src/admin/`) — `AdminService` + `AdminController`, закрыт `JwtAuthGuard + AdminGuard`:
+  - `GET /admin/stats` — 12 параллельных запросов: KPI (totalPolicies, activePolicies, pendingPolicies, totalUsers, verifiedUsers, revenue), recentPolicies/Users (10 шт.), trend (30 дней → `{date,osago,kasko}[]`), typeDistribution (ACTIVE полисы по типу)
+  - `GET /admin/users?page&limit&search&verified` — пагинация, поиск по phone/name/surname
+  - `GET /admin/policies?page&limit&search&type&status` — пагинация, поиск по номеру/держателю/номеру авто
+
+**Фронтенд (`apps/admin/`):**
+- Next.js 15 + Tailwind v4 + Recharts + lucide-react + Inter (Google Fonts)
+- **Auth:** `app/login/page.tsx` — двухшаговая форма phone → OTP, `sos24_admin_token` в `localStorage`
+- **Layout:** тёмный сайдбар `#111` с красным (#e61428) индикатором активного пункта; белый Header; route group `(dashboard)`
+- **Dashboard:** KpiCard ×4 (полисы, активные, пользователи, ожидают оплаты), TrendChart (AreaChart, ОСАГО/КАСКО за 30 дней), TypeDonut (PieChart donut + легенда), таблицы последних полисов/пользователей со ссылками «Все →»
+- **Users page:** таблица (avatar-инициалы, телефон, статус верификации, кол-во полисов, роль, дата), поиск + фильтр верификации + пагинация
+- **Policies page:** таблица (тип+иконка+номер, держатель, авто, период, премия, статус), поиск + фильтр типа + фильтр статуса + пагинация
+- Все страницы `'use client'` + TanStack Query (JWT из localStorage → Bearer в axios interceptor)
+- Skeleton-лоудеры на всех блоках
+
+**Фиксы в рамках S8:**
+- `myid.controller.ts`: `@CurrentUser() userId: string` → `@CurrentUser() user: JwtPayload` + `user.sub` (декоратор возвращает объект, не строку)
+- `PoliciesListScreen.tsx` + `PolicyDetailScreen.tsx`: `formatDate` — `iso.slice(0, 10).split('-')` (API возвращает полный ISO `2026-01-15T00:00:00.000Z`, без `.slice` `d` становился `"15T00:00:00.000Z"`)
+
 ### Этап F — Mobile integration (S6) 2026-05-20
 **API-слой полностью:** `apps/mobile/src/api/` — types.ts + 9 domain-файлов (auth, vehicles, documents, drivers, policies, promo, cards, wallet, payments). Каждый файл содержит TypeScript-типы, функции-обёртки axios и React Query хуки (useX / useCreateX / ... ) в одном месте.
 
@@ -199,6 +240,9 @@
 
 ### Backend — S5 Partners
 Прямо следующий sprint. `Partner` модель + `GET /partners` (фильтр по локации/типу). Сейчас Home показывает `MOCK_PARTNERS` — 4 захардкоженные карточки. **~2-3ч.**
+
+### Admin — Claims, Partners, Reports (дизайн нужен)
+Админка S8 Phase 2: управление убытками (M9), выплаты, уведомления, управление партнёрами (одобрение СТО/клиник), тарифный редактор, отчёты/выгрузка 1С, управление контентом лендинга. Без дизайна от дизайнера — не начинать.
 
 ### Mobile — интеграция MyID SDK (реальные ключи)
 - Когда придут ключи от MyID: установить `myid-rn-sdk`, написать Expo Config Plugin, заменить TODO в `MyIdOnboardingScreen.startMyId()`
@@ -265,12 +309,19 @@ brew install cocoapods  # один раз
 pnpm dev:api
 # → http://localhost:3030, swagger /api-docs
 
-# Терминал 2 — iOS симулятор + Metro
+# Терминал 2 — Admin panel
+cd apps/admin
+npx next dev --port 3035
+# → http://localhost:3035  (логин: +998993286330 / OTP 6330)
+
+# Терминал 3 — iOS симулятор + Metro
 cd apps/mobile
 xcrun simctl boot "iPhone 17 Pro" && open -a Simulator
 npx expo run:ios --device "iPhone 17 Pro"
 # первый билд ~5-10 мин, потом инкрементально
 ```
+
+> **Заметка по портам:** 3031 занят системным процессом macOS — использовать 3035.
 
 ### Альтернативы для mobile
 ```bash
@@ -316,6 +367,9 @@ GarageEdit, MyCards, PoliciesList/PolicyDetail/QrFullscreen — все на ре
 ### ~~S7 — MyID верификация~~ ✅ DONE 2026-05-21
 Обязательный флоу регистрации через MyID. Мок на бэке + DEV-кнопка на мобиле.
 
+### ~~S8 — Admin Panel~~ ✅ DONE 2026-05-21
+Dashboard + KPI + графики + таблицы users/policies + JWT auth. Реальные данные из API.
+
 ### Вариант A — S5 Partners (~2-3ч) ← СЛЕДУЮЩИЙ
 `Partner` модель + `GET /partners`, заменить `MOCK_PARTNERS` на Home. Это закрывает последний mock в проекте. **Рекомендую.**
 
@@ -353,11 +407,15 @@ GarageEdit, MyCards, PoliciesList/PolicyDetail/QrFullscreen — все на ре
 | `QUESTIONS.md` | открытые вопросы клиенту |
 | `DESIGN_SYSTEM.md` | дизайн-токены |
 | `SOS24/` | дизайн-эталоны |
-| `apps/api/` | NestJS бэк (8 модулей, Prisma 6, seed) |
-| `apps/api/src/{auth,users,vehicles,napp,documents,drivers,policies,promo,cards,wallet,payments}` | модули |
+| `apps/api/` | NestJS бэк (9 модулей, Prisma 6, seed) |
+| `apps/api/src/{auth,users,vehicles,napp,documents,drivers,policies,promo,cards,wallet,payments,admin}` | модули |
 | `apps/api/prisma/{schema.prisma,migrations,seed.ts}` | БД |
 | `apps/mobile/` | Expo + RN |
 | `apps/mobile/src/api/` | API-слой: types, 9 domain-файлов с хуками |
 | `apps/mobile/src/components/ui/` | UI-кит ~40 примитивов |
 | `apps/mobile/src/features/{auth,policies,purchase,profile,garage,main}/` | бизнес-фичи |
 | `apps/mobile/src/navigation/*Navigator.tsx` | стеки |
+| `apps/admin/` | Next.js 15 — веб-админка страховой |
+| `apps/admin/src/app/(dashboard)/` | Dashboard, Users, Policies страницы |
+| `apps/admin/src/components/{layout,dashboard}/` | Sidebar, Header, KpiCard, TrendChart, TypeDonut |
+| `apps/admin/src/lib/{api.ts,admin-hooks.ts}` | axios-клиент + TanStack Query хуки |
