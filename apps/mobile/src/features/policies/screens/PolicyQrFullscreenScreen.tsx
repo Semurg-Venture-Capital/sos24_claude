@@ -2,21 +2,46 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { usePolicy } from '../../../api/policies';
+import type { ProductType } from '../../../api/types';
 import { SosLogo } from '../../../components/ui/SosLogo';
 import { PolicyQR } from '../../../components/ui/PolicyQR';
-import { getPolicyById } from '../mockPolicies';
 import type { PoliciesStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<PoliciesStackParamList, 'PolicyQrFullscreen'>;
 type R = RouteProp<PoliciesStackParamList, 'PolicyQrFullscreen'>;
 
+const TYPE_LABELS: Record<ProductType, string> = {
+  OSAGO: 'ОСАГО',
+  KASKO: 'КАСКО',
+  HEALTH: 'Здоровье',
+  HOME: 'Дом',
+  FINANCE: 'Финансы',
+};
+
+function formatPolicyNumberFull(n: string | null): string {
+  if (!n) return '—';
+  const clean = n.replace(/\s/g, '');
+  const parts = clean.match(/.{1,4}/g) ?? [];
+  return `№ ${parts.join(' ')}`;
+}
+
 // M8.3 — QR на весь экран, тёмный фон, максимум контраста для инспектора.
 export function PolicyQrFullscreenScreen() {
   const nav = useNavigation<Nav>();
   const route = useRoute<R>();
-  const policy = getPolicyById(route.params.id);
+
+  const { data: policy, isLoading } = usePolicy(route.params.id);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#121212', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color="#fff" />
+      </View>
+    );
+  }
 
   if (!policy) {
     return (
@@ -25,6 +50,11 @@ export function PolicyQrFullscreenScreen() {
       </View>
     );
   }
+
+  const typeLabel = TYPE_LABELS[policy.type] ?? policy.type;
+  const plate = policy.vehicle?.plate ?? '—';
+  const qrValue = policy.qrPayload ?? `sos24:${policy.policyNumber ?? policy.id}`;
+  const formattedNumber = formatPolicyNumberFull(policy.policyNumber);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#121212' }}>
@@ -121,7 +151,7 @@ export function PolicyQrFullscreenScreen() {
             lineHeight: 30,
           }}
         >
-          {policy.type} · {policy.plate}
+          {typeLabel} · {plate}
         </Text>
       </View>
 
@@ -139,7 +169,7 @@ export function PolicyQrFullscreenScreen() {
             elevation: 12,
           }}
         >
-          <PolicyQR value={`sos24:${policy.number}`} size={260} padding={0} />
+          <PolicyQR value={qrValue} size={260} padding={0} />
         </View>
 
         <View style={{ alignItems: 'center', gap: 4 }}>
@@ -151,7 +181,7 @@ export function PolicyQrFullscreenScreen() {
               color: '#fff',
             }}
           >
-            {policy.formattedNumber}
+            {formattedNumber}
           </Text>
           <Text
             style={{

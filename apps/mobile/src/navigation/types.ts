@@ -30,9 +30,11 @@ export type GarageStackParamList = {
   GarageEdit: { id?: string };
 };
 
+export type ProductType = 'osago' | 'kasko' | 'health' | 'home' | 'finance';
+
 export type PurchaseStackParamList = {
   Catalog: undefined;
-  ProductDetail: { type: 'osago' | 'kasko' };
+  ProductDetail: { type: ProductType };
   CalcVehicle: undefined;
   CalcDrivers: undefined;
   CalcPeriod: undefined;

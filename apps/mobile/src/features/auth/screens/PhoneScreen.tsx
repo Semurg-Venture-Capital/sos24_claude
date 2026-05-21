@@ -77,8 +77,8 @@ export function PhoneScreen() {
           <BackButton onPress={() => nav.goBack()} />
         </View>
 
-        {/* Content */}
-        <View style={{ position: 'absolute', top: 140, left: 24, right: 24, gap: 32 }}>
+        {/* Content — при открытой клавиатуре сдвигаем вверх, чтобы кнопка не задевала поле */}
+        <View style={{ position: 'absolute', top: kbHeight > 0 ? 96 : 140, left: 24, right: 24, gap: 32 }}>
           <ScreenHeading
             title={t('auth.phone.title')}
             subtitle={t('auth.phone.subtitle')}

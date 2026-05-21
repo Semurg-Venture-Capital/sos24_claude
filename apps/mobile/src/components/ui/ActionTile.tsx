@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { tokens } from '../../theme/colors';
@@ -57,9 +57,13 @@ export function ActionTile({ icon, label, dark, onPress }: Props) {
       {dark ? (
         content
       ) : (
-        <BlurView intensity={20} tint="light" style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.55)' }}>
+        <GlassView
+          glassEffectStyle="regular"
+          isInteractive
+          style={{ flex: 1, borderRadius: 32, overflow: 'hidden' }}
+        >
           {content}
-        </BlurView>
+        </GlassView>
       )}
     </Pressable>
   );

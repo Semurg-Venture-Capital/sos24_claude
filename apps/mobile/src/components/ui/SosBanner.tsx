@@ -6,7 +6,7 @@ interface Props {
   onPress?: () => void;
 }
 
-// Красный баннер "SOS — заявить ДТП" — primary CTA на Home.
+// Красный баннер "SOS — экстренная помощь" — primary CTA на Home.
 export function SosBanner({ onPress }: Props) {
   return (
     <Pressable
@@ -47,10 +47,10 @@ export function SosBanner({ onPress }: Props) {
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: '#fff', letterSpacing: -0.2 }}>
-          SOS — заявить ДТП
+          SOS — экстренная помощь
         </Text>
         <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMutedDark, letterSpacing: -0.07 }}>
-          Запишем место, фото, отправим.
+          ДТП, мед. помощь, угон — поможем разобраться
         </Text>
       </View>
       <Svg width={8} height={14} viewBox="0 0 8 14" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round">

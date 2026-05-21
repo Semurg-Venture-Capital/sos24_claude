@@ -1,8 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
+import { useCards, type CardApi } from '../../../api/cards';
+import { usePayPolicy } from '../../../api/payments';
+import { usePolicy } from '../../../api/policies';
+import { useWallet } from '../../../api/wallet';
 import { PayLockIcon } from '../../../components/icons/PayLockIcon';
 import { BackButton } from '../../../components/ui/BackButton';
 import { CardOption, type CardBrand } from '../../../components/ui/CardOption';
@@ -11,41 +15,59 @@ import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
 import { SecureNote } from '../../../components/ui/SecureNote';
 import { TextLink } from '../../../components/ui/TextLink';
-import { MOCK_CARS, calculatePrice, usePurchaseStore } from '../store';
+import { WalletPayOption } from '../../../components/ui/WalletPayOption';
+import { PRODUCTS } from '../productData';
+import { usePurchaseStore } from '../store';
 import { tokens } from '../../../theme/colors';
 import type { PurchaseStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<PurchaseStackParamList, 'Payment'>;
 
-interface MockCard {
-  id: string;
-  brand: CardBrand;
-  last4: string;
-  expiry: string;
-}
-
-const MOCK_CARDS: MockCard[] = [
-  { id: 'card1', brand: 'uzcard', last4: '4582', expiry: '08/27' },
-  { id: 'card2', brand: 'humo', last4: '1190', expiry: '03/28' },
-];
+const BRAND_MAP: Record<CardApi['brand'], CardBrand> = {
+  UZCARD: 'uzcard',
+  HUMO: 'humo',
+  VISA: 'uzcard', // CardOption поддерживает только uzcard/humo — VISA/MC временно мапим
+  MASTERCARD: 'humo',
+};
 
 // M7.1 — Оплата.
 export function PaymentScreen() {
   const nav = useNavigation<Nav>();
   const state = usePurchaseStore();
-  const calc = calculatePrice(state);
-  const [selectedCard, setSelectedCard] = useState(MOCK_CARDS[0].id);
-  const [submitting, setSubmitting] = useState(false);
+  const policyId = state.draftPolicyId;
 
-  const productLabel = state.productType === 'kasko' ? 'КАСКО' : 'ОСАГО';
-  const car = MOCK_CARS.find((c) => c.id === state.carId);
+  const { data: policy } = usePolicy(policyId ?? undefined);
+  const { data: wallet } = useWallet();
+  const { data: cards } = useCards();
+  const payMutation = usePayPolicy();
+
+  const total = policy?.totalPrice ?? 0;
+  const balance = wallet?.balance ?? 0;
+  const productLabel = state.productType ? PRODUCTS[state.productType].name : '—';
+  const car = policy?.vehicle;
+  const isVehicleProduct = state.productType === 'osago' || state.productType === 'kasko';
+
+  // selectedMethod = 'wallet' | <card.id>
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedMethod || !cards || !wallet) return;
+    setSelectedMethod(balance >= total ? 'wallet' : cards.find((c) => c.isDefault)?.id ?? cards[0]?.id ?? null);
+  }, [cards, wallet, balance, total, selectedMethod]);
 
   const onPay = async () => {
-    setSubmitting(true);
-    // Имитация платёжного запроса. В реале — POST /payments/uzcard.
-    await new Promise((r) => setTimeout(r, 1500));
-    setSubmitting(false);
-    nav.navigate('Success');
+    if (!policyId || !selectedMethod) return;
+    try {
+      await payMutation.mutateAsync(
+        selectedMethod === 'wallet'
+          ? { policyId, method: 'WALLET' }
+          : { policyId, method: 'CARD', cardId: selectedMethod },
+      );
+      nav.navigate('Success');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Оплата не прошла';
+      Alert.alert('Платёж отклонён', msg);
+    }
   };
 
   return (
@@ -82,14 +104,16 @@ export function PaymentScreen() {
                 lineHeight: 46,
               }}
             >
-              {calc.total.toLocaleString('ru-RU')}
+              {total.toLocaleString('ru-RU')}
             </Text>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 16, color: tokens.inkMuted }}>
               сум
             </Text>
           </View>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
-            {productLabel} · {car?.name ?? '—'} · {state.periodMonths} мес
+            {isVehicleProduct
+              ? `${productLabel} · ${car ? `${car.brand} ${car.model}` : '—'} · ${state.periodMonths} мес`
+              : productLabel}
           </Text>
         </View>
 
@@ -110,14 +134,20 @@ export function PaymentScreen() {
           </View>
 
           <View style={{ gap: 10 }}>
-            {MOCK_CARDS.map((c) => (
+            <WalletPayOption
+              balance={balance}
+              amount={total}
+              selected={selectedMethod === 'wallet'}
+              onPress={() => setSelectedMethod('wallet')}
+            />
+            {cards?.map((c) => (
               <CardOption
                 key={c.id}
-                brand={c.brand}
+                brand={BRAND_MAP[c.brand]}
                 last4={c.last4}
                 expiry={c.expiry}
-                selected={c.id === selectedCard}
-                onPress={() => setSelectedCard(c.id)}
+                selected={c.id === selectedMethod}
+                onPress={() => setSelectedMethod(c.id)}
               />
             ))}
             <NewCardOption />
@@ -130,12 +160,12 @@ export function PaymentScreen() {
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
         <LinearGradient colors={['rgba(228,228,228,0)', 'rgba(228,228,228,0.95)']} style={{ height: 24 }} />
         <View style={{ paddingHorizontal: 24, paddingBottom: 32, paddingTop: 8, backgroundColor: 'rgba(228,228,228,0.95)' }}>
-          <RedButton trailing={false} onPress={onPay} disabled={submitting}>
-            {submitting ? (
+          <RedButton trailing={false} onPress={onPay} disabled={payMutation.isPending || !selectedMethod || !policyId}>
+            {payMutation.isPending ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <>
-                <PayLockIcon color="#fff" />{'  '}Оплатить {calc.total.toLocaleString('ru-RU')} сум
+                <PayLockIcon color="#fff" />{'  '}Оплатить {total.toLocaleString('ru-RU')} сум
               </>
             )}
           </RedButton>

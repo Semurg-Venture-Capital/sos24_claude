@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { Text, View } from 'react-native';
 import { StarIcon } from '../icons/StarIcon';
 import { tokens } from '../../theme/colors';
@@ -13,18 +13,12 @@ interface Props {
 
 export function PartnerCard({ name, type, rating, distance, open }: Props) {
   return (
-    <View
-      style={{
-        width: 168,
-        borderRadius: 28,
-        overflow: 'hidden',
-      }}
-    >
-      <BlurView
-        intensity={20}
-        tint="light"
+    <View style={{ width: 168 }}>
+      <GlassView
+        glassEffectStyle="regular"
         style={{
-          backgroundColor: 'rgba(255,255,255,0.55)',
+          borderRadius: 28,
+          overflow: 'hidden',
           padding: 14,
           gap: 8,
         }}
@@ -74,7 +68,7 @@ export function PartnerCard({ name, type, rating, distance, open }: Props) {
             {type}
           </Text>
         </View>
-      </BlurView>
+      </GlassView>
     </View>
   );
 }

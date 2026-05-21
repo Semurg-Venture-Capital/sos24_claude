@@ -1,7 +1,7 @@
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
+import { usePolicy } from '../../../api/policies';
 import { CloseIcon } from '../../../components/icons/CloseIcon';
-import { DownloadIcon } from '../../../components/icons/DownloadIcon';
 import { BlurView } from 'expo-blur';
 import { OutlineButton } from '../../../components/ui/OutlineButton';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
@@ -11,7 +11,8 @@ import { SosLogo } from '../../../components/ui/SosLogo';
 import { SuccessTick } from '../../../components/ui/SuccessTick';
 import { Tag } from '../../../components/ui/Tag';
 import { TextLink } from '../../../components/ui/TextLink';
-import { MOCK_CARS, usePurchaseStore } from '../store';
+import { PRODUCTS } from '../productData';
+import { usePurchaseStore } from '../store';
 import { tokens } from '../../../theme/colors';
 
 const MONTHS_SHORT = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
@@ -24,8 +25,12 @@ function ddmmyyyy(iso: string): string {
 export function SuccessScreen() {
   const nav = useNavigation();
   const state = usePurchaseStore();
-  const productLabel = state.productType === 'kasko' ? 'КАСКО' : 'ОСАГО';
-  const car = MOCK_CARS.find((c) => c.id === state.carId);
+  const policyId = state.draftPolicyId;
+  const { data: policy } = usePolicy(policyId ?? undefined);
+
+  const productLabel = state.productType ? PRODUCTS[state.productType].name : '—';
+  const isVehicleProduct = state.productType === 'osago' || state.productType === 'kasko';
+  const car = policy?.vehicle;
 
   // Закрыть Purchase-флоу и переключиться на нужный таб.
   const closeAndGo = (tab: 'Home' | 'Policies') => {
@@ -50,8 +55,11 @@ export function SuccessScreen() {
     );
   };
 
-  // Сгенерируем мок-номер полиса для отображения
-  const fakePolicyNumber = `№ 1224 ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`;
+  const policyNumber = policy?.policyNumber ?? '№ —';
+  const qrValue = policy?.qrPayload ?? policyId ?? 'sos24://policy';
+  const startDate = policy?.startDate ?? state.startDate;
+  const endDate = policy?.endDate ?? state.endDate;
+  const periodMonths = policy?.periodMonths ?? state.periodMonths;
 
   return (
     <PhoneFrame>
@@ -112,11 +120,11 @@ export function SuccessScreen() {
           >
             {productLabel} действует с{' '}
             <Text style={{ color: tokens.inkDark, fontFamily: 'Manrope_600SemiBold' }}>
-              {ddmmyyyy(state.startDate)}
+              {ddmmyyyy(startDate)}
             </Text>{' '}
             по{' '}
             <Text style={{ color: tokens.inkDark, fontFamily: 'Manrope_600SemiBold' }}>
-              {ddmmyyyy(state.endDate)}
+              {ddmmyyyy(endDate)}
             </Text>
           </Text>
         </View>
@@ -140,7 +148,7 @@ export function SuccessScreen() {
         >
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <SosLogo size="md" color="#fff" />
-            <Tag tone="glass">{fakePolicyNumber}</Tag>
+            <Tag tone="glass">{policyNumber}</Tag>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16 }}>
             <View style={{ flex: 1, gap: 4 }}>
@@ -153,7 +161,7 @@ export function SuccessScreen() {
                   textTransform: 'uppercase',
                 }}
               >
-                {productLabel} · {state.periodMonths} мес
+                {productLabel} · {periodMonths} мес
               </Text>
               <Text
                 style={{
@@ -164,13 +172,13 @@ export function SuccessScreen() {
                   lineHeight: 24,
                 }}
               >
-                {car?.plate ?? '—'}
+                {isVehicleProduct ? (car?.plate ?? '—') : productLabel}
               </Text>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMutedDark, marginTop: 4 }}>
-                {car?.name ?? '—'}
+                {isVehicleProduct ? (car ? `${car.brand} ${car.model}` : '—') : 'Полис активирован'}
               </Text>
             </View>
-            <PolicyQR value={fakePolicyNumber} size={64} padding={6} />
+            <PolicyQR value={qrValue} size={64} padding={6} />
           </View>
         </View>
       </View>
@@ -178,7 +186,13 @@ export function SuccessScreen() {
       {/* Action buttons */}
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36, gap: 10 }}>
         <RedButton onPress={() => closeAndGo('Policies')}>Мои полисы</RedButton>
-        <OutlineButton onPress={() => {}}>↓ Скачать PDF</OutlineButton>
+        <OutlineButton
+          onPress={() =>
+            Alert.alert('Скоро', 'Скачивание PDF-полиса будет доступно в следующем обновлении.')
+          }
+        >
+          ↓ Скачать PDF
+        </OutlineButton>
         <View style={{ alignItems: 'center', marginTop: 8 }}>
           <TextLink onPress={() => closeAndGo('Home')}>На главную</TextLink>
         </View>

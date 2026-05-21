@@ -67,6 +67,8 @@ export function ProfileEditScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 140, gap: 24 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
       >
         {/* Avatar with edit photo */}
         <View style={{ alignItems: 'center', gap: 12, marginTop: 8 }}>

@@ -1,13 +1,17 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMe } from '../../../api/auth';
+import { usePolicies, type Policy } from '../../../api/policies';
 import { IconBell } from '../../../components/icons/IconBell';
 import { IconBurger } from '../../../components/icons/IconBurger';
 import {
-  QuickIconCommissar,
-  QuickIconHistory,
-  QuickIconKASKO,
-  QuickIconOSAGO,
+  QuickIconAdjuster,
+  QuickIconEuroProtocol,
+  QuickIconPartners,
+  QuickIconPolicy,
 } from '../../../components/icons/QuickActionIcons';
 import { SunIcon } from '../../../components/icons/SunIcon';
 import { ActionTile } from '../../../components/ui/ActionTile';
@@ -28,12 +32,7 @@ import type { MainStackParamList } from '../../../navigation/types';
 
 type RootNav = NativeStackNavigationProp<MainStackParamList>;
 
-// TODO: mock-данные — заменить на /me/policies и /partners когда подключим API.
-const MOCK_POLICIES = [
-  { type: 'КАСКО', car: 'Chevrolet Cobalt', plate: '01 A 123 BB', daysLeft: 365, expiry: '11.05.2027', tone: 'dark' as const },
-  { type: 'ОСАГО', car: 'Hyundai Sonata', plate: '10 R 555 AC', daysLeft: 43, expiry: '26.06.2026', tone: 'light' as const, warn: true },
-];
-
+// TODO: партнёры — mock пока, заменим в S5 (PartnersModule на бэке).
 const MOCK_PARTNERS = [
   { name: 'AutoFix СТО', type: 'СТО', rating: '4.8', distance: '0.4 км', open: true },
   { name: 'Медсервис', type: 'Клиника', rating: '4.6', distance: '1.2 км', open: true },
@@ -48,12 +47,33 @@ function greetingByHour(hour: number): string {
   return 'Добрый вечер';
 }
 
+const PRODUCT_LABEL: Record<Policy['type'], string> = {
+  OSAGO: 'ОСАГО',
+  KASKO: 'КАСКО',
+  HEALTH: 'Здоровье',
+  HOME: 'Дом',
+  FINANCE: 'Финансы',
+};
+
+function daysUntil(iso: string): number {
+  return Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000));
+}
+
+function formatExpiry(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+}
+
 // Главный экран — длинный скролл по специке: greeting + полисы + SOS-баннер
 // + быстрые действия 2×2 + партнёры рядом + промо.
 // Эталон: SOS24/screens.jsx → ScreenHomeV2.
 export function HomeScreen() {
   const greeting = greetingByHour(new Date().getHours());
   const nav = useNavigation();
+  const insets = useSafeAreaInsets();
+  const { data: me } = useMe();
+  const { data: policies } = usePolicies('ACTIVE');
+  const displayName = me?.name ?? 'Гость';
 
   // Purchase-стек живёт на уровне MainStack (sibling к Tabs).
   // Используем getParent() для надёжного перехода — useNavigation() внутри
@@ -73,32 +93,11 @@ export function HomeScreen() {
   };
 
   return (
-    <PhoneFrame>
+    <PhoneFrame bottomSafeArea={false} topSafeArea={false}>
       <View style={{ flex: 1 }}>
-        {/* Top bar: burger / logo pill / bell. Position absolute over scroll */}
-        <View style={{ paddingTop: 8, paddingBottom: 8 }}>
-          <TopBar
-            leading={
-              <IconButton>
-                <IconBurger color={tokens.inkDark} />
-              </IconButton>
-            }
-            center={
-              <GlassPill style={{ height: 48, paddingHorizontal: 18 }}>
-                <SosLogo size="md" />
-              </GlassPill>
-            }
-            trailing={
-              <IconButton badge>
-                <IconBell color={tokens.inkDark} />
-              </IconButton>
-            }
-          />
-        </View>
-
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 120, gap: 18 }}
+          contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 120, gap: 18 }}
           showsVerticalScrollIndicator={false}
         >
           {/* Greeting + weather */}
@@ -123,7 +122,7 @@ export function HomeScreen() {
                   lineHeight: 28,
                 }}
               >
-                Азиз
+                {displayName}
               </Text>
             </View>
             <GlassPill style={{ height: 34, paddingHorizontal: 12 }}>
@@ -140,18 +139,21 @@ export function HomeScreen() {
           <View style={{ gap: 12 }}>
             <SectionRow title="Мои полисы" linkLabel="Все" />
             <HScroll>
-              {MOCK_POLICIES.map((p) => (
-                <PolicyCardActive
-                  key={p.plate}
-                  tone={p.tone}
-                  type={p.type}
-                  car={p.car}
-                  plate={p.plate}
-                  daysLeft={p.daysLeft}
-                  expiry={p.expiry}
-                  warn={p.warn}
-                />
-              ))}
+              {policies?.map((p, idx) => {
+                const days = daysUntil(p.endDate);
+                return (
+                  <PolicyCardActive
+                    key={p.id}
+                    tone={idx === 0 ? 'dark' : 'light'}
+                    type={PRODUCT_LABEL[p.type]}
+                    car={p.vehicle ? `${p.vehicle.brand} ${p.vehicle.model}` : PRODUCT_LABEL[p.type]}
+                    plate={p.vehicle?.plate ?? '—'}
+                    daysLeft={days}
+                    expiry={formatExpiry(p.endDate)}
+                    warn={days < 60}
+                  />
+                );
+              })}
               <AddPolicyTile onPress={openCatalog} />
             </HScroll>
           </View>
@@ -168,19 +170,19 @@ export function HomeScreen() {
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <ActionTile
                   dark
-                  icon={<QuickIconOSAGO />}
-                  label="Оформить ОСАГО"
+                  icon={<QuickIconPolicy />}
+                  label={'Страховой\nполис'}
                   onPress={() => openProduct('osago')}
                 />
                 <ActionTile
-                  icon={<QuickIconKASKO />}
-                  label="Оформить КАСКО"
+                  icon={<QuickIconAdjuster />}
+                  label="Аджастер"
                   onPress={() => openProduct('kasko')}
                 />
               </View>
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <ActionTile icon={<QuickIconCommissar />} label={'Вызвать\nкомиссара'} />
-                <ActionTile icon={<QuickIconHistory />} label={'История\nполисов'} />
+                <ActionTile icon={<QuickIconPartners />} label="Партнёры" />
+                <ActionTile icon={<QuickIconEuroProtocol />} label="Европротокол" />
               </View>
             </View>
           </View>
@@ -207,6 +209,45 @@ export function HomeScreen() {
             </View>
           </View>
         </ScrollView>
+
+        {/* Fade-overlay сверху: контент мягко исчезает за status bar / DI. */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={[tokens.pageBg, 'rgba(228,228,228,0)']}
+          style={{ position: 'absolute', left: 0, right: 0, top: 0, height: insets.top + 24 }}
+        />
+
+        {/* TopBar — floating, без фона. Контент скроллится под ним.
+            Сдвинут на safe-area top inset, чтобы не уходить под dynamic island. */}
+        <View style={{ position: 'absolute', top: insets.top, left: 0, right: 0, paddingTop: 8, paddingBottom: 8 }}>
+          <TopBar
+            leading={
+              <IconButton>
+                <IconBurger color={tokens.inkDark} />
+              </IconButton>
+            }
+            center={
+              <GlassPill style={{ height: 48, paddingHorizontal: 18 }}>
+                <SosLogo size="md" />
+              </GlassPill>
+            }
+            trailing={
+              <IconButton badge>
+                <IconBell color={tokens.inkDark} />
+              </IconButton>
+            }
+          />
+        </View>
+
+        {/* Fade-overlay над native tab bar: контент мягко исчезает к низу.
+            Начальный цвет = pageBg с альфой 0 (не 'transparent', который
+            rgba(0,0,0,0) и даёт грязный серый в середине gradient).
+            pointerEvents=none — не блокирует тапы по контенту/tab bar. */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={['rgba(228,228,228,0)', tokens.pageBg]}
+          style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 110 }}
+        />
       </View>
     </PhoneFrame>
   );

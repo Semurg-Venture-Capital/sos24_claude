@@ -1,9 +1,9 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BlurView } from 'expo-blur';
-import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { useDocument, useUpsertDocument } from '../../../api/documents';
 import { CalendarIcon } from '../../../components/icons/CalendarIcon';
 import { IconCamera } from '../../../components/icons/LineIcons';
 import { BackButton } from '../../../components/ui/BackButton';
@@ -15,7 +15,6 @@ import { StatusPill } from '../../../components/ui/StatusPill';
 import { TextField } from '../../../components/ui/TextField';
 import { useKeyboardHeight } from '../../../lib/useKeyboardHeight';
 import { tokens } from '../../../theme/colors';
-import { MOCK_DOCUMENTS } from '../mockProfile';
 import type { ProfileStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<ProfileStackParamList, 'Document'>;
@@ -26,26 +25,51 @@ const INFO_TEXT: Record<string, string> = {
   license: 'Требуется для расчёта стоимости с учётом стажа водителя.',
 };
 
+const TITLE: Record<string, string> = {
+  passport: 'Паспорт',
+  license: 'Водительское удостоверение',
+};
+
 // M2.3 — Документы (паспорт / ВУ). Спецификация: SOS24_Mobile_Screens.md §M2.3.
 export function DocumentScreen() {
   const nav = useNavigation<Nav>();
   const route = useRoute<R>();
   const kbHeight = useKeyboardHeight();
-  const doc = MOCK_DOCUMENTS[route.params.kind];
-  const isPassport = doc.kind === 'passport';
+  const kind = route.params.kind;
+  const isPassport = kind === 'passport';
+  const { data: doc, isLoading } = useDocument(kind);
+  const upsert = useUpsertDocument(kind);
 
-  const [series, setSeries] = useState(doc.series ?? '');
-  const [number, setNumber] = useState(doc.number ?? '');
-  const [issuedAt, setIssuedAt] = useState(doc.issuedAt ?? '');
-  const [issuedBy, setIssuedBy] = useState(doc.issuedBy ?? '');
-  const [pinfl, setPinfl] = useState(doc.pinfl ?? '');
-  const [submitting, setSubmitting] = useState(false);
+  const [series, setSeries] = useState('');
+  const [number, setNumber] = useState('');
+  const [issuedAt, setIssuedAt] = useState('');
+  const [issuedBy, setIssuedBy] = useState('');
+  const [pinfl, setPinfl] = useState('');
+
+  // Заполнить форму данными с сервера при первой загрузке.
+  useEffect(() => {
+    if (!doc) return;
+    setSeries(doc.series ?? '');
+    setNumber(doc.number ?? '');
+    setIssuedAt(doc.issuedAt ? doc.issuedAt.slice(0, 10) : '');
+    setIssuedBy(doc.issuedBy ?? '');
+    setPinfl(doc.pinfl ?? '');
+  }, [doc]);
 
   const onSave = async () => {
-    setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 600));
-    setSubmitting(false);
-    nav.goBack();
+    try {
+      await upsert.mutateAsync({
+        series,
+        number,
+        issuedAt,
+        issuedBy: issuedBy || undefined,
+        pinfl: isPassport ? pinfl || undefined : undefined,
+      });
+      nav.goBack();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Не удалось сохранить';
+      Alert.alert('Ошибка', msg);
+    }
   };
 
   return (
@@ -67,11 +91,21 @@ export function DocumentScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 140, gap: 20 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
       >
         <View style={{ gap: 12 }}>
-          <ScreenHeading title={doc.title} subtitle={INFO_TEXT[doc.kind]} />
+          <ScreenHeading title={TITLE[kind]} subtitle={INFO_TEXT[kind]} />
           <View style={{ flexDirection: 'row' }}>
-            <StatusPill status={doc.status} />
+            <StatusPill
+              status={
+                doc?.status === 'VERIFIED'
+                  ? 'verified'
+                  : doc?.status === 'REJECTED'
+                    ? 'rejected'
+                    : 'pending'
+              }
+            />
           </View>
         </View>
 
@@ -143,8 +177,8 @@ export function DocumentScreen() {
       </ScrollView>
 
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 + kbHeight }}>
-        <RedButton onPress={onSave} disabled={submitting}>
-          {submitting ? 'Сохранение...' : 'Сохранить'}
+        <RedButton onPress={onSave} disabled={upsert.isPending || isLoading}>
+          {upsert.isPending ? 'Сохранение...' : 'Сохранить'}
         </RedButton>
       </View>
       </DismissKeyboardView>

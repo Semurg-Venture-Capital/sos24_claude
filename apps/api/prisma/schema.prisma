@@ -14,6 +14,64 @@ enum Locale {
   en
 }
 
+enum DocumentKind {
+  PASSPORT
+  DRIVER_LICENSE
+}
+
+enum DocumentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ProductType {
+  OSAGO
+  KASKO
+  HEALTH
+  HOME
+  FINANCE
+}
+
+enum PolicyStatus {
+  DRAFT
+  PENDING_PAYMENT
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum DriverLimit {
+  LIMITED
+  UNLIMITED
+}
+
+enum CardBrand {
+  UZCARD
+  HUMO
+  VISA
+  MASTERCARD
+}
+
+enum PaymentMethod {
+  WALLET
+  CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum WalletTxType {
+  TOPUP
+  PAYMENT
+  REFUND
+  BONUS
+}
+
 model User {
   id          String    @id @default(cuid())
   phone       String    @unique
@@ -25,5 +83,231 @@ model User {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  vehicles    Vehicle[]
+  documents   Document[]
+  drivers     Driver[]
+  policies    Policy[]
+  cards       Card[]
+  wallet      Wallet?
+  payments    Payment[]
+
   @@map("users")
+}
+
+model Document {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  kind       DocumentKind
+  series     String
+  number     String
+  issuedAt   DateTime       @db.Date
+  issuedBy   String?
+  pinfl      String?        // только для PASSPORT (14 цифр)
+  expiresAt  DateTime?      @db.Date  // только для DRIVER_LICENSE
+  categories String?        // только для DRIVER_LICENSE (CSV: "B,C")
+  status     DocumentStatus @default(PENDING)
+
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@unique([userId, kind])
+  @@map("documents")
+}
+
+model Vehicle {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plate     String
+  brand     String
+  model     String
+  year      Int
+  engine    String?  // "1.5 л"
+  power     String?  // "105 л.с."
+  vin       String?
+  color     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  policies  Policy[]
+
+  @@unique([userId, plate])
+  @@index([userId])
+  @@map("vehicles")
+}
+
+// Водитель — отдельная сущность. Один пользователь может вписать в свой полис
+// нескольких водителей (себя, жену, родственника по доверенности). Driver не
+// обязательно равен User: можно записать чужого водителя по его ФИО + ВУ,
+// без аккаунта в системе.
+model Driver {
+  id          String   @id @default(cuid())
+  userId      String   // владелец списка (тот кто оформляет полис)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String   // полное ФИО
+  licenseSeries String?
+  licenseNumber String?
+  experienceYears Int   @default(0)
+  birthDate   DateTime? @db.Date
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  policyDrivers PolicyDriver[]
+
+  @@index([userId])
+  @@map("drivers")
+}
+
+model Policy {
+  id            String       @id @default(cuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type          ProductType
+  status        PolicyStatus @default(DRAFT)
+
+  // Авто — только для OSAGO/KASKO
+  vehicleId     String?
+  vehicle       Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  // Период действия
+  startDate     DateTime     @db.Date
+  endDate       DateTime     @db.Date
+  periodMonths  Int          // 3, 6, 12 (для ОСАГО/КАСКО) или 12 для остальных
+
+  // Ограничения водителей (только OSAGO)
+  driverLimit   DriverLimit  @default(LIMITED)
+
+  // Цена
+  basePrice     Int          // в сумах
+  discount      Int          @default(0)
+  totalPrice    Int          // basePrice - discount
+  promoCode     String?
+
+  // Структура коэффициентов / расчёта — JSON для гибкости.
+  // Для ОСАГО: { periodK, territoryK, experienceK, limitK }, для health/home — null.
+  coefficients  Json?
+
+  // Заполняется при ACTIVE
+  policyNumber  String?      @unique
+  qrPayload     String?
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  activatedAt   DateTime?
+
+  drivers       PolicyDriver[]
+
+  @@index([userId, status])
+  @@map("policies")
+}
+
+// M:N связь полиса и водителей.
+model PolicyDriver {
+  policyId String
+  policy   Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  driverId String
+  driver   Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@id([policyId, driverId])
+  @@map("policy_drivers")
+}
+
+model Promo {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  discountPct  Int      // 0..100
+  validFrom    DateTime?
+  validUntil   DateTime?
+  maxUses      Int?     // null = безлимит
+  usesCount    Int      @default(0)
+  isActive     Boolean  @default(true)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("promos")
+}
+
+model Card {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  brand     CardBrand
+  last4     String    // 4 цифры
+  expiry    String    // "MM/YY"
+  token     String    // mock-токен от платёжки (в реале — Uzcard tokenization)
+  isDefault Boolean   @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  payments  Payment[]
+
+  @@unique([userId, token])
+  @@index([userId])
+  @@map("cards")
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  balance   Int      @default(0) // в сумах
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id          String       @id @default(cuid())
+  walletId    String
+  wallet      Wallet       @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  type        WalletTxType
+  amount      Int          // положительное для TOPUP/REFUND/BONUS, отрицательное для PAYMENT
+  description String?
+  paymentId   String?      // связь с Payment если это списание за полис
+
+  createdAt   DateTime     @default(now())
+
+  @@index([walletId, createdAt])
+  @@map("wallet_transactions")
+}
+
+model Payment {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policyId  String
+  // Не делаем relation на Policy здесь чтобы избежать циклов в seed/удалении;
+  // policyId хранится как FK-like reference.
+
+  amount    Int
+  method    PaymentMethod
+  cardId    String?
+  card      Card?          @relation(fields: [cardId], references: [id], onDelete: SetNull)
+
+  status    PaymentStatus  @default(PENDING)
+  error     String?        // текст ошибки если FAILED
+
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  paidAt    DateTime?
+
+  @@index([userId, status])
+  @@index([policyId])
+  @@map("payments")
 }

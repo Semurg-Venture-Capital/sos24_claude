@@ -286,22 +286,11 @@ function IconButton({ children, badge, onClick }) {
 // ─────────────────────────────────────────────────────────────────────────
 // SF Symbols-style icons (thin lines, 1.6–1.8 stroke).
 function IconBurger({ size = 20 }) {
-  return (
-    <svg width={size} height={size * 0.9} viewBox="0 0 20 18" fill="none">
-      <rect x="0" y="0" width="20" height="2" rx="1" fill="currentColor" />
-      <rect x="0" y="8" width="20" height="2" rx="1" fill="currentColor" />
-      <rect x="0" y="16" width="20" height="2" rx="1" fill="currentColor" />
-    </svg>
-  );
+  return <Icon name="menu" size={size} />;
 }
 
 function IconBell({ size = 20 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3a6 6 0 00-6 6v4l-1.5 3a1 1 0 00.9 1.5h13.2a1 1 0 00.9-1.5L18 13V9a6 6 0 00-6-6z" />
-      <path d="M10 20a2 2 0 004 0" />
-    </svg>
-  );
+  return <Icon name="bell" size={size} />;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -339,36 +328,16 @@ function BottomTabBar({ active = 0 }) {
 }
 
 function TabIconHome({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1v-9.5z" fill={active ? "currentColor" : "none"} />
-    </svg>
-  );
+  return <Icon name="home" size={24} fill={!!active} />;
 }
 function TabIconShield({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V6l8-3z" />
-    </svg>
-  );
+  return <Icon name="shield" size={24} fill={!!active} />;
 }
 function TabIconCar({ active }) {
-  // Side-view car silhouette (SF Symbols "car.fill")
-  return (
-    <svg width="26" height="22" viewBox="0 0 28 22" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.6} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 14v-2l3-1 2-5c.4-.9 1.3-1.5 2.3-1.5h9.4c1 0 1.9.6 2.3 1.5l2 5 3 1v2c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2z" />
-      <circle cx="8" cy="16" r="2.5" fill={active ? "#fff" : "none"} stroke={active ? "currentColor" : "currentColor"} strokeWidth="1.6" />
-      <circle cx="20" cy="16" r="2.5" fill={active ? "#fff" : "none"} stroke={active ? "currentColor" : "currentColor"} strokeWidth="1.6" />
-    </svg>
-  );
+  return <Icon name="car" size={26} fill={!!active} />;
 }
 function TabIconUser({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21a8 8 0 0116 0" />
-    </svg>
-  );
+  return <Icon name="user" size={24} fill={!!active} />;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
