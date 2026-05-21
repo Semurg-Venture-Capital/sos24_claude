@@ -3,7 +3,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useCreatePolicy } from '../../../api/policies';
+import { useValidatePromo } from '../../../api/promo';
+import { useDrivers, type Driver } from '../../../api/drivers';
+import { useVehicles } from '../../../api/vehicles';
 import { BackButton } from '../../../components/ui/BackButton';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
@@ -12,12 +16,10 @@ import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { SummaryBlock } from '../../../components/ui/SummaryBlock';
 import { Tag } from '../../../components/ui/Tag';
 import { PRODUCTS } from '../productData';
-import { MOCK_CARS, MOCK_DRIVERS, calculatePrice, usePurchaseStore } from '../store';
+import { calculatePrice, usePurchaseStore } from '../store';
 import { tokens } from '../../../theme/colors';
+import type { ProductType } from '../../../navigation/types';
 import type { PurchaseStackParamList } from '../../../navigation/types';
-
-// Mock-промокоды. SOS10 даёт 10%, дальше — бэк.
-const PROMOS: Record<string, number> = { SOS10: 0.1 };
 
 type Nav = NativeStackNavigationProp<PurchaseStackParamList, 'Checkout'>;
 
@@ -27,40 +29,85 @@ function pretty(iso: string): string {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+const TYPE_TO_API: Record<ProductType, 'OSAGO' | 'KASKO' | 'HEALTH' | 'HOME' | 'FINANCE'> = {
+  osago: 'OSAGO',
+  kasko: 'KASKO',
+  health: 'HEALTH',
+  home: 'HOME',
+  finance: 'FINANCE',
+};
+
+function formatExperience(d: Driver): string {
+  const y = d.experienceYears;
+  if (y === 1) return `стаж 1 год`;
+  if (y >= 2 && y <= 4) return `стаж ${y} года`;
+  return `стаж ${y} лет`;
+}
+
 // M6.1 — Чекаут: финальная проверка перед оплатой.
 export function CheckoutScreen() {
   const nav = useNavigation<Nav>();
   const state = usePurchaseStore();
-  const calc = calculatePrice(state);
-  const [accepted, setAccepted] = useState(true);
+  const setPromoCode = usePurchaseStore((s) => s.setPromoCode);
+  const setDraftPolicyId = usePurchaseStore((s) => s.setDraftPolicyId);
+  const calc = calculatePrice(state); // локальный preview, окончательный расчёт на бэке
 
-  const car = MOCK_CARS.find((c) => c.id === state.carId);
-  const drivers = MOCK_DRIVERS.filter((d) => state.driverIds.includes(d.id));
+  const { data: vehicles } = useVehicles();
+  const { data: drivers } = useDrivers();
+  const validatePromo = useValidatePromo();
+  const createPolicy = useCreatePolicy();
+
+  const [accepted, setAccepted] = useState(true);
+  const car = vehicles?.find((c) => c.id === state.carId);
+  const selectedDrivers = drivers?.filter((d) => state.driverIds.includes(d.id)) ?? [];
   const productLabel = state.productType ? PRODUCTS[state.productType].name : '—';
   const isVehicleProduct = state.productType === 'osago' || state.productType === 'kasko';
 
   // Промокод
-  const [promo, setPromo] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [promo, setPromo] = useState(state.promoCode ?? '');
+  const [appliedDiscountPct, setAppliedDiscountPct] = useState<number>(0);
   const [promoError, setPromoError] = useState<string | null>(null);
-  const discountRate = appliedPromo ? PROMOS[appliedPromo] : 0;
-  const discount = Math.round(calc.total * discountRate);
+  const appliedPromo = state.promoCode;
+  const discount = Math.round((calc.total * appliedDiscountPct) / 100);
   const finalTotal = calc.total - discount;
 
-  const applyPromo = () => {
+  const applyPromo = async () => {
     const code = promo.trim().toUpperCase();
     if (!code) return;
-    if (PROMOS[code]) {
-      setAppliedPromo(code);
+    try {
+      const result = await validatePromo.mutateAsync(code);
+      setAppliedDiscountPct(result.discountPct);
+      setPromoCode(result.code);
       setPromoError(null);
-    } else {
+    } catch {
       setPromoError('Промокод не найден');
     }
   };
   const removePromo = () => {
-    setAppliedPromo(null);
+    setAppliedDiscountPct(0);
+    setPromoCode(null);
     setPromo('');
     setPromoError(null);
+  };
+
+  const goToPayment = async () => {
+    if (!state.productType) return;
+    try {
+      const policy = await createPolicy.mutateAsync({
+        type: TYPE_TO_API[state.productType],
+        vehicleId: isVehicleProduct ? state.carId ?? undefined : undefined,
+        periodMonths: isVehicleProduct ? state.periodMonths : 12,
+        driverLimit: state.driverLimit === 'limited' ? 'LIMITED' : 'UNLIMITED',
+        driverIds: isVehicleProduct ? state.driverIds : undefined,
+        startDate: state.startDate,
+        promoCode: appliedPromo ?? undefined,
+      });
+      setDraftPolicyId(policy.id);
+      nav.navigate('Payment');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Не удалось создать полис';
+      Alert.alert('Ошибка', msg);
+    }
   };
 
   return (
@@ -90,9 +137,9 @@ export function CheckoutScreen() {
             editable
             onEdit={() => nav.navigate('CalcVehicle')}
             rows={[
-              { label: 'Марка / модель', value: car.name },
+              { label: 'Марка / модель', value: `${car.brand} ${car.model}` },
               { label: 'Гос. номер', value: car.plate },
-              { label: 'Год · Двигатель', value: `${car.year} · ${car.engine}` },
+              { label: 'Год · Двигатель', value: `${car.year} · ${car.engine ?? '—'}` },
             ]}
           />
         )}
@@ -105,7 +152,7 @@ export function CheckoutScreen() {
             rows={
               state.driverLimit === 'unlimited'
                 ? [{ label: 'Без ограничений', value: '' }]
-                : drivers.map((d) => ({ label: d.name, value: `стаж ${d.experience}` }))
+                : selectedDrivers.map((d) => ({ label: d.name, value: formatExperience(d) }))
             }
           />
         )}
@@ -153,7 +200,7 @@ export function CheckoutScreen() {
             >
               <View style={{ gap: 2 }}>
                 <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>
-                  {appliedPromo} · −{Math.round(discountRate * 100)}%
+                  {appliedPromo} · −{appliedDiscountPct}%
                 </Text>
                 <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>
                   Скидка {discount.toLocaleString('ru-RU')} сум применена
@@ -201,7 +248,7 @@ export function CheckoutScreen() {
                 />
                 <Pressable
                   onPress={applyPromo}
-                  disabled={!promo.trim()}
+                  disabled={!promo.trim() || validatePromo.isPending}
                   style={({ pressed }) => ({
                     paddingHorizontal: 14,
                     paddingVertical: 10,
@@ -210,9 +257,13 @@ export function CheckoutScreen() {
                     opacity: pressed ? 0.85 : 1,
                   })}
                 >
-                  <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>
-                    Применить
-                  </Text>
+                  {validatePromo.isPending ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>
+                      Применить
+                    </Text>
+                  )}
                 </Pressable>
               </View>
               {promoError && (
@@ -355,10 +406,12 @@ export function CheckoutScreen() {
         <LinearGradient colors={['rgba(228,228,228,0)', 'rgba(228,228,228,0.95)']} style={{ height: 24 }} />
         <View style={{ paddingHorizontal: 24, paddingBottom: 32, paddingTop: 8, backgroundColor: 'rgba(228,228,228,0.95)' }}>
           <RedButton
-            disabled={!accepted}
-            onPress={() => nav.navigate('Payment')}
+            disabled={!accepted || createPolicy.isPending}
+            onPress={goToPayment}
           >
-            Перейти к оплате · {finalTotal.toLocaleString('ru-RU')} сум
+            {createPolicy.isPending
+              ? 'Создаём…'
+              : `Перейти к оплате · ${finalTotal.toLocaleString('ru-RU')} сум`}
           </RedButton>
         </View>
       </View>

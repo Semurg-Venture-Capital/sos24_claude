@@ -3,6 +3,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BlurView } from 'expo-blur';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useMe } from '../../../api/auth';
+import { useDocuments } from '../../../api/documents';
 import { IconChat, IconFile, IconInfo, IconLanguage, IconLicense, IconLogout, IconPalette, IconPassport, IconPencil, IconQuestion } from '../../../components/icons/LineIcons';
 import { Avatar } from '../../../components/ui/Avatar';
 import { ListRow } from '../../../components/ui/ListRow';
@@ -11,16 +13,38 @@ import { StatusPill } from '../../../components/ui/StatusPill';
 import { Toggle } from '../../../components/ui/Toggle';
 import { useAuthStore } from '../../../stores/authStore';
 import { tokens } from '../../../theme/colors';
-import { MOCK_DOCUMENTS, MOCK_USER, getLocaleLabel, getThemeLabel } from '../mockProfile';
+import { MOCK_USER, getLocaleLabel, getThemeLabel } from '../mockProfile';
 import type { ProfileStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<ProfileStackParamList, 'ProfileMain'>;
+
+function statusFromApi(s: 'PENDING' | 'VERIFIED' | 'REJECTED' | undefined): 'pending' | 'verified' | 'rejected' {
+  if (s === 'VERIFIED') return 'verified';
+  if (s === 'REJECTED') return 'rejected';
+  return 'pending';
+}
+
+function formatPhone(phone: string): string {
+  // +998 99 328-63-30
+  if (phone.startsWith('+998') && phone.length === 13) {
+    return `${phone.slice(0, 4)} ${phone.slice(4, 6)} ${phone.slice(6, 9)}-${phone.slice(9, 11)}-${phone.slice(11, 13)}`;
+  }
+  return phone;
+}
 
 // M2.1 — Главный экран профиля. Спецификация: SOS24_Mobile_Screens.md §M2.1.
 export function ProfileScreen() {
   const nav = useNavigation<Nav>();
   const signOut = useAuthStore((s) => s.signOut);
   const [notifications, setNotifications] = useState(MOCK_USER.notificationsEnabled);
+  const { data: me } = useMe();
+  const { data: documents } = useDocuments();
+  const passport = documents?.find((d) => d.kind === 'PASSPORT');
+  const license = documents?.find((d) => d.kind === 'DRIVER_LICENSE');
+  const fullName =
+    me && (me.surname || me.name || me.patronymic)
+      ? [me.surname, me.name, me.patronymic].filter(Boolean).join(' ')
+      : 'Гость';
 
   return (
     <PhoneFrame>
@@ -57,7 +81,7 @@ export function ProfileScreen() {
               borderColor: tokens.hairline,
             }}
           >
-            <Avatar name={MOCK_USER.fullName} size={64} />
+            <Avatar name={fullName} size={64} />
             <View style={{ flex: 1, gap: 4 }}>
               <Text
                 style={{
@@ -67,10 +91,10 @@ export function ProfileScreen() {
                   color: tokens.ink,
                 }}
               >
-                {MOCK_USER.fullName}
+                {fullName}
               </Text>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
-                {MOCK_USER.prettyPhone}
+                {me?.phone ? formatPhone(me.phone) : ''}
               </Text>
             </View>
             <Pressable
@@ -93,24 +117,16 @@ export function ProfileScreen() {
         <Section title="Мои документы">
           <ListRow
             icon={<IconPassport />}
-            title={MOCK_DOCUMENTS.passport.title}
-            meta={
-              MOCK_DOCUMENTS.passport.series && MOCK_DOCUMENTS.passport.number
-                ? `${MOCK_DOCUMENTS.passport.series} ${MOCK_DOCUMENTS.passport.number}`
-                : undefined
-            }
-            trailing={<StatusPill status={MOCK_DOCUMENTS.passport.status} />}
+            title="Паспорт"
+            meta={passport ? `${passport.series} ${passport.number}` : 'не заполнен'}
+            trailing={<StatusPill status={statusFromApi(passport?.status)} />}
             onPress={() => nav.navigate('Document', { kind: 'passport' })}
           />
           <ListRow
             icon={<IconLicense />}
-            title={MOCK_DOCUMENTS.license.title}
-            meta={
-              MOCK_DOCUMENTS.license.series && MOCK_DOCUMENTS.license.number
-                ? `${MOCK_DOCUMENTS.license.series} ${MOCK_DOCUMENTS.license.number}`
-                : undefined
-            }
-            trailing={<StatusPill status={MOCK_DOCUMENTS.license.status} />}
+            title="Водительское удостоверение"
+            meta={license ? `${license.series} ${license.number}` : 'не заполнено'}
+            trailing={<StatusPill status={statusFromApi(license?.status)} />}
             onPress={() => nav.navigate('Document', { kind: 'license' })}
           />
         </Section>

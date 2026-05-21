@@ -36,9 +36,9 @@ export const MOCK_DRIVERS: MockDriver[] = [
 
 interface PurchaseState {
   productType: ProductType | null;
-  // Step 1: vehicle
+  // Step 1: vehicle (id из /me/vehicles)
   carId: string | null;
-  // Step 2: drivers
+  // Step 2: drivers (ids из /me/drivers)
   driverLimit: DriverLimit;
   driverIds: string[];
   // Step 3: period
@@ -47,13 +47,20 @@ interface PurchaseState {
   endDate: string;
   // Step 4: payment
   paymentPlan: PaymentPlan;
+  // Промокод применён в Checkout (для передачи в createPolicy)
+  promoCode: string | null;
+  // Создан draft-полис после Checkout (для Payment и Success)
+  draftPolicyId: string | null;
 
   resetForProduct: (type: ProductType) => void;
   setCar: (id: string) => void;
   setDriverLimit: (limit: DriverLimit) => void;
   toggleDriver: (id: string) => void;
+  setDriverIds: (ids: string[]) => void;
   setPeriod: (months: PeriodMonths) => void;
   setPaymentPlan: (plan: PaymentPlan) => void;
+  setPromoCode: (code: string | null) => void;
+  setDraftPolicyId: (id: string | null) => void;
 }
 
 function todayISO(): string {
@@ -70,23 +77,27 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
   productType: null,
   carId: null,
   driverLimit: 'limited',
-  driverIds: ['d1', 'd2'],
+  driverIds: [],
   periodMonths: 12,
   startDate: todayISO(),
   endDate: shiftMonths(todayISO(), 12),
   paymentPlan: 'oneTime',
+  promoCode: null,
+  draftPolicyId: null,
 
   resetForProduct: (type) => {
     const start = todayISO();
     set({
       productType: type,
-      carId: MOCK_CARS[0]?.id ?? null,
+      carId: null,
       driverLimit: 'limited',
-      driverIds: ['d1', 'd2'],
+      driverIds: [],
       periodMonths: 12,
       startDate: start,
       endDate: shiftMonths(start, 12),
       paymentPlan: 'oneTime',
+      promoCode: null,
+      draftPolicyId: null,
     });
   },
 
@@ -101,6 +112,8 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
     });
   },
 
+  setDriverIds: (ids) => set({ driverIds: ids }),
+
   setPeriod: (months) =>
     set((s) => ({
       periodMonths: months,
@@ -108,6 +121,10 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
     })),
 
   setPaymentPlan: (plan) => set({ paymentPlan: plan }),
+
+  setPromoCode: (code) => set({ promoCode: code }),
+
+  setDraftPolicyId: (id) => set({ draftPolicyId: id }),
 }));
 
 // Рендер цены — простая мок-функция, чтобы шаг 4 показывал что-то осмысленное.
