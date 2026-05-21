@@ -99,6 +99,17 @@ model User {
   pinfl              String?            @unique
   verificationStatus VerificationStatus @default(NOT_VERIFIED)
   role               UserRole           @default(USER)
+
+  // Дополнительные поля из MyID (заполняются при верификации)
+  nameEn      String?   // first_name_en (латиница)
+  surnameEn   String?   // last_name_en (латиница)
+  gender      String?   // 'M' | 'F'
+  birthPlace  String?   // место рождения
+  nationality String?   // национальность (например 'UZB')
+  citizenship String?   // гражданство
+  address     String?   // постоянный адрес прописки
+  myidRaw     Json?     // полный сырой ответ MyID API (аудит + будущие поля)
+
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 

@@ -14,7 +14,14 @@ export interface MeResponse {
   name: string | null;
   surname: string | null;
   patronymic: string | null;
+  nameEn: string | null;
+  surnameEn: string | null;
   birthDate: string | null;
+  birthPlace: string | null;
+  gender: string | null;
+  nationality: string | null;
+  citizenship: string | null;
+  address: string | null;
   locale: 'uz_Latn' | 'uz_Cyrl' | 'ru' | 'en';
   pinfl: string | null;
   verificationStatus: 'NOT_VERIFIED' | 'MYID_VERIFIED';

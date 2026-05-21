@@ -3,25 +3,62 @@ import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { PrismaService } from '../prisma/prisma.service';
 
+// Все поля которые возвращает MyID SDK после верификации.
+// Структура: profile.common_data + profile.doc_data + profile.address + profile.contacts
+// + служебные: comparison_value (liveness score), job_id, reuid.
+// Документация: https://docs.myid.uz/#/
 interface MyIdUserData {
+  // common_data
   pinfl: string;
-  surname: string;
-  name: string;
-  patronymic: string;
+  name: string;              // first_name (кириллица)
+  surname: string;           // last_name (кириллица)
+  patronymic: string;        // middle_name (кириллица)
+  nameEn: string | null;     // first_name_en (латиница)
+  surnameEn: string | null;  // last_name_en (латиница)
   birthDate: Date;
-  passportSeries: string;
-  passportNumber: string;
+  birthPlace: string | null;
+  gender: string | null;     // 'M' | 'F'
+  nationality: string | null;
+  citizenship: string | null;
+
+  // doc_data (паспорт)
+  passportData: string;       // pass_data = "AA4587213"
+  passportIssuedBy: string | null;
+  passportIssuedAt: Date | null;
+  passportExpiresAt: Date | null;
+
+  // address
+  permanentAddress: string | null;
+
+  // служебные
+  comparisonValue: number | null;  // liveness score 0.0–1.0
+  jobId: string | null;
+
+  // полный сырой ответ API — для myidRaw JSONB
+  raw: Record<string, unknown>;
 }
 
-// Данные для mock-режима (соответствуют seed-пользователю).
+// Мок-данные соответствуют seed-пользователю (+998993286330 Азиз Каримов).
 const MOCK_USER_DATA: MyIdUserData = {
   pinfl: '12345678901234',
-  surname: 'Каримов',
   name: 'Азиз',
+  surname: 'Каримов',
   patronymic: 'Эркинович',
+  nameEn: 'Aziz',
+  surnameEn: 'Karimov',
   birthDate: new Date('1990-05-14'),
-  passportSeries: 'AA',
-  passportNumber: '4587213',
+  birthPlace: 'Тошкент шаҳри',
+  gender: 'M',
+  nationality: 'UZB',
+  citizenship: 'UZB',
+  passportData: 'AA4587213',
+  passportIssuedBy: 'УВД ЮНУСАБАДСКОГО Р-НА',
+  passportIssuedAt: new Date('2020-03-15'),
+  passportExpiresAt: new Date('2030-03-15'),
+  permanentAddress: 'Тошкент шаҳри, Юнусобод тумани',
+  comparisonValue: 0.98,
+  jobId: 'mock-job-id',
+  raw: { _mock: true },
 };
 
 @Injectable()
@@ -65,17 +102,31 @@ export class MyidService {
     await this.applyVerification(userId, userData);
   }
 
-  private async applyVerification(userId: string, data: MyIdUserData): Promise<void> {
+  private async applyVerification(userId: string, d: MyIdUserData): Promise<void> {
+    // Разбиваем passportData "AA4587213" → series "AA" + number "4587213"
+    const passportSeries = d.passportData.slice(0, 2);
+    const passportNumber = d.passportData.slice(2);
+
     await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id: userId },
         data: {
-          name: data.name,
-          surname: data.surname,
-          patronymic: data.patronymic,
-          birthDate: data.birthDate,
-          pinfl: data.pinfl,
+          // Основные поля профиля
+          name: d.name,
+          surname: d.surname,
+          patronymic: d.patronymic,
+          birthDate: d.birthDate,
+          pinfl: d.pinfl,
           verificationStatus: 'MYID_VERIFIED',
+          // Дополнительные поля MyID
+          nameEn: d.nameEn,
+          surnameEn: d.surnameEn,
+          gender: d.gender,
+          birthPlace: d.birthPlace,
+          nationality: d.nationality,
+          citizenship: d.citizenship,
+          address: d.permanentAddress,
+          myidRaw: d.raw as object,
         },
       }),
       this.prisma.document.upsert({
@@ -83,16 +134,21 @@ export class MyidService {
         create: {
           userId,
           kind: 'PASSPORT',
-          series: data.passportSeries,
-          number: data.passportNumber,
-          pinfl: data.pinfl,
-          issuedAt: new Date('2020-01-01'), // MyID API вернёт реальную дату
+          series: passportSeries,
+          number: passportNumber,
+          pinfl: d.pinfl,
+          issuedAt: d.passportIssuedAt ?? new Date(),
+          issuedBy: d.passportIssuedBy,
+          expiresAt: d.passportExpiresAt,
           status: 'VERIFIED',
         },
         update: {
-          series: data.passportSeries,
-          number: data.passportNumber,
-          pinfl: data.pinfl,
+          series: passportSeries,
+          number: passportNumber,
+          pinfl: d.pinfl,
+          issuedAt: d.passportIssuedAt ?? new Date(),
+          issuedBy: d.passportIssuedBy,
+          expiresAt: d.passportExpiresAt,
           status: 'VERIFIED',
         },
       }),
@@ -111,23 +167,74 @@ export class MyidService {
     }
   }
 
+  // Разбирает ответ GET /api/v1/sdk/data (MyID v2 nested format).
+  // При подключении реальных ключей адаптировать под фактическую структуру ответа.
+  // Полная структура: UserDataResponse.data.profile.{common_data, doc_data, address, contacts}
   private async fetchUserData(code: string): Promise<MyIdUserData> {
     const accessToken = await this.getAccessToken();
-    const { data } = await axios.get<Record<string, string>>(
+    const { data: resp } = await axios.get<Record<string, unknown>>(
       `${this.baseUrl}/api/v1/sdk/data`,
       {
         params: { code },
         headers: { Authorization: `Bearer ${accessToken}` },
       },
     );
+
+    // MyID v2 вернёт вложенную структуру: resp.data.profile.*
+    // MyID v1 вернул плоскую структуру: resp.pinfl, resp.sur_name, ...
+    // Поддерживаем оба варианта до уточнения версии.
+    const d = resp as Record<string, unknown>;
+    const profile = (d['data'] as Record<string, unknown>)?.['profile'] as Record<string, unknown> | undefined;
+    const common = profile?.['common_data'] as Record<string, unknown> | undefined;
+    const doc = profile?.['doc_data'] as Record<string, unknown> | undefined;
+    const addr = profile?.['address'] as Record<string, unknown> | undefined;
+
+    // Вложенный v2
+    if (common) {
+      return {
+        pinfl: common['pinfl'] as string,
+        name: common['first_name'] as string,
+        surname: common['last_name'] as string,
+        patronymic: (common['middle_name'] as string | null) ?? '',
+        nameEn: (common['first_name_en'] as string | null) ?? null,
+        surnameEn: (common['last_name_en'] as string | null) ?? null,
+        birthDate: new Date(common['birth_date'] as string),
+        birthPlace: (common['birth_place'] as string | null) ?? null,
+        gender: (common['gender'] as string | null) ?? null,
+        nationality: (common['nationality'] as string | null) ?? null,
+        citizenship: (common['citizenship'] as string | null) ?? null,
+        passportData: (doc?.['pass_data'] as string) ?? '',
+        passportIssuedBy: (doc?.['issued_by'] as string | null) ?? null,
+        passportIssuedAt: doc?.['issued_date'] ? new Date(doc['issued_date'] as string) : null,
+        passportExpiresAt: doc?.['expiry_date'] ? new Date(doc['expiry_date'] as string) : null,
+        permanentAddress: (addr?.['permanent_address'] as string | null) ?? null,
+        comparisonValue: ((d['data'] as Record<string, unknown>)?.['comparison_value'] as number | null) ?? null,
+        jobId: ((d['data'] as Record<string, unknown>)?.['job_id'] as string | null) ?? null,
+        raw: resp,
+      };
+    }
+
+    // Плоский v1 (старый формат)
     return {
-      pinfl: data['pinfl'],
-      surname: data['sur_name'] ?? data['surname'],
-      name: data['first_name'] ?? data['name'],
-      patronymic: data['mid_name'] ?? data['patronymic'] ?? '',
-      birthDate: new Date(data['birth_date']),
-      passportSeries: data['doc_series'] ?? data['passportSeries'] ?? '',
-      passportNumber: data['doc_number'] ?? data['passportNumber'] ?? '',
+      pinfl: d['pinfl'] as string,
+      name: (d['first_name'] ?? d['name']) as string,
+      surname: (d['sur_name'] ?? d['surname']) as string,
+      patronymic: ((d['mid_name'] ?? d['patronymic']) as string | null) ?? '',
+      nameEn: null,
+      surnameEn: null,
+      birthDate: new Date(d['birth_date'] as string),
+      birthPlace: null,
+      gender: null,
+      nationality: null,
+      citizenship: null,
+      passportData: ((d['doc_series'] as string) ?? '') + ((d['doc_number'] as string) ?? ''),
+      passportIssuedBy: null,
+      passportIssuedAt: d['doc_given_date'] ? new Date(d['doc_given_date'] as string) : null,
+      passportExpiresAt: d['doc_expiry_date'] ? new Date(d['doc_expiry_date'] as string) : null,
+      permanentAddress: (d['permanent_address'] as string | null) ?? null,
+      comparisonValue: null,
+      jobId: null,
+      raw: resp,
     };
   }
 }

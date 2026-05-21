@@ -9,27 +9,25 @@ const TEST_PHONE = '+998993286330';
 async function main() {
   console.log(`Seeding test user ${TEST_PHONE} …`);
 
+  const myidFields = {
+    name: 'Азиз',
+    surname: 'Каримов',
+    patronymic: 'Эркинович',
+    nameEn: 'Aziz',
+    surnameEn: 'Karimov',
+    birthDate: new Date('1990-05-14'),
+    birthPlace: 'Тошкент шаҳри',
+    gender: 'M',
+    nationality: 'UZB',
+    citizenship: 'UZB',
+    address: 'Тошкент шаҳри, Юнусобод тумани',
+    myidRaw: { _mock: true, comparison_value: 0.98, job_id: 'seed-mock-job' },
+  };
+
   const user = await prisma.user.upsert({
     where: { phone: TEST_PHONE },
-    update: {
-      name: 'Азиз',
-      surname: 'Каримов',
-      patronymic: 'Эркинович',
-      birthDate: new Date('1990-05-14'),
-      locale: 'ru',
-      role: 'ADMIN',
-      verificationStatus: 'MYID_VERIFIED',
-    },
-    create: {
-      phone: TEST_PHONE,
-      name: 'Азиз',
-      surname: 'Каримов',
-      patronymic: 'Эркинович',
-      birthDate: new Date('1990-05-14'),
-      locale: 'ru',
-      role: 'ADMIN',
-      verificationStatus: 'MYID_VERIFIED',
-    },
+    update: { ...myidFields, locale: 'ru', role: 'ADMIN', verificationStatus: 'MYID_VERIFIED' },
+    create: { phone: TEST_PHONE, ...myidFields, locale: 'ru', role: 'ADMIN', verificationStatus: 'MYID_VERIFIED' },
   });
 
   console.log(`User: ${user.id}`);
