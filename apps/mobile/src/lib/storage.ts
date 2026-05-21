@@ -11,6 +11,7 @@ export const storageKeys = {
   locale: 'sos24.locale',
   onboardingDone: 'sos24.onboardingDone',
   userId: 'sos24.userId',
+  verificationStatus: 'sos24.verificationStatus',
 } as const;
 
 const KEYS = Object.values(storageKeys);

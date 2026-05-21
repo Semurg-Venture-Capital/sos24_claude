@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { AuthNavigator } from './AuthNavigator';
 import { MainNavigator } from './MainNavigator';
+import { MyIdNavigator } from './MyIdNavigator';
 import { SplashScreen } from '../features/auth/screens/SplashScreen';
 
 export function RootNavigator() {
@@ -17,6 +18,7 @@ export function RootNavigator() {
     <NavigationContainer>
       {status === 'loading' && <SplashScreen />}
       {status === 'unauthenticated' && <AuthNavigator />}
+      {status === 'needs_verification' && <MyIdNavigator />}
       {status === 'authenticated' && <MainNavigator />}
     </NavigationContainer>
   );

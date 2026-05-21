@@ -21,8 +21,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Подтвердить OTP-код. Возвращает пару JWT.' })
   async verifyOtp(@Body() dto: VerifyOtpDto) {
-    const { tokens, isNewUser } = await this.authService.verifyOtp(dto.phone, dto.code);
-    return { ...tokens, isNewUser };
+    const { tokens, isNewUser, verificationStatus } = await this.authService.verifyOtp(dto.phone, dto.code);
+    return { ...tokens, isNewUser, verificationStatus };
   }
 
   @Post('refresh')

@@ -6,6 +6,10 @@ export type AuthStackParamList = {
   ProfileSetup: undefined;
 };
 
+export type MyIdStackParamList = {
+  MyIdOnboarding: undefined;
+};
+
 export type MainTabParamList = {
   Home: undefined;
   Policies: undefined;

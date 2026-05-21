@@ -59,16 +59,15 @@ export function OtpScreen() {
     try {
       const result = await verifyOtp(route.params.phone, value);
       const sub = JSON.parse(
-        // base64-decode payload части JWT — react-native не имеет глобального
-        // atob, но Buffer есть в node-libs-react-native; для простоты декодим
-        // вручную через base64 → string без зависимостей.
         decodeB64Url(result.accessToken.split('.')[1]),
       ).sub as string;
-      await setSession({ accessToken: result.accessToken, refreshToken: result.refreshToken }, sub);
-      if (result.isNewUser) {
-        nav.navigate('ProfileSetup');
-      }
-      // если не новый — RootNavigator сам переключится на MainStack
+      // RootNavigator автоматически показывает нужный стек на основе verificationStatus:
+      // NOT_VERIFIED → MyIdNavigator, MYID_VERIFIED → MainNavigator
+      await setSession(
+        { accessToken: result.accessToken, refreshToken: result.refreshToken },
+        sub,
+        result.verificationStatus,
+      );
     } catch {
       setError(true);
       setCode('');

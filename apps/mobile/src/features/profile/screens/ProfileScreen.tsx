@@ -45,6 +45,7 @@ export function ProfileScreen() {
     me && (me.surname || me.name || me.patronymic)
       ? [me.surname, me.name, me.patronymic].filter(Boolean).join(' ')
       : 'Гость';
+  const isVerified = me?.verificationStatus === 'MYID_VERIFIED';
 
   return (
     <PhoneFrame>
@@ -96,21 +97,43 @@ export function ProfileScreen() {
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
                 {me?.phone ? formatPhone(me.phone) : ''}
               </Text>
+              {isVerified && (
+                <View
+                  style={{
+                    alignSelf: 'flex-start',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    backgroundColor: 'rgba(16,185,129,0.1)',
+                    borderRadius: 999,
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    marginTop: 2,
+                  }}
+                >
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' }} />
+                  <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#059669' }}>
+                    MyID верифицирован
+                  </Text>
+                </View>
+              )}
             </View>
-            <Pressable
-              onPress={() => nav.navigate('ProfileEdit')}
-              style={({ pressed }) => ({
-                width: 40,
-                height: 40,
-                borderRadius: 999,
-                backgroundColor: 'rgba(20,20,20,0.05)',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <IconPencil size={18} />
-            </Pressable>
+            {!isVerified && (
+              <Pressable
+                onPress={() => nav.navigate('ProfileEdit')}
+                style={({ pressed }) => ({
+                  width: 40,
+                  height: 40,
+                  borderRadius: 999,
+                  backgroundColor: 'rgba(20,20,20,0.05)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <IconPencil size={18} />
+              </Pressable>
+            )}
           </BlurView>
         </View>
 

@@ -24,7 +24,10 @@ export class AuthService {
     return { sent: true, devCode: DEV_OTP_CODE };
   }
 
-  async verifyOtp(phone: string, code: string): Promise<{ tokens: TokenPair; isNewUser: boolean }> {
+  async verifyOtp(
+    phone: string,
+    code: string,
+  ): Promise<{ tokens: TokenPair; isNewUser: boolean; verificationStatus: string }> {
     if (code !== DEV_OTP_CODE) {
       throw new UnauthorizedException('Invalid OTP code');
     }
@@ -34,7 +37,7 @@ export class AuthService {
     const isNewUser = !existing;
 
     const tokens = await this.issueTokens(user.id, user.phone);
-    return { tokens, isNewUser };
+    return { tokens, isNewUser, verificationStatus: user.verificationStatus };
   }
 
   async refresh(refreshToken: string): Promise<TokenPair> {

@@ -5,6 +5,7 @@ export interface VerifyOtpResponse {
   accessToken: string;
   refreshToken: string;
   isNewUser: boolean;
+  verificationStatus: 'NOT_VERIFIED' | 'MYID_VERIFIED';
 }
 
 export interface MeResponse {
@@ -15,6 +16,8 @@ export interface MeResponse {
   patronymic: string | null;
   birthDate: string | null;
   locale: 'uz_Latn' | 'uz_Cyrl' | 'ru' | 'en';
+  pinfl: string | null;
+  verificationStatus: 'NOT_VERIFIED' | 'MYID_VERIFIED';
   createdAt: string;
   updatedAt: string;
 }

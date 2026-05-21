@@ -72,16 +72,23 @@ enum WalletTxType {
   BONUS
 }
 
+enum VerificationStatus {
+  NOT_VERIFIED
+  MYID_VERIFIED
+}
+
 model User {
-  id          String    @id @default(cuid())
-  phone       String    @unique
-  name        String?
-  surname     String?
-  patronymic  String?
-  birthDate   DateTime? @db.Date
-  locale      Locale    @default(ru)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                 String             @id @default(cuid())
+  phone              String             @unique
+  name               String?
+  surname            String?
+  patronymic         String?
+  birthDate          DateTime?          @db.Date
+  locale             Locale             @default(ru)
+  pinfl              String?            @unique
+  verificationStatus VerificationStatus @default(NOT_VERIFIED)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   vehicles    Vehicle[]
   documents   Document[]

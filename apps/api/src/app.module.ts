@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { CardsModule } from './cards/cards.module';
 import { DocumentsModule } from './documents/documents.module';
 import { DriversModule } from './drivers/drivers.module';
+import { MyidModule } from './myid/myid.module';
 import { NappModule } from './napp/napp.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PoliciesModule } from './policies/policies.module';
@@ -28,6 +29,7 @@ import { WalletModule } from './wallet/wallet.module';
     WalletModule,
     PaymentsModule,
     NappModule,
+    MyidModule,
   ],
 })
 export class AppModule {}
