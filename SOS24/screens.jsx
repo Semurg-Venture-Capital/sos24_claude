@@ -181,7 +181,7 @@ function ScreenOnboarding2() {
         </div>
       }
       title={<>Помощь на дороге<br />в любое время</>}
-      body="Вызовите аварийного комиссара или оформите электронный европротокол прямо с телефона."
+      body="Вызовите аварийного инспектора или оформите электронный европротокол прямо с телефона."
     />
   );
 }
@@ -238,7 +238,7 @@ function IllusOnboardingHelp() {
           </div>
         </div>
       </div>
-      {/* Floating commissar status pill */}
+      {/* Floating inspector status pill */}
       <div style={{
         position: "absolute", left: 12, top: 178, padding: "10px 14px 10px 12px",
         borderRadius: 999, background: "#fff", display: "flex", alignItems: "center", gap: 10,
@@ -246,7 +246,7 @@ function IllusOnboardingHelp() {
       }}>
         <span style={{ width: 28, height: 28, borderRadius: 999, background: SOS_TOKENS.green, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#0a3a26", fontSize: 12, fontWeight: 700 }}>✓</span>
         <span style={{ display: "flex", flexDirection: "column" }}>
-          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>Комиссар в пути</span>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>Инспектор в пути</span>
           <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 13, color: SOS_TOKENS.inkDark }}>~ 12 минут</span>
         </span>
       </div>
@@ -624,8 +624,8 @@ function ScreenHomeV2() {
               boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
             }}>!</span>
             <span style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
-              <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.01em" }}>SOS — заявить ДТП</span>
-              <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.inkMutedDark, letterSpacing: "-0.005em" }}>Запишем место, фото, отправим.</span>
+              <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.01em" }}>SOS — экстренная помощь</span>
+              <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.inkMutedDark, letterSpacing: "-0.005em" }}>ДТП, мед. помощь, угон — поможем разобраться</span>
             </span>
             <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 1l6 6-6 6" /></svg>
           </button>
@@ -635,10 +635,10 @@ function ScreenHomeV2() {
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SectionRow title="Быстрые действия" />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: "0 24px" }}>
-            <ActionTileV2 dark icon={<QuickIconOSAGO />} label="Оформить ОСАГО" />
-            <ActionTileV2 icon={<QuickIconKASKO />} label="Оформить КАСКО" />
-            <ActionTileV2 icon={<QuickIconCommissar />} label={"Вызвать\nкомиссара"} />
-            <ActionTileV2 icon={<QuickIconHistory />} label={"История\nполисов"} />
+            <ActionTileV2 dark icon={<Icon name="file-check" size={32} stroke={1.8} />} label={"Страховой\nполис"} />
+            <ActionTileV2 icon={<Icon name="badge-check" size={32} stroke={1.8} color={SOS_TOKENS.red} />} label="Аджастер" />
+            <ActionTileV2 icon={<Icon name="users" size={32} stroke={1.8} color={SOS_TOKENS.red} />} label="Партнёры" />
+            <ActionTileV2 icon={<Icon name="file-text" size={32} stroke={1.8} color={SOS_TOKENS.red} />} label="Европротокол" />
           </div>
         </div>
 
@@ -824,46 +824,16 @@ function ActionTileV2({ icon, label, dark }) {
 }
 
 function QuickIconOSAGO() {
-  // Document with a checkmark
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 4h14l6 6v20a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2z" />
-      <path d="M22 4v6h6" />
-      <path d="M12 22l3.5 3.5L24 17" />
-    </svg>
-  );
+  return <Icon name="file-check" size={32} stroke={1.8} />;
 }
 function QuickIconKASKO() {
-  // Shield with a car silhouette inside
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke={SOS_TOKENS.red} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 4l12 4v8c0 8-6 13-12 14-6-1-12-6-12-14V8l12-4z" />
-      <path d="M10 20v-1.5l1.5-.6 1-2.4c.2-.5.7-.9 1.2-.9h6.6c.5 0 1 .4 1.2.9l1 2.4 1.5.6V20" />
-      <circle cx="13" cy="21" r="1.6" />
-      <circle cx="23" cy="21" r="1.6" />
-    </svg>
-  );
+  return <Icon name="shield-check" size={32} stroke={1.8} color={SOS_TOKENS.red} />;
 }
-function QuickIconCommissar() {
-  // Person with cap
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke={SOS_TOKENS.red} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 12c2-3 5.5-4 10-4s8 1 10 4" />
-      <path d="M6 13h24" />
-      <circle cx="18" cy="19" r="4" />
-      <path d="M9 32a9 9 0 0118 0" />
-    </svg>
-  );
+function QuickIconInspector() {
+  return <Icon name="badge-check" size={32} stroke={1.8} color={SOS_TOKENS.red} />;
 }
 function QuickIconHistory() {
-  // Clock with arrow
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke={SOS_TOKENS.red} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 6a12 12 0 11-11.5 16" />
-      <path d="M6.5 22L2.5 23l1-4" />
-      <path d="M18 12v6.5l5 3" />
-    </svg>
-  );
+  return <Icon name="history" size={32} stroke={1.8} color={SOS_TOKENS.red} />;
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -912,13 +882,13 @@ function ScreenHome() {
             boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
           }}>!</span>
           <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.01em" }}>SOS — заявить ДТП</span>
-            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.inkMutedDark, letterSpacing: "-0.005em" }}>Запишем место, фото, отправим.</span>
+            <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.01em" }}>SOS — экстренная помощь</span>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.inkMutedDark, letterSpacing: "-0.005em" }}>ДТП, мед. помощь, угон — поможем разобраться</span>
           </span>
         </button>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <ActionTile dark icon={<IconFingerprintRed />} label={"Вызвать\nкомиссара"} />
+          <ActionTile dark icon={<IconFingerprintRed />} label={"Вызвать\nинспектора"} />
           <ActionTile icon={<IconFolderRed />} label={"Купить\nполис"} />
           <ActionTile icon={<IconHistory />} label={"История\nполисов"} />
           <ActionTile icon={<IconClaim />} label={"Мои\nзаявки"} />
@@ -947,11 +917,7 @@ function StatusChip({ label, meta, tone = "green" }) {
 }
 
 function IconQR({ size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M3 3h7v7H3V3zm2 2v3h3V5H5zm9-2h7v7h-7V3zm2 2v3h3V5h-3zM3 14h7v7H3v-7zm2 2v3h3v-3H5zm9-2h3v3h-3v-3zm5 0h2v2h-2v-2zm-5 5h2v2h-2v-2zm3 0h2v2h-2v-2zm2 2h2v2h-2v-2z" />
-    </svg>
-  );
+  return <Icon name="qr-code" size={size} />;
 }
 
 function ActionTile({ icon, label, dark }) {
@@ -974,38 +940,16 @@ function ActionTile({ icon, label, dark }) {
 }
 
 function IconFingerprintRed() {
-  return (
-    <svg width="40" height="44" viewBox="0 0 40 44" fill="none" stroke={SOS_TOKENS.red} strokeWidth="2" strokeLinecap="round">
-      <path d="M20 4c-7 0-13 5-13 13v4M33 17c0-4-2-7-5-9M7 30c0 4 1 7 3 10M13 22a7 7 0 0114 0v4c0 4 2 6 4 8M19 22v6c0 5-3 8-6 10M25 28c0 4 1 7 3 10M19 14c4 0 7 3 7 8" />
-    </svg>
-  );
+  return <Icon name="fingerprint" size={36} stroke={1.8} color={SOS_TOKENS.red} />;
 }
 function IconFolderRed() {
-  return (
-    <svg width="44" height="38" viewBox="0 0 44 38" fill={SOS_TOKENS.red}>
-      <path d="M0 8a6 6 0 016-6h10l4 4h18a6 6 0 016 6v20a6 6 0 01-6 6H6a6 6 0 01-6-6V8z" opacity="0.18" />
-      <path d="M0 14a6 6 0 016-6h32a6 6 0 016 6v18a6 6 0 01-6 6H6a6 6 0 01-6-6V14z" />
-      <rect x="6" y="4" width="14" height="8" rx="3" fill={SOS_TOKENS.red} />
-    </svg>
-  );
+  return <Icon name="folder" size={36} stroke={1.8} color={SOS_TOKENS.red} />;
 }
 function IconHistory() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke={SOS_TOKENS.red} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 8a14 14 0 11-13.4 18" />
-      <path d="M8.6 26L4 27l1-4.6" />
-      <path d="M22 14v9l6 3" />
-    </svg>
-  );
+  return <Icon name="history" size={36} stroke={1.8} />;
 }
 function IconClaim() {
-  return (
-    <svg width="40" height="44" viewBox="0 0 40 44" fill="none" stroke={SOS_TOKENS.red} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 6h18l8 8v22a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" />
-      <path d="M26 6v8h8" />
-      <path d="M12 24h12M12 30h8" />
-    </svg>
-  );
+  return <Icon name="file-text" size={36} stroke={1.8} />;
 }
 
 // ═════════════════════════════════════════════════════════════════════════

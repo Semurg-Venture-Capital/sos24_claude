@@ -165,11 +165,12 @@ function ScreenPayment() {
         </span>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <WalletPayOption balance="1 245 600" sufficient />
           <CardOption
-            selected
             type="uzcard"
             last4="4582"
             expiry="08/27"
+            selected
           />
           <CardOption
             type="humo"
@@ -205,6 +206,36 @@ function ScreenPayment() {
         </RedButton>
       </div>
     </FormScreen>
+  );
+}
+
+function WalletPayOption({ balance, sufficient }) {
+  return (
+    <label style={{
+      display: "flex", alignItems: "center", gap: 14, padding: "14px 18px",
+      borderRadius: 22, cursor: "pointer",
+      background: SOS_TOKENS.glass,
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+    }}>
+      <span style={{
+        width: 44, height: 30, borderRadius: 7,
+        background: "linear-gradient(135deg, #1a1a1a 0%, #3a1117 100%)",
+        color: "#fff",
+        display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+      }}>
+        <SosMark size={14} color="#fff" />
+      </span>
+      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>
+          Кошелёк SOS24
+        </span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: sufficient ? SOS_TOKENS.green : SOS_TOKENS.red, fontWeight: 600 }}>
+          Баланс: {balance} сум {sufficient ? "· достаточно" : "· не хватает"}
+        </span>
+      </span>
+      <Icon name="chevron-right" size={14} color="rgba(20,20,20,0.32)" />
+    </label>
   );
 }
 
@@ -291,12 +322,7 @@ function NewCardOption() {
 }
 
 function PayLockIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="11" width="16" height="11" rx="2" />
-      <path d="M8 11V7a4 4 0 018 0v4" />
-    </svg>
-  );
+  return <Icon name="lock" size={16} />;
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -426,12 +452,7 @@ function MiniQR() {
 }
 
 function DownloadIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 4v12M6 11l6 6 6-6" />
-      <path d="M4 20h16" />
-    </svg>
-  );
+  return <Icon name="download" size={16} />;
 }
 
 // ═════════════════════════════════════════════════════════════════════════

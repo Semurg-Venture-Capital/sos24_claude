@@ -3,7 +3,7 @@
 // ═════════════════════════════════════════════════════════════════════════
 // M4.1 — Каталог продуктов
 // ═════════════════════════════════════════════════════════════════════════
-const CATALOG_HEIGHT = 1080;
+const CATALOG_HEIGHT = 2120;
 
 function ScreenCatalog() {
   return (
@@ -33,10 +33,49 @@ function ScreenCatalog() {
           subtitle="Комплексное страхование автомобиля"
           benefits={[
             { icon: <BenefitCarLock />, label: "Угон и ущерб от третьих лиц" },
-            { icon: <BenefitCommissar />, label: "Вызов комиссара 24/7" },
+            { icon: <BenefitInspector />, label: "Вызов инспектора 24/7" },
             { icon: <BenefitWrench />,  label: "Сеть партнёрских СТО" },
           ]}
           price="от 4 200 000"
+          cta="Рассчитать"
+        />
+        <ProductCard
+          tone="light"
+          eyebrow="Медицина"
+          name="Здоровье"
+          subtitle="Медицинская страховка для всей семьи"
+          benefits={[
+            { icon: <Icon name="stethoscope" size={18} />, label: "Сеть клиник по всей стране" },
+            { icon: <Icon name="phone-fill" size={18} />, label: "Экстренная помощь 24/7" },
+            { icon: <Icon name="users" size={18} />, label: "До 6 человек на одном полисе" },
+          ]}
+          price="от 480 000"
+          cta="Рассчитать"
+        />
+        <ProductCard
+          tone="dark"
+          eyebrow="Имущество"
+          name="Дом и имущество"
+          subtitle="Защита квартиры, дома, дачи и имущества внутри"
+          benefits={[
+            { icon: <Icon name="home" size={18} />, label: "Пожар, залив, стихийные бедствия" },
+            { icon: <Icon name="shield-check" size={18} />, label: "Кража и противоправные действия" },
+            { icon: <Icon name="zap" size={18} />, label: "Электроника и техника" },
+          ]}
+          price="от 720 000"
+          cta="Рассчитать"
+        />
+        <ProductCard
+          tone="light"
+          eyebrow="Финансы"
+          name="Финансовая защита"
+          subtitle="Страхование вкладов, переводов и онлайн-операций"
+          benefits={[
+            { icon: <Icon name="wallet" size={18} />, label: "Карты, переводы, e-кошельки" },
+            { icon: <Icon name="lock" size={18} />, label: "Защита от мошенничества" },
+            { icon: <Icon name="badge-check" size={18} />, label: "Возврат потерь до 30 млн сум" },
+          ]}
+          price="от 180 000"
           cta="Рассчитать"
         />
         {/* Promo banner */}
@@ -144,22 +183,22 @@ function ProductCard({ tone, eyebrow, name, subtitle, benefits = [], price, cta 
 
 // Benefit icons — thin-line SF Symbols style
 function BenefitBolt() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M13 3L4 14h7l-1 7 9-11h-7l1-7z" /></svg>;
+  return <Icon name="zap" size={18} />;
 }
 function BenefitMap() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-7-7-12a7 7 0 1114 0c0 5-7 12-7 12z" /><circle cx="12" cy="9" r="2.5" /></svg>;
+  return <Icon name="map-pin" size={18} />;
 }
 function BenefitShield() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V6l8-3z" /><path d="M8.5 12l2.5 2.5 4.5-5" /></svg>;
+  return <Icon name="shield-check" size={18} />;
 }
 function BenefitCarLock() {
-  return <svg width="20" height="18" viewBox="0 0 24 22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14v-2l2.5-1 1.5-4c.3-.7 1-1.2 1.8-1.2h8.4c.8 0 1.5.5 1.8 1.2l1.5 4 2.5 1v2c0 .8-.7 1.5-1.5 1.5H4.5C3.7 15.5 3 14.8 3 14z" /><circle cx="7.5" cy="15.5" r="2" /><circle cx="16.5" cy="15.5" r="2" /></svg>;
+  return <Icon name="car" size={18} />;
 }
-function BenefitCommissar() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.4 8.4 0 01-1 4 8.5 8.5 0 01-7.5 4.5L3 22l1.5-4.5A8.5 8.5 0 0112 3a8.5 8.5 0 019 8.5z" /></svg>;
+function BenefitInspector() {
+  return <Icon name="headphones" size={18} />;
 }
 function BenefitWrench() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7a5 5 0 01-6.6 4.7L4 22l-2-2L12.3 9.6A5 5 0 0117 3l-3 3 1 3 3 1 3-3z" /></svg>;
+  return <Icon name="wrench" size={18} />;
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -306,9 +345,15 @@ function FaqRow({ question, answer, open }) {
   );
 }
 
-function BenefitCarHit() { return <svg width="18" height="18" viewBox="0 0 24 22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14v-2l2-1 1.5-4c.4-.9 1.3-1.5 2.3-1.5h7.4c1 0 1.9.6 2.3 1.5l2 5 2 1v2c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2z" /><circle cx="7" cy="16" r="2" /><circle cx="17" cy="16" r="2" /><path d="M15 4l3-3M19 5l-2 2" strokeWidth="1.6" /></svg>; }
-function BenefitHospital() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c-4.5-1-8-4.5-8-9V6l8-3 8 3v7c0 4.5-3.5 8-8 9z" /><path d="M12 8v8M8 12h8" /></svg>; }
-function BenefitProperty() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21V10l9-7 9 7v11" /><path d="M9 21V13h6v8" /></svg>; }
+function BenefitCarHit() {
+  return <Icon name="car" size={18} />;
+}
+function BenefitHospital() {
+  return <Icon name="stethoscope" size={18} />;
+}
+function BenefitProperty() {
+  return <Icon name="home" size={18} />;
+}
 
 // ═════════════════════════════════════════════════════════════════════════
 // M5.1 — Calculator wizard (4 steps)
@@ -484,12 +529,7 @@ function PeriodOption({ label, sub, selected }) {
 }
 
 function CalendarIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={SOS_TOKENS.inkMuted} strokeWidth="1.6" strokeLinecap="round">
-      <rect x="3" y="5" width="18" height="16" rx="3" />
-      <path d="M3 10h18M8 3v4M16 3v4" />
-    </svg>
-  );
+  return <Icon name="calendar" size={20} color={SOS_TOKENS.inkMuted} />;
 }
 
 // — Step 4: Результат

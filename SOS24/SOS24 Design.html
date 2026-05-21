@@ -998,6 +998,139 @@ function DCPostIt({ children, top, left, right, bottom, rotate = -2, width = 180
 Object.assign(window, { DesignCanvas, DCSection, DCArtboard, DCPostIt });
 
 
+/* === lucide-icons.jsx === */
+// lucide-icons.jsx — unified icon system for SOS24
+// Lucide-style thin-line icons, 24×24 viewBox, stroke 1.7.
+// Inline SVG paths — no network dependency.
+//
+// Use:  <Icon name="bell" size={20} />
+//       <Icon name="home" size={26} fill />     // filled (for active tab state)
+//       <Icon name="bell" stroke={1.5} color="red" />
+
+function Icon({ name, size = 20, stroke = 1.7, fill = false, color = "currentColor", style }) {
+  const def = ICON_REGISTRY[name];
+  if (!def) {
+    // Visible warning so missing icons are easy to spot
+    return (
+      <span style={{ display: "inline-flex", width: size, height: size, alignItems: "center", justifyContent: "center", fontSize: 9, color: "#f00", border: "1px solid #f00", borderRadius: 4, fontFamily: "monospace" }}>
+        ?{name}
+      </span>
+    );
+  }
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24"
+      fill={fill ? "currentColor" : "none"}
+      stroke={fill ? "none" : color}
+      strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"
+      style={{ flex: "none", display: "block", ...style }}>
+      {def}
+    </svg>
+  );
+}
+
+const ICON_REGISTRY = {
+  // ── Navigation
+  "chevron-left":   <path d="M15 18l-6-6 6-6" />,
+  "chevron-right":  <path d="M9 18l6-6-6-6" />,
+  "chevron-down":   <path d="M6 9l6 6 6-6" />,
+  "chevron-up":     <path d="M6 15l6-6 6 6" />,
+  "arrow-left":     <><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></>,
+  "arrow-right":    <><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></>,
+  "arrow-up-right": <><path d="M7 17L17 7" /><path d="M7 7h10v10" /></>,
+
+  // ── UI primitives
+  "x":               <><path d="M18 6L6 18" /><path d="M6 6l12 12" /></>,
+  "plus":            <><path d="M12 5v14" /><path d="M5 12h14" /></>,
+  "minus":           <path d="M5 12h14" />,
+  "check":           <path d="M20 6L9 17l-5-5" />,
+  "more-horizontal": <><circle cx="5" cy="12" r="0.5" fill="currentColor" /><circle cx="12" cy="12" r="0.5" fill="currentColor" /><circle cx="19" cy="12" r="0.5" fill="currentColor" /></>,
+  "menu":            <><path d="M3 6h18" /><path d="M3 12h18" /><path d="M3 18h18" /></>,
+  "search":          <><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></>,
+  "sliders":         <><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3" /><path d="M1 14h6M9 8h6M17 16h6" /></>,
+  "filter":          <path d="M22 3H2l8 9.5V19l4 2v-8.5L22 3z" />,
+  "send-arrow":      <><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" /></>,
+
+  // ── Files & docs
+  "file-text":  <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6" /><path d="M16 13H8" /><path d="M16 17H8" /><path d="M10 9H8" /></>,
+  "file-check": <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6" /><path d="M9 15l2 2 4-4" /></>,
+  "file-image": <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6" /><circle cx="10" cy="13" r="2" /><path d="M20 17l-3-3-7 7" /></>,
+  "files":      <><path d="M15 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7z" /><path d="M15 2v5h5" /><path d="M9 2v2" /></>,
+  "folder":     <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />,
+  "download":   <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><path d="M7 10l5 5 5-5" /><path d="M12 15V3" /></>,
+  "upload":     <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><path d="M17 8l-5-5-5 5" /><path d="M12 3v12" /></>,
+  "share":      <><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.59 13.51l6.83 3.98" /><path d="M15.41 6.51l-6.82 3.98" /></>,
+  "paperclip":  <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />,
+  "camera":     <><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" /></>,
+  "image":      <><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></>,
+  "edit":       <><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></>,
+  "trash":      <><path d="M3 6h18" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" /><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" /></>,
+
+  // ── Communication
+  "message-circle": <path d="M21 11.5a8.4 8.4 0 01-1 4 8.5 8.5 0 01-7.5 4.5L3 22l1.5-4.5A8.5 8.5 0 0112 3a8.5 8.5 0 019 8.5z" />,
+  "phone":          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />,
+  "phone-fill":     <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />,
+  "headphones":     <><path d="M3 18v-6a9 9 0 0118 0v6" /><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z" /></>,
+
+  // ── Bell
+  "bell":     <><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" /></>,
+  "bell-dot": <><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" /><circle cx="19" cy="5" r="3" fill="currentColor" stroke="none" /></>,
+
+  // ── Status / feedback
+  "alert-triangle": <><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><path d="M12 9v4" /><path d="M12 17h.01" /></>,
+  "alert-circle":   <><circle cx="12" cy="12" r="10" /><path d="M12 8v4" /><path d="M12 16h.01" /></>,
+  "info":           <><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></>,
+  "check-circle":   <><circle cx="12" cy="12" r="10" /><path d="M9 12l2 2 4-4" /></>,
+  "help-circle":    <><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></>,
+  "x-circle":       <><circle cx="12" cy="12" r="10" /><path d="M15 9l-6 6M9 9l6 6" /></>,
+
+  // ── Profile / settings
+  "user":         <><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></>,
+  "user-fill":    <><circle cx="12" cy="8" r="4" fill="currentColor" /><path d="M4 21a8 8 0 0116 0z" fill="currentColor" /></>,
+  "users":        <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></>,
+  "user-check":   <><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M16 11l2 2 4-4" /></>,
+  "log-out":      <><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></>,
+  "lock":         <><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></>,
+  "shield-lock":  <><path d="M12 22s-8-4-8-12V5l8-3 8 3v5c0 8-8 12-8 12z" /><circle cx="12" cy="11" r="1.5" /><path d="M12 12.5v2" /></>,
+  "globe":        <><circle cx="12" cy="12" r="10" /><path d="M2 12h20" /><path d="M12 2a15.3 15.3 0 010 20" /><path d="M12 2a15.3 15.3 0 000 20" /></>,
+  "moon-sun":     <><circle cx="12" cy="12" r="4" /><path d="M12 8a4 4 0 010 8" fill="currentColor" stroke="none" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></>,
+  "fingerprint":  <><path d="M6.5 6.5a8 8 0 0111 0" /><path d="M5 12c0-4 3-7 7-7s7 3 7 7" /><path d="M3 18c2-3 3-6 3-9M9 22c0-3 1-6 1-9a3 3 0 016 0c0 4 .5 6 1.5 9" /></>,
+  "settings":     <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></>,
+  "badge-check":  <><path d="M3.85 8.62a4 4 0 014.78-4.77 4 4 0 016.74 0 4 4 0 014.78 4.78 4 4 0 010 6.74 4 4 0 01-4.77 4.78 4 4 0 01-6.75 0 4 4 0 01-4.78-4.77 4 4 0 010-6.76z" /><path d="M9 12l2 2 4-4" /></>,
+
+  // ── Car / insurance
+  "car":          <><path d="M14 16H9m10 0h3v-3.15a1 1 0 00-.84-.99L16 11l-2.7-3.6a1 1 0 00-.8-.4H5.24a2 2 0 00-1.8 1.1l-.8 1.63A6 6 0 002 12.42V16h2" /><circle cx="6.5" cy="16.5" r="2.5" /><circle cx="16.5" cy="16.5" r="2.5" /></>,
+  "car-fill":     <><path d="M14 16H9m10 0h3v-3.15a1 1 0 00-.84-.99L16 11l-2.7-3.6a1 1 0 00-.8-.4H5.24a2 2 0 00-1.8 1.1l-.8 1.63A6 6 0 002 12.42V16h2" fill="currentColor" stroke="currentColor" /><circle cx="6.5" cy="16.5" r="2" fill="#fff" stroke="none" /><circle cx="16.5" cy="16.5" r="2" fill="#fff" stroke="none" /></>,
+  "shield":       <path d="M12 22s-8-4-8-12V5l8-3 8 3v5c0 8-8 12-8 12z" />,
+  "shield-check": <><path d="M12 22s-8-4-8-12V5l8-3 8 3v5c0 8-8 12-8 12z" /><path d="M9 12l2 2 4-4" /></>,
+  "shield-alert": <><path d="M12 22s-8-4-8-12V5l8-3 8 3v5c0 8-8 12-8 12z" /><path d="M12 8v4" /><path d="M12 16h.01" /></>,
+  "key":          <><circle cx="7.5" cy="15.5" r="5.5" /><path d="M11 11l10-10" /><path d="M17 5l2 2" /></>,
+  "credit-card":  <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></>,
+  "wallet":       <><path d="M19 7H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2z" /><path d="M16 14h2" /><path d="M3 9V5a2 2 0 012-2h12" /></>,
+  "calendar":     <><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></>,
+  "clock":        <><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></>,
+  "history":      <><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.66L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l4 2" /></>,
+  "map-pin":      <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></>,
+  "map":          <><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z" /><path d="M9 3v15M15 6v15" /></>,
+  "qr-code":      <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="6" y="6" width="1" height="1" fill="currentColor" /><rect x="17" y="6" width="1" height="1" fill="currentColor" /><rect x="6" y="17" width="1" height="1" fill="currentColor" /><path d="M14 14h3v3M21 14v3M14 18v3h3M19 19v2M21 21h-1" /></>,
+  "route":        <><circle cx="6" cy="19" r="3" /><circle cx="18" cy="5" r="3" /><path d="M9 19h6.5A3.5 3.5 0 0019 15.5v0a3.5 3.5 0 00-3.5-3.5h-7A3.5 3.5 0 015 8.5v0A3.5 3.5 0 018.5 5H15" /></>,
+
+  // ── Home / nav-bar
+  "home":      <><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><path d="M9 22V12h6v10" /></>,
+  "home-fill": <path d="M3 10v10a2 2 0 002 2h4v-8h6v8h4a2 2 0 002-2V10L12 2z" fill="currentColor" stroke="currentColor" />,
+
+  // ── Misc functional
+  "zap":      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />,
+  "wrench":   <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />,
+  "percent":  <><path d="M19 5L5 19" /><circle cx="6.5" cy="6.5" r="2.5" /><circle cx="17.5" cy="17.5" r="2.5" /></>,
+  "tag":      <><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" /><path d="M7 7h.01" /></>,
+  "star":     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />,
+  "heart":    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />,
+  "stethoscope": <><path d="M11 2v2M5 2v2M5 4h6v6a3 3 0 11-6 0z" /><path d="M8 13v2a4 4 0 008 0v-3" /><circle cx="16" cy="11" r="2" /></>,
+  "home-building": <><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h.01M15 17h.01" /></>,
+};
+window.Icon = Icon;
+window.ICON_REGISTRY = ICON_REGISTRY;
+
 /* === sos-system.jsx === */
 // SOS24 — shared design-system primitives
 // Tokens, frame, status bar, logo, buttons, inputs, navigation chrome.
@@ -1287,22 +1420,11 @@ function IconButton({ children, badge, onClick }) {
 // ─────────────────────────────────────────────────────────────────────────
 // SF Symbols-style icons (thin lines, 1.6–1.8 stroke).
 function IconBurger({ size = 20 }) {
-  return (
-    <svg width={size} height={size * 0.9} viewBox="0 0 20 18" fill="none">
-      <rect x="0" y="0" width="20" height="2" rx="1" fill="currentColor" />
-      <rect x="0" y="8" width="20" height="2" rx="1" fill="currentColor" />
-      <rect x="0" y="16" width="20" height="2" rx="1" fill="currentColor" />
-    </svg>
-  );
+  return <Icon name="menu" size={size} />;
 }
 
 function IconBell({ size = 20 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3a6 6 0 00-6 6v4l-1.5 3a1 1 0 00.9 1.5h13.2a1 1 0 00.9-1.5L18 13V9a6 6 0 00-6-6z" />
-      <path d="M10 20a2 2 0 004 0" />
-    </svg>
-  );
+  return <Icon name="bell" size={size} />;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1340,36 +1462,16 @@ function BottomTabBar({ active = 0 }) {
 }
 
 function TabIconHome({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1v-9.5z" fill={active ? "currentColor" : "none"} />
-    </svg>
-  );
+  return <Icon name="home" size={24} fill={!!active} />;
 }
 function TabIconShield({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V6l8-3z" />
-    </svg>
-  );
+  return <Icon name="shield" size={24} fill={!!active} />;
 }
 function TabIconCar({ active }) {
-  // Side-view car silhouette (SF Symbols "car.fill")
-  return (
-    <svg width="26" height="22" viewBox="0 0 28 22" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.6} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 14v-2l3-1 2-5c.4-.9 1.3-1.5 2.3-1.5h9.4c1 0 1.9.6 2.3 1.5l2 5 3 1v2c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2z" />
-      <circle cx="8" cy="16" r="2.5" fill={active ? "#fff" : "none"} stroke={active ? "currentColor" : "currentColor"} strokeWidth="1.6" />
-      <circle cx="20" cy="16" r="2.5" fill={active ? "#fff" : "none"} stroke={active ? "currentColor" : "currentColor"} strokeWidth="1.6" />
-    </svg>
-  );
+  return <Icon name="car" size={26} fill={!!active} />;
 }
 function TabIconUser({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? 0 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21a8 8 0 0116 0" />
-    </svg>
-  );
+  return <Icon name="user" size={24} fill={!!active} />;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1870,7 +1972,7 @@ function ScreenOnboarding2() {
         </div>
       }
       title={<>Помощь на дороге<br />в любое время</>}
-      body="Вызовите аварийного комиссара или оформите электронный европротокол прямо с телефона."
+      body="Вызовите аварийного инспектора или оформите электронный европротокол прямо с телефона."
     />
   );
 }
@@ -1927,7 +2029,7 @@ function IllusOnboardingHelp() {
           </div>
         </div>
       </div>
-      {/* Floating commissar status pill */}
+      {/* Floating inspector status pill */}
       <div style={{
         position: "absolute", left: 12, top: 178, padding: "10px 14px 10px 12px",
         borderRadius: 999, background: "#fff", display: "flex", alignItems: "center", gap: 10,
@@ -1935,7 +2037,7 @@ function IllusOnboardingHelp() {
       }}>
         <span style={{ width: 28, height: 28, borderRadius: 999, background: SOS_TOKENS.green, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#0a3a26", fontSize: 12, fontWeight: 700 }}>✓</span>
         <span style={{ display: "flex", flexDirection: "column" }}>
-          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>Комиссар в пути</span>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>Инспектор в пути</span>
           <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 13, color: SOS_TOKENS.inkDark }}>~ 12 минут</span>
         </span>
       </div>
@@ -2313,8 +2415,8 @@ function ScreenHomeV2() {
               boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
             }}>!</span>
             <span style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
-              <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.01em" }}>SOS — заявить ДТП</span>
-              <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.inkMutedDark, letterSpacing: "-0.005em" }}>Запишем место, фото, отправим.</span>
+              <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.01em" }}>SOS — экстренная помощь</span>
+              <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.inkMutedDark, letterSpacing: "-0.005em" }}>ДТП, мед. помощь, угон — поможем разобраться</span>
             </span>
             <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 1l6 6-6 6" /></svg>
           </button>
@@ -2324,10 +2426,10 @@ function ScreenHomeV2() {
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SectionRow title="Быстрые действия" />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: "0 24px" }}>
-            <ActionTileV2 dark icon={<QuickIconOSAGO />} label="Оформить ОСАГО" />
-            <ActionTileV2 icon={<QuickIconKASKO />} label="Оформить КАСКО" />
-            <ActionTileV2 icon={<QuickIconCommissar />} label={"Вызвать\nкомиссара"} />
-            <ActionTileV2 icon={<QuickIconHistory />} label={"История\nполисов"} />
+            <ActionTileV2 dark icon={<Icon name="file-check" size={32} stroke={1.8} />} label={"Страховой\nполис"} />
+            <ActionTileV2 icon={<Icon name="badge-check" size={32} stroke={1.8} color={SOS_TOKENS.red} />} label="Аджастер" />
+            <ActionTileV2 icon={<Icon name="users" size={32} stroke={1.8} color={SOS_TOKENS.red} />} label="Партнёры" />
+            <ActionTileV2 icon={<Icon name="file-text" size={32} stroke={1.8} color={SOS_TOKENS.red} />} label="Европротокол" />
           </div>
         </div>
 
@@ -2513,46 +2615,16 @@ function ActionTileV2({ icon, label, dark }) {
 }
 
 function QuickIconOSAGO() {
-  // Document with a checkmark
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 4h14l6 6v20a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2z" />
-      <path d="M22 4v6h6" />
-      <path d="M12 22l3.5 3.5L24 17" />
-    </svg>
-  );
+  return <Icon name="file-check" size={32} stroke={1.8} />;
 }
 function QuickIconKASKO() {
-  // Shield with a car silhouette inside
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke={SOS_TOKENS.red} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 4l12 4v8c0 8-6 13-12 14-6-1-12-6-12-14V8l12-4z" />
-      <path d="M10 20v-1.5l1.5-.6 1-2.4c.2-.5.7-.9 1.2-.9h6.6c.5 0 1 .4 1.2.9l1 2.4 1.5.6V20" />
-      <circle cx="13" cy="21" r="1.6" />
-      <circle cx="23" cy="21" r="1.6" />
-    </svg>
-  );
+  return <Icon name="shield-check" size={32} stroke={1.8} color={SOS_TOKENS.red} />;
 }
-function QuickIconCommissar() {
-  // Person with cap
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke={SOS_TOKENS.red} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 12c2-3 5.5-4 10-4s8 1 10 4" />
-      <path d="M6 13h24" />
-      <circle cx="18" cy="19" r="4" />
-      <path d="M9 32a9 9 0 0118 0" />
-    </svg>
-  );
+function QuickIconInspector() {
+  return <Icon name="badge-check" size={32} stroke={1.8} color={SOS_TOKENS.red} />;
 }
 function QuickIconHistory() {
-  // Clock with arrow
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke={SOS_TOKENS.red} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 6a12 12 0 11-11.5 16" />
-      <path d="M6.5 22L2.5 23l1-4" />
-      <path d="M18 12v6.5l5 3" />
-    </svg>
-  );
+  return <Icon name="history" size={32} stroke={1.8} color={SOS_TOKENS.red} />;
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -2601,13 +2673,13 @@ function ScreenHome() {
             boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
           }}>!</span>
           <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.01em" }}>SOS — заявить ДТП</span>
-            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.inkMutedDark, letterSpacing: "-0.005em" }}>Запишем место, фото, отправим.</span>
+            <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.01em" }}>SOS — экстренная помощь</span>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.inkMutedDark, letterSpacing: "-0.005em" }}>ДТП, мед. помощь, угон — поможем разобраться</span>
           </span>
         </button>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <ActionTile dark icon={<IconFingerprintRed />} label={"Вызвать\nкомиссара"} />
+          <ActionTile dark icon={<IconFingerprintRed />} label={"Вызвать\nинспектора"} />
           <ActionTile icon={<IconFolderRed />} label={"Купить\nполис"} />
           <ActionTile icon={<IconHistory />} label={"История\nполисов"} />
           <ActionTile icon={<IconClaim />} label={"Мои\nзаявки"} />
@@ -2636,11 +2708,7 @@ function StatusChip({ label, meta, tone = "green" }) {
 }
 
 function IconQR({ size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M3 3h7v7H3V3zm2 2v3h3V5H5zm9-2h7v7h-7V3zm2 2v3h3V5h-3zM3 14h7v7H3v-7zm2 2v3h3v-3H5zm9-2h3v3h-3v-3zm5 0h2v2h-2v-2zm-5 5h2v2h-2v-2zm3 0h2v2h-2v-2zm2 2h2v2h-2v-2z" />
-    </svg>
-  );
+  return <Icon name="qr-code" size={size} />;
 }
 
 function ActionTile({ icon, label, dark }) {
@@ -2663,38 +2731,16 @@ function ActionTile({ icon, label, dark }) {
 }
 
 function IconFingerprintRed() {
-  return (
-    <svg width="40" height="44" viewBox="0 0 40 44" fill="none" stroke={SOS_TOKENS.red} strokeWidth="2" strokeLinecap="round">
-      <path d="M20 4c-7 0-13 5-13 13v4M33 17c0-4-2-7-5-9M7 30c0 4 1 7 3 10M13 22a7 7 0 0114 0v4c0 4 2 6 4 8M19 22v6c0 5-3 8-6 10M25 28c0 4 1 7 3 10M19 14c4 0 7 3 7 8" />
-    </svg>
-  );
+  return <Icon name="fingerprint" size={36} stroke={1.8} color={SOS_TOKENS.red} />;
 }
 function IconFolderRed() {
-  return (
-    <svg width="44" height="38" viewBox="0 0 44 38" fill={SOS_TOKENS.red}>
-      <path d="M0 8a6 6 0 016-6h10l4 4h18a6 6 0 016 6v20a6 6 0 01-6 6H6a6 6 0 01-6-6V8z" opacity="0.18" />
-      <path d="M0 14a6 6 0 016-6h32a6 6 0 016 6v18a6 6 0 01-6 6H6a6 6 0 01-6-6V14z" />
-      <rect x="6" y="4" width="14" height="8" rx="3" fill={SOS_TOKENS.red} />
-    </svg>
-  );
+  return <Icon name="folder" size={36} stroke={1.8} color={SOS_TOKENS.red} />;
 }
 function IconHistory() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke={SOS_TOKENS.red} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 8a14 14 0 11-13.4 18" />
-      <path d="M8.6 26L4 27l1-4.6" />
-      <path d="M22 14v9l6 3" />
-    </svg>
-  );
+  return <Icon name="history" size={36} stroke={1.8} />;
 }
 function IconClaim() {
-  return (
-    <svg width="40" height="44" viewBox="0 0 40 44" fill="none" stroke={SOS_TOKENS.red} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 6h18l8 8v22a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" />
-      <path d="M26 6v8h8" />
-      <path d="M12 24h12M12 30h8" />
-    </svg>
-  );
+  return <Icon name="file-text" size={36} stroke={1.8} />;
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -2747,7 +2793,7 @@ Object.assign(window, {
 // ═════════════════════════════════════════════════════════════════════════
 // M4.1 — Каталог продуктов
 // ═════════════════════════════════════════════════════════════════════════
-const CATALOG_HEIGHT = 1080;
+const CATALOG_HEIGHT = 2120;
 
 function ScreenCatalog() {
   return (
@@ -2777,10 +2823,49 @@ function ScreenCatalog() {
           subtitle="Комплексное страхование автомобиля"
           benefits={[
             { icon: <BenefitCarLock />, label: "Угон и ущерб от третьих лиц" },
-            { icon: <BenefitCommissar />, label: "Вызов комиссара 24/7" },
+            { icon: <BenefitInspector />, label: "Вызов инспектора 24/7" },
             { icon: <BenefitWrench />,  label: "Сеть партнёрских СТО" },
           ]}
           price="от 4 200 000"
+          cta="Рассчитать"
+        />
+        <ProductCard
+          tone="light"
+          eyebrow="Медицина"
+          name="Здоровье"
+          subtitle="Медицинская страховка для всей семьи"
+          benefits={[
+            { icon: <Icon name="stethoscope" size={18} />, label: "Сеть клиник по всей стране" },
+            { icon: <Icon name="phone-fill" size={18} />, label: "Экстренная помощь 24/7" },
+            { icon: <Icon name="users" size={18} />, label: "До 6 человек на одном полисе" },
+          ]}
+          price="от 480 000"
+          cta="Рассчитать"
+        />
+        <ProductCard
+          tone="dark"
+          eyebrow="Имущество"
+          name="Дом и имущество"
+          subtitle="Защита квартиры, дома, дачи и имущества внутри"
+          benefits={[
+            { icon: <Icon name="home" size={18} />, label: "Пожар, залив, стихийные бедствия" },
+            { icon: <Icon name="shield-check" size={18} />, label: "Кража и противоправные действия" },
+            { icon: <Icon name="zap" size={18} />, label: "Электроника и техника" },
+          ]}
+          price="от 720 000"
+          cta="Рассчитать"
+        />
+        <ProductCard
+          tone="light"
+          eyebrow="Финансы"
+          name="Финансовая защита"
+          subtitle="Страхование вкладов, переводов и онлайн-операций"
+          benefits={[
+            { icon: <Icon name="wallet" size={18} />, label: "Карты, переводы, e-кошельки" },
+            { icon: <Icon name="lock" size={18} />, label: "Защита от мошенничества" },
+            { icon: <Icon name="badge-check" size={18} />, label: "Возврат потерь до 30 млн сум" },
+          ]}
+          price="от 180 000"
           cta="Рассчитать"
         />
         {/* Promo banner */}
@@ -2888,22 +2973,22 @@ function ProductCard({ tone, eyebrow, name, subtitle, benefits = [], price, cta 
 
 // Benefit icons — thin-line SF Symbols style
 function BenefitBolt() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M13 3L4 14h7l-1 7 9-11h-7l1-7z" /></svg>;
+  return <Icon name="zap" size={18} />;
 }
 function BenefitMap() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-7-7-12a7 7 0 1114 0c0 5-7 12-7 12z" /><circle cx="12" cy="9" r="2.5" /></svg>;
+  return <Icon name="map-pin" size={18} />;
 }
 function BenefitShield() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V6l8-3z" /><path d="M8.5 12l2.5 2.5 4.5-5" /></svg>;
+  return <Icon name="shield-check" size={18} />;
 }
 function BenefitCarLock() {
-  return <svg width="20" height="18" viewBox="0 0 24 22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14v-2l2.5-1 1.5-4c.3-.7 1-1.2 1.8-1.2h8.4c.8 0 1.5.5 1.8 1.2l1.5 4 2.5 1v2c0 .8-.7 1.5-1.5 1.5H4.5C3.7 15.5 3 14.8 3 14z" /><circle cx="7.5" cy="15.5" r="2" /><circle cx="16.5" cy="15.5" r="2" /></svg>;
+  return <Icon name="car" size={18} />;
 }
-function BenefitCommissar() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.4 8.4 0 01-1 4 8.5 8.5 0 01-7.5 4.5L3 22l1.5-4.5A8.5 8.5 0 0112 3a8.5 8.5 0 019 8.5z" /></svg>;
+function BenefitInspector() {
+  return <Icon name="headphones" size={18} />;
 }
 function BenefitWrench() {
-  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7a5 5 0 01-6.6 4.7L4 22l-2-2L12.3 9.6A5 5 0 0117 3l-3 3 1 3 3 1 3-3z" /></svg>;
+  return <Icon name="wrench" size={18} />;
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -3050,9 +3135,15 @@ function FaqRow({ question, answer, open }) {
   );
 }
 
-function BenefitCarHit() { return <svg width="18" height="18" viewBox="0 0 24 22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14v-2l2-1 1.5-4c.4-.9 1.3-1.5 2.3-1.5h7.4c1 0 1.9.6 2.3 1.5l2 5 2 1v2c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2z" /><circle cx="7" cy="16" r="2" /><circle cx="17" cy="16" r="2" /><path d="M15 4l3-3M19 5l-2 2" strokeWidth="1.6" /></svg>; }
-function BenefitHospital() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c-4.5-1-8-4.5-8-9V6l8-3 8 3v7c0 4.5-3.5 8-8 9z" /><path d="M12 8v8M8 12h8" /></svg>; }
-function BenefitProperty() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21V10l9-7 9 7v11" /><path d="M9 21V13h6v8" /></svg>; }
+function BenefitCarHit() {
+  return <Icon name="car" size={18} />;
+}
+function BenefitHospital() {
+  return <Icon name="stethoscope" size={18} />;
+}
+function BenefitProperty() {
+  return <Icon name="home" size={18} />;
+}
 
 // ═════════════════════════════════════════════════════════════════════════
 // M5.1 — Calculator wizard (4 steps)
@@ -3228,12 +3319,7 @@ function PeriodOption({ label, sub, selected }) {
 }
 
 function CalendarIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={SOS_TOKENS.inkMuted} strokeWidth="1.6" strokeLinecap="round">
-      <rect x="3" y="5" width="18" height="16" rx="3" />
-      <path d="M3 10h18M8 3v4M16 3v4" />
-    </svg>
-  );
+  return <Icon name="calendar" size={20} color={SOS_TOKENS.inkMuted} />;
 }
 
 // — Step 4: Результат
@@ -3462,11 +3548,12 @@ function ScreenPayment() {
         </span>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <WalletPayOption balance="1 245 600" sufficient />
           <CardOption
-            selected
             type="uzcard"
             last4="4582"
             expiry="08/27"
+            selected
           />
           <CardOption
             type="humo"
@@ -3502,6 +3589,36 @@ function ScreenPayment() {
         </RedButton>
       </div>
     </FormScreen>
+  );
+}
+
+function WalletPayOption({ balance, sufficient }) {
+  return (
+    <label style={{
+      display: "flex", alignItems: "center", gap: 14, padding: "14px 18px",
+      borderRadius: 22, cursor: "pointer",
+      background: SOS_TOKENS.glass,
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+    }}>
+      <span style={{
+        width: 44, height: 30, borderRadius: 7,
+        background: "linear-gradient(135deg, #1a1a1a 0%, #3a1117 100%)",
+        color: "#fff",
+        display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+      }}>
+        <SosMark size={14} color="#fff" />
+      </span>
+      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>
+          Кошелёк SOS24
+        </span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: sufficient ? SOS_TOKENS.green : SOS_TOKENS.red, fontWeight: 600 }}>
+          Баланс: {balance} сум {sufficient ? "· достаточно" : "· не хватает"}
+        </span>
+      </span>
+      <Icon name="chevron-right" size={14} color="rgba(20,20,20,0.32)" />
+    </label>
   );
 }
 
@@ -3588,12 +3705,7 @@ function NewCardOption() {
 }
 
 function PayLockIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="11" width="16" height="11" rx="2" />
-      <path d="M8 11V7a4 4 0 018 0v4" />
-    </svg>
-  );
+  return <Icon name="lock" size={16} />;
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -3723,12 +3835,7 @@ function MiniQR() {
 }
 
 function DownloadIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 4v12M6 11l6 6 6-6" />
-      <path d="M4 20h16" />
-    </svg>
-  );
+  return <Icon name="download" size={16} />;
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -4273,6 +4380,2840 @@ Object.assign(window, {
   POLICIES_LIST_HEIGHT, POLICY_DETAIL_HEIGHT,
 });
 
+/* === screens-garage-profile.jsx === */
+// SOS24 — Block 6: M2 Профиль + M3 Гараж (5 экранов)
+
+// ─────────────────────────────────────────────────────────────────────────
+// Shared primitives — Avatar, photo-upload tile, status badge
+// ─────────────────────────────────────────────────────────────────────────
+function Avatar({ size = 64, initials, tone = "light" }) {
+  const dark = tone === "dark";
+  return (
+    <span style={{
+      width: size, height: size, borderRadius: 999,
+      background: dark
+        ? "linear-gradient(135deg, #2a2a2a 0%, #121212 100%)"
+        : "linear-gradient(135deg, #ffffff 0%, #d6d6d6 100%)",
+      color: dark ? "#fff" : SOS_TOKENS.inkDark,
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+      fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500,
+      fontSize: size * 0.36, letterSpacing: "-0.01em",
+      boxShadow: dark
+        ? "0 12px 28px -16px rgba(0,0,0,0.5)"
+        : "0 0 0 1px rgba(20,20,20,0.06), 0 12px 28px -20px rgba(0,0,0,0.18)",
+      flex: "none",
+    }}>{initials}</span>
+  );
+}
+
+function PhotoUploadTile({ label, hint, filled, side = "front" }) {
+  return (
+    <div style={{
+      position: "relative",
+      borderRadius: 22,
+      background: filled ? "linear-gradient(135deg, #dcdcdc 0%, #b8b8b8 100%)" : "transparent",
+      border: filled ? "none" : `1.5px dashed rgba(20,20,20,0.18)`,
+      padding: 16,
+      height: 130,
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      gap: 8,
+      color: filled ? "rgba(255,255,255,0.92)" : SOS_TOKENS.inkSubtle,
+      overflow: "hidden",
+    }}>
+      {filled && <PlaceholderBadge style={{ top: 8, left: 8, padding: "3px 8px 3px 6px", fontSize: 9 }} />}
+      {filled ? (
+        <>
+          {/* Mock passport face */}
+          <div style={{ width: 32, height: 32, borderRadius: 999, background: "rgba(255,255,255,0.5)" }} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 3, width: "70%", alignItems: "center" }}>
+            <span style={{ height: 4, width: "60%", borderRadius: 999, background: "rgba(255,255,255,0.7)" }} />
+            <span style={{ height: 3, width: "80%", borderRadius: 999, background: "rgba(255,255,255,0.5)" }} />
+            <span style={{ height: 3, width: "40%", borderRadius: 999, background: "rgba(255,255,255,0.5)" }} />
+          </div>
+        </>
+      ) : (
+        <>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="3" />
+            <circle cx="12" cy="12" r="3.5" />
+            <path d="M7 5l1.5-2h7L17 5" />
+          </svg>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, fontWeight: 500, textAlign: "center", lineHeight: 1.3 }}>
+            {label}
+            <br />
+            <span style={{ color: "rgba(20,20,20,0.45)", fontWeight: 400 }}>{hint}</span>
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
+function StatusBadge({ status }) {
+  // status: pending | verified | rejected
+  const conf = {
+    pending:  { bg: "rgba(245,200,80,0.85)", fg: "#503a07", label: "На проверке",  dot: "#f5c850" },
+    verified: { bg: "rgba(105,228,183,0.85)", fg: "#0a3a26", label: "Подтверждён", dot: SOS_TOKENS.green },
+    rejected: { bg: "rgba(230,20,40,0.12)",   fg: SOS_TOKENS.red, label: "Отклонён",     dot: SOS_TOKENS.red },
+  }[status] || { bg: "rgba(20,20,20,0.06)", fg: SOS_TOKENS.inkSubtle, label: "Не добавлен", dot: "rgba(20,20,20,0.32)" };
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      padding: "5px 10px 5px 8px", borderRadius: 999,
+      background: conf.bg, color: conf.fg,
+      fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: "0.02em",
+    }}>
+      <span style={{ width: 7, height: 7, borderRadius: 999, background: conf.dot }} />
+      {conf.label}
+    </span>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M2.1 — Профиль (главный)
+// ═════════════════════════════════════════════════════════════════════════
+const PROFILE_HEIGHT = 1280;
+
+function ScreenProfile() {
+  return (
+    <PhoneFrame height={PROFILE_HEIGHT}>
+      {/* Top — title + edit (text link) */}
+      <div style={{
+        position: "absolute", top: 56, left: 24, right: 24, zIndex: 3,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <h1 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 26, letterSpacing: "-0.01em", color: SOS_TOKENS.ink, lineHeight: 1 }}>
+          Профиль
+        </h1>
+        <GlassPill style={{ height: 40, padding: "0 14px", gap: 6, fontSize: 13, fontWeight: 500, color: SOS_TOKENS.inkDark, cursor: "pointer" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5z" />
+          </svg>
+          <span style={{ fontFamily: "'Manrope',sans-serif" }}>Редактировать</span>
+        </GlassPill>
+      </div>
+
+      {/* User header card */}
+      <div style={{ position: "absolute", top: 120, left: 24, right: 24 }}>
+        <div style={{
+          padding: "22px 22px 24px", borderRadius: 32,
+          background: SOS_TOKENS.inkDark, color: "#fff",
+          display: "flex", alignItems: "center", gap: 16,
+          boxShadow: "0 24px 48px -28px rgba(0,0,0,0.35)",
+        }}>
+          <Avatar size={64} initials="АК" tone="light" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
+            <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.005em", lineHeight: 1.1 }}>
+              Азиз Каримов
+            </span>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: SOS_TOKENS.inkMutedDark, letterSpacing: "-0.005em" }}>
+              +998 90 123-45-67
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+              <Tag tone="green">Верифицирован</Tag>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Sections */}
+      <div style={{ position: "absolute", top: 290, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 22 }}>
+        <ProfileSection title="Мои документы">
+          <ProfileRow
+            icon={<DocIcon />}
+            title="Паспорт"
+            meta="AB 1234567"
+            trailing={<StatusBadge status="verified" />}
+          />
+          <ProfileRow
+            icon={<LicenseIcon />}
+            title="Водительское удостоверение"
+            meta="AC 2345678 · стаж 8 лет"
+            trailing={<StatusBadge status="pending" />}
+          />
+        </ProfileSection>
+
+        <ProfileSection title="Настройки">
+          <ProfileRow
+            icon={<GlobeIcon />}
+            title="Язык интерфейса"
+            value="Русский"
+          />
+          <ProfileRow
+            icon={<ThemeIcon />}
+            title="Тема"
+            value="Системная"
+          />
+          <ProfileRow
+            icon={<BellIcon />}
+            title="Уведомления"
+            trailing={<Toggle on />}
+          />
+          <ProfileRow
+            icon={<LockIcon />}
+            title="Безопасность"
+            meta="Face ID, PIN"
+          />
+        </ProfileSection>
+
+        <ProfileSection title="Помощь">
+          <ProfileRow icon={<ChatIcon />} title="Поддержка" meta="Ответим за 5 минут" />
+          <ProfileRow icon={<QuestionIcon />} title="Частые вопросы" />
+          <ProfileRow icon={<InfoIcon />} title="О приложении" value="v 1.2.4" />
+          <ProfileRow icon={<DocsIcon />} title="Оферта и политика" />
+        </ProfileSection>
+
+        {/* Logout — destructive */}
+        <button style={{
+          appearance: "none", border: "none", cursor: "pointer",
+          height: 56, borderRadius: 999,
+          background: "rgba(230,20,40,0.08)", color: SOS_TOKENS.red,
+          fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 15, letterSpacing: "-0.005em",
+          display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
+          marginTop: 4,
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 17l5-5-5-5M21 12H9M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+          </svg>
+          Выйти из аккаунта
+        </button>
+      </div>
+
+      <BottomTabBar active={3} />
+    </PhoneFrame>
+  );
+}
+
+function ProfileSection({ title, children }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <span style={{
+        fontFamily: "'Manrope',sans-serif", fontSize: 11, fontWeight: 600,
+        color: SOS_TOKENS.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase",
+        paddingLeft: 4,
+      }}>{title}</span>
+      <div style={{
+        borderRadius: 22, overflow: "hidden",
+        background: SOS_TOKENS.glass,
+        backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+        boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+        display: "flex", flexDirection: "column",
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function ProfileRow({ icon, title, meta, value, trailing }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 14,
+      padding: "14px 18px",
+      borderBottom: `1px solid ${SOS_TOKENS.hairline}`,
+    }}>
+      {icon && (
+        <span style={{
+          width: 36, height: 36, borderRadius: 999,
+          background: "rgba(255,255,255,0.7)", color: SOS_TOKENS.inkDark,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          flex: "none",
+          boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+        }}>{icon}</span>
+      )}
+      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+        <span style={{
+          fontFamily: "'Manrope',sans-serif", fontWeight: 500, fontSize: 15, color: SOS_TOKENS.inkDark,
+          letterSpacing: "-0.005em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>{title}</span>
+        {meta && (
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {meta}
+          </span>
+        )}
+      </span>
+      {value && (
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.inkMuted, whiteSpace: "nowrap" }}>
+          {value}
+        </span>
+      )}
+      {trailing ?? <ChevronRight />}
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M2.2 — Редактирование профиля
+// ═════════════════════════════════════════════════════════════════════════
+const PROFILE_EDIT_HEIGHT = 960;
+
+function ScreenProfileEdit() {
+  return (
+    <FormScreen height={PROFILE_EDIT_HEIGHT}>
+      <div style={{ position: "absolute", top: 56, right: 24, zIndex: 3 }}>
+        <TextLink color={SOS_TOKENS.red} style={{ fontWeight: 600 }}>Сохранить</TextLink>
+      </div>
+
+      <div style={{ position: "absolute", top: 124, left: 24, right: 24 }}>
+        <ScreenHeading title={<>Редактировать<br />профиль</>} />
+      </div>
+
+      {/* Avatar with change button */}
+      <div style={{
+        position: "absolute", top: 250, left: 0, right: 0,
+        display: "flex", justifyContent: "center",
+      }}>
+        <div style={{ position: "relative" }}>
+          <Avatar size={88} initials="АК" tone="light" />
+          <button style={{
+            appearance: "none", border: "none", cursor: "pointer",
+            position: "absolute", right: -4, bottom: -4,
+            width: 32, height: 32, borderRadius: 999,
+            background: SOS_TOKENS.inkDark, color: "#fff",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 8px 16px -6px rgba(0,0,0,0.4)",
+          }}>
+            <Icon name="camera" size={14} color="#fff" />
+          </button>
+        </div>
+      </div>
+
+      {/* Form */}
+      <div style={{ position: "absolute", top: 380, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 14, bottom: 32 }}>
+        <TextInput label="Имя"     value="Азиз" />
+        <TextInput label="Фамилия" value="Каримов" />
+        <TextInput label="Отчество (необязательно)" placeholder="Не указано" />
+        <TextInput label="Дата рождения" value="14.05.1995" suffix={<CalendarIconRow />} />
+        <TextInput label="Адрес" value="Ташкент, Юнусабадский р-н" />
+      </div>
+    </FormScreen>
+  );
+}
+
+// Profile-row icons (SF Symbols style, thin)
+function DocIcon()      { return <Icon name="file-text" size={18} />; }
+function LicenseIcon()  { return <Icon name="credit-card" size={18} />; }
+function GlobeIcon()    { return <Icon name="globe" size={18} />; }
+function ThemeIcon()    { return <Icon name="moon-sun" size={18} />; }
+function BellIcon()     { return <Icon name="bell" size={18} />; }
+function LockIcon()     { return <Icon name="lock" size={18} />; }
+function ChatIcon()     { return <Icon name="message-circle" size={18} />; }
+function QuestionIcon() { return <Icon name="help-circle" size={18} />; }
+function InfoIcon()     { return <Icon name="info" size={18} />; }
+function DocsIcon()     { return <Icon name="files" size={18} />; }
+
+function CalendarIconRow() {
+  return <Icon name="calendar" size={20} color={SOS_TOKENS.inkMuted} />;
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M2.3 — Паспорт / ВУ
+// ═════════════════════════════════════════════════════════════════════════
+const DOC_ADD_HEIGHT = 1100;
+
+function ScreenDocumentAdd() {
+  return (
+    <FormScreen height={DOC_ADD_HEIGHT}>
+      <div style={{ position: "absolute", top: 124, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+        <ScreenHeading title={<>Паспортные<br />данные</>} subtitle="Нужны для оформления полисов" />
+
+        {/* Status block */}
+        <div style={{
+          padding: "14px 16px", borderRadius: 20,
+          background: "rgba(86,140,255,0.12)",
+          display: "flex", alignItems: "flex-start", gap: 12,
+        }}>
+          <span style={{
+            width: 28, height: 28, borderRadius: 999, background: SOS_TOKENS.blue, color: "#fff",
+            display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 11v6M12 7h.01" />
+            </svg>
+          </span>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: "#1a3577", lineHeight: 1.45, letterSpacing: "-0.005em" }}>
+            Документы шифруются и используются только для оформления полисов и страховых случаев.
+          </span>
+        </div>
+      </div>
+
+      {/* Form */}
+      <div style={{ position: "absolute", top: 380, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 14, bottom: 36 }}>
+        <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ flex: 1 }}>
+            <TextInput label="Серия" value="AB" />
+          </div>
+          <div style={{ flex: 2 }}>
+            <TextInput label="Номер" value="1234567" />
+          </div>
+        </div>
+        <TextInput label="Дата выдачи" value="22.03.2018" suffix={<CalendarIconRow />} />
+        <TextInput label="Кем выдан" value="МВД Юнусабадского р-на" />
+        <TextInput label="ПИНФЛ" value="3 1405 9504 5 0123 4" />
+
+        {/* Photo uploads */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, fontWeight: 500, color: SOS_TOKENS.inkMuted, letterSpacing: "-0.005em" }}>
+            Фото документа
+          </span>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <PhotoUploadTile filled label="Передняя сторона" hint="до 5 МБ" />
+            <PhotoUploadTile label="Обратная сторона" hint="до 5 МБ" />
+          </div>
+        </div>
+
+        <RedButton style={{ width: "100%", marginTop: 6 }} trailing={false}>Отправить на проверку</RedButton>
+      </div>
+    </FormScreen>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M3.1 — Гараж (список)
+// ═════════════════════════════════════════════════════════════════════════
+const GARAGE_HEIGHT = 1020;
+
+function ScreenGarage() {
+  return (
+    <PhoneFrame height={GARAGE_HEIGHT}>
+      {/* Top */}
+      <div style={{ position: "absolute", top: 56, left: 24, right: 24, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 3 }}>
+        <h1 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 26, letterSpacing: "-0.01em", color: SOS_TOKENS.ink, lineHeight: 1 }}>
+          Гараж
+        </h1>
+        <IconButton>
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <path d="M10 4v12M4 10h12" />
+          </svg>
+        </IconButton>
+      </div>
+
+      <div style={{ position: "absolute", top: 120, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Summary card — total cars, active policies */}
+        <div style={{
+          padding: "18px 20px", borderRadius: 28,
+          background: SOS_TOKENS.inkDark, color: "#fff",
+          display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16,
+          boxShadow: "0 16px 32px -20px rgba(0,0,0,0.3)",
+        }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.inkMutedDark, letterSpacing: "0.08em", textTransform: "uppercase" }}>В гараже</span>
+            <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 28, letterSpacing: "-0.01em", lineHeight: 1 }}>
+              2 авто
+            </span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.inkMutedDark, letterSpacing: "0.08em", textTransform: "uppercase" }}>Активных полисов</span>
+            <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 28, letterSpacing: "-0.01em", lineHeight: 1 }}>
+              3
+            </span>
+          </div>
+        </div>
+
+        {/* Car cards */}
+        <GarageCarCard
+          plate="01 A 123 BB"
+          name="Chevrolet Cobalt"
+          year="2021 · 1.5 л · Белый"
+          policies={[
+            { type: "ОСАГО", days: 365, tone: "green" },
+            { type: "КАСКО", days: 365, tone: "green" },
+          ]}
+        />
+        <GarageCarCard
+          plate="10 R 555 AC"
+          name="Hyundai Sonata"
+          year="2019 · 2.0 л · Серый"
+          policies={[
+            { type: "ОСАГО", days: 43, tone: "yellow" },
+          ]}
+        />
+        <AddTile height={88}>Добавить автомобиль</AddTile>
+      </div>
+
+      <BottomTabBar active={2} />
+    </PhoneFrame>
+  );
+}
+
+function GarageCarCard({ plate, name, year, policies = [] }) {
+  return (
+    <div style={{
+      position: "relative", padding: "18px 20px", borderRadius: 28,
+      background: SOS_TOKENS.glass,
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}, 0 1px 0 rgba(255,255,255,0.7) inset`,
+      display: "flex", flexDirection: "column", gap: 14,
+    }}>
+      {/* Top row: car silhouette + name + plate, kebab right */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+        <span style={{
+          width: 48, height: 48, borderRadius: 16,
+          background: "linear-gradient(135deg, #ffffff 0%, #d8d8d8 100%)",
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          flex: "none", color: SOS_TOKENS.inkDark,
+          boxShadow: "0 0 0 1px rgba(20,20,20,0.05)",
+        }}>
+          <svg width="26" height="22" viewBox="0 0 28 22" fill="currentColor">
+            <path d="M2 14v-2l3-1 2-5c.4-.9 1.3-1.5 2.3-1.5h9.4c1 0 1.9.6 2.3 1.5l2 5 3 1v2c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2z" />
+            <circle cx="8" cy="16" r="2.5" fill="#fff" />
+            <circle cx="20" cy="16" r="2.5" fill="#fff" />
+          </svg>
+        </span>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted, letterSpacing: "-0.005em" }}>{name}</span>
+          <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.005em", color: SOS_TOKENS.inkDark, lineHeight: 1.1 }}>{plate}</span>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkSubtle, marginTop: 2 }}>{year}</span>
+        </div>
+        <button style={{
+          appearance: "none", border: "none", background: "transparent", cursor: "pointer",
+          padding: 4, color: SOS_TOKENS.inkMuted,
+        }}>
+          <svg width="20" height="6" viewBox="0 0 20 6" fill="currentColor">
+            <circle cx="3" cy="3" r="1.5" />
+            <circle cx="10" cy="3" r="1.5" />
+            <circle cx="17" cy="3" r="1.5" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Policy chips */}
+      {policies.length > 0 && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {policies.map((p, i) => (
+            <Tag key={i} tone={p.tone === "yellow" ? "yellow" : "green"}>
+              {p.type} · {p.days} дн.
+            </Tag>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M3.2 — Добавление авто
+// ═════════════════════════════════════════════════════════════════════════
+const CAR_ADD_HEIGHT = 1140;
+
+function ScreenCarAdd() {
+  return (
+    <FormScreen height={CAR_ADD_HEIGHT}>
+      <div style={{ position: "absolute", top: 124, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 18 }}>
+        <ScreenHeading title={<>Добавить<br />автомобиль</>} subtitle="Введите гос. номер — данные подтянутся из NAPP" />
+
+        {/* Big plate input */}
+        <div style={{
+          padding: "20px 22px", borderRadius: 28,
+          background: SOS_TOKENS.glass,
+          backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+          boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+          display: "flex", flexDirection: "column", gap: 10,
+        }}>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, fontWeight: 600, color: SOS_TOKENS.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            Гос. номер
+          </span>
+          <span style={{
+            fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 36,
+            letterSpacing: "0.06em", color: SOS_TOKENS.inkDark, lineHeight: 1,
+          }}>
+            01 A 123 BB
+          </span>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            fontFamily: "'Manrope',sans-serif", fontSize: 13, color: SOS_TOKENS.green, fontWeight: 600,
+            marginTop: 2,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="9" /><path d="M9 12l2 2 4-4" />
+            </svg>
+            Найден в базе NAPP
+          </div>
+        </div>
+      </div>
+
+      {/* Data block */}
+      <div style={{ position: "absolute", top: 460, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 14, bottom: 130 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, fontWeight: 500, color: SOS_TOKENS.inkMuted, letterSpacing: "-0.005em" }}>
+          Данные автомобиля
+        </span>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <TextInput label="Марка" value="Chevrolet" />
+          <TextInput label="Модель" value="Cobalt" />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <TextInput label="Год" value="2021" />
+          <TextInput label="Цвет" value="Белый" />
+        </div>
+        <TextInput label="VIN / номер кузова" value="KL1JD5GE9LB123456" />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <TextInput label="Объём, л" value="1.5" />
+          <TextInput label="Мощность, л.с." value="105" />
+        </div>
+      </div>
+
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 24px 32px",
+        background: "linear-gradient(to top, rgba(237,237,237,0.95) 60%, rgba(237,237,237,0))",
+      }}>
+        <RedButton style={{ width: "100%" }}>Сохранить в гараж</RedButton>
+      </div>
+    </FormScreen>
+  );
+}
+
+Object.assign(window, {
+  Avatar, PhotoUploadTile, StatusBadge,
+  ScreenProfile, ScreenProfileEdit, ScreenDocumentAdd,
+  ScreenGarage, ScreenCarAdd,
+  PROFILE_HEIGHT, PROFILE_EDIT_HEIGHT, DOC_ADD_HEIGHT,
+  GARAGE_HEIGHT, CAR_ADD_HEIGHT,
+});
+
+/* === screens-claims.jsx === */
+// SOS24 — Block 7: M9 Урегулирование + M10 Трекер выплат (6 экранов)
+
+// ═════════════════════════════════════════════════════════════════════════
+// M9.1 — Старт: произошло ДТП?
+// ═════════════════════════════════════════════════════════════════════════
+const DTP_START_HEIGHT = 1020;
+
+function ScreenDtpStart() {
+  return (
+    <FormScreen height={DTP_START_HEIGHT}>
+      <div style={{ position: "absolute", top: 124, left: 24, right: 24 }}>
+        <ScreenHeading title={<>Произошло ДТП?</>} subtitle="Мы поможем — оформим всё прямо в приложении" />
+      </div>
+
+      {/* Steps instruction */}
+      <div style={{ position: "absolute", top: 240, left: 24, right: 24, padding: "16px 18px", borderRadius: 24,
+        background: SOS_TOKENS.glass, backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+        boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+        display: "flex", flexDirection: "column", gap: 12,
+      }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, fontWeight: 600, color: SOS_TOKENS.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          Что сделать прямо сейчас
+        </span>
+        <Step num="1" text="Убедитесь, что все в безопасности" />
+        <Step num="2" text="Зафиксируйте обстоятельства, не уезжая" />
+        <Step num="3" text="Выберите формат оформления ниже" />
+      </div>
+
+      {/* Two big cards */}
+      <div style={{ position: "absolute", top: 470, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+        <DtpChoiceCard
+          tone="light"
+          eyebrow="без пострадавших"
+          name="Электронный европротокол"
+          desc="Если оба водителя согласны и нет пострадавших"
+          cta="Оформить"
+          icon={<EProtokolIcon />}
+        />
+        <DtpChoiceCard
+          tone="dark"
+          eyebrow="онлайн · ~20 мин"
+          name="Вызвать инспектора"
+          desc="Наш специалист приедет на место и поможет"
+          cta="Вызвать"
+          status="Доступен сейчас"
+          icon={<InspectorIcon />}
+        />
+
+        <TextLink color={SOS_TOKENS.inkSubtle} style={{ alignSelf: "center", marginTop: 4 }}>
+          Подать обычное заявление
+        </TextLink>
+      </div>
+    </FormScreen>
+  );
+}
+
+function Step({ num, text }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <span style={{
+        width: 24, height: 24, borderRadius: 999, background: SOS_TOKENS.inkDark, color: "#fff",
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        fontFamily: "'Neue Montreal',sans-serif", fontWeight: 500, fontSize: 12, flex: "none",
+      }}>{num}</span>
+      <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>{text}</span>
+    </div>
+  );
+}
+
+function DtpChoiceCard({ tone, eyebrow, name, desc, cta, status, icon }) {
+  const dark = tone === "dark";
+  return (
+    <div style={{
+      padding: "20px 22px", borderRadius: 32,
+      background: dark ? SOS_TOKENS.inkDark : "rgba(255,255,255,0.6)",
+      backdropFilter: dark ? "none" : "blur(8px)", WebkitBackdropFilter: dark ? "none" : "blur(8px)",
+      color: dark ? "#fff" : SOS_TOKENS.ink,
+      display: "flex", flexDirection: "column", gap: 16,
+      boxShadow: dark ? "0 16px 32px -20px rgba(0,0,0,0.32)" : "0 1px 0 rgba(255,255,255,0.7) inset",
+    }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, fontWeight: 600, color: dark ? "rgba(255,255,255,0.55)" : SOS_TOKENS.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            {eyebrow}
+          </span>
+          <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 22, letterSpacing: "-0.01em", lineHeight: 1.15 }}>
+            {name}
+          </span>
+        </div>
+        <span style={{
+          width: 56, height: 56, borderRadius: 999,
+          background: dark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.9)",
+          color: dark ? "#fff" : SOS_TOKENS.red,
+          display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+        }}>{icon}</span>
+      </div>
+      <p style={{ margin: 0, fontFamily: "'Manrope',sans-serif", fontSize: 14, color: dark ? SOS_TOKENS.inkMutedDark : SOS_TOKENS.inkMuted, lineHeight: 1.45 }}>
+        {desc}
+      </p>
+      {status && (
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ width: 8, height: 8, borderRadius: 999, background: SOS_TOKENS.green, boxShadow: `0 0 8px ${SOS_TOKENS.greenSoft}` }} />
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: dark ? SOS_TOKENS.inkMutedDark : SOS_TOKENS.inkMuted, fontWeight: 500 }}>
+            {status}
+          </span>
+        </div>
+      )}
+      <button style={{
+        appearance: "none", border: "none", cursor: "pointer",
+        height: 56, borderRadius: 999, padding: "0 22px",
+        background: SOS_TOKENS.red, color: "#fff",
+        fontFamily: "'Manrope',sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: "-0.005em",
+        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
+        marginTop: "auto", boxShadow: "0 16px 32px -16px rgba(230,20,40,0.5)",
+      }}>
+        {cta}
+        <svg width="7" height="10" viewBox="0 0 7 10" fill="currentColor"><path d="M.833 0L0 .833 4.167 5 0 9.167.833 10l5-5z" /></svg>
+      </button>
+    </div>
+  );
+}
+
+function EProtokolIcon() {
+  return <Icon name="file-check" size={28} />;
+}
+
+function InspectorIcon() {
+  return <Icon name="headphones" size={28} />;
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M9.2 — Вызов инспектора (карта + ожидание)
+// ═════════════════════════════════════════════════════════════════════════
+function ScreenInspectorWait() {
+  return (
+    <PhoneFrame>
+      {/* Full-bleed map */}
+      <FakeMap />
+
+      {/* Top: close button */}
+      <div style={{ position: "absolute", top: 56, left: 24, right: 24, display: "flex", justifyContent: "space-between", zIndex: 5 }}>
+        <BackButton />
+        <IconButton>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="19" x2="12" y2="23" />
+            <circle cx="12" cy="12" r="9" />
+            <path d="M8 12l3 3 5-6" />
+          </svg>
+        </IconButton>
+      </div>
+
+      {/* Center pulsating marker */}
+      <div style={{ position: "absolute", top: 280, left: "50%", transform: "translateX(-50%)", zIndex: 4 }}>
+        <PulsingMarker />
+      </div>
+
+      {/* Bottom sheet — inspector info */}
+      <div style={{
+        position: "absolute", left: 0, right: 0, bottom: 0,
+        background: "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        borderRadius: "32px 32px 0 0",
+        padding: "20px 24px 32px",
+        display: "flex", flexDirection: "column", gap: 16,
+        boxShadow: "0 -16px 40px -20px rgba(0,0,0,0.18)",
+      }}>
+        {/* Handle */}
+        <span style={{ alignSelf: "center", width: 40, height: 4, borderRadius: 999, background: "rgba(20,20,20,0.18)" }} />
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ width: 10, height: 10, borderRadius: 999, background: SOS_TOKENS.green, boxShadow: `0 0 10px ${SOS_TOKENS.green}` }} />
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 13, color: SOS_TOKENS.green, letterSpacing: "0.02em" }}>КОМИССАР В ПУТИ</span>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 38, letterSpacing: "-0.02em", lineHeight: 1, color: SOS_TOKENS.ink }}>
+            ~12
+          </span>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 16, color: SOS_TOKENS.inkMuted }}>минут</span>
+        </div>
+
+        {/* Inspector card */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 14, padding: "14px 16px",
+          borderRadius: 22, background: SOS_TOKENS.inkDark, color: "#fff",
+        }}>
+          <Avatar size={48} initials="РМ" tone="light" />
+          <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 15, letterSpacing: "-0.005em" }}>
+              Рустам Мирзаев
+            </span>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMutedDark }}>
+              Аварийный инспектор · № A-0421
+            </span>
+          </span>
+          <button style={{
+            appearance: "none", border: "none", cursor: "pointer",
+            width: 40, height: 40, borderRadius: 999,
+            background: SOS_TOKENS.green, color: "#0a3a26",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 8px 20px -8px rgba(105,228,183,0.6)",
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 18.3c-1.4 1.4-3.6 1.6-5.2.4l-2-1.5c-.6-.5-1.5-.5-2 0l-3.7 3-3.7-3c-.5-.5-.6-1.3-.2-1.9l1.5-2c1.2-1.6 1-3.8-.4-5.2L4 6c-1.2-1.2-1.2-3.1 0-4.3.4-.5 1.1-.7 1.7-.7H8c.7 0 1.4.4 1.7 1l1.1 2c.5.9.4 2-.4 2.7L9 8.1c1 2 2.6 3.6 4.6 4.6l1.4-1.4c.7-.7 1.8-.9 2.7-.4l2 1.1c.6.3 1 1 1 1.7v2.3c0 .6-.2 1.3-.7 1.7l-.4.6z" /></svg>
+          </button>
+        </div>
+
+        {/* Order info row */}
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "0 4px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.inkMuted, letterSpacing: "0.04em", textTransform: "uppercase" }}>№ заявки</span>
+            <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontSize: 14, color: SOS_TOKENS.inkDark, fontWeight: 500 }}>SOS-24-08412</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-end" }}>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.inkMuted, letterSpacing: "0.04em", textTransform: "uppercase" }}>Адрес</span>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: SOS_TOKENS.inkDark, fontWeight: 500 }}>ул. Амира Темура, 14</span>
+          </div>
+        </div>
+
+        <OutlineButton style={{ width: "100%", height: 52 }} tone="red">Отменить вызов</OutlineButton>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+function FakeMap() {
+  return (
+    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #e2e5e1 0%, #dcdfdb 100%)" }}>
+      {/* Roads */}
+      <svg width="100%" height="100%" viewBox="0 0 390 844" style={{ position: "absolute", inset: 0 }} preserveAspectRatio="none">
+        {/* Horizontal main road */}
+        <path d="M-20 320 Q160 280 200 340 T420 360" stroke="rgba(20,20,20,0.1)" strokeWidth="32" fill="none" strokeLinecap="round" />
+        <path d="M-20 320 Q160 280 200 340 T420 360" stroke="#f4f4f4" strokeWidth="24" fill="none" strokeLinecap="round" />
+        {/* Vertical road */}
+        <path d="M120 -20 L160 240 L140 480 L180 720 L200 900" stroke="rgba(20,20,20,0.08)" strokeWidth="22" fill="none" strokeLinecap="round" />
+        <path d="M120 -20 L160 240 L140 480 L180 720 L200 900" stroke="#ececec" strokeWidth="16" fill="none" strokeLinecap="round" />
+        {/* Side branch */}
+        <path d="M260 60 Q280 200 320 280 L380 380" stroke="rgba(20,20,20,0.06)" strokeWidth="16" fill="none" strokeLinecap="round" />
+        <path d="M260 60 Q280 200 320 280 L380 380" stroke="#ececec" strokeWidth="11" fill="none" strokeLinecap="round" />
+        {/* Building blocks */}
+        <rect x="30" y="120" width="60" height="80" rx="6" fill="rgba(20,20,20,0.04)" />
+        <rect x="240" y="120" width="40" height="50" rx="4" fill="rgba(20,20,20,0.04)" />
+        <rect x="30" y="500" width="80" height="50" rx="6" fill="rgba(20,20,20,0.04)" />
+        <rect x="250" y="500" width="60" height="100" rx="6" fill="rgba(20,20,20,0.04)" />
+        <rect x="20" y="700" width="50" height="60" rx="5" fill="rgba(20,20,20,0.04)" />
+      </svg>
+      {/* Path from inspector to user */}
+      <svg width="100%" height="100%" viewBox="0 0 390 844" style={{ position: "absolute", inset: 0 }} preserveAspectRatio="none">
+        <path d="M60 130 Q120 240 160 320" stroke={SOS_TOKENS.red} strokeWidth="3" strokeDasharray="6 6" fill="none" strokeLinecap="round" />
+      </svg>
+      {/* Inspector marker */}
+      <div style={{ position: "absolute", left: 50, top: 110 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 999, background: "#fff",
+          boxShadow: "0 8px 20px -6px rgba(0,0,0,0.25), 0 0 0 3px rgba(230,20,40,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: SOS_TOKENS.red,
+        }}>
+          <svg width="18" height="18" viewBox="0 0 36 36" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 12c2-3 5.5-4 10-4s8 1 10 4" />
+            <path d="M6 13h24" />
+            <circle cx="18" cy="19" r="3" fill="currentColor" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PulsingMarker() {
+  return (
+    <div style={{ position: "relative", width: 64, height: 64 }}>
+      <span style={{
+        position: "absolute", inset: 0, borderRadius: 999, background: SOS_TOKENS.red,
+        animation: "sosRing 1.8s ease-out infinite", opacity: 0.4,
+      }} />
+      <span style={{
+        position: "absolute", inset: 10, borderRadius: 999, background: SOS_TOKENS.red,
+        animation: "sosRing 1.8s ease-out infinite", animationDelay: "0.4s", opacity: 0.5,
+      }} />
+      <div style={{
+        position: "absolute", inset: 18, borderRadius: 999, background: SOS_TOKENS.red,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: "0 10px 24px -8px rgba(230,20,40,0.55)",
+      }}>
+        <SosMark size={14} color="#fff" />
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M9.3a — Европротокол · Шаг 1 (обстоятельства)
+// ═════════════════════════════════════════════════════════════════════════
+const EP_STEP_HEIGHT = 1080;
+
+function ScreenEpStep1() {
+  return (
+    <FormScreen height={EP_STEP_HEIGHT} stepper={<StepperBar current={1} total={5} />}>
+      <div style={{ position: "absolute", top: 130, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 20, bottom: 130 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, fontWeight: 600, color: SOS_TOKENS.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          Шаг 1 из 5 · Обстоятельства
+        </span>
+        <ScreenHeading title="Когда и где" subtitle="Зафиксируем место и время происшествия" />
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <TextInput label="Дата" value="14.05.2026" />
+            <TextInput label="Время" value="11:42" />
+          </div>
+          <TextInput label="Место ДТП" value="ул. Амира Темура, 14" suffix={<MapPinIcon />} />
+          <TextInput label="Кол-во ТС" value="2" suffix={<Tag tone="green" style={{ fontSize: 10 }}>европротокол</Tag>} />
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, fontWeight: 500, color: SOS_TOKENS.inkMuted, letterSpacing: "-0.005em" }}>
+            Есть пострадавшие?
+          </span>
+          <Segmented options={["Нет, только машины", "Есть пострадавшие"]} active={0} />
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkSubtle, lineHeight: 1.45, paddingLeft: 4 }}>
+            Если есть пострадавшие — необходимо вызвать инспектора
+          </span>
+        </div>
+      </div>
+
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 24px 32px",
+        background: "linear-gradient(to top, rgba(237,237,237,0.95) 60%, rgba(237,237,237,0))",
+      }}>
+        <RedButton style={{ width: "100%" }}>Далее</RedButton>
+      </div>
+    </FormScreen>
+  );
+}
+
+function MapPinIcon() {
+  return <Icon name="map-pin" size={18} color={SOS_TOKENS.inkMuted} />;
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M9.3b — Европротокол · Шаг 4 (схема + фото)
+// ═════════════════════════════════════════════════════════════════════════
+function ScreenEpStep4() {
+  return (
+    <FormScreen height={EP_STEP_HEIGHT} stepper={<StepperBar current={4} total={5} />}>
+      <div style={{ position: "absolute", top: 130, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 20, bottom: 130 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, fontWeight: 600, color: SOS_TOKENS.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          Шаг 4 из 5 · Фотофиксация
+        </span>
+        <ScreenHeading title="Сфотографируйте место" subtitle="Минимум 3 ракурса для оформления" />
+
+        {/* Live camera capture — anti-fraud, no gallery */}
+        <div style={{
+          padding: "12px 14px", borderRadius: 16,
+          background: "rgba(230,20,40,0.08)",
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <span style={{ width: 24, height: 24, borderRadius: 999, background: SOS_TOKENS.red, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
+            <Icon name="alert-triangle" size={12} />
+          </span>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.red, fontWeight: 600, lineHeight: 1.4 }}>
+            Только съёмка с камеры. Загрузка из галереи отключена.
+          </span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <CaptureTile filled label="Общий план" required />
+          <CaptureTile filled label="Моё авто" required />
+          <CaptureTile label="Второе авто" required />
+          <CaptureTile label="Видео места" video />
+        </div>
+
+        {/* Scheme picker */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, fontWeight: 500, color: SOS_TOKENS.inkMuted, letterSpacing: "-0.005em" }}>
+            Схема столкновения
+          </span>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+            <SchemeOption selected>
+              <SchemeRear />
+            </SchemeOption>
+            <SchemeOption>
+              <SchemeFront />
+            </SchemeOption>
+            <SchemeOption>
+              <SchemeSide />
+            </SchemeOption>
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 24px 32px",
+        background: "linear-gradient(to top, rgba(237,237,237,0.95) 60%, rgba(237,237,237,0))",
+      }}>
+        <RedButton style={{ width: "100%" }}>К подписанию</RedButton>
+      </div>
+    </FormScreen>
+  );
+}
+
+function CaptureTile({ label, filled, required, video }) {
+  return (
+    <div style={{
+      position: "relative",
+      borderRadius: 22, overflow: "hidden",
+      background: filled
+        ? "linear-gradient(135deg, #2a2a2a 0%, #555 100%)"
+        : "transparent",
+      border: filled ? "none" : "1.5px dashed rgba(20,20,20,0.18)",
+      padding: 14, height: 130,
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      gap: 8, color: filled ? "rgba(255,255,255,0.92)" : SOS_TOKENS.inkSubtle,
+    }}>
+      {filled && (
+        <>
+          <span style={{
+            position: "absolute", top: 8, left: 8,
+            display: "inline-flex", alignItems: "center", gap: 4,
+            padding: "3px 8px 3px 6px", borderRadius: 999,
+            background: "rgba(20,20,20,0.6)", color: "#fff",
+            fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 500, letterSpacing: "0.04em",
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: SOS_TOKENS.red }} />
+            ЗАСНЯТО
+          </span>
+          {/* Tiny clock badge */}
+          <span style={{
+            position: "absolute", top: 8, right: 8,
+            display: "inline-flex", alignItems: "center", gap: 4,
+            padding: "3px 8px", borderRadius: 999,
+            background: "rgba(20,20,20,0.6)", color: "#fff",
+            fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 500,
+          }}>11:42</span>
+        </>
+      )}
+      {!filled && (
+        <>
+          <span style={{
+            width: 42, height: 42, borderRadius: 999,
+            background: "rgba(230,20,40,0.1)", color: SOS_TOKENS.red,
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Icon name={video ? "image" : "camera"} size={20} />
+          </span>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, fontWeight: 600, textAlign: "center", color: SOS_TOKENS.inkDark, letterSpacing: "-0.005em" }}>
+            {video ? "Снять видео" : "Сфотографировать"}
+          </span>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 10, color: SOS_TOKENS.inkMuted }}>
+            {label} {required && "· обязательно"}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
+function SchemeOption({ selected, children }) {
+  return (
+    <div style={{
+      aspectRatio: "1 / 1", borderRadius: 16, padding: 10,
+      background: selected ? SOS_TOKENS.inkDark : SOS_TOKENS.glass,
+      backdropFilter: selected ? "none" : "blur(8px)", WebkitBackdropFilter: selected ? "none" : "blur(8px)",
+      boxShadow: selected ? "0 12px 24px -16px rgba(0,0,0,0.3)" : `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      color: selected ? "#fff" : SOS_TOKENS.inkDark,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// Mini scheme illustrations
+function SchemeRear() {
+  // Two cars, one rear-ending the other
+  return (
+    <svg width="60" height="40" viewBox="0 0 60 40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="6" y="14" width="22" height="14" rx="3" />
+      <rect x="32" y="14" width="22" height="14" rx="3" />
+      <path d="M28 21l4 0M30 18l-2 3 2 3" stroke={SOS_TOKENS.red} strokeWidth="2" />
+    </svg>
+  );
+}
+function SchemeFront() {
+  return (
+    <svg width="60" height="40" viewBox="0 0 60 40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="6" y="14" width="22" height="14" rx="3" />
+      <rect x="32" y="14" width="22" height="14" rx="3" />
+      <path d="M28 21l4 0" stroke={SOS_TOKENS.red} strokeWidth="2.5" />
+    </svg>
+  );
+}
+function SchemeSide() {
+  return (
+    <svg width="60" height="40" viewBox="0 0 60 40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="20" y="2" width="20" height="14" rx="3" />
+      <rect x="20" y="24" width="20" height="14" rx="3" />
+      <path d="M30 18l0 4" stroke={SOS_TOKENS.red} strokeWidth="2.5" />
+    </svg>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M10.1 — Список заявлений
+// ═════════════════════════════════════════════════════════════════════════
+const CLAIMS_LIST_HEIGHT = 960;
+
+function ScreenClaimsList() {
+  return (
+    <PhoneFrame height={CLAIMS_LIST_HEIGHT}>
+      <div style={{ position: "absolute", top: 56, left: 24, right: 24, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 3 }}>
+        <h1 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 26, letterSpacing: "-0.01em", color: SOS_TOKENS.ink, lineHeight: 1 }}>
+          Заявления
+        </h1>
+        <IconButton>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.3-4.3" />
+          </svg>
+        </IconButton>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ position: "absolute", top: 120, left: 24, right: 24 }}>
+        <Segmented options={["Активные · 3", "Архив"]} active={0} />
+      </div>
+
+      {/* List */}
+      <div style={{ position: "absolute", top: 184, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 10 }}>
+        <ClaimCard
+          id="CLM-24-00412"
+          type="ДТП"
+          car="Chevrolet Cobalt"
+          plate="01 A 123 BB"
+          date="14.05.2026"
+          status="review"
+          progress={2}
+        />
+        <ClaimCard
+          id="CLM-24-00385"
+          type="Угон"
+          car="Hyundai Sonata"
+          plate="10 R 555 AC"
+          date="08.05.2026"
+          status="needInfo"
+          progress={2}
+        />
+        <ClaimCard
+          id="CLM-24-00362"
+          type="ДТП"
+          car="Chevrolet Cobalt"
+          plate="01 A 123 BB"
+          date="22.04.2026"
+          status="approved"
+          progress={4}
+        />
+      </div>
+    </PhoneFrame>
+  );
+}
+
+function ClaimCard({ id, type, car, plate, date, status, progress }) {
+  const conf = {
+    submitted: { tone: "ink",    label: "Подано" },
+    review:    { tone: "blue",   label: "На рассмотрении" },
+    needInfo:  { tone: "yellow", label: "Требуется информация" },
+    approved:  { tone: "green",  label: "Одобрено" },
+    rejected:  { tone: "red",    label: "Отклонено" },
+    paid:      { tone: "green",  label: "Выплачено" },
+  }[status];
+  const tonePalette = {
+    ink:    { bg: SOS_TOKENS.inkDark, fg: "#fff" },
+    blue:   { bg: "rgba(86,140,255,0.85)", fg: "#1a3577" },
+    yellow: { bg: "rgba(245,200,80,0.85)", fg: "#503a07" },
+    green:  { bg: "rgba(105,228,183,0.85)", fg: "#0a3a26" },
+    red:    { bg: "rgba(230,20,40,0.15)", fg: SOS_TOKENS.red },
+  }[conf.tone];
+
+  return (
+    <div style={{
+      padding: "16px 18px", borderRadius: 24,
+      background: SOS_TOKENS.glass,
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      display: "flex", flexDirection: "column", gap: 12,
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Tag tone="ink">{type}</Tag>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: SOS_TOKENS.inkMuted }}>{id}</span>
+          </div>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>{car}</span>
+          <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted, letterSpacing: "0.04em" }}>{plate} · {date}</span>
+        </div>
+        <span style={{
+          display: "inline-flex", alignItems: "center", gap: 6,
+          padding: "5px 10px", borderRadius: 999,
+          background: tonePalette.bg, color: tonePalette.fg,
+          fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: "0.02em",
+          whiteSpace: "nowrap",
+        }}>{conf.label}</span>
+      </div>
+
+      {/* Progress */}
+      <div style={{ display: "flex", gap: 4 }}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <span key={i} style={{
+            flex: 1, height: 3, borderRadius: 999,
+            background: i < progress ? SOS_TOKENS.inkDark : "rgba(20,20,20,0.1)",
+          }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M10.2 — Трекер выплаты (детали заявления)
+// ═════════════════════════════════════════════════════════════════════════
+const CLAIM_DETAIL_HEIGHT = 1380;
+
+function ScreenClaimDetail() {
+  return (
+    <PhoneFrame height={CLAIM_DETAIL_HEIGHT}>
+      <div style={{ position: "absolute", top: 56, left: 24, right: 24, display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 3 }}>
+        <BackButton />
+        <Tag tone="ink">CLM-24-00412</Tag>
+        <IconButton>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 3.5M12 17h.01" />
+          </svg>
+        </IconButton>
+      </div>
+
+      <div style={{ position: "absolute", top: 120, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 18 }}>
+        {/* Status hero card */}
+        <div style={{
+          padding: "22px 22px 24px", borderRadius: 32,
+          background: SOS_TOKENS.inkDark, color: "#fff",
+          boxShadow: "0 24px 48px -28px rgba(0,0,0,0.35)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <Tag tone="glass" style={{ background: "rgba(255,255,255,0.15)", color: "#fff" }}>ДТП · Европротокол</Tag>
+            <Tag tone="green">На рассмотрении</Tag>
+          </div>
+          <h2 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 24, letterSpacing: "-0.01em", lineHeight: 1.15 }}>
+            Решение ожидается<br />до 20 мая 2026
+          </h2>
+          <div style={{ marginTop: 14, padding: "12px 14px", borderRadius: 16, background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 999, background: SOS_TOKENS.green, boxShadow: `0 0 8px ${SOS_TOKENS.green}` }} />
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: SOS_TOKENS.inkMutedDark }}>
+              SLA: 5 рабочих дней с момента подачи
+            </span>
+          </div>
+        </div>
+
+        {/* Vertical tracker */}
+        <div style={{
+          padding: "20px 22px", borderRadius: 28,
+          background: SOS_TOKENS.glass,
+          backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+          boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+          display: "flex", flexDirection: "column", gap: 0,
+        }}>
+          <TrackerStep status="done"    title="Заявление подано"   date="14.05.2026 · 12:14" />
+          <TrackerStep status="done"    title="Принято в работу"   date="14.05.2026 · 13:02" />
+          <TrackerStep status="active"  title="На рассмотрении"    date="оценка ущерба" />
+          <TrackerStep status="pending" title="Решение принято"    date="ожидается" />
+          <TrackerStep status="pending" title="Выплата произведена" date="ожидается" last />
+        </div>
+
+        {/* Case details */}
+        <SummaryBlock
+          eyebrow="Детали случая"
+          rows={[
+            { label: "Тип",        value: "ДТП · европротокол" },
+            { label: "Дата",       value: "14.05.2026 · 11:42" },
+            { label: "Автомобиль", value: "Chevrolet Cobalt" },
+            { label: "Полис",      value: "ОСАГО · 12 245 582" },
+          ]}
+        />
+
+        {/* Action button */}
+        <OutlineButton style={{ width: "100%", height: 56 }}>
+          <ChatIcon /> Связаться с оператором
+        </OutlineButton>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+function TrackerStep({ status, title, date, last }) {
+  // status: done / active / pending
+  const dotColor = status === "done"
+    ? SOS_TOKENS.inkDark
+    : status === "active"
+      ? SOS_TOKENS.red
+      : "rgba(20,20,20,0.18)";
+  const titleColor = status === "pending" ? SOS_TOKENS.inkMuted : SOS_TOKENS.inkDark;
+  return (
+    <div style={{ display: "flex", gap: 14, paddingBottom: last ? 0 : 14 }}>
+      {/* Dot + line */}
+      <div style={{ position: "relative", width: 14, flex: "none", display: "flex", justifyContent: "center" }}>
+        <span style={{
+          width: 14, height: 14, borderRadius: 999, background: dotColor,
+          marginTop: 4, zIndex: 1,
+          boxShadow: status === "active" ? `0 0 0 4px rgba(230,20,40,0.18)` : "none",
+        }}>
+          {status === "done" && (
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}>
+              <path d="M3 7l3 3 5-6" />
+            </svg>
+          )}
+        </span>
+        {!last && (
+          <span style={{
+            position: "absolute", top: 22, bottom: -4, left: "50%", transform: "translateX(-50%)",
+            width: 2, background: status === "done" ? SOS_TOKENS.inkDark : "rgba(20,20,20,0.12)",
+          }} />
+        )}
+      </div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: titleColor, letterSpacing: "-0.005em" }}>
+          {title}
+        </span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted, letterSpacing: "-0.005em" }}>
+          {date}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, {
+  ScreenDtpStart, ScreenInspectorWait,
+  ScreenEpStep1, ScreenEpStep4,
+  ScreenClaimsList, ScreenClaimDetail,
+  DTP_START_HEIGHT, EP_STEP_HEIGHT, CLAIMS_LIST_HEIGHT, CLAIM_DETAIL_HEIGHT,
+});
+
+/* === screens-extras.jsx === */
+// SOS24 — Block 8: M11 Уведомления + M12 Документы + M13 Поддержка + M16 Партнёры (7 экранов)
+
+// ═════════════════════════════════════════════════════════════════════════
+// M11.1 — Уведомления
+// ═════════════════════════════════════════════════════════════════════════
+const NOTIFICATIONS_HEIGHT = 1180;
+
+function ScreenNotifications() {
+  return (
+    <PhoneFrame height={NOTIFICATIONS_HEIGHT}>
+      <div style={{ position: "absolute", top: 56, left: 24, right: 24, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 3 }}>
+        <BackButton />
+        <h1 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 22, letterSpacing: "-0.005em", color: SOS_TOKENS.ink, lineHeight: 1 }}>
+          Уведомления
+        </h1>
+        <TextLink color={SOS_TOKENS.inkSubtle} style={{ fontSize: 13 }}>Прочитать все</TextLink>
+      </div>
+
+      <div style={{ position: "absolute", top: 124, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 22 }}>
+        <NotifGroup label="Сегодня">
+          <NotifRow
+            icon={<NotifTickIcon />} tone="green" unread
+            title="Полис ОСАГО оформлен"
+            body="ОСАГО для Chevrolet Cobalt активирован"
+            time="11:42"
+          />
+          <NotifRow
+            icon={<NotifAlertIcon />} tone="red" unread
+            title="Срок полиса истекает"
+            body="ОСАГО для Hyundai Sonata · через 43 дня"
+            time="09:18"
+          />
+        </NotifGroup>
+
+        <NotifGroup label="Вчера">
+          <NotifRow
+            icon={<NotifChatIcon />} tone="blue"
+            title="Ответ от поддержки"
+            body="Здравствуйте, по вашему вопросу..."
+            time="18:24"
+          />
+          <NotifRow
+            icon={<NotifDocIcon />} tone="ink"
+            title="Требуется информация"
+            body="Заявление CLM-24-00385 · загрузите фото повреждений"
+            time="14:08"
+          />
+        </NotifGroup>
+
+        <NotifGroup label="Раньше">
+          <NotifRow
+            icon={<NotifDiscountIcon />} tone="yellow"
+            title="Скидка 10% на КАСКО"
+            body="Действует до 31 мая"
+            time="08.05"
+          />
+          <NotifRow
+            icon={<NotifCarIcon />} tone="ink"
+            title="ТО Chevrolet Cobalt"
+            body="Запись завтра в 14:00 · AutoFix СТО"
+            time="03.05"
+          />
+        </NotifGroup>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+function NotifGroup({ label, children }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <span style={{
+        fontFamily: "'Manrope',sans-serif", fontSize: 11, fontWeight: 600,
+        color: SOS_TOKENS.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase",
+        paddingLeft: 4,
+      }}>{label}</span>
+      <div style={{
+        borderRadius: 22, overflow: "hidden",
+        background: SOS_TOKENS.glass,
+        backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+        boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function NotifRow({ icon, tone = "ink", title, body, time, unread }) {
+  const tonePalette = {
+    ink:    { bg: SOS_TOKENS.inkDark,           fg: "#fff" },
+    green:  { bg: "rgba(105,228,183,0.85)",     fg: "#0a3a26" },
+    red:    { bg: "rgba(230,20,40,0.15)",       fg: SOS_TOKENS.red },
+    blue:   { bg: "rgba(86,140,255,0.18)",      fg: "#1a3577" },
+    yellow: { bg: "rgba(245,200,80,0.5)",       fg: "#503a07" },
+  }[tone];
+  return (
+    <div style={{
+      position: "relative",
+      display: "flex", alignItems: "flex-start", gap: 12,
+      padding: "14px 16px",
+      borderBottom: `1px solid ${SOS_TOKENS.hairline}`,
+      // Unread — solid white tile; read — translucent
+      background: unread ? "rgba(255,255,255,0.92)" : "transparent",
+    }}>
+      <span style={{
+        width: 40, height: 40, borderRadius: 999,
+        background: tonePalette.bg, color: tonePalette.fg,
+        display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+      }}>{icon}</span>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
+        <span style={{
+          fontFamily: "'Manrope',sans-serif",
+          fontWeight: unread ? 600 : 500, fontSize: 14,
+          color: unread ? SOS_TOKENS.ink : SOS_TOKENS.inkSubtle,
+          letterSpacing: "-0.005em",
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>{title}</span>
+        <span style={{
+          fontFamily: "'Manrope',sans-serif", fontSize: 12,
+          color: unread ? SOS_TOKENS.inkMuted : "rgba(20,20,20,0.4)",
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>{body}</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flex: "none", marginTop: 2 }}>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: unread ? SOS_TOKENS.inkDark : SOS_TOKENS.inkSubtle, fontWeight: unread ? 600 : 400 }}>
+          {time}
+        </span>
+        {unread
+          ? <span style={{ width: 8, height: 8, borderRadius: 999, background: SOS_TOKENS.red, boxShadow: `0 0 8px ${SOS_TOKENS.redSoft}` }} />
+          : <span style={{ width: 8, height: 8 }} />}
+      </div>
+    </div>
+  );
+}
+
+function NotifTickIcon()     {
+  return <Icon name="check" size={16} />;
+}
+function NotifAlertIcon()    { return <Icon name="alert-triangle" size={16} />; }
+function NotifChatIcon()     { return <Icon name="message-circle" size={16} />; }
+function NotifDocIcon()      { return <Icon name="file-text" size={16} />; }
+function NotifDiscountIcon() { return <Icon name="percent" size={16} />; }
+function NotifCarIcon()      { return <Icon name="car" size={18} />; }
+
+// ═════════════════════════════════════════════════════════════════════════
+// M12.1 — Документы
+// ═════════════════════════════════════════════════════════════════════════
+const DOCS_HEIGHT = 1100;
+
+function ScreenDocuments() {
+  return (
+    <PhoneFrame height={DOCS_HEIGHT}>
+      <div style={{ position: "absolute", top: 56, left: 24, right: 24, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 3 }}>
+        <BackButton />
+        <h1 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 22, letterSpacing: "-0.005em", color: SOS_TOKENS.ink, lineHeight: 1 }}>
+          Документы
+        </h1>
+        <span style={{ width: 48 }} />
+      </div>
+
+      {/* Search */}
+      <div style={{ position: "absolute", top: 120, left: 24, right: 24 }}>
+        <div style={{
+          height: 52, padding: "0 18px", borderRadius: 999,
+          background: SOS_TOKENS.glass,
+          backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+          boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <Icon name="search" size={18} color={SOS_TOKENS.inkMuted} />
+          <span style={{ flex: 1, fontFamily: "'Manrope',sans-serif", fontSize: 15, color: SOS_TOKENS.inkMuted }}>Найти документ</span>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ position: "absolute", top: 188, left: 24, right: 24 }}>
+        <Segmented options={["Все", "Полисы", "Чеки", "Заявления"]} active={0} />
+      </div>
+
+      {/* List */}
+      <div style={{ position: "absolute", top: 252, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 10 }}>
+        <DocRow ext="pdf" tone="red"  title="Полис ОСАГО № 12 245 582" meta="14.05.2026 · 245 КБ" />
+        <DocRow ext="pdf" tone="ink"  title="Чек об оплате · 385 600 сум" meta="14.05.2026 · 84 КБ" />
+        <DocRow ext="pdf" tone="red"  title="Полис КАСКО № 12 245 491" meta="11.05.2025 · 312 КБ" />
+        <DocRow ext="pdf" tone="blue" title="Заявление CLM-24-00412" meta="14.05.2026 · 156 КБ" />
+        <DocRow ext="jpg" tone="ink"  title="Фото повреждений · ДТП" meta="14.05.2026 · 1.8 МБ" />
+        <DocRow ext="pdf" tone="red"  title="Полис ОСАГО · архив" meta="11.05.2024 · 232 КБ" />
+      </div>
+    </PhoneFrame>
+  );
+}
+
+function DocRow({ ext, tone = "red", title, meta }) {
+  const palette = {
+    red:  { bg: SOS_TOKENS.red, fg: "#fff" },
+    ink:  { bg: SOS_TOKENS.inkDark, fg: "#fff" },
+    blue: { bg: SOS_TOKENS.blue, fg: "#fff" },
+  }[tone];
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 14, padding: "14px 16px",
+      borderRadius: 22,
+      background: SOS_TOKENS.glass,
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+    }}>
+      <span style={{
+        width: 44, height: 52, borderRadius: 8,
+        background: palette.bg, color: palette.fg,
+        display: "inline-flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1,
+        flex: "none", position: "relative",
+        boxShadow: "0 8px 16px -8px rgba(0,0,0,0.18)",
+      }}>
+        <svg width="22" height="26" viewBox="0 0 22 26" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4, position: "absolute" }}>
+          <path d="M5 1h10l5 5v18a1 1 0 01-1 1H5a1 1 0 01-1-1V2a1 1 0 011-1z" />
+          <path d="M15 1v5h5" />
+        </svg>
+        <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 700, fontSize: 10, letterSpacing: "0.04em", zIndex: 1 }}>
+          {ext.toUpperCase()}
+        </span>
+      </span>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+        <span style={{
+          fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em",
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>{title}</span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>{meta}</span>
+      </div>
+      <button style={{
+        appearance: "none", border: "none", cursor: "pointer",
+        width: 36, height: 36, borderRadius: 999, background: "rgba(20,20,20,0.05)",
+        color: SOS_TOKENS.inkDark,
+        display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 4v12M6 11l6 6 6-6M4 20h16" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M13.1 — Поддержка (hub)
+// ═════════════════════════════════════════════════════════════════════════
+const SUPPORT_HEIGHT = 1100;
+
+function ScreenSupportHub() {
+  return (
+    <FormScreen height={SUPPORT_HEIGHT}>
+      <div style={{ position: "absolute", top: 124, left: 24, right: 24 }}>
+        <ScreenHeading title="Поддержка" subtitle="Ответим в среднем за 5 минут · 24/7" />
+      </div>
+
+      {/* Hero — primary action gets the weight */}
+      <div style={{ position: "absolute", top: 240, left: 24, right: 24 }}>
+        <div style={{
+          padding: "22px 22px", borderRadius: 32,
+          background: SOS_TOKENS.inkDark, color: "#fff",
+          display: "flex", alignItems: "center", gap: 16,
+          boxShadow: "0 24px 48px -28px rgba(0,0,0,0.35)",
+        }}>
+          <span style={{
+            width: 56, height: 56, borderRadius: 999,
+            background: SOS_TOKENS.red, color: "#fff",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            flex: "none",
+            boxShadow: "0 12px 24px -8px rgba(230,20,40,0.5)",
+          }}>
+            <NotifChatIcon />
+          </span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
+            <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.005em", lineHeight: 1.1 }}>
+              Написать в чат
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.green, fontWeight: 600, letterSpacing: "0.02em" }}>
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: SOS_TOKENS.green, boxShadow: `0 0 8px ${SOS_TOKENS.green}` }} />
+              онлайн · Дилнура и 4 оператора
+            </span>
+          </div>
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="#fff" strokeOpacity="0.5" strokeWidth="2" strokeLinecap="round"><path d="M2 2l6 6-6 6" /></svg>
+        </div>
+      </div>
+
+      {/* Secondary actions — rows, not cards */}
+      <div style={{ position: "absolute", top: 390, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 8 }}>
+        <SupportRow icon={<PhoneIcon />} title="Позвонить в SOS24" meta="+998 71 200-24-24 · бесплатно" />
+        <SupportRow icon={<InfoIcon />}  title="Как работает приложение" meta="видео-гид · 4 минуты" />
+      </div>
+
+      {/* FAQ — single bordered list */}
+      <div style={{ position: "absolute", top: 560, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <h3 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 18, letterSpacing: "-0.005em", color: SOS_TOKENS.ink }}>
+            Частые вопросы
+          </h3>
+          <TextLink color={SOS_TOKENS.inkSubtle} style={{ fontSize: 13 }}>Все 36 ›</TextLink>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
+          <CategoryChip active>Все</CategoryChip>
+          <CategoryChip>Полисы</CategoryChip>
+          <CategoryChip>Оплата</CategoryChip>
+          <CategoryChip>ДТП</CategoryChip>
+          <CategoryChip>Аккаунт</CategoryChip>
+        </div>
+
+        <div style={{
+          background: SOS_TOKENS.glass,
+          backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+          borderRadius: 22, overflow: "hidden",
+          boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+        }}>
+          <FaqInlineRow open question="Как оформить полис ОСАГО онлайн?" answer="Введите номер авто, выберите параметры, оплатите картой Uzcard или Humo. Электронный полис придёт мгновенно." />
+          <FaqInlineRow question="Что делать при ДТП?" />
+          <FaqInlineRow question="Можно ли вернуть деньги за полис?" />
+          <FaqInlineRow question="Как добавить ещё одного водителя?" last />
+        </div>
+      </div>
+    </FormScreen>
+  );
+}
+
+// Single-line support row (compact alternative to a tile)
+function SupportRow({ icon, title, meta }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 14,
+      padding: "14px 18px", borderRadius: 20,
+      background: SOS_TOKENS.glass,
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+    }}>
+      <span style={{
+        width: 36, height: 36, borderRadius: 999,
+        background: "rgba(255,255,255,0.9)", color: SOS_TOKENS.red,
+        display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+        boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      }}>{icon}</span>
+      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>{title}</span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>{meta}</span>
+      </span>
+      <ChevronRight />
+    </div>
+  );
+}
+
+// Inline FAQ row — lives inside one bordered list container
+function FaqInlineRow({ question, answer, open, last }) {
+  return (
+    <div style={{
+      padding: "14px 18px",
+      borderBottom: last ? "none" : `1px solid ${SOS_TOKENS.hairline}`,
+      display: "flex", flexDirection: "column", gap: open ? 8 : 0,
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 500, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>
+          {question}
+        </span>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke={SOS_TOKENS.inkMuted} strokeWidth="1.8" strokeLinecap="round" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s ease", flex: "none" }}>
+          <path d="M3 5l4 4 4-4" />
+        </svg>
+      </div>
+      {open && answer && (
+        <p style={{ margin: 0, fontFamily: "'Manrope',sans-serif", fontSize: 13, color: SOS_TOKENS.inkMuted, lineHeight: 1.5 }}>
+          {answer}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SupportTile({ icon, title, meta, dark }) {
+  return (
+    <div style={{
+      padding: "18px 20px", borderRadius: 28, height: 110,
+      background: dark ? SOS_TOKENS.inkDark : "rgba(255,255,255,0.55)",
+      backdropFilter: dark ? "none" : "blur(8px)", WebkitBackdropFilter: dark ? "none" : "blur(8px)",
+      color: dark ? "#fff" : SOS_TOKENS.ink,
+      boxShadow: dark ? "0 4px 12px rgba(0,0,0,0.12)" : "0 1px 0 rgba(255,255,255,0.6) inset",
+      display: "flex", flexDirection: "column", justifyContent: "space-between",
+    }}>
+      <span style={{
+        width: 36, height: 36, borderRadius: 999,
+        background: dark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.9)",
+        color: dark ? "#fff" : SOS_TOKENS.red,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+      }}>{icon}</span>
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 15, letterSpacing: "-0.005em" }}>{title}</span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: dark ? SOS_TOKENS.inkMutedDark : SOS_TOKENS.inkMuted, letterSpacing: "-0.005em" }}>{meta}</span>
+      </div>
+    </div>
+  );
+}
+
+function CategoryChip({ children, active }) {
+  return (
+    <span style={{
+      flex: "none", padding: "8px 14px", borderRadius: 999,
+      background: active ? SOS_TOKENS.inkDark : SOS_TOKENS.glass,
+      color: active ? "#fff" : SOS_TOKENS.inkDark,
+      backdropFilter: active ? "none" : "blur(8px)", WebkitBackdropFilter: active ? "none" : "blur(8px)",
+      boxShadow: active ? "none" : `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      fontFamily: "'Manrope',sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: "-0.005em",
+      cursor: "pointer", whiteSpace: "nowrap",
+    }}>
+      {children}
+    </span>
+  );
+}
+
+function PhoneIcon() {
+  return <Icon name="phone-fill" size={16} />;
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M13.2 — Чат с оператором
+// ═════════════════════════════════════════════════════════════════════════
+function ScreenChat() {
+  return (
+    <PhoneFrame>
+      {/* Top — compact operator header */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 108,
+        background: "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(14px) saturate(160%)", WebkitBackdropFilter: "blur(14px) saturate(160%)",
+        borderBottom: `1px solid ${SOS_TOKENS.hairline}`,
+        padding: "52px 20px 0",
+        display: "flex", alignItems: "center", gap: 10, zIndex: 3,
+      }}>
+        <BackButton />
+        <Avatar size={40} initials="ДС" tone="dark" />
+        <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+          <span style={{
+            fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink,
+            letterSpacing: "-0.005em", lineHeight: 1.1,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
+            Дилнура · SOS24
+          </span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.green, fontWeight: 600, letterSpacing: "0.02em" }}>
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: SOS_TOKENS.green }} />
+            онлайн · ~2 мин
+          </span>
+        </div>
+        <IconButton>
+          <PhoneIcon />
+        </IconButton>
+      </div>
+
+      {/* Messages */}
+      <div style={{
+        position: "absolute", top: 108, left: 0, right: 0, bottom: 100,
+        padding: "16px 16px 8px",
+        display: "flex", flexDirection: "column", gap: 8,
+        overflowY: "auto",
+      }}>
+        <ChatSystem text="Чат начат · 11:42" />
+        <ChatBubble side="them" name="Дилнура" text="Здравствуйте, Азиз! Я Дилнура, оператор поддержки. Чем могу помочь?" time="11:42" />
+        <ChatBubble side="me" text="Здравствуйте! Вопрос по заявлению CLM-24-00412 — какие фото ещё нужны?" time="11:43" />
+        <ChatBubble side="them" name="Дилнура" text="Сейчас посмотрю. Один момент 🙂" time="11:43" />
+        <ChatTyping />
+        <ChatBubble side="them" name="Дилнура" text="По вашему заявлению нужно прикрепить фото второго ТС крупным планом — VIN и номерной знак." time="11:44" />
+        <ChatBubble side="me" attach text="Сейчас сделаю. Можно так?" time="11:45" />
+      </div>
+
+      {/* Input */}
+      <div style={{
+        position: "absolute", left: 0, right: 0, bottom: 0,
+        padding: "12px 16px 32px",
+        background: "rgba(237,237,237,0.95)",
+        backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
+        borderTop: `1px solid ${SOS_TOKENS.hairline}`,
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <button style={{
+          appearance: "none", border: "none", cursor: "pointer",
+          width: 44, height: 44, borderRadius: 999,
+          background: SOS_TOKENS.glass, color: SOS_TOKENS.inkDark,
+          display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21.4 11.05L12.5 19.95a5.5 5.5 0 11-7.78-7.78L13.62 3.27a3.66 3.66 0 015.17 5.17L9.88 17.33a1.83 1.83 0 11-2.59-2.59L15.83 6.2" />
+          </svg>
+        </button>
+        <div style={{
+          flex: 1, height: 44, padding: "0 18px", borderRadius: 999,
+          background: "#fff",
+          boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+          display: "flex", alignItems: "center",
+          fontFamily: "'Manrope',sans-serif", fontSize: 15, color: SOS_TOKENS.inkMuted,
+        }}>
+          Сообщение…
+        </div>
+        <button style={{
+          appearance: "none", border: "none", cursor: "pointer",
+          width: 44, height: 44, borderRadius: 999,
+          background: SOS_TOKENS.red, color: "#fff",
+          display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+          boxShadow: "0 8px 16px -6px rgba(230,20,40,0.5)",
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11l18-8-8 18-2-7-8-3z" /></svg>
+        </button>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+function ChatBubble({ side, name, text, time, attach }) {
+  const me = side === "me";
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column", alignItems: me ? "flex-end" : "flex-start",
+      gap: 2, maxWidth: "82%", alignSelf: me ? "flex-end" : "flex-start",
+    }}>
+      {name && !me && (
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.inkMuted, paddingLeft: 14 }}>{name}</span>
+      )}
+      <div style={{
+        padding: "10px 14px",
+        background: me ? SOS_TOKENS.red : "#fff",
+        color: me ? "#fff" : SOS_TOKENS.ink,
+        borderRadius: me ? "20px 20px 6px 20px" : "20px 20px 20px 6px",
+        boxShadow: me ? "0 12px 24px -16px rgba(230,20,40,0.4)" : "0 4px 12px -6px rgba(0,0,0,0.08), inset 0 0 0 1px " + SOS_TOKENS.hairline,
+        display: "flex", flexDirection: "column", gap: 6,
+      }}>
+        {attach && (
+          <div style={{
+            height: 110, borderRadius: 12,
+            background: "linear-gradient(135deg, #2a2a2a 0%, #555 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em",
+          }}>
+            ФОТО · ДОКАЗАТЕЛЬСТВО
+          </div>
+        )}
+        <span style={{
+          fontFamily: "'Manrope',sans-serif", fontSize: 14, lineHeight: 1.45, letterSpacing: "-0.005em",
+        }}>{text}</span>
+      </div>
+      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: SOS_TOKENS.inkSubtle, paddingLeft: me ? 0 : 14, paddingRight: me ? 14 : 0 }}>{time}</span>
+    </div>
+  );
+}
+
+function ChatSystem({ text }) {
+  return (
+    <div style={{ alignSelf: "center", padding: "4px 12px", borderRadius: 999, background: "rgba(20,20,20,0.05)", fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.inkMuted }}>
+      {text}
+    </div>
+  );
+}
+
+function ChatTyping() {
+  return (
+    <div style={{
+      alignSelf: "flex-start", padding: "10px 14px", borderRadius: "20px 20px 20px 6px",
+      background: "#fff", boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      display: "inline-flex", gap: 4,
+    }}>
+      {[0, 1, 2].map(i => (
+        <span key={i} style={{
+          width: 6, height: 6, borderRadius: 999, background: SOS_TOKENS.inkMuted,
+          animation: "sosPulse 1.4s ease-in-out infinite", animationDelay: `${i * 0.18}s`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M16.1 — Партнёры (список)
+// ═════════════════════════════════════════════════════════════════════════
+const PARTNERS_HEIGHT = 1200;
+
+function ScreenPartners() {
+  return (
+    <PhoneFrame height={PARTNERS_HEIGHT}>
+      <div style={{ position: "absolute", top: 56, left: 24, right: 24, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 3 }}>
+        <BackButton />
+        <h1 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 22, letterSpacing: "-0.005em", color: SOS_TOKENS.ink, lineHeight: 1 }}>
+          Партнёры
+        </h1>
+        <IconButton>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18M6 12h12M9 18h6" />
+          </svg>
+        </IconButton>
+      </div>
+
+      {/* Search + view toggle */}
+      <div style={{ position: "absolute", top: 120, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <div style={{
+            flex: 1, height: 52, padding: "0 18px", borderRadius: 999,
+            background: SOS_TOKENS.glass,
+            backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+            boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+            display: "flex", alignItems: "center", gap: 10,
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={SOS_TOKENS.inkMuted} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+            </svg>
+            <span style={{ flex: 1, fontFamily: "'Manrope',sans-serif", fontSize: 15, color: SOS_TOKENS.inkMuted }}>СТО, клиника, услуга</span>
+          </div>
+          <button style={{
+            appearance: "none", border: "none", cursor: "pointer",
+            width: 52, height: 52, borderRadius: 999,
+            background: SOS_TOKENS.inkDark, color: "#fff",
+            display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 22V8l7-3 6 3 7-3v14l-7 3-6-3-7 3zM9 5v17M15 8v14" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Filter chips */}
+        <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
+          <CategoryChip active>Все · 124</CategoryChip>
+          <CategoryChip>СТО</CategoryChip>
+          <CategoryChip>Клиники</CategoryChip>
+          <CategoryChip>Эвакуатор</CategoryChip>
+          <CategoryChip>В радиусе 5 км</CategoryChip>
+        </div>
+      </div>
+
+      {/* List */}
+      <div style={{ position: "absolute", top: 256, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 10 }}>
+        <PartnerRow
+          name="AutoFix СТО" type="СТО"
+          rating="4.8" reviews="124" distance="0.4 км"
+          tags={["Кузовной ремонт", "Покраска", "Электрика"]} open
+        />
+        <PartnerRow
+          name="Медсервис" type="Клиника"
+          rating="4.6" reviews="58" distance="1.2 км"
+          tags={["Экстренная помощь", "Травматология"]} open
+        />
+        <PartnerRow
+          name="АвтоЦентр Премиум" type="СТО"
+          rating="4.5" reviews="212" distance="2.1 км"
+          tags={["Двигатель", "ТО", "Диагностика"]}
+        />
+        <PartnerRow
+          name="Эвак-24" type="Эвакуатор"
+          rating="4.9" reviews="31" distance="3.0 км"
+          tags={["24/7", "Любой класс"]} open
+        />
+      </div>
+    </PhoneFrame>
+  );
+}
+
+function PartnerRow({ name, type, rating, reviews, distance, tags = [], open }) {
+  return (
+    <div style={{
+      padding: 14, borderRadius: 24,
+      background: SOS_TOKENS.glass,
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      display: "flex", gap: 14,
+    }}>
+      <div style={{
+        width: 70, height: 70, borderRadius: 18, flex: "none",
+        background: "linear-gradient(135deg, #e8e8e8 0%, #c4c4c4 100%)",
+        display: "flex", alignItems: "center", justifyContent: "center", color: SOS_TOKENS.inkSubtle,
+        position: "relative", overflow: "hidden",
+        boxShadow: "0 0 0 1px rgba(20,20,20,0.06)",
+      }}>
+        <PlaceholderBadge style={{ top: 4, left: 4, padding: "2px 6px 2px 4px", fontSize: 8 }} />
+        <span style={{ fontFamily: "'Neue Montreal',sans-serif", fontWeight: 500, fontSize: 22 }}>{name[0]}</span>
+      </div>
+
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {name}
+          </span>
+          {open && <Tag tone="green">открыто</Tag>}
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="#f5c850"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" /></svg>
+            <span style={{ color: SOS_TOKENS.inkDark, fontWeight: 600 }}>{rating}</span>
+            <span>({reviews})</span>
+          </span>
+          <span>·</span>
+          <span style={{ color: SOS_TOKENS.inkDark, fontWeight: 500 }}>{distance}</span>
+          <span>·</span>
+          <span>{type}</span>
+        </div>
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+          {tags.map((t, i) => (
+            <span key={i} style={{
+              padding: "3px 8px", borderRadius: 999,
+              background: "rgba(20,20,20,0.06)", color: SOS_TOKENS.inkSubtle,
+              fontFamily: "'Manrope',sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "-0.005em",
+            }}>{t}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M16.2 — Карточка партнёра
+// ═════════════════════════════════════════════════════════════════════════
+const PARTNER_DETAIL_HEIGHT = 1320;
+
+function ScreenPartnerDetail() {
+  return (
+    <PhoneFrame height={PARTNER_DETAIL_HEIGHT}>
+      {/* Hero image */}
+      <div style={{
+        position: "absolute", left: 0, right: 0, top: 0, height: 260,
+        background: "linear-gradient(135deg, #3a3a3a 0%, #5e5e5e 50%, #828282 100%)",
+        overflow: "hidden",
+      }}>
+        <PlaceholderBadge style={{ top: 64, left: 24 }} />
+        {/* Decorative grid pattern */}
+        <svg width="100%" height="100%" viewBox="0 0 390 260" preserveAspectRatio="none" style={{ position: "absolute", inset: 0, opacity: 0.15 }}>
+          <defs>
+            <pattern id="hatchPart" width="24" height="24" patternUnits="userSpaceOnUse">
+              <path d="M0 24 L24 0" stroke="#fff" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#hatchPart)" />
+        </svg>
+      </div>
+
+      {/* Sticky top buttons */}
+      <div style={{ position: "absolute", top: 56, left: 24, right: 24, display: "flex", justifyContent: "space-between", zIndex: 3 }}>
+        <BackButton />
+        <IconButton>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 14c1.5 0 3 1 3 3v3a2 2 0 01-2 2H4a2 2 0 01-2-2v-3c0-2 1.5-3 3-3" />
+            <path d="M12 2v14M8 10l4 4 4-4" />
+          </svg>
+        </IconButton>
+      </div>
+
+      {/* Title block */}
+      <div style={{ position: "absolute", top: 220, left: 24, right: 24, padding: "20px 22px 22px", borderRadius: 32,
+        background: "#fff", boxShadow: "0 24px 48px -28px rgba(0,0,0,0.18), inset 0 0 0 1px " + SOS_TOKENS.hairline,
+        display: "flex", flexDirection: "column", gap: 14,
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <Tag tone="ink">СТО · партнёр SOS24</Tag>
+            <h2 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 26, letterSpacing: "-0.01em", color: SOS_TOKENS.ink, lineHeight: 1.1 }}>
+              AutoFix СТО
+            </h2>
+          </div>
+          <Tag tone="green">открыто</Tag>
+        </div>
+
+        {/* Rating + distance */}
+        <div style={{ display: "flex", gap: 18, alignItems: "center", fontFamily: "'Manrope',sans-serif", fontSize: 13 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5c850"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" /></svg>
+            <span style={{ fontWeight: 600, color: SOS_TOKENS.inkDark }}>4.8</span>
+            <span style={{ color: SOS_TOKENS.inkMuted }}>· 124 отзыва</span>
+          </span>
+          <span style={{ color: SOS_TOKENS.inkMuted }}>·</span>
+          <span style={{ color: SOS_TOKENS.inkDark, fontWeight: 500 }}>0.4 км</span>
+        </div>
+
+        {/* Address + phone */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "1fr auto", gap: 10,
+          padding: "12px 14px", borderRadius: 16, background: "rgba(20,20,20,0.04)",
+        }}>
+          <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.inkMuted, letterSpacing: "0.04em", textTransform: "uppercase" }}>Адрес</span>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, fontWeight: 500, color: SOS_TOKENS.inkDark }}>ул. Амира Темура, 84</span>
+          </span>
+          <button style={{
+            appearance: "none", border: "none", cursor: "pointer",
+            padding: "8px 14px", borderRadius: 999, background: SOS_TOKENS.inkDark, color: "#fff",
+            fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: "-0.005em",
+            alignSelf: "center",
+          }}>Маршрут</button>
+        </div>
+      </div>
+
+      {/* Services */}
+      <div style={{ position: "absolute", top: 530, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+        <h3 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 18, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>
+          Услуги
+        </h3>
+        <ServiceRow name="Кузовной ремонт" desc="Восстановление после ДТП" price="от 450 000" />
+        <ServiceRow name="Покраска" desc="Покраска элемента кузова" price="от 380 000" />
+        <ServiceRow name="Замена стекла" desc="Лобовое или боковое" price="от 220 000" />
+      </div>
+
+      {/* Reviews */}
+      <div style={{ position: "absolute", top: 860, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <h3 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 18, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>
+            Отзывы
+          </h3>
+          <TextLink color={SOS_TOKENS.inkSubtle} style={{ fontSize: 13 }}>Все 124 ›</TextLink>
+        </div>
+        <ReviewRow name="Дмитрий А." rating={5} text="Отличный сервис, всё быстро и профессионально. Рекомендую!" date="2 дня назад" />
+        <ReviewRow name="Гульнара Х." rating={4} text="Понравилось обслуживание, цены адекватные." date="неделю назад" />
+      </div>
+
+      {/* Sticky CTA */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 24px 32px",
+        background: "linear-gradient(to top, rgba(237,237,237,0.95) 60%, rgba(237,237,237,0))",
+      }}>
+        <RedButton style={{ width: "100%" }}>Записаться</RedButton>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+function ServiceRow({ name, desc, price }) {
+  return (
+    <div style={{
+      padding: "14px 16px", borderRadius: 18,
+      background: SOS_TOKENS.glass,
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+    }}>
+      <span style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>{name}</span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>{desc}</span>
+      </span>
+      <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 14, color: SOS_TOKENS.inkDark, letterSpacing: "-0.005em", whiteSpace: "nowrap" }}>
+        {price}
+      </span>
+    </div>
+  );
+}
+
+function ReviewRow({ name, rating, text, date }) {
+  return (
+    <div style={{
+      padding: "14px 16px", borderRadius: 18,
+      background: SOS_TOKENS.glass,
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      display: "flex", flexDirection: "column", gap: 8,
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Avatar size={28} initials={name.split(" ").map(p => p[0]).join("").slice(0, 2)} />
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 13, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>{name}</span>
+        </span>
+        <span style={{ display: "inline-flex", gap: 2 }}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <svg key={i} width="11" height="11" viewBox="0 0 24 24" fill={i < rating ? "#f5c850" : "rgba(20,20,20,0.12)"}>
+              <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" />
+            </svg>
+          ))}
+        </span>
+      </div>
+      <p style={{ margin: 0, fontFamily: "'Manrope',sans-serif", fontSize: 13, color: SOS_TOKENS.inkMuted, lineHeight: 1.45, letterSpacing: "-0.005em" }}>
+        {text}
+      </p>
+      <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.inkSubtle }}>{date}</span>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// M16.3 — Запись на услугу
+// ═════════════════════════════════════════════════════════════════════════
+const BOOKING_HEIGHT = 1240;
+
+function ScreenBooking() {
+  return (
+    <FormScreen height={BOOKING_HEIGHT}>
+      <div style={{ position: "absolute", top: 124, left: 24, right: 24 }}>
+        <ScreenHeading title={<>Запись в<br />AutoFix СТО</>} />
+      </div>
+
+      <div style={{ position: "absolute", top: 260, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 22, bottom: 130 }}>
+        {/* Service selection */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, fontWeight: 500, color: SOS_TOKENS.inkMuted, letterSpacing: "-0.005em" }}>
+            Услуга
+          </span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <ServicePick name="Кузовной ремонт" price="от 450 000 сум" selected />
+            <ServicePick name="Покраска" price="от 380 000 сум" />
+          </div>
+        </div>
+
+        {/* Date picker (mini calendar row) */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, fontWeight: 500, color: SOS_TOKENS.inkMuted, letterSpacing: "-0.005em" }}>
+              Дата
+            </span>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: SOS_TOKENS.inkDark, fontWeight: 500 }}>Май 2026</span>
+          </div>
+          <div style={{ display: "flex", gap: 6, overflowX: "auto" }}>
+            <DayCell wd="ср" d={14} disabled />
+            <DayCell wd="чт" d={15} />
+            <DayCell wd="пт" d={16} selected />
+            <DayCell wd="сб" d={17} disabled />
+            <DayCell wd="вс" d={18} disabled />
+            <DayCell wd="пн" d={19} />
+            <DayCell wd="вт" d={20} />
+            <DayCell wd="ср" d={21} />
+          </div>
+        </div>
+
+        {/* Time slots */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, fontWeight: 500, color: SOS_TOKENS.inkMuted, letterSpacing: "-0.005em" }}>
+            Время · пятница, 16 мая
+          </span>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+            <TimeSlot time="09:00" disabled />
+            <TimeSlot time="10:30" />
+            <TimeSlot time="11:00" />
+            <TimeSlot time="12:30" />
+            <TimeSlot time="14:00" selected />
+            <TimeSlot time="15:30" />
+            <TimeSlot time="16:00" disabled />
+            <TimeSlot time="17:30" />
+          </div>
+        </div>
+
+        {/* Policy + comment */}
+        <SummaryBlock
+          eyebrow="Связано с полисом"
+          editable
+          rows={[
+            { label: "КАСКО · 01 A 123 BB", value: "Chevrolet Cobalt" },
+          ]}
+        />
+      </div>
+
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 24px 32px",
+        background: "linear-gradient(to top, rgba(237,237,237,0.95) 60%, rgba(237,237,237,0))",
+      }}>
+        <RedButton style={{ width: "100%" }}>Подтвердить запись</RedButton>
+      </div>
+    </FormScreen>
+  );
+}
+
+function ServicePick({ name, price, selected }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
+      borderRadius: 18,
+      background: selected ? SOS_TOKENS.inkDark : SOS_TOKENS.glass,
+      color: selected ? "#fff" : SOS_TOKENS.ink,
+      backdropFilter: selected ? "none" : "blur(8px)", WebkitBackdropFilter: selected ? "none" : "blur(8px)",
+      boxShadow: selected ? "0 12px 24px -16px rgba(0,0,0,0.3)" : `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+    }}>
+      <Checkbox checked={selected} />
+      <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 500, fontSize: 14, letterSpacing: "-0.005em", flex: 1 }}>{name}</span>
+      <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: selected ? SOS_TOKENS.inkMutedDark : SOS_TOKENS.inkMuted, whiteSpace: "nowrap" }}>{price}</span>
+    </div>
+  );
+}
+
+function DayCell({ wd, d, selected, disabled }) {
+  return (
+    <div style={{
+      flex: "none", width: 52, height: 64, borderRadius: 16,
+      background: selected ? SOS_TOKENS.red : disabled ? "transparent" : SOS_TOKENS.glass,
+      color: selected ? "#fff" : disabled ? SOS_TOKENS.inkSubtle : SOS_TOKENS.inkDark,
+      backdropFilter: selected || disabled ? "none" : "blur(8px)", WebkitBackdropFilter: selected || disabled ? "none" : "blur(8px)",
+      boxShadow: selected ? "0 12px 24px -16px rgba(230,20,40,0.5)" : disabled ? "none" : `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      opacity: disabled ? 0.4 : 1,
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+    }}>
+      <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 10, fontWeight: 500, opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.04em" }}>{wd}</span>
+      <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 20, letterSpacing: "-0.005em", lineHeight: 1 }}>{d}</span>
+    </div>
+  );
+}
+
+function TimeSlot({ time, selected, disabled }) {
+  return (
+    <div style={{
+      height: 40, borderRadius: 12,
+      background: selected ? SOS_TOKENS.inkDark : disabled ? "transparent" : SOS_TOKENS.glass,
+      color: selected ? "#fff" : disabled ? SOS_TOKENS.inkSubtle : SOS_TOKENS.inkDark,
+      backdropFilter: selected || disabled ? "none" : "blur(8px)", WebkitBackdropFilter: selected || disabled ? "none" : "blur(8px)",
+      boxShadow: selected ? "none" : disabled ? "none" : `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      opacity: disabled ? 0.4 : 1,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontFamily: "'Manrope',sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: "-0.005em",
+      textDecoration: disabled ? "line-through" : "none",
+    }}>
+      {time}
+    </div>
+  );
+}
+
+Object.assign(window, {
+  ScreenNotifications, ScreenDocuments,
+  ScreenSupportHub, ScreenChat,
+  ScreenPartners, ScreenPartnerDetail, ScreenBooking,
+  NOTIFICATIONS_HEIGHT, DOCS_HEIGHT, SUPPORT_HEIGHT,
+  PARTNERS_HEIGHT, PARTNER_DETAIL_HEIGHT, BOOKING_HEIGHT,
+});
+
+/* === screens-sos.jsx === */
+// SOS24 — SOS AI Chat screen (entry from SOS button on Home / Quick action)
+// User taps SOS → opens AI chat that triages the situation, suggests next step,
+// or hands off to a human via call.
+
+const SOS_CHAT_HEIGHT = 1100;
+
+function ScreenSosChat() {
+  return (
+    <PhoneFrame height={SOS_CHAT_HEIGHT}>
+      {/* Top — minimal: close + title + connection status */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 108,
+        background: "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(14px) saturate(160%)", WebkitBackdropFilter: "blur(14px) saturate(160%)",
+        borderBottom: `1px solid ${SOS_TOKENS.hairline}`,
+        padding: "52px 20px 0",
+        display: "flex", alignItems: "center", gap: 10, zIndex: 3,
+      }}>
+        <BackButton />
+        <div style={{ position: "relative", width: 40, height: 40, flex: "none" }}>
+          <span style={{
+            position: "absolute", inset: 0, borderRadius: 999,
+            background: "linear-gradient(135deg, #E61428 0%, #3A1117 100%)",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            color: "#fff",
+            boxShadow: "0 10px 20px -8px rgba(230,20,40,0.45)",
+          }}>
+            <SosMark size={18} color="#fff" />
+          </span>
+          <span style={{
+            position: "absolute", right: -2, bottom: -2,
+            width: 14, height: 14, borderRadius: 999, background: SOS_TOKENS.green,
+            boxShadow: "0 0 0 3px #fff",
+          }} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+          <span style={{
+            fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink,
+            letterSpacing: "-0.005em", lineHeight: 1.1,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
+            SOS24 · ИИ-помощник
+          </span>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.green,
+            fontWeight: 600, letterSpacing: "0.02em",
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: SOS_TOKENS.green }} />
+            на связи · среднее ожидание 8 сек
+          </span>
+        </div>
+        <IconButton>
+          <Icon name="phone-fill" size={16} />
+        </IconButton>
+      </div>
+
+      {/* Conversation */}
+      <div style={{
+        position: "absolute", top: 108, left: 0, right: 0, bottom: 200,
+        padding: "16px 16px 12px",
+        display: "flex", flexDirection: "column", gap: 10,
+        overflowY: "auto",
+      }}>
+        <SosSystemNote text="Соединение защищено · 11:42" />
+
+        {/* Greeting card from AI */}
+        <SosAiCard>
+          <p style={{ margin: 0, fontFamily: "'Manrope',sans-serif", fontSize: 14, lineHeight: 1.5, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>
+            <b>Здравствуйте, Азиз!</b> Это SOS24-помощник. Я помогу разобраться в любой ситуации — выберите ниже или опишите словами.
+          </p>
+        </SosAiCard>
+
+        {/* Quick category chips — primary triage */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+          <SosCategoryRow
+            icon="car"            tone="red"
+            title="ДТП"            sub="столкновение, наезд, повреждение"
+          />
+          <SosCategoryRow
+            icon="stethoscope"    tone="green"
+            title="Мед. помощь"    sub="травма, плохое самочувствие"
+          />
+          <SosCategoryRow
+            icon="key"            tone="yellow"
+            title="Угон / кража"   sub="нет авто на месте"
+          />
+          <SosCategoryRow
+            icon="alert-triangle" tone="blue"
+            title="Имущество"      sub="пожар, залив, стихия"
+          />
+          <SosCategoryRow
+            icon="help-circle"    tone="ink"
+            title="Другое"         sub="опишите ситуацию"
+          />
+        </div>
+
+        {/* Sample user reply */}
+        <SosUserBubble text="Я попал в ДТП, второй водитель согласен" time="11:43" />
+
+        {/* AI follow-up with action suggestions */}
+        <SosAiCard>
+          <p style={{ margin: 0, fontFamily: "'Manrope',sans-serif", fontSize: 14, lineHeight: 1.5, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>
+            Понял — это попадает под <b>электронный европротокол</b>, если нет пострадавших. Что предпочитаете?
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
+            <SosAiAction label="Оформить европротокол" hint="самостоятельно · 5 мин" primary />
+            <SosAiAction label="Вызвать инспектора" hint="приедет на место · ~12 мин" />
+            <SosAiAction label="Связать со специалистом" hint="звонок через 8 сек" icon="phone-fill" />
+          </div>
+        </SosAiCard>
+      </div>
+
+      {/* Composer */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0,
+        padding: "12px 16px 32px",
+        background: "rgba(237,237,237,0.95)",
+        backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
+        borderTop: `1px solid ${SOS_TOKENS.hairline}`,
+        display: "flex", flexDirection: "column", gap: 10,
+      }}>
+        {/* Quick call CTA */}
+        <button style={{
+          appearance: "none", border: "none", cursor: "pointer",
+          height: 44, borderRadius: 999, padding: "0 16px",
+          background: "rgba(20,20,20,0.06)", color: SOS_TOKENS.inkDark,
+          fontFamily: "'Manrope',sans-serif", fontWeight: 500, fontSize: 13, letterSpacing: "-0.005em",
+          display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+        }}>
+          <Icon name="phone-fill" size={14} color={SOS_TOKENS.red} />
+          Заказать звонок — ответим за 30 сек
+        </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button style={{
+            appearance: "none", border: "none", cursor: "pointer",
+            width: 44, height: 44, borderRadius: 999,
+            background: SOS_TOKENS.glass, color: SOS_TOKENS.inkDark,
+            display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+          }}>
+            <Icon name="camera" size={18} />
+          </button>
+          <div style={{
+            flex: 1, height: 44, padding: "0 18px", borderRadius: 999,
+            background: "#fff",
+            boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+            display: "flex", alignItems: "center",
+            fontFamily: "'Manrope',sans-serif", fontSize: 15, color: SOS_TOKENS.inkMuted,
+          }}>
+            Опишите ситуацию…
+          </div>
+          <button style={{
+            appearance: "none", border: "none", cursor: "pointer",
+            width: 44, height: 44, borderRadius: 999,
+            background: SOS_TOKENS.red, color: "#fff",
+            display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+            boxShadow: "0 8px 16px -6px rgba(230,20,40,0.5)",
+          }}>
+            <Icon name="send-arrow" size={16} />
+          </button>
+        </div>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// AI message card — wider than a chat bubble, holds rich content
+function SosAiCard({ children }) {
+  return (
+    <div style={{
+      alignSelf: "flex-start", maxWidth: "92%",
+      padding: "14px 16px", borderRadius: "22px 22px 22px 8px",
+      background: "#fff",
+      boxShadow: "0 4px 12px -6px rgba(0,0,0,0.08), inset 0 0 0 1px " + SOS_TOKENS.hairline,
+      display: "flex", flexDirection: "column", gap: 6,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function SosUserBubble({ text, time }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, alignSelf: "flex-end", maxWidth: "82%" }}>
+      <div style={{
+        padding: "10px 14px",
+        background: SOS_TOKENS.red, color: "#fff",
+        borderRadius: "20px 20px 6px 20px",
+        boxShadow: "0 12px 24px -16px rgba(230,20,40,0.4)",
+        fontFamily: "'Manrope',sans-serif", fontSize: 14, lineHeight: 1.45, letterSpacing: "-0.005em",
+      }}>{text}</div>
+      <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: SOS_TOKENS.inkSubtle, paddingRight: 12 }}>{time}</span>
+    </div>
+  );
+}
+
+function SosSystemNote({ text }) {
+  return (
+    <div style={{
+      alignSelf: "center", padding: "4px 12px", borderRadius: 999,
+      background: "rgba(20,20,20,0.05)",
+      fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.inkMuted,
+    }}>{text}</div>
+  );
+}
+
+// Tappable category row inside an AI message
+function SosCategoryRow({ icon, tone, title, sub }) {
+  const tonePalette = {
+    red:    { bg: "rgba(230,20,40,0.12)",    fg: SOS_TOKENS.red },
+    green:  { bg: "rgba(105,228,183,0.55)",  fg: "#0a3a26" },
+    yellow: { bg: "rgba(245,200,80,0.55)",   fg: "#503a07" },
+    blue:   { bg: "rgba(86,140,255,0.18)",   fg: "#1a3577" },
+    ink:    { bg: "rgba(20,20,20,0.08)",     fg: SOS_TOKENS.inkDark },
+  }[tone];
+  return (
+    <button style={{
+      appearance: "none", border: "none", cursor: "pointer",
+      alignSelf: "stretch", maxWidth: "92%", textAlign: "left",
+      padding: "12px 14px", borderRadius: 18,
+      background: "#fff",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      display: "flex", alignItems: "center", gap: 12,
+    }}>
+      <span style={{
+        width: 36, height: 36, borderRadius: 999,
+        background: tonePalette.bg, color: tonePalette.fg,
+        display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+      }}>
+        <Icon name={icon} size={18} />
+      </span>
+      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>{title}</span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>{sub}</span>
+      </span>
+      <Icon name="chevron-right" size={14} color="rgba(20,20,20,0.32)" />
+    </button>
+  );
+}
+
+// AI suggestion button inside a message bubble
+function SosAiAction({ label, hint, primary, icon }) {
+  return (
+    <button style={{
+      appearance: "none", border: "none", cursor: "pointer",
+      width: "100%", textAlign: "left",
+      padding: "10px 14px", borderRadius: 14,
+      background: primary ? SOS_TOKENS.inkDark : "rgba(20,20,20,0.04)",
+      color: primary ? "#fff" : SOS_TOKENS.inkDark,
+      display: "flex", alignItems: "center", gap: 10,
+    }}>
+      {icon && (
+        <span style={{ flex: "none", color: primary ? "#fff" : SOS_TOKENS.red }}>
+          <Icon name={icon} size={14} />
+        </span>
+      )}
+      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: "-0.005em" }}>{label}</span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: primary ? SOS_TOKENS.inkMutedDark : SOS_TOKENS.inkMuted }}>{hint}</span>
+      </span>
+      <Icon name="chevron-right" size={14} color={primary ? "rgba(255,255,255,0.5)" : "rgba(20,20,20,0.32)"} />
+    </button>
+  );
+}
+
+Object.assign(window, {
+  ScreenSosChat,
+  SOS_CHAT_HEIGHT,
+});
+
+/* === screens-wallet.jsx === */
+// SOS24 — M7.4 · Wallet (внутренний кошелёк)
+// Top-up via kiosk uses a QR that the user shows at Paynet/Click terminals.
+
+const WALLET_HEIGHT = 1180;
+
+function ScreenWallet() {
+  return (
+    <PhoneFrame height={WALLET_HEIGHT}>
+      <div style={{ position: "absolute", top: 56, left: 24, right: 24, display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 3 }}>
+        <BackButton />
+        <h1 style={{ margin: 0, fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 22, letterSpacing: "-0.005em", color: SOS_TOKENS.ink, lineHeight: 1 }}>
+          Кошелёк
+        </h1>
+        <IconButton><Icon name="info" size={18} /></IconButton>
+      </div>
+
+      {/* Balance hero card */}
+      <div style={{ position: "absolute", top: 120, left: 24, right: 24 }}>
+        <div style={{
+          position: "relative", padding: "22px 24px 24px", borderRadius: 32,
+          background: "linear-gradient(135deg, #1a1a1a 0%, #2a1117 50%, #3a1a1a 100%)",
+          color: "#fff", overflow: "hidden",
+          boxShadow: "0 24px 48px -28px rgba(0,0,0,0.35)",
+        }}>
+          {/* Decorative orbs */}
+          <span style={{ position: "absolute", right: -50, top: -50, width: 180, height: 180, borderRadius: 999, background: "radial-gradient(circle, rgba(230,20,40,0.25) 0%, rgba(230,20,40,0) 60%)" }} />
+          <span style={{ position: "absolute", right: 40, bottom: -60, width: 140, height: 140, borderRadius: 999, background: "radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 60%)" }} />
+
+          <div style={{ position: "relative", display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                Доступный баланс
+              </span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                <span style={{ fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 38, letterSpacing: "-0.02em", lineHeight: 1 }}>
+                  1 245 600
+                </span>
+                <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: "rgba(255,255,255,0.6)" }}>сум</span>
+              </div>
+            </div>
+            <SosMark size={28} color="#fff" />
+          </div>
+
+          <div style={{ position: "relative", display: "flex", gap: 8 }}>
+            <button style={{
+              appearance: "none", border: "none", cursor: "pointer", flex: 1,
+              height: 48, borderRadius: 999, background: SOS_TOKENS.red, color: "#fff",
+              fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: "-0.005em",
+              display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+              boxShadow: "0 12px 24px -10px rgba(230,20,40,0.5)",
+            }}>
+              <Icon name="plus" size={14} /> Пополнить
+            </button>
+            <button style={{
+              appearance: "none", border: "none", cursor: "pointer", flex: 1,
+              height: 48, borderRadius: 999, background: "rgba(255,255,255,0.12)", color: "#fff",
+              fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: "-0.005em",
+              display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}>
+              <Icon name="arrow-up-right" size={14} /> Оплатить
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Top-up methods */}
+      <div style={{ position: "absolute", top: 380, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, fontWeight: 600, color: SOS_TOKENS.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          Способы пополнения
+        </span>
+
+        {/* Kiosk row with QR preview */}
+        <div style={{
+          padding: "16px 18px", borderRadius: 24,
+          background: SOS_TOKENS.glass,
+          backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+          boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+          display: "flex", alignItems: "center", gap: 14,
+        }}>
+          <KioskMiniQR />
+          <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>
+              Киоск Paynet / Click
+            </span>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>
+              Покажите QR на терминале · без комиссии
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.red, fontWeight: 600 }}>
+              Открыть QR во весь экран
+              <Icon name="chevron-right" size={11} color={SOS_TOKENS.red} />
+            </span>
+          </span>
+        </div>
+
+        <TopUpRow icon="credit-card" title="С карты" sub="Uzcard, Humo · 1–2 минуты" />
+        <TopUpRow icon="phone-fill"  title="Мобильный платёж" sub="Со счёта оператора" />
+        <TopUpRow icon="globe"       title="Перевод другому пользователю" sub="По номеру SOS24" />
+      </div>
+
+      {/* History */}
+      <div style={{ position: "absolute", top: 780, left: 24, right: 24, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, fontWeight: 600, color: SOS_TOKENS.inkMuted, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            История · сегодня
+          </span>
+          <TextLink color={SOS_TOKENS.inkSubtle} style={{ fontSize: 12 }}>Все ›</TextLink>
+        </div>
+
+        <WalletTxRow
+          tone="in"  icon="plus"
+          title="Пополнение · Paynet"
+          time="14:22"
+          amount="+ 500 000"
+        />
+        <WalletTxRow
+          tone="out" icon="shield"
+          title="Оплата ОСАГО · 01 A 123 BB"
+          time="11:42"
+          amount="− 385 600"
+        />
+        <WalletTxRow
+          tone="in"  icon="arrow-up-right"
+          title="Возврат · CLM-24-00362"
+          time="вчера"
+          amount="+ 1 200 000"
+        />
+      </div>
+    </PhoneFrame>
+  );
+}
+
+function KioskMiniQR() {
+  return (
+    <div style={{
+      width: 58, height: 58, borderRadius: 12, padding: 4,
+      background: "#fff",
+      display: "grid", gridTemplateColumns: "repeat(9, 1fr)", gridTemplateRows: "repeat(9, 1fr)", gap: 1,
+      flex: "none",
+      boxShadow: "0 0 0 1px rgba(20,20,20,0.08)",
+    }}>
+      {Array.from({ length: 81 }).map((_, i) => {
+        const x = i % 9, y = (i / 9) | 0;
+        const inFinder = (cx, cy) => Math.abs(x - cx) <= 1 && Math.abs(y - cy) <= 1;
+        const isFinder = inFinder(1, 1) || inFinder(7, 1) || inFinder(1, 7);
+        const fill = isFinder || ((x * 5 + y * 11 + (x ^ y * 2)) % 7 < 3);
+        return <span key={i} style={{ background: fill ? "#121212" : "transparent", borderRadius: 1 }} />;
+      })}
+    </div>
+  );
+}
+
+function TopUpRow({ icon, title, sub }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 14, padding: "14px 18px",
+      borderRadius: 20,
+      background: SOS_TOKENS.glass,
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+    }}>
+      <span style={{
+        width: 36, height: 36, borderRadius: 999,
+        background: "rgba(255,255,255,0.7)", color: SOS_TOKENS.inkDark,
+        display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+        boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+      }}>
+        <Icon name={icon} size={16} />
+      </span>
+      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>{title}</span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: SOS_TOKENS.inkMuted }}>{sub}</span>
+      </span>
+      <Icon name="chevron-right" size={14} color="rgba(20,20,20,0.32)" />
+    </div>
+  );
+}
+
+function WalletTxRow({ tone, icon, title, time, amount }) {
+  const inflow = tone === "in";
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 14, padding: "12px 14px",
+      borderRadius: 20,
+      background: "rgba(255,255,255,0.92)",
+      boxShadow: `inset 0 0 0 1px ${SOS_TOKENS.hairline}`,
+    }}>
+      <span style={{
+        width: 36, height: 36, borderRadius: 999,
+        background: inflow ? "rgba(105,228,183,0.55)" : "rgba(20,20,20,0.06)",
+        color: inflow ? "#0a3a26" : SOS_TOKENS.inkDark,
+        display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none",
+      }}>
+        <Icon name={icon} size={16} />
+      </span>
+      <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: SOS_TOKENS.ink, letterSpacing: "-0.005em" }}>{title}</span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: SOS_TOKENS.inkMuted }}>{time}</span>
+      </span>
+      <span style={{
+        fontFamily: "'Neue Montreal','Manrope',sans-serif", fontWeight: 500, fontSize: 15,
+        color: inflow ? "#0a3a26" : SOS_TOKENS.inkDark, letterSpacing: "-0.005em", whiteSpace: "nowrap",
+      }}>
+        {amount}
+      </span>
+    </div>
+  );
+}
+
+Object.assign(window, {
+  ScreenWallet, WALLET_HEIGHT,
+});
+
 /* === App === */
 
 const PHONE_W = 390;
@@ -4281,16 +7222,6 @@ const PHONE_H = 844;
 function App() {
   return (
     <DesignCanvas>
-      <DCPostIt left={40} top={40} width={520}>
-        <div style={{ fontWeight: 600, marginBottom: 6 }}>SOS24 — мобильное приложение</div>
-        <div style={{ lineHeight: 1.55, color: "rgba(20,20,20,0.7)" }}>
-          Готово: <b>M1</b> · Онбординг + Авторизация · <b>Home v2</b> · <b>M4 + M5</b> · Каталог и Калькулятор ОСАГО.
-          Некоторые экраны (Home, Каталог, Детальная) длиннее 844 — артборд высокий, как длинный скриншот из Figma.
-          Метка <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px 2px 6px", borderRadius: 999, background: "rgba(20,20,20,0.78)", color: "#fff", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, fontWeight: 500, letterSpacing: "0.04em", verticalAlign: "middle" }}>ЗАГЛУШКА</span>
-          {" "}— на этих местах нужно заменить картинки на свои.
-        </div>
-      </DCPostIt>
-
       <DCSection id="m1" title="M1 · Онбординг и авторизация" subtitle="Splash → 3 слайда → выбор → телефон → OTP → профиль">
         <DCArtboard id="m1-1"  label="M1.1 · Splash"             width={PHONE_W} height={PHONE_H}><ScreenSplash /></DCArtboard>
         <DCArtboard id="m1-2a" label="M1.2 · Слайд 1"            width={PHONE_W} height={PHONE_H}><ScreenOnboarding1 /></DCArtboard>
@@ -4319,11 +7250,12 @@ function App() {
         <DCArtboard id="m5-1d" label="Шаг 4 · Результат"  width={PHONE_W} height={PHONE_H}><ScreenCalcStep4 /></DCArtboard>
       </DCSection>
 
-      <DCSection id="m6m7" title="M6 + M7 · Оформление + Оплата" subtitle="Чекаут → оплата → успех → карты">
+      <DCSection id="m6m7" title="M6 + M7 · Оформление + Оплата" subtitle="Чекаут → оплата → успех → карты → кошелёк">
         <DCArtboard id="m6-1" label="M6.1 · Чекаут"    width={PHONE_W} height={CHECKOUT_HEIGHT}><ScreenCheckout /></DCArtboard>
         <DCArtboard id="m7-1" label="M7.1 · Оплата"    width={PHONE_W} height={PHONE_H}><ScreenPayment /></DCArtboard>
         <DCArtboard id="m7-2" label="M7.2 · Успех"     width={PHONE_W} height={PHONE_H}><ScreenSuccess /></DCArtboard>
         <DCArtboard id="m7-3" label="M7.3 · Мои карты" width={PHONE_W} height={PHONE_H}><ScreenMyCards /></DCArtboard>
+        <DCArtboard id="m7-4" label="M7.4 · Кошелёк"   width={PHONE_W} height={WALLET_HEIGHT}><ScreenWallet /></DCArtboard>
       </DCSection>
 
       <DCSection id="m8" title="M8 · Мои полисы" subtitle="Список → детали → QR на весь экран">
@@ -4332,30 +7264,32 @@ function App() {
         <DCArtboard id="m8-3" label="M8.3 · QR fullscreen" width={PHONE_W} height={PHONE_H}><ScreenQRFullscreen /></DCArtboard>
       </DCSection>
 
-      <DCSection id="m3m2" title="M3 + M2 · Гараж + Профиль" subtitle="Блок 6">
-        <DCArtboard id="m3-1" label="M3.1 · Гараж" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M3.1" label="Гараж" hint="Список авто" /></DCArtboard>
-        <DCArtboard id="m3-2" label="M3.2 · Добавить авто" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M3.2" label="Авто" hint="Поиск по гос. номеру" /></DCArtboard>
-        <DCArtboard id="m2-1" label="M2.1 · Профиль" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M2.1" label="Профиль" hint="Документы, настройки, выход" /></DCArtboard>
-        <DCArtboard id="m2-2" label="M2.2 · Редактировать" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M2.2" label="Профиль" hint="Редактирование данных" /></DCArtboard>
-        <DCArtboard id="m2-3" label="M2.3 · Паспорт / ВУ" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M2.3" label="Документы" hint="Серия, номер, фото" /></DCArtboard>
+      <DCSection id="m3m2" title="M3 + M2 · Гараж + Профиль" subtitle="Гараж · профиль · документы">
+        <DCArtboard id="m3-1" label="M3.1 · Гараж"               width={PHONE_W} height={GARAGE_HEIGHT}><ScreenGarage /></DCArtboard>
+        <DCArtboard id="m3-2" label="M3.2 · Добавить авто"        width={PHONE_W} height={CAR_ADD_HEIGHT}><ScreenCarAdd /></DCArtboard>
+        <DCArtboard id="m2-1" label="M2.1 · Профиль"              width={PHONE_W} height={PROFILE_HEIGHT}><ScreenProfile /></DCArtboard>
+        <DCArtboard id="m2-2" label="M2.2 · Редактировать"        width={PHONE_W} height={PROFILE_EDIT_HEIGHT}><ScreenProfileEdit /></DCArtboard>
+        <DCArtboard id="m2-3" label="M2.3 · Паспорт / ВУ"         width={PHONE_W} height={DOC_ADD_HEIGHT}><ScreenDocumentAdd /></DCArtboard>
       </DCSection>
 
-      <DCSection id="m9m10" title="M9 + M10 · Урегулирование + Выплаты" subtitle="Блок 7">
-        <DCArtboard id="m9-1" label="M9.1 · Начало" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M9.1" label="ДТП?" hint="Европротокол / комиссар" /></DCArtboard>
-        <DCArtboard id="m9-2" label="M9.2 · Вызов комиссара" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M9.2" label="Комиссар" hint="Карта, ожидание" /></DCArtboard>
-        <DCArtboard id="m9-3" label="M9.3 · Европротокол" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M9.3" label="Европротокол" hint="Wizard: обстоятельства, ТС, схема, фото, подпись" /></DCArtboard>
-        <DCArtboard id="m10-1" label="M10.1 · Заявления" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M10.1" label="Заявления" hint="Список и статусы" /></DCArtboard>
-        <DCArtboard id="m10-2" label="M10.2 · Трекер" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M10.2" label="Трекер" hint="Шаги выплаты" /></DCArtboard>
+      <DCSection id="m9m10" title="M9 + M10 · SOS + Урегулирование + Выплаты" subtitle="SOS-чат → ДТП → инспектор / европротокол → трекер">
+        <DCArtboard id="m9-0"  label="SOS · ИИ-чат"           width={PHONE_W} height={SOS_CHAT_HEIGHT}><ScreenSosChat /></DCArtboard>
+        <DCArtboard id="m9-1"  label="M9.1 · Выбор"           width={PHONE_W} height={DTP_START_HEIGHT}><ScreenDtpStart /></DCArtboard>
+        <DCArtboard id="m9-2"  label="M9.2 · Вызов инспектора" width={PHONE_W} height={PHONE_H}><ScreenInspectorWait /></DCArtboard>
+        <DCArtboard id="m9-3a" label="M9.3 · Шаг 1 · Обстоят."  width={PHONE_W} height={EP_STEP_HEIGHT}><ScreenEpStep1 /></DCArtboard>
+        <DCArtboard id="m9-3b" label="M9.3 · Шаг 4 · Фото"      width={PHONE_W} height={EP_STEP_HEIGHT}><ScreenEpStep4 /></DCArtboard>
+        <DCArtboard id="m10-1" label="M10.1 · Заявления"       width={PHONE_W} height={CLAIMS_LIST_HEIGHT}><ScreenClaimsList /></DCArtboard>
+        <DCArtboard id="m10-2" label="M10.2 · Трекер выплаты"   width={PHONE_W} height={CLAIM_DETAIL_HEIGHT}><ScreenClaimDetail /></DCArtboard>
       </DCSection>
 
-      <DCSection id="m11_16" title="M11+M12+M13+M16 · Прочее" subtitle="Блок 8">
-        <DCArtboard id="m11" label="M11 · Уведомления" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M11" label="Уведомления" hint="Группировка по дням" /></DCArtboard>
-        <DCArtboard id="m12" label="M12 · Документы" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M12" label="Документы" hint="Полисы, чеки, заявления" /></DCArtboard>
-        <DCArtboard id="m13-1" label="M13.1 · Поддержка" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M13.1" label="Поддержка" hint="Точка входа: чат, FAQ" /></DCArtboard>
-        <DCArtboard id="m13-2" label="M13.2 · Чат" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M13.2" label="Чат" hint="Оператор 24/7" /></DCArtboard>
-        <DCArtboard id="m16-1" label="M16.1 · Партнёры" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M16.1" label="Партнёры" hint="СТО / Медклиники" /></DCArtboard>
-        <DCArtboard id="m16-2" label="M16.2 · Партнёр" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M16.2" label="Карточка" hint="Услуги, отзывы" /></DCArtboard>
-        <DCArtboard id="m16-3" label="M16.3 · Запись" width={PHONE_W} height={PHONE_H}><ScreenPlaceholder module="M16.3" label="Запись" hint="Услуга, дата, время" /></DCArtboard>
+      <DCSection id="m11_16" title="M11+M12+M13+M16 · Уведомления · Документы · Поддержка · Партнёры" subtitle="Финальный блок — вспомогательные модули">
+        <DCArtboard id="m11"   label="M11 · Уведомления"          width={PHONE_W} height={NOTIFICATIONS_HEIGHT}><ScreenNotifications /></DCArtboard>
+        <DCArtboard id="m12"   label="M12 · Документы"            width={PHONE_W} height={DOCS_HEIGHT}><ScreenDocuments /></DCArtboard>
+        <DCArtboard id="m13-1" label="M13.1 · Поддержка"          width={PHONE_W} height={SUPPORT_HEIGHT}><ScreenSupportHub /></DCArtboard>
+        <DCArtboard id="m13-2" label="M13.2 · Чат с оператором"    width={PHONE_W} height={PHONE_H}><ScreenChat /></DCArtboard>
+        <DCArtboard id="m16-1" label="M16.1 · Партнёры"            width={PHONE_W} height={PARTNERS_HEIGHT}><ScreenPartners /></DCArtboard>
+        <DCArtboard id="m16-2" label="M16.2 · Карточка партнёра"   width={PHONE_W} height={PARTNER_DETAIL_HEIGHT}><ScreenPartnerDetail /></DCArtboard>
+        <DCArtboard id="m16-3" label="M16.3 · Запись"              width={PHONE_W} height={BOOKING_HEIGHT}><ScreenBooking /></DCArtboard>
       </DCSection>
     </DesignCanvas>
   );
