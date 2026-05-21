@@ -2,24 +2,24 @@
 
 > Журнал реальных работ Этапа 1. Что сделано, что отложено, где остановились, как продолжить.
 >
-> **Последнее обновление:** 2026-05-20
+> **Последнее обновление:** 2026-05-21
 
 ---
 
 ## Где остановились
 
-**Полный end-to-end флоу страхового полиса на реальном API + все боковые экраны подключены к API.** От Home → Catalog → ProductDetail → Calc (4 шага для ОСАГО/КАСКО, фикс-цена для health/home/finance) → Checkout (промокод SOS10) → Payment (кошелёк + карты) → Success — всё через бэкенд. Гараж, Полисы, Карты тоже на реальных данных.
+**MyID верификация реализована (S7).** Обязательный шаг после OTP: нельзя войти в приложение без прохождения MyID. Данные профиля (ФИО, ПИНФЛ, паспорт) заполняются из MyID. В дев-режиме — мок (`MYID_MOCK=true` + "Симулировать MyID" кнопка в `__DEV__`).
 
 ```
-Логин (+998993286330 / OTP=6330) → Home (имя из /me, полисы из /me/policies)
-   ├─ Полисы (M8) → /me/policies, /policies/:id → Деталь + QR
-   ├─ Гараж (M3) → /me/vehicles + NAPP lookup, GarageEdit → create/update через API
-   ├─ Профиль (M2) → /me, /me/documents → Document edit /me/documents/:kind
-   └─ Quick action «Страховой полис / Аджастер» →
-           Catalog (5 продуктов, statiс) → ProductDetail (по type) →
-           Calc Vehicle (/me/vehicles) → Drivers (/me/drivers) → Period → Result →
-           Checkout (/promo/validate + /policies) → Payment (/me/wallet + /me/cards + /payments/uzcard) →
-           Success (/policies/:id с реальным policyNumber + QR)
+Логин (+998993286330 / OTP=6330)
+   ├─ НЕ верифицирован → MyIdNavigator → MyIdOnboardingScreen
+   │     └─ Пройти MyID (прод: SDK) / Симулировать (дев) → authenticated → Home
+   └─ Верифицирован → Home (имя из /me, полисы из /me/policies)
+           ├─ Полисы (M8) → /me/policies, /policies/:id → Деталь + QR
+           ├─ Гараж (M3) → /me/vehicles + NAPP lookup, GarageEdit → create/update через API
+           ├─ Профиль (M2) → /me, /me/documents → Document edit; бейдж «MyID верифицирован»
+           └─ Quick action «Страховой полис / Аджастер» →
+                   Catalog → ProductDetail → Calc → Checkout → Payment → Success
 ```
 
 **Текущая ветка:** `main` (смержена с `feat/native-tabs` 2026-05-20).
@@ -118,6 +118,30 @@
 - Промо `SOS10` (10% до 2026-12-31)
 - Кошелёк 500 000 сум + 2 карты (Uzcard 4582 default + Humo 1190)
 
+### Этап S7 — MyID верификация (2026-05-21)
+
+Обязательная идентификация через государственную систему MyID. Без неё пользователь не может пользоваться приложением в проде.
+
+**Бэкенд (`apps/api`):**
+- Prisma: `pinfl String? @unique`, `verificationStatus VerificationStatus` (`NOT_VERIFIED`/`MYID_VERIFIED`) в `User`
+- Миграция `20260521120000_add_myid_verification`
+- `MyidModule`: `POST /myid/session` (создаёт MyID-сессию) + `POST /myid/verify` (принимает code → получает данные из MyID → обновляет User + upsert Document(PASSPORT))
+- `MYID_MOCK=true` в `.env` → детерминированные мок-данные (ПИНФЛ 12345678901234, Каримов Азиз Эркинович)
+- При `MYID_MOCK=false`: реальные запросы к MyID API (`/api/v1/auth/clients/access-token` → `/api/v1/sdk/data?code=`)
+- `auth/verify-otp` теперь возвращает `verificationStatus` в ответе
+
+**Мобильный (`apps/mobile`):**
+- `authStore`: новый статус `needs_verification`; `setVerified()` → `authenticated`; `hydrate()` читает `verificationStatus` из MMKV (без сетевого запроса при старте)
+- `MyIdNavigator` + `MyIdOnboardingScreen`: кнопка «Пройти MyID» + TODO-заглушка для реального SDK; `__DEV__` — кнопка «Симулировать MyID (DEV)»
+- `RootNavigator`: `needs_verification` → `MyIdNavigator` (навигация автоматически без `nav.navigate`)
+- `OtpScreen`: упрощён — `setSession(tokens, sub, verificationStatus)`, навигация через RootNavigator
+- `ProfileScreen`: бейдж «MyID верифицирован» + скрыта кнопка редактирования для верифицированных
+
+**Когда придут ключи MyID:**
+1. `MYID_MOCK=false` в `apps/api/.env`
+2. Установить `myid-rn-sdk` (закрытый GitLab) + написать Expo Config Plugin
+3. Заменить TODO в `MyIdOnboardingScreen.startMyId()` на `MyIdClient.start()`
+
 ### Этап F — Mobile integration (S6) 2026-05-20
 **API-слой полностью:** `apps/mobile/src/api/` — types.ts + 9 domain-файлов (auth, vehicles, documents, drivers, policies, promo, cards, wallet, payments). Каждый файл содержит TypeScript-типы, функции-обёртки axios и React Query хуки (useX / useCreateX / ... ) в одном месте.
 
@@ -176,10 +200,9 @@
 ### Backend — S5 Partners
 Прямо следующий sprint. `Partner` модель + `GET /partners` (фильтр по локации/типу). Сейчас Home показывает `MOCK_PARTNERS` — 4 захардкоженные карточки. **~2-3ч.**
 
-### Mobile — недоделанные интеграции
-- **`GarageEditScreen`** — форма добавления авто работает на `MOCK_VEHICLES`. Подключить `useCreateVehicle` + `useUpdateVehicle` + `useNappLookup`. ~30 мин.
-- **`MyCardsScreen`** — `useCards` + `useCreateCard` + `useDeleteCard`. ~30 мин.
-- **`PoliciesListScreen` / `PolicyDetailScreen`** — пока на mock'е, нужны `usePolicies()` + `usePolicy(id)`. ~30 мин.
+### Mobile — интеграция MyID SDK (реальные ключи)
+- Когда придут ключи от MyID: установить `myid-rn-sdk`, написать Expo Config Plugin, заменить TODO в `MyIdOnboardingScreen.startMyId()`
+- `ProfileEditScreen` — поля ФИО/дата рождения должны быть скрыты/readonly когда `MYID_VERIFIED` (сейчас только ProfileScreen скрывает кнопку edit)
 
 ### Этап C13 — Оставшиеся экраны (дизайн нужен от дизайнера)
 - M9 — Урегулирование (заявление о ДТП, европротокол)
@@ -289,6 +312,9 @@ GarageEdit, MyCards, PoliciesList/PolicyDetail/QrFullscreen — все на ре
 
 ### ~~Вариант E — Merge в main~~ ✅ DONE 2026-05-20
 `feat/native-tabs` смержена в `main`.
+
+### ~~S7 — MyID верификация~~ ✅ DONE 2026-05-21
+Обязательный флоу регистрации через MyID. Мок на бэке + DEV-кнопка на мобиле.
 
 ### Вариант A — S5 Partners (~2-3ч) ← СЛЕДУЮЩИЙ
 `Partner` модель + `GET /partners`, заменить `MOCK_PARTNERS` на Home. Это закрывает последний mock в проекте. **Рекомендую.**
