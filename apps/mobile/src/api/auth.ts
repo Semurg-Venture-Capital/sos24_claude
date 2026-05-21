@@ -1,3 +1,4 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
 
 export interface VerifyOtpResponse {
@@ -44,4 +45,18 @@ export async function getMe() {
 export async function updateProfile(input: UpdateProfileInput) {
   const { data } = await api.patch<MeResponse>('/me/profile', input);
   return data;
+}
+
+const ME_KEY = ['me'] as const;
+
+export function useMe() {
+  return useQuery({ queryKey: ME_KEY, queryFn: getMe });
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: updateProfile,
+    onSuccess: (data) => qc.setQueryData(ME_KEY, data),
+  });
 }

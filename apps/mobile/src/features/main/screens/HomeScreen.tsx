@@ -3,6 +3,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMe } from '../../../api/auth';
+import { usePolicies, type Policy } from '../../../api/policies';
 import { IconBell } from '../../../components/icons/IconBell';
 import { IconBurger } from '../../../components/icons/IconBurger';
 import {
@@ -30,12 +32,7 @@ import type { MainStackParamList } from '../../../navigation/types';
 
 type RootNav = NativeStackNavigationProp<MainStackParamList>;
 
-// TODO: mock-данные — заменить на /me/policies и /partners когда подключим API.
-const MOCK_POLICIES = [
-  { type: 'КАСКО', car: 'Chevrolet Cobalt', plate: '01 A 123 BB', daysLeft: 365, expiry: '11.05.2027', tone: 'dark' as const },
-  { type: 'ОСАГО', car: 'Hyundai Sonata', plate: '10 R 555 AC', daysLeft: 43, expiry: '26.06.2026', tone: 'light' as const, warn: true },
-];
-
+// TODO: партнёры — mock пока, заменим в S5 (PartnersModule на бэке).
 const MOCK_PARTNERS = [
   { name: 'AutoFix СТО', type: 'СТО', rating: '4.8', distance: '0.4 км', open: true },
   { name: 'Медсервис', type: 'Клиника', rating: '4.6', distance: '1.2 км', open: true },
@@ -50,6 +47,23 @@ function greetingByHour(hour: number): string {
   return 'Добрый вечер';
 }
 
+const PRODUCT_LABEL: Record<Policy['type'], string> = {
+  OSAGO: 'ОСАГО',
+  KASKO: 'КАСКО',
+  HEALTH: 'Здоровье',
+  HOME: 'Дом',
+  FINANCE: 'Финансы',
+};
+
+function daysUntil(iso: string): number {
+  return Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000));
+}
+
+function formatExpiry(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+}
+
 // Главный экран — длинный скролл по специке: greeting + полисы + SOS-баннер
 // + быстрые действия 2×2 + партнёры рядом + промо.
 // Эталон: SOS24/screens.jsx → ScreenHomeV2.
@@ -57,6 +71,9 @@ export function HomeScreen() {
   const greeting = greetingByHour(new Date().getHours());
   const nav = useNavigation();
   const insets = useSafeAreaInsets();
+  const { data: me } = useMe();
+  const { data: policies } = usePolicies('ACTIVE');
+  const displayName = me?.name ?? 'Гость';
 
   // Purchase-стек живёт на уровне MainStack (sibling к Tabs).
   // Используем getParent() для надёжного перехода — useNavigation() внутри
@@ -105,7 +122,7 @@ export function HomeScreen() {
                   lineHeight: 28,
                 }}
               >
-                Азиз
+                {displayName}
               </Text>
             </View>
             <GlassPill style={{ height: 34, paddingHorizontal: 12 }}>
@@ -122,18 +139,21 @@ export function HomeScreen() {
           <View style={{ gap: 12 }}>
             <SectionRow title="Мои полисы" linkLabel="Все" />
             <HScroll>
-              {MOCK_POLICIES.map((p) => (
-                <PolicyCardActive
-                  key={p.plate}
-                  tone={p.tone}
-                  type={p.type}
-                  car={p.car}
-                  plate={p.plate}
-                  daysLeft={p.daysLeft}
-                  expiry={p.expiry}
-                  warn={p.warn}
-                />
-              ))}
+              {policies?.map((p, idx) => {
+                const days = daysUntil(p.endDate);
+                return (
+                  <PolicyCardActive
+                    key={p.id}
+                    tone={idx === 0 ? 'dark' : 'light'}
+                    type={PRODUCT_LABEL[p.type]}
+                    car={p.vehicle ? `${p.vehicle.brand} ${p.vehicle.model}` : PRODUCT_LABEL[p.type]}
+                    plate={p.vehicle?.plate ?? '—'}
+                    daysLeft={days}
+                    expiry={formatExpiry(p.endDate)}
+                    warn={days < 60}
+                  />
+                );
+              })}
               <AddPolicyTile onPress={openCatalog} />
             </HScroll>
           </View>

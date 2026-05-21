@@ -1,14 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BlurView } from 'expo-blur';
-import { ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { useVehicles } from '../../../api/vehicles';
 import { IconCarSimple } from '../../../components/icons/LineIcons';
 import { FAB } from '../../../components/ui/FAB';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
-import { Tag } from '../../../components/ui/Tag';
 import { tokens } from '../../../theme/colors';
-import { MOCK_VEHICLES } from '../mockGarage';
 import type { GarageStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<GarageStackParamList, 'GarageList'>;
@@ -16,7 +15,8 @@ type Nav = NativeStackNavigationProp<GarageStackParamList, 'GarageList'>;
 // M3.1 — Список автомобилей. Пустое состояние или карточки.
 export function GarageListScreen() {
   const nav = useNavigation<Nav>();
-  const isEmpty = MOCK_VEHICLES.length === 0;
+  const { data: vehicles, isLoading } = useVehicles();
+  const isEmpty = !isLoading && (vehicles?.length ?? 0) === 0;
 
   return (
     <PhoneFrame>
@@ -42,7 +42,11 @@ export function GarageListScreen() {
         </Text>
       </View>
 
-      {isEmpty ? (
+      {isLoading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color={tokens.red} />
+        </View>
+      ) : isEmpty ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 18 }}>
           <View
             style={{
@@ -91,7 +95,7 @@ export function GarageListScreen() {
             contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 160, gap: 12 }}
             showsVerticalScrollIndicator={false}
           >
-            {MOCK_VEHICLES.map((v) => (
+            {vehicles?.map((v) => (
               <View key={v.id} style={{ borderRadius: 28, overflow: 'hidden' }}>
                 <BlurView
                   intensity={20}
@@ -133,11 +137,6 @@ export function GarageListScreen() {
                     <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
                       {v.brand} {v.model} · {v.year}
                     </Text>
-                    {v.hasActivePolicy && v.activePolicyType && (
-                      <View style={{ flexDirection: 'row', marginTop: 4 }}>
-                        <Tag tone="green">{v.activePolicyType} активен</Tag>
-                      </View>
-                    )}
                   </View>
                 </BlurView>
               </View>
