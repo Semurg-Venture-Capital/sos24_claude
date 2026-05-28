@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import type { Policy } from '../../../api/policies';
 import { usePolicies } from '../../../api/policies';
@@ -55,7 +55,14 @@ export function PoliciesListScreen() {
   const nav = useNavigation<Nav>();
   const [tab, setTab] = useState(0);
 
-  const { data: allPolicies, isLoading } = usePolicies();
+  const { data: allPolicies, isLoading, refetch } = usePolicies();
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   const active = (allPolicies ?? []).filter(
     (p) => p.status === 'ACTIVE' || p.status === 'PENDING_PAYMENT',
@@ -105,6 +112,14 @@ export function PoliciesListScreen() {
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 24, gap: 16 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={tokens.red}
+              colors={[tokens.red]}
+            />
+          }
         >
           {/* Stats */}
           <View style={{ flexDirection: 'row', gap: 10 }}>
