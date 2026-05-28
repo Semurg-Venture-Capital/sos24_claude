@@ -3,9 +3,16 @@ import { Platform } from 'react-native';
 import { saveTokens } from '../lib/secure';
 import { useAuthStore } from '../stores/authStore';
 
-// На Android-эмуляторе localhost хоста — это 10.0.2.2. На iOS-симуляторе и web — localhost.
-const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-export const API_BASE_URL = `http://${HOST}:3030`;
+// EXPO_PUBLIC_API_HOST задаётся в apps/mobile/.env (LAN IP для реального устройства).
+// Симулятор/Android-эмулятор используют localhost / 10.0.2.2.
+function getApiHost(): string {
+  if (Platform.OS === 'android') return '10.0.2.2';
+  const envHost = process.env.EXPO_PUBLIC_API_HOST;
+  if (envHost) return envHost;
+  return 'localhost';
+}
+
+export const API_BASE_URL = `http://${getApiHost()}:3030`;
 
 export const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,

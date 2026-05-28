@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.mobile",
+      "bundleIdentifier": "uz.sos24.app",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "SOS24 использует вашу геопозицию для определения адреса при вызове аджастера."
       }
