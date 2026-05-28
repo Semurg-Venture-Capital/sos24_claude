@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -56,6 +57,13 @@ export function PoliciesListScreen() {
   const [tab, setTab] = useState(0);
 
   const { data: allPolicies, isLoading, refetch } = usePolicies();
+
+  // Refetch каждый раз при входе на экран — чтобы после оплаты сразу видеть новый полис
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {
