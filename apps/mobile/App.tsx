@@ -1,6 +1,7 @@
 import './global.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as Location from 'expo-location';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
@@ -25,14 +26,19 @@ export default function App() {
   const [storageReady, setStorageReady] = useState(false);
   const [i18nInstance, setI18nInstance] = useState<unknown>(null);
 
-  // Сначала гидрируем AsyncStorage (нужен для i18n чтобы прочитать сохранённую
-  // локаль), потом импортируем i18n модуль — он сам читает storage при init.
   useEffect(() => {
     void (async () => {
       await hydrateStorage();
       const { i18next } = await import('./src/lib/i18n');
       setI18nInstance(i18next);
       setStorageReady(true);
+
+      // Запрашиваем геолокацию при старте — iOS покажет системный диалог
+      // только если статус ещё 'undetermined' (первый запуск).
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status === 'undetermined') {
+        await Location.requestForegroundPermissionsAsync();
+      }
     })();
   }, []);
 

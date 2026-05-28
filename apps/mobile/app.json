@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.mobile"
+      "bundleIdentifier": "com.anonymous.mobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "SOS24 использует вашу геопозицию для определения адреса при вызове аджастера."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -29,7 +32,13 @@
     },
     "plugins": [
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "SOS24 использует вашу геопозицию для определения адреса при вызове аджастера."
+        }
+      ]
     ]
   }
 }

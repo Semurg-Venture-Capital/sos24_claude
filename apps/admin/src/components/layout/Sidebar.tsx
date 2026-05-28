@@ -11,6 +11,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Siren,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +19,7 @@ const NAV = [
   { href: '/dashboard', label: 'Дашборд', icon: LayoutDashboard },
   { href: '/users', label: 'Пользователи', icon: Users },
   { href: '/policies', label: 'Полисы', icon: ShieldCheck },
+  { href: '/adjuster', label: 'Аджастер', icon: Siren },
   { href: '/claims', label: 'Убытки', icon: FileText, disabled: true },
   { href: '/partners', label: 'Партнёры', icon: Handshake, disabled: true },
   { href: '/reports', label: 'Отчёты', icon: BarChart3, disabled: true },

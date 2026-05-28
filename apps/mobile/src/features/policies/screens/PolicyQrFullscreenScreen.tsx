@@ -2,7 +2,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Share, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { usePolicy } from '../../../api/policies';
 import type { ProductType } from '../../../api/types';
@@ -56,6 +56,18 @@ export function PolicyQrFullscreenScreen() {
   const qrValue = policy.qrPayload ?? `sos24:${policy.policyNumber ?? policy.id}`;
   const formattedNumber = formatPolicyNumberFull(policy.policyNumber);
 
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Мой полис ${typeLabel}: ${formattedNumber} · ${plate}\nsos24.uz`,
+        url: qrValue,
+        title: `Полис ${typeLabel} · ${plate}`,
+      });
+    } catch {
+      // пользователь отменил
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: '#121212' }}>
       <StatusBar style="light" />
@@ -102,6 +114,7 @@ export function PolicyQrFullscreenScreen() {
         <SosLogo size="md" color="#fff" />
 
         <Pressable
+          onPress={() => void handleShare()}
           style={({ pressed }) => ({
             width: 48,
             height: 48,

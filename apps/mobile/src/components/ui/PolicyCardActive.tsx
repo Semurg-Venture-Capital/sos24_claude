@@ -12,6 +12,7 @@ interface Props {
   daysLeft: number;
   expiry: string;
   warn?: boolean;
+  onPress?: () => void;
   onQrPress?: () => void;
   onMorePress?: () => void;
 }
@@ -25,6 +26,7 @@ export function PolicyCardActive({
   daysLeft,
   expiry,
   warn,
+  onPress,
   onQrPress,
   onMorePress,
 }: Props) {
@@ -110,8 +112,9 @@ export function PolicyCardActive({
   );
 
   return (
-    <View
-      style={{
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
         width: 260,
         height: 200,
         borderRadius: 32,
@@ -122,7 +125,8 @@ export function PolicyCardActive({
         shadowOpacity: dark ? 0.32 : 0.1,
         shadowRadius: 20,
         elevation: 4,
-      }}
+        opacity: pressed && onPress ? 0.88 : 1,
+      })}
     >
       {dark ? (
         inner
@@ -131,6 +135,6 @@ export function PolicyCardActive({
           {inner}
         </BlurView>
       )}
-    </View>
+    </Pressable>
   );
 }

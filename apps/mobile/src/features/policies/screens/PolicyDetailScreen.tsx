@@ -1,7 +1,8 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useMe } from '../../../api/auth';
 import { usePolicy } from '../../../api/policies';
@@ -10,6 +11,7 @@ import { BackButton } from '../../../components/ui/BackButton';
 import { IconButton } from '../../../components/ui/IconButton';
 import { OutlineButton } from '../../../components/ui/OutlineButton';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
+import { ClaimIcon, PdfIcon, PolicyContextMenu, RenewIcon } from '../../../components/ui/PolicyContextMenu';
 import { PolicyQR } from '../../../components/ui/PolicyQR';
 import { RedButton } from '../../../components/ui/RedButton';
 import { SosLogo } from '../../../components/ui/SosLogo';
@@ -58,6 +60,7 @@ export function PolicyDetailScreen() {
 
   const { data: policy, isLoading } = usePolicy(route.params.id);
   const { data: me } = useMe();
+  const [menuVisible, setMenuVisible] = useState(false);
 
   if (isLoading) {
     return (
@@ -95,8 +98,33 @@ export function PolicyDetailScreen() {
   const tagTone = isExpiring ? 'yellow' : isExpired ? 'glass' : 'green';
   const tagLabel = isExpiring ? `${daysLeft} дн.` : isExpired ? 'Истёк' : 'Активен';
 
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Мой полис ${typeLabel}: ${formatPolicyNumber(policy.policyNumber)} · ${plate}\nsos24.uz`,
+        url: qrValue,
+        title: `Полис ${typeLabel} · ${plate}`,
+      });
+    } catch {
+      // пользователь отменил — ничего не делаем
+    }
+  };
+
+  const menuItems = [
+    { label: 'Скачать PDF', icon: <PdfIcon />, onPress: () => Alert.alert('Скоро', 'Скачивание электронного полиса') },
+    { label: 'Продлить', icon: <RenewIcon />, onPress: () => nav.navigate('PolicyQrFullscreen', { id: policy.id }) },
+    { label: 'Заявить убыток', icon: <ClaimIcon />, onPress: () => Alert.alert('Скоро', 'Оформление страхового случая'), destructive: true },
+  ];
+
   return (
     <PhoneFrame>
+      <PolicyContextMenu
+        visible={menuVisible}
+        title={`${typeLabel} · ${plate}`}
+        items={menuItems}
+        onClose={() => setMenuVisible(false)}
+      />
+
       {/* Top: back + share/menu */}
       <View
         style={{
@@ -110,13 +138,13 @@ export function PolicyDetailScreen() {
       >
         <BackButton onPress={() => nav.goBack()} />
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <IconButton>
+          <IconButton onPress={() => void handleShare()}>
             <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={tokens.inkDark} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
               <Path d="M4 12v7a2 2 0 002 2h12a2 2 0 002-2v-7" />
               <Path d="M16 6l-4-4-4 4M12 2v14" />
             </Svg>
           </IconButton>
-          <IconButton>
+          <IconButton onPress={() => setMenuVisible(true)}>
             <Svg width={4} height={16} viewBox="0 0 4 16" fill={tokens.inkDark}>
               <Circle cx={2} cy={2} r={2} />
               <Circle cx={2} cy={8} r={2} />

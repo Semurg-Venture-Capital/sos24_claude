@@ -27,6 +27,7 @@ export type ProfileStackParamList = {
   ProfileMain: undefined;
   ProfileEdit: undefined;
   Document: { kind: 'passport' | 'license' };
+  Finance: undefined;
 };
 
 export type GarageStackParamList = {
@@ -49,6 +50,12 @@ export type PurchaseStackParamList = {
   MyCards: undefined;
 };
 
+export type AdjusterStackParamList = {
+  AdjusterRequest: undefined;
+  AdjusterSent: { requestId: string };
+  AdjusterStatus: { requestId: string };
+};
+
 // Корневой стек, оборачивающий tab-нав и модальные потоки.
 export type MainStackParamList = {
   Tabs: undefined;
@@ -57,5 +64,11 @@ export type MainStackParamList = {
     | {
         screen?: keyof PurchaseStackParamList;
         params?: PurchaseStackParamList[keyof PurchaseStackParamList];
+      };
+  Adjuster:
+    | undefined
+    | {
+        screen: keyof AdjusterStackParamList;
+        params?: AdjusterStackParamList[keyof AdjusterStackParamList];
       };
 };

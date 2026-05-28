@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './api';
 
 export function useStats() {
@@ -33,5 +33,61 @@ export function usePolicies(page = 1, limit = 20, search = '', type = '', status
           },
         })
         .then((r) => r.data),
+  });
+}
+
+export function useAdjusterStats() {
+  return useQuery({
+    queryKey: ['admin', 'adjuster', 'stats'],
+    queryFn: () => api.get('/admin/adjuster/stats').then((r) => r.data as {
+      new: number; inProgress: number; completedToday: number; cancelledToday: number;
+    }),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useAdjusterRequests(status = '', page = 1, limit = 20) {
+  return useQuery({
+    queryKey: ['admin', 'adjuster', status, page],
+    queryFn: () =>
+      api
+        .get('/admin/adjuster', { params: { status: status || undefined, page, limit } })
+        .then((r) => r.data),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useUpdateAdjusterStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: {
+      id: string; status: string;
+      adjusterNote?: string;
+      assignedAdjusterId?: string;
+      adjusterName?: string;
+      adjusterPhone?: string;
+    }) => {
+      const { id, ...body } = dto;
+      return api.patch(`/admin/adjuster/${id}`, body).then((r) => r.data);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'adjuster'] }),
+  });
+}
+
+export function useAdjusterUsers() {
+  return useQuery({
+    queryKey: ['admin', 'adjuster-users'],
+    queryFn: () => api.get('/admin/adjusters').then((r) => r.data as {
+      id: string; name: string | null; surname: string | null; phone: string | null;
+    }[]),
+  });
+}
+
+export function useCreateAdjusterUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name: string; surname?: string; phone: string }) =>
+      api.post('/admin/adjusters', data).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'adjuster-users'] }),
   });
 }

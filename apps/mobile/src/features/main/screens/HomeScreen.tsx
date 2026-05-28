@@ -1,9 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMe } from '../../../api/auth';
+import { useActiveAdjusterRequest } from '../../../api/adjuster';
 import { usePartners } from '../../../api/partners';
 import { usePolicies, type Policy } from '../../../api/policies';
 import { IconBell } from '../../../components/icons/IconBell';
@@ -17,12 +19,14 @@ import {
 import { SunIcon } from '../../../components/icons/SunIcon';
 import { ActionTile } from '../../../components/ui/ActionTile';
 import { AddPolicyTile } from '../../../components/ui/AddPolicyTile';
+import { AdjusterActiveBanner } from '../../../components/ui/AdjusterActiveBanner';
 import { GlassPill } from '../../../components/ui/GlassPill';
 import { HScroll } from '../../../components/ui/HScroll';
 import { IconButton } from '../../../components/ui/IconButton';
 import { PartnerCard } from '../../../components/ui/PartnerCard';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { PolicyCardActive } from '../../../components/ui/PolicyCardActive';
+import { ClaimIcon, DetailIcon, PdfIcon, PolicyContextMenu, RenewIcon } from '../../../components/ui/PolicyContextMenu';
 import { PromoBanner } from '../../../components/ui/PromoBanner';
 import { SectionRow } from '../../../components/ui/SectionRow';
 import { SosBanner } from '../../../components/ui/SosBanner';
@@ -71,28 +75,58 @@ export function HomeScreen() {
   const { data: me } = useMe();
   const { data: policies } = usePolicies('ACTIVE');
   const { data: partners = [] } = usePartners();
+  const { data: activeRequest } = useActiveAdjusterRequest();
   const displayName = me?.name ?? 'Гость';
+  const [menuPolicy, setMenuPolicy] = useState<Policy | null>(null);
 
-  // Purchase-стек живёт на уровне MainStack (sibling к Tabs).
-  // Используем getParent() для надёжного перехода — useNavigation() внутри
-  // HomeScreen возвращает navigation таба, а Purchase route на уровне выше.
+  // Purchase и Adjuster стеки живут на уровне MainStack (sibling к Tabs).
   const openCatalog = () => {
     const root = nav.getParent<RootNav>();
-    if (root) {
-      root.navigate('Purchase', { screen: 'Catalog' });
+    if (root) root.navigate('Purchase', { screen: 'Catalog' });
+  };
+
+  const openAdjuster = () => {
+    const root = nav.getParent<RootNav>();
+    if (!root) return;
+    if (activeRequest) {
+      root.navigate('Adjuster', { screen: 'AdjusterStatus', params: { requestId: activeRequest.id } });
+    } else {
+      root.navigate('Adjuster');
     }
   };
 
   const openProduct = (type: 'osago' | 'kasko') => {
     const root = nav.getParent<RootNav>();
-    if (root) {
-      root.navigate('Purchase', { screen: 'ProductDetail', params: { type } });
-    }
+    if (root) root.navigate('Purchase', { screen: 'ProductDetail', params: { type } });
   };
+
+  // nav здесь — Tab navigator, поэтому navigate('Policies', {screen}) работает напрямую.
+  const openQr = (id: string) => {
+    (nav as any).navigate('Policies', { screen: 'PolicyQrFullscreen', params: { id } });
+  };
+
+  const openPolicyDetail = (id: string) => {
+    (nav as any).navigate('Policies', { screen: 'PolicyDetail', params: { id } });
+  };
+
+  const menuItems = menuPolicy
+    ? [
+        { label: 'Подробнее', icon: <DetailIcon />, onPress: () => openPolicyDetail(menuPolicy.id) },
+        { label: 'Продлить', icon: <RenewIcon />, onPress: openCatalog },
+        { label: 'Скачать PDF', icon: <PdfIcon />, onPress: () => Alert.alert('Скоро', 'Скачивание электронного полиса') },
+        { label: 'Заявить убыток', icon: <ClaimIcon />, onPress: () => Alert.alert('Скоро', 'Оформление страхового случая'), destructive: true },
+      ]
+    : [];
 
   return (
     <PhoneFrame bottomSafeArea={false} topSafeArea={false}>
       <View style={{ flex: 1 }}>
+        <PolicyContextMenu
+          visible={menuPolicy !== null}
+          title={menuPolicy ? `${PRODUCT_LABEL[menuPolicy.type]} · ${menuPolicy.vehicle?.plate ?? ''}` : ''}
+          items={menuItems}
+          onClose={() => setMenuPolicy(null)}
+        />
         <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 120, gap: 18 }}
@@ -133,9 +167,19 @@ export function HomeScreen() {
             </GlassPill>
           </View>
 
+          {/* Active adjuster request banner */}
+          {activeRequest && (
+            <View style={{ paddingHorizontal: 24 }}>
+              <AdjusterActiveBanner
+                request={activeRequest}
+                onPress={openAdjuster}
+              />
+            </View>
+          )}
+
           {/* Active policies */}
           <View style={{ gap: 12 }}>
-            <SectionRow title="Мои полисы" linkLabel="Все" />
+            <SectionRow title="Мои полисы" linkLabel="Все" onLinkPress={() => (nav as any).navigate('Policies', { screen: 'PoliciesList' })} />
             <HScroll>
               {policies?.map((p, idx) => {
                 const days = daysUntil(p.endDate);
@@ -149,6 +193,9 @@ export function HomeScreen() {
                     daysLeft={days}
                     expiry={formatExpiry(p.endDate)}
                     warn={days < 60}
+                    onPress={() => openPolicyDetail(p.id)}
+                    onQrPress={() => openQr(p.id)}
+                    onMorePress={() => setMenuPolicy(p)}
                   />
                 );
               })}
@@ -170,12 +217,18 @@ export function HomeScreen() {
                   dark
                   icon={<QuickIconPolicy />}
                   label={'Страховой\nполис'}
-                  onPress={() => openProduct('osago')}
+                  onPress={openCatalog}
                 />
                 <ActionTile
                   icon={<QuickIconAdjuster />}
                   label="Аджастер"
-                  onPress={() => openProduct('kasko')}
+                  activeDot={!!activeRequest}
+                  sublabel={activeRequest ? (
+                    activeRequest.status === 'NEW' ? 'Ищем аджастера' :
+                    activeRequest.status === 'ACCEPTED' ? 'Назначен' :
+                    activeRequest.status === 'EN_ROUTE' ? 'В пути' : undefined
+                  ) : undefined}
+                  onPress={openAdjuster}
                 />
               </View>
               <View style={{ flexDirection: 'row', gap: 10 }}>

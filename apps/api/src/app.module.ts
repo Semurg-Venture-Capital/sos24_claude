@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AdminModule } from './admin/admin.module';
+import { AdjusterModule } from './adjuster/adjuster.module';
 import { AuthModule } from './auth/auth.module';
 import { PartnersModule } from './partners/partners.module';
 import { CardsModule } from './cards/cards.module';
@@ -33,6 +34,7 @@ import { WalletModule } from './wallet/wallet.module';
     NappModule,
     MyidModule,
     AdminModule,
+    AdjusterModule,
     PartnersModule,
   ],
 })

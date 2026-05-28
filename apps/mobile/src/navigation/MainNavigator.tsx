@@ -1,6 +1,7 @@
 import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform } from 'react-native';
+import { AdjusterNavigator } from './AdjusterNavigator';
 import { GarageNavigator } from './GarageNavigator';
 import { HomeScreen } from '../features/main/screens/HomeScreen';
 import { PoliciesNavigator } from './PoliciesNavigator';
@@ -86,6 +87,15 @@ export function MainNavigator() {
       <Stack.Screen
         name="Purchase"
         component={PurchaseNavigator}
+        options={
+          Platform.OS === 'web'
+            ? {}
+            : { presentation: 'modal', animation: 'slide_from_bottom' }
+        }
+      />
+      <Stack.Screen
+        name="Adjuster"
+        component={AdjusterNavigator}
         options={
           Platform.OS === 'web'
             ? {}
