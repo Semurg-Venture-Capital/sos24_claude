@@ -2,9 +2,9 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useCards, type CardApi } from '../../../api/cards';
-import { usePayPolicy } from '../../../api/payments';
+import { useInitClick, useInitPayme, usePayPolicy } from '../../../api/payments';
 import { usePolicy } from '../../../api/policies';
 import { useWallet } from '../../../api/wallet';
 import { PayLockIcon } from '../../../components/icons/PayLockIcon';
@@ -40,6 +40,8 @@ export function PaymentScreen() {
   const { data: wallet } = useWallet();
   const { data: cards } = useCards();
   const payMutation = usePayPolicy();
+  const paymeMutation = useInitPayme();
+  const clickMutation = useInitClick();
 
   const total = policy?.totalPrice ?? 0;
   const balance = wallet?.balance ?? 0;
@@ -47,7 +49,7 @@ export function PaymentScreen() {
   const car = policy?.vehicle;
   const isVehicleProduct = state.productType === 'osago' || state.productType === 'kasko';
 
-  // selectedMethod = 'wallet' | <card.id>
+  // selectedMethod = 'wallet' | 'payme' | 'click' | <card.id>
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,9 +57,27 @@ export function PaymentScreen() {
     setSelectedMethod(balance >= total ? 'wallet' : cards.find((c) => c.isDefault)?.id ?? cards[0]?.id ?? null);
   }, [cards, wallet, balance, total, selectedMethod]);
 
+  const isLoading = payMutation.isPending || paymeMutation.isPending || clickMutation.isPending;
+
   const onPay = async () => {
     if (!policyId || !selectedMethod) return;
     try {
+      if (selectedMethod === 'payme') {
+        const { redirectUrl } = await paymeMutation.mutateAsync(policyId);
+        await Linking.openURL(redirectUrl);
+        Alert.alert('Payme', 'После оплаты вернитесь в приложение — статус обновится автоматически.', [
+          { text: 'OK', onPress: () => nav.navigate('Success') },
+        ]);
+        return;
+      }
+      if (selectedMethod === 'click') {
+        const { redirectUrl } = await clickMutation.mutateAsync(policyId);
+        await Linking.openURL(redirectUrl);
+        Alert.alert('Click', 'После оплаты вернитесь в приложение — статус обновится автоматически.', [
+          { text: 'OK', onPress: () => nav.navigate('Success') },
+        ]);
+        return;
+      }
       await payMutation.mutateAsync(
         selectedMethod === 'wallet'
           ? { policyId, method: 'WALLET' }
@@ -151,6 +171,66 @@ export function PaymentScreen() {
               />
             ))}
             <NewCardOption />
+
+            {/* Payme */}
+            <Pressable
+              onPress={() => setSelectedMethod('payme')}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+                borderRadius: 18,
+                borderWidth: 1.5,
+                borderColor: selectedMethod === 'payme' ? '#00AAFF' : 'rgba(20,20,20,0.1)',
+                backgroundColor: selectedMethod === 'payme' ? 'rgba(0,170,255,0.06)' : 'rgba(255,255,255,0.7)',
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#00AAFF', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: 'NeueMontreal-Bold', fontSize: 11, color: '#fff', letterSpacing: 0.5 }}>P</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>Payme</Text>
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>Оплата через браузер</Text>
+              </View>
+              {selectedMethod === 'payme' && (
+                <View style={{ width: 18, height: 18, borderRadius: 999, backgroundColor: '#00AAFF', alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#fff', fontSize: 11, fontFamily: 'Manrope_700Bold' }}>✓</Text>
+                </View>
+              )}
+            </Pressable>
+
+            {/* Click */}
+            <Pressable
+              onPress={() => setSelectedMethod('click')}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+                borderRadius: 18,
+                borderWidth: 1.5,
+                borderColor: selectedMethod === 'click' ? '#FF6B00' : 'rgba(20,20,20,0.1)',
+                backgroundColor: selectedMethod === 'click' ? 'rgba(255,107,0,0.06)' : 'rgba(255,255,255,0.7)',
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#FF6B00', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontFamily: 'NeueMontreal-Bold', fontSize: 11, color: '#fff', letterSpacing: 0.5 }}>C</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>Click</Text>
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>Оплата через браузер</Text>
+              </View>
+              {selectedMethod === 'click' && (
+                <View style={{ width: 18, height: 18, borderRadius: 999, backgroundColor: '#FF6B00', alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#fff', fontSize: 11, fontFamily: 'Manrope_700Bold' }}>✓</Text>
+                </View>
+              )}
+            </Pressable>
           </View>
 
           <SecureNote text="Платёж защищён. Данные карты не сохраняются на нашем сервере." />
@@ -160,8 +240,8 @@ export function PaymentScreen() {
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
         <LinearGradient colors={['rgba(228,228,228,0)', 'rgba(228,228,228,0.95)']} style={{ height: 24 }} />
         <View style={{ paddingHorizontal: 24, paddingBottom: 32, paddingTop: 8, backgroundColor: 'rgba(228,228,228,0.95)' }}>
-          <RedButton trailing={false} onPress={onPay} disabled={payMutation.isPending || !selectedMethod || !policyId}>
-            {payMutation.isPending ? (
+          <RedButton trailing={false} onPress={onPay} disabled={isLoading || !selectedMethod || !policyId}>
+            {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <>

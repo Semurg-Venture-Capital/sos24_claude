@@ -9,6 +9,7 @@ interface Props {
   expiry: string;
   holder: string;
   primary?: boolean;
+  balance?: number;
 }
 
 const brandStyles: Record<CardBrand, { gradient: [string, string]; brandTextColor: string }> = {
@@ -19,7 +20,7 @@ const brandStyles: Record<CardBrand, { gradient: [string, string]; brandTextColo
 const brandLabels: Record<CardBrand, string> = { uzcard: 'Uzcard', humo: 'Humo' };
 
 // Большая «реальная» карточка платёжного инструмента (M7.3 Мои карты).
-export function SavedCardBig({ brand, last4, expiry, holder, primary }: Props) {
+export function SavedCardBig({ brand, last4, expiry, holder, primary, balance }: Props) {
   const s = brandStyles[brand];
 
   return (
@@ -91,16 +92,23 @@ export function SavedCardBig({ brand, last4, expiry, holder, primary }: Props) {
         </View>
 
         <View style={{ gap: 14 }}>
-          <Text
-            style={{
-              fontFamily: 'NeueMontreal-Medium',
-              fontSize: 22,
-              color: '#fff',
-              letterSpacing: 3.96,
-            }}
-          >
-            •••• •••• •••• {last4}
-          </Text>
+          <View style={{ gap: 4 }}>
+            <Text
+              style={{
+                fontFamily: 'NeueMontreal-Medium',
+                fontSize: 22,
+                color: '#fff',
+                letterSpacing: 3.96,
+              }}
+            >
+              •••• •••• •••• {last4}
+            </Text>
+            {balance !== undefined && (
+              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
+                {balance.toLocaleString('ru-RU')} сум
+              </Text>
+            )}
+          </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <View style={{ gap: 2 }}>
               <Text

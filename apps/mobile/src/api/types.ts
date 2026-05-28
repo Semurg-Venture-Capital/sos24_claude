@@ -7,6 +7,6 @@ export type DriverLimit = 'LIMITED' | 'UNLIMITED';
 export type DocumentKind = 'PASSPORT' | 'DRIVER_LICENSE';
 export type DocumentStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type CardBrandApi = 'UZCARD' | 'HUMO' | 'VISA' | 'MASTERCARD';
-export type PaymentMethod = 'WALLET' | 'CARD';
+export type PaymentMethod = 'WALLET' | 'CARD' | 'PAYME' | 'CLICK';
 export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
 export type WalletTxType = 'TOPUP' | 'PAYMENT' | 'REFUND' | 'BONUS';

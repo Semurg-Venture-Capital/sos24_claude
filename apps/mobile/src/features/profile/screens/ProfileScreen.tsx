@@ -5,12 +5,14 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useMe } from '../../../api/auth';
 import { useDocuments } from '../../../api/documents';
-import { IconChat, IconFile, IconInfo, IconLanguage, IconLicense, IconLogout, IconPalette, IconPassport, IconPencil, IconQuestion } from '../../../components/icons/LineIcons';
+import { IconChat, IconFile, IconInfo, IconLanguage, IconLicense, IconLogout, IconPalette, IconPassport, IconPencil, IconQuestion, IconWallet } from '../../../components/icons/LineIcons';
 import { Avatar } from '../../../components/ui/Avatar';
 import { ListRow } from '../../../components/ui/ListRow';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { StatusPill } from '../../../components/ui/StatusPill';
 import { Toggle } from '../../../components/ui/Toggle';
+import { useCards } from '../../../api/cards';
+import { useWallet } from '../../../api/wallet';
 import { useAuthStore } from '../../../stores/authStore';
 import { tokens } from '../../../theme/colors';
 import { MOCK_USER, getLocaleLabel, getThemeLabel } from '../mockProfile';
@@ -39,6 +41,8 @@ export function ProfileScreen() {
   const [notifications, setNotifications] = useState(MOCK_USER.notificationsEnabled);
   const { data: me } = useMe();
   const { data: documents } = useDocuments();
+  const { data: wallet } = useWallet();
+  const { data: cards } = useCards();
   const passport = documents?.find((d) => d.kind === 'PASSPORT');
   const license = documents?.find((d) => d.kind === 'DRIVER_LICENSE');
   const fullName =
@@ -151,6 +155,15 @@ export function ProfileScreen() {
             meta={license ? `${license.series} ${license.number}` : 'не заполнено'}
             trailing={<StatusPill status={statusFromApi(license?.status)} />}
             onPress={() => nav.navigate('Document', { kind: 'license' })}
+          />
+        </Section>
+
+        <Section title="Финансы">
+          <ListRow
+            icon={<IconWallet />}
+            title="Кошелёк и карты"
+            meta={wallet ? `${wallet.balance.toLocaleString('ru-RU')} сум · ${cards?.length ?? 0} карт` : undefined}
+            onPress={() => nav.navigate('Finance')}
           />
         </Section>
 

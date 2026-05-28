@@ -56,6 +56,8 @@ enum CardBrand {
 enum PaymentMethod {
   WALLET
   CARD
+  PAYME
+  CLICK
 }
 
 enum PaymentStatus {
@@ -80,12 +82,27 @@ enum VerificationStatus {
 enum UserRole {
   USER
   ADMIN
+  ADJUSTER
 }
 
 enum PartnerType {
   STO
   CLINIC
   TOWING
+}
+
+enum IncidentType {
+  ACCIDENT  // ДТП
+  DAMAGE    // Повреждение
+  THEFT     // Угон
+}
+
+enum AdjusterStatus {
+  NEW
+  ACCEPTED
+  EN_ROUTE
+  COMPLETED
+  CANCELLED
 }
 
 model User {
@@ -113,13 +130,15 @@ model User {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  vehicles    Vehicle[]
-  documents   Document[]
-  drivers     Driver[]
-  policies    Policy[]
-  cards       Card[]
-  wallet      Wallet?
-  payments    Payment[]
+  vehicles          Vehicle[]
+  documents         Document[]
+  drivers           Driver[]
+  policies          Policy[]
+  cards             Card[]
+  wallet            Wallet?
+  payments          Payment[]
+  adjusterRequests  AdjusterRequest[]  @relation("RequestOwner")
+  assignedRequests  AdjusterRequest[]  @relation("AssignedAdjuster")
 
   @@map("users")
 }
@@ -275,6 +294,7 @@ model Card {
   expiry    String    // "MM/YY"
   token     String    // mock-токен от платёжки (в реале — Uzcard tokenization)
   isDefault Boolean   @default(false)
+  balance   Int       @default(5000000) // mock-баланс карты в сумах
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -360,4 +380,35 @@ model Payment {
   @@index([userId, status])
   @@index([policyId])
   @@map("payments")
+}
+
+model AdjusterRequest {
+  id           String         @id @default(cuid())
+  userId       String
+  user         User           @relation("RequestOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  policyId     String?        // связанный полис (необязательно)
+  incidentType IncidentType
+  address      String
+  lat          Float?
+  lng          Float?
+  comment      String?
+  adjusterNote String?        @map("adjuster_note")
+  status       AdjusterStatus @default(NEW)
+
+  // Назначенный аджастер — системный пользователь с ролью ADJUSTER
+  assignedAdjusterId String?  @map("assigned_adjuster_id")
+  assignedAdjuster   User?    @relation("AssignedAdjuster", fields: [assignedAdjusterId], references: [id], onDelete: SetNull)
+
+  // Одноразовый аджастер (без аккаунта в системе)
+  adjusterName  String?  @map("adjuster_name")
+  adjusterPhone String?  @map("adjuster_phone")
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([status, createdAt])
+  @@index([assignedAdjusterId])
+  @@map("adjuster_requests")
 }

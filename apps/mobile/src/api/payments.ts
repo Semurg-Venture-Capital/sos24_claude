@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
 import type { PaymentMethod, PaymentStatus } from './types';
 import type { Policy } from './policies';
@@ -36,6 +36,48 @@ export function usePayPolicy() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['policies'] });
       qc.invalidateQueries({ queryKey: ['wallet'] });
+      qc.invalidateQueries({ queryKey: ['cards'] });
+      qc.invalidateQueries({ queryKey: ['payments'] });
     },
   });
+}
+
+export interface GatewayInitResult {
+  paymentId: string;
+  redirectUrl: string;
+}
+
+export async function initPayme(policyId: string): Promise<GatewayInitResult> {
+  const { data } = await api.post<GatewayInitResult>('/payments/payme/init', { policyId });
+  return data;
+}
+
+export async function initClick(policyId: string): Promise<GatewayInitResult> {
+  const { data } = await api.post<GatewayInitResult>('/payments/click/init', { policyId });
+  return data;
+}
+
+export function useInitPayme() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: initPayme,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['policies'] }),
+  });
+}
+
+export function useInitClick() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: initClick,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['policies'] }),
+  });
+}
+
+export async function getPaymentHistory() {
+  const { data } = await api.get<PaymentResult[]>('/payments/history');
+  return data;
+}
+
+export function usePaymentHistory() {
+  return useQuery({ queryKey: ['payments'], queryFn: getPaymentHistory });
 }

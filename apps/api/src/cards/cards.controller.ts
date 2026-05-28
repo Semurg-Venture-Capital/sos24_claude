@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -23,6 +23,12 @@ export class CardsController {
   @ApiOperation({ summary: 'Добавить карту (mock-tokenization).' })
   create(@CurrentUser() user: JwtPayload, @Body() dto: CreateCardDto) {
     return this.cards.create(user.sub, dto);
+  }
+
+  @Patch(':id/set-default')
+  @ApiOperation({ summary: 'Сделать карту основной.' })
+  setDefault(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.cards.setDefault(user.sub, id);
   }
 
   @Delete(':id')

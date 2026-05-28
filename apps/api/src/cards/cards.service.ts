@@ -23,8 +23,9 @@ export class CardsService {
 
   async create(userId: string, dto: CreateCardDto): Promise<Card> {
     const existing = await this.prisma.card.count({ where: { userId } });
-    // Mock-токен Uzcard. В реале — пришёл бы от платёжки после tokenization.
     const token = `mock_${randomBytes(8).toString('hex')}`;
+    // Рандомный mock-баланс 2M–8M сум
+    const balance = Math.floor(Math.random() * 6_000_000) + 2_000_000;
     return this.prisma.card.create({
       data: {
         userId,
@@ -32,8 +33,22 @@ export class CardsService {
         last4: dto.last4,
         expiry: dto.expiry,
         token,
-        isDefault: existing === 0, // первая карта = дефолтная
+        isDefault: existing === 0,
+        balance,
       },
+    });
+  }
+
+  async setDefault(userId: string, id: string): Promise<Card> {
+    await this.findOne(userId, id);
+    await this.prisma.card.updateMany({ where: { userId }, data: { isDefault: false } });
+    return this.prisma.card.update({ where: { id }, data: { isDefault: true } });
+  }
+
+  async debitBalance(id: string, amount: number): Promise<void> {
+    await this.prisma.card.update({
+      where: { id },
+      data: { balance: { decrement: amount } },
     });
   }
 

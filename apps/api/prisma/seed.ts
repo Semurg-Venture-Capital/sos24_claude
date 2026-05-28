@@ -226,6 +226,7 @@ async function main() {
       expiry: '08/27',
       token: 'mock_seed_uzcard_4582',
       isDefault: true,
+      balance: 6_500_000,
     },
   });
   const cardHumo = await prisma.card.create({
@@ -236,6 +237,7 @@ async function main() {
       expiry: '03/28',
       token: 'mock_seed_humo_1190',
       isDefault: false,
+      balance: 3_200_000,
     },
   });
   console.log(`  Card: ${cardUzcard.brand} •••• ${cardUzcard.last4} (default)`);

@@ -10,6 +10,7 @@ export interface CardApi {
   expiry: string;
   token: string;
   isDefault: boolean;
+  balance: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,6 +49,19 @@ export function useDeleteCard() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deleteCard,
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.list }),
+  });
+}
+
+export async function setDefaultCard(id: string) {
+  const { data } = await api.patch<CardApi>(`/me/cards/${id}/set-default`);
+  return data;
+}
+
+export function useSetDefaultCard() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: setDefaultCard,
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.list }),
   });
 }
