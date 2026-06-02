@@ -158,6 +158,11 @@ export function ProfileScreen() {
           />
         </Section>
 
+        {/* MyID verified personal data — read-only */}
+        {isVerified && me && (
+          <MyIdDataSection me={me} />
+        )}
+
         <Section title="Финансы">
           <ListRow
             icon={<IconWallet />}
@@ -205,6 +210,60 @@ export function ProfileScreen() {
         </View>
       </ScrollView>
     </PhoneFrame>
+  );
+}
+
+// ─── MyID data read-only section ─────────────────────────────────────────────
+
+type MeData = NonNullable<ReturnType<typeof useMe>['data']>;
+
+function MyIdRow({ label, value }: { label: string; value: string | null | undefined }) {
+  if (!value) return null;
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: tokens.hairline }}>
+      <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted, flex: 1 }}>
+        {label}
+      </Text>
+      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkDark, flex: 1.4, textAlign: 'right' }}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function MyIdDataSection({ me }: { me: MeData }) {
+  const genderLabel =
+    me.gender === '1' || me.gender === 'M' ? 'Мужской'
+    : me.gender === '2' || me.gender === 'F' ? 'Женский'
+    : me.gender || null;
+  const nameEn = [me.surnameEn, me.nameEn].filter((s) => s && s.trim()).join(' ') || null;
+  const hasData = me.pinfl || genderLabel || me.birthPlace || me.nationality || me.address || nameEn;
+
+  if (!hasData) return null;
+
+  return (
+    <Section title="Личные данные (MyID)">
+      <View
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: tokens.hairline,
+          paddingHorizontal: 16,
+          overflow: 'hidden',
+        }}
+      >
+        <MyIdRow label="ПИНФЛ" value={me.pinfl} />
+        <MyIdRow label="Пол" value={genderLabel} />
+        <MyIdRow label="Место рождения" value={me.birthPlace} />
+        <MyIdRow label="Национальность" value={me.nationality} />
+        <MyIdRow label="Гражданство" value={me.citizenship} />
+        <MyIdRow label="Адрес прописки" value={me.address} />
+        <View style={{ borderBottomWidth: 0 }}>
+          <MyIdRow label="Имя (латиница)" value={nameEn} />
+        </View>
+      </View>
+    </Section>
   );
 }
 

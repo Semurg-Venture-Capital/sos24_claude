@@ -170,4 +170,59 @@ export class AdminService {
 
     return { total, page, limit, policies };
   }
+
+  /** Полные MyID-данные конкретного пользователя — для тест-страницы в админке. */
+  async getUserMyIdData(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        phone: true,
+        name: true,
+        surname: true,
+        patronymic: true,
+        nameEn: true,
+        surnameEn: true,
+        birthDate: true,
+        birthPlace: true,
+        gender: true,
+        nationality: true,
+        citizenship: true,
+        address: true,
+        pinfl: true,
+        verificationStatus: true,
+        createdAt: true,
+        myidRaw: true,
+        documents: {
+          where: { kind: 'PASSPORT' },
+          select: {
+            series: true,
+            number: true,
+            pinfl: true,
+            issuedAt: true,
+            issuedBy: true,
+            expiresAt: true,
+            status: true,
+          },
+        },
+      },
+    });
+    return user;
+  }
+
+  /** Список всех верифицированных пользователей для MyID тест-страницы. */
+  async getVerifiedUsers() {
+    return this.prisma.user.findMany({
+      where: { verificationStatus: 'MYID_VERIFIED' },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        phone: true,
+        name: true,
+        surname: true,
+        pinfl: true,
+        createdAt: true,
+      },
+    });
+  }
 }

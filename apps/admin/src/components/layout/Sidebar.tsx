@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   Siren,
+  Fingerprint,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +21,7 @@ const NAV = [
   { href: '/users', label: 'Пользователи', icon: Users },
   { href: '/policies', label: 'Полисы', icon: ShieldCheck },
   { href: '/adjuster', label: 'Аджастер', icon: Siren },
+  { href: '/myid-test', label: 'MyID данные', icon: Fingerprint },
   { href: '/claims', label: 'Убытки', icon: FileText, disabled: true },
   { href: '/partners', label: 'Партнёры', icon: Handshake, disabled: true },
   { href: '/reports', label: 'Отчёты', icon: BarChart3, disabled: true },

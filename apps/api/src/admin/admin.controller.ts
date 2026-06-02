@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from './admin.guard';
@@ -26,6 +26,18 @@ export class AdminController {
     @Query('verified') verified?: string,
   ) {
     return this.adminService.getUsers(+page, +limit, search, verified);
+  }
+
+  @Get('users/myid-verified')
+  @ApiOperation({ summary: 'Список верифицированных через MyID пользователей.' })
+  getVerifiedUsers() {
+    return this.adminService.getVerifiedUsers();
+  }
+
+  @Get('users/:id/myid')
+  @ApiOperation({ summary: 'Полные данные пользователя из MyID — для тестирования.' })
+  getUserMyId(@Param('id') id: string) {
+    return this.adminService.getUserMyIdData(id);
   }
 
   @Get('policies')
