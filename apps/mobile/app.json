@@ -16,7 +16,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "uz.sos24.app",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "SOS24 использует вашу геопозицию для определения адреса при вызове аджастера."
+        "NSLocationWhenInUseUsageDescription": "SOS24 использует вашу геопозицию для определения адреса при вызове аджастера.",
+        "NSCameraUsageDescription": "SOS24 использует камеру для верификации личности через MyID.",
+        "NSFaceIDUsageDescription": "SOS24 использует Face ID для безопасной идентификации через MyID."
       }
     },
     "android": {
@@ -31,6 +33,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "./plugins/withMyIdSdk",
       "expo-font",
       "expo-secure-store",
       [

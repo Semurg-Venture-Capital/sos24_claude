@@ -4,6 +4,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { UsersService } from '../users/users.service';
+import { CreateMyIdSessionDto } from './dto/create-myid-session.dto';
 import { VerifyMyIdDto } from './dto/verify-myid.dto';
 import { MyidService } from './myid.service';
 
@@ -18,13 +19,21 @@ export class MyidController {
   ) {}
 
   @Post('session')
-  @ApiOperation({ summary: 'Создать сессию MyID. Возвращает sessionId для SDK.' })
-  async createSession() {
-    return this.myidService.createSession();
+  @ApiOperation({
+    summary: 'Создать сессию MyID.',
+    description:
+      'Возвращает sessionId + clientHash + clientHashId для инициализации нативного SDK. ' +
+      'Опционально принимает pinfl — тогда SDK пропускает экран ввода паспорта.',
+  })
+  async createSession(@Body() dto: CreateMyIdSessionDto) {
+    return this.myidService.createSession(dto.pinfl);
   }
 
   @Post('verify')
-  @ApiOperation({ summary: 'Верифицировать пользователя по code от MyID SDK.' })
+  @ApiOperation({
+    summary: 'Верифицировать пользователя по code от MyID SDK.',
+    description: 'code живёт 5 минут и одноразовый. Возвращает обновлённый профиль пользователя.',
+  })
   async verify(@CurrentUser() user: JwtPayload, @Body() dto: VerifyMyIdDto) {
     await this.myidService.verifyCode(user.sub, dto.code);
     return this.usersService.findById(user.sub);

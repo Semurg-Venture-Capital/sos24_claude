@@ -61,36 +61,59 @@ const MOCK_USER_DATA: MyIdUserData = {
   raw: { _mock: true },
 };
 
+export interface MyIdSessionResult {
+  sessionId: string;
+  clientHash: string;
+  clientHashId: string;
+  environment: string;
+}
+
 @Injectable()
 export class MyidService {
   private readonly isMock: boolean;
   private readonly baseUrl: string;
   private readonly clientId: string;
   private readonly clientSecret: string;
+  private readonly clientHash: string;
+  private readonly clientHashId: string;
+  private readonly environment: string;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
   ) {
     this.isMock = this.config.get<string>('MYID_MOCK') === 'true';
-    this.baseUrl = this.config.get<string>('MYID_BASE_URL') ?? 'https://myid.uz';
+    this.baseUrl = this.config.get<string>('MYID_BASE_URL') ?? 'https://api.myid.uz';
     this.clientId = this.config.get<string>('MYID_CLIENT_ID') ?? '';
     this.clientSecret = this.config.get<string>('MYID_CLIENT_SECRET') ?? '';
+    this.clientHash = this.config.get<string>('MYID_CLIENT_HASH') ?? '';
+    this.clientHashId = this.config.get<string>('MYID_CLIENT_HASH_ID') ?? '';
+    this.environment = this.config.get<string>('MYID_ENVIRONMENT') ?? 'production';
   }
 
-  // Шаг 1: создать сессию на стороне MyID → вернуть sessionId мобильному приложению.
-  async createSession(): Promise<{ sessionId: string }> {
+  // Шаг 1: создать сессию MyID → вернуть sessionId + SDK-конфиг мобильному приложению.
+  // pinfl опционален: если передан — SDK пропускает экран ввода паспорта.
+  async createSession(pinfl?: string): Promise<MyIdSessionResult> {
+    const sdkConfig = {
+      clientHash: this.clientHash,
+      clientHashId: this.clientHashId,
+      environment: this.environment,
+    };
+
     if (this.isMock) {
-      return { sessionId: 'mock-session-id' };
+      return { sessionId: 'mock-session-id', ...sdkConfig };
     }
 
     const accessToken = await this.getAccessToken();
+    const body: Record<string, unknown> = { is_resident: true };
+    if (pinfl) body['pinfl'] = pinfl;
+
     const { data } = await axios.post<{ session_id: string }>(
       `${this.baseUrl}/api/v2/sdk/sessions`,
-      { residency: 'RESIDENT' },
+      body,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
-    return { sessionId: data.session_id };
+    return { sessionId: data.session_id, ...sdkConfig };
   }
 
   // Шаг 2: SDK вернул code → получаем данные пользователя → обновляем юзера в БД.

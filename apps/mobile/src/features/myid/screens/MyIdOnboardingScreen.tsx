@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { startMyIdSdk } from '@sos24/myid-sdk';
 import { createMyIdSession, verifyMyId } from '../../../api/myid';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
@@ -12,36 +13,50 @@ import { tokens } from '../../../theme/colors';
 export function MyIdOnboardingScreen() {
   const setVerified = useAuthStore((s) => s.setVerified);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const startMyId = async () => {
     setLoading(true);
-    setError(null);
     try {
-      // Шаг 1: создаём сессию на бэке
-      await createMyIdSession();
+      // 1. Создаём сессию на бэкенде — получаем sessionId + SDK-конфиг
+      const session = await createMyIdSession();
 
-      // TODO (когда придут ключи): здесь запускаем нативный SDK
-      // import { MyIdClient } from 'myid-rn-sdk';
-      // const result = await MyIdClient.start({ sessionId, clientHash, clientHashId });
-      // await completeVerification(result.code);
+      // 2. Запускаем нативный MyID SDK (только iOS)
+      const result = await startMyIdSdk({
+        sessionId: session.sessionId,
+        clientHash: session.clientHash,
+        clientHashId: session.clientHashId,
+        environment: session.environment,
+      });
 
-      // Сейчас в prod: здесь будет SDK. В __DEV__ — используй кнопку ниже.
-    } catch {
-      setError('Не удалось подключиться к серверу. Попробуйте ещё раз.');
+      // 3. Отправляем одноразовый code на бэкенд → получаем полный профиль
+      await verifyMyId(result.code);
+
+      // 4. Переводим стор в authenticated
+      setVerified();
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+
+      // Пользователь сам закрыл SDK — молчим
+      if (msg.includes('MYID_CANCELLED') || msg.includes('отменил')) return;
+
+      Alert.alert(
+        'Ошибка верификации',
+        'Не удалось пройти MyID. Проверьте освещение и попробуйте снова.',
+        [{ text: 'Попробовать снова' }],
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  // DEV-режим: симуляция без реального SDK (бэкенд в MYID_MOCK=true)
   const simulateMyId = async () => {
     setLoading(true);
-    setError(null);
     try {
       await verifyMyId('mock-code');
       setVerified();
     } catch {
-      setError('Ошибка верификации. Попробуйте ещё раз.');
+      Alert.alert('Ошибка', 'Симуляция не удалась. Убедитесь что MYID_MOCK=true на бэке.');
     } finally {
       setLoading(false);
     }
@@ -116,24 +131,12 @@ export function MyIdOnboardingScreen() {
                   flexShrink: 0,
                 }}
               >
-                <Text
-                  style={{
-                    fontFamily: 'NeueMontreal-Medium',
-                    fontSize: 13,
-                    color: tokens.red,
-                  }}
-                >
+                <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 13, color: tokens.red }}>
                   {i + 1}
                 </Text>
               </View>
               <View style={{ flex: 1, gap: 2 }}>
-                <Text
-                  style={{
-                    fontFamily: 'Manrope_600SemiBold',
-                    fontSize: 14,
-                    color: tokens.inkDark,
-                  }}
-                >
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkDark }}>
                   {step.title}
                 </Text>
                 <Text
@@ -163,7 +166,15 @@ export function MyIdOnboardingScreen() {
             marginBottom: 8,
           }}
         >
-          <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={tokens.inkMuted} strokeWidth={1.8} strokeLinecap="round">
+          <Svg
+            width={16}
+            height={16}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={tokens.inkMuted}
+            strokeWidth={1.8}
+            strokeLinecap="round"
+          >
             <Circle cx={12} cy={12} r={10} />
             <Path d="M12 16v-4M12 8h.01" />
           </Svg>
@@ -183,24 +194,11 @@ export function MyIdOnboardingScreen() {
 
       {/* Bottom actions */}
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36, gap: 12 }}>
-        {error && (
-          <Text
-            style={{
-              textAlign: 'center',
-              fontFamily: 'Manrope_500Medium',
-              fontSize: 13,
-              color: tokens.red,
-            }}
-          >
-            {error}
-          </Text>
-        )}
-
         <RedButton onPress={startMyId} disabled={loading}>
           {loading ? <ActivityIndicator color="#fff" /> : 'Пройти идентификацию MyID'}
         </RedButton>
 
-        {/* DEV-only: симуляция без реального SDK */}
+        {/* DEV: симуляция без реального SDK (только __DEV__ + MYID_MOCK=true на бэке) */}
         {__DEV__ && (
           <Pressable
             onPress={simulateMyId}
@@ -214,13 +212,7 @@ export function MyIdOnboardingScreen() {
               opacity: pressed || loading ? 0.5 : 1,
             })}
           >
-            <Text
-              style={{
-                fontFamily: 'Manrope_600SemiBold',
-                fontSize: 14,
-                color: tokens.inkMuted,
-              }}
-            >
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkMuted }}>
               Симулировать MyID (DEV)
             </Text>
           </Pressable>
@@ -232,12 +224,12 @@ export function MyIdOnboardingScreen() {
 
 const STEPS = [
   {
-    title: 'Сканирование лица',
-    desc: 'Liveness-проверка: убедитесь, что у вас хорошее освещение',
+    title: 'Введите паспортные данные',
+    desc: 'Серия/номер или ПИНФЛ — заполняются в интерфейсе MyID',
   },
   {
-    title: 'Проверка документа',
-    desc: 'Система сверит данные с базой ГНКР по ПИНФЛ',
+    title: 'Сканирование лица',
+    desc: 'Liveness-проверка: хорошее освещение, смотрите прямо в камеру',
   },
   {
     title: 'Данные сохраняются',
@@ -248,15 +240,11 @@ const STEPS = [
 function MyIdIcon() {
   return (
     <Svg width={52} height={52} viewBox="0 0 52 52" fill="none">
-      {/* ID card background */}
       <Rect x={4} y={12} width={44} height={28} rx={6} fill={tokens.red} opacity={0.12} />
       <Rect x={4} y={12} width={44} height={28} rx={6} stroke={tokens.red} strokeWidth={1.5} />
-      {/* Face circle */}
       <Circle cx={18} cy={26} r={7} stroke={tokens.red} strokeWidth={1.5} />
-      {/* Face lines */}
       <Path d="M15 26a3 3 0 016 0" stroke={tokens.red} strokeWidth={1.5} strokeLinecap="round" />
       <Circle cx={18} cy={23} r={1.5} fill={tokens.red} />
-      {/* Text lines */}
       <Path d="M30 22h12M30 26h9M30 30h10" stroke={tokens.red} strokeWidth={1.5} strokeLinecap="round" opacity={0.5} />
     </Svg>
   );
