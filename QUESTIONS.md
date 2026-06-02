@@ -232,7 +232,8 @@
 
 ### Q11.1 — Apple / Google аккаунты разработчика
 **Статус:** 🔴 OPEN
-**Контекст:** Когда заказчик зарегистрирует Apple Developer (1-2 недели на проверку) и Google Play. Дать нам роли App Manager / Internal Tester.
+**Контекст:** Когда заказчик зарегистрирует Apple Developer ($99/год, 1-2 недели на проверку) и Google Play ($25 разово). Дать нам роли App Manager / Internal Tester.
+**Дополнение 2026-06-02:** Apple Developer Program также нужен для Apple Wallet Pass (PKPass сертификат). Без него нельзя добавить полис в Apple Wallet. Google Wallet — бесплатно отдельно.
 
 ### Q11.2 — Тестовое окружение
 **Статус:** 🔴 OPEN
