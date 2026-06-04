@@ -66,12 +66,22 @@ sos24_claude/
 │   ├── config-eslint/   — Общие ESLint конфиги
 │   └── i18n-strings/    — Переводы (uz-Latn, uz-Cyrl, ru, en)
 │
-├── CLAUDE.md            — Контекст проекта для Claude AI
-├── STAGE1.md            — Журнал работ: что сделано, где остановились
-├── DEVELOPMENT.md       — Инженерный процесс и команды
-├── DEVOPS.md            — Инструкция для DevOps-инженера (K8s)
-├── PLAN.md              — Технический план и архитектура
-├── QUESTIONS.md         — Открытые вопросы к клиенту
+├── CLAUDE.md            — Контекст проекта для Claude AI (в корне)
+├── README.md            — этот файл (в корне)
+├── docs/                — ВСЯ документация проекта
+│   ├── README.md            — индекс-путеводитель по docs
+│   ├── STAGE1.md            — Журнал работ: что сделано, где остановились
+│   ├── DEVELOPMENT.md       — Инженерный процесс и команды
+│   ├── DEVOPS.md            — Инструкция для DevOps (K8s)
+│   ├── PLAN.md              — Технический план и архитектура
+│   ├── QUESTIONS.md         — Открытые вопросы к клиенту
+│   ├── DESIGN_SYSTEM.md     — Дизайн-токены
+│   ├── EUROPROTOCOL.md      — Исследование Европротокола
+│   ├── TASKS.md             — Задачи Этапа 0 (legacy)
+│   ├── integrations/        — НАПП API (анализ + справочник эндпоинтов)
+│   ├── marketing/           — Маркетинг: рынок, стратегия, контент
+│   ├── website/             — Тексты лендинга (Framer)
+│   └── archive/             — Сырые/legacy материалы
 └── docker-compose.yml   — PostgreSQL для локальной разработки
 ```
 
@@ -194,19 +204,23 @@ CLICK_SECRET_KEY=
 - ИИ-чатбот (LLM routing)
 - Медицина, имущество, жизнь, путешествия
 
-Полный журнал → [`STAGE1.md`](STAGE1.md)
+Полный журнал → [`docs/STAGE1.md`](docs/STAGE1.md)
 
 ---
 
 ## Документация
 
+> Вся документация — в папке [`docs/`](docs/). Индекс: [`docs/README.md`](docs/README.md).
+
 | Файл | Для кого | Содержание |
 |---|---|---|
-| [`STAGE1.md`](STAGE1.md) | Разработчики | Текущий статус, что сделано, как продолжить |
-| [`DEVELOPMENT.md`](DEVELOPMENT.md) | Разработчики | Команды, конвенции, workflow |
-| [`DEVOPS.md`](DEVOPS.md) | DevOps | K8s: RKE2, Harbor, ArgoCD, Vault, мониторинг |
-| [`PLAN.md`](PLAN.md) | Тимлид | Архитектура, модули, роадмап |
-| [`QUESTIONS.md`](QUESTIONS.md) | Менеджер | Открытые вопросы к клиенту |
+| [`docs/STAGE1.md`](docs/STAGE1.md) | Разработчики | Текущий статус, что сделано, как продолжить |
+| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Разработчики | Команды, конвенции, workflow |
+| [`docs/DEVOPS.md`](docs/DEVOPS.md) | DevOps | K8s: RKE2, Harbor, ArgoCD, Vault, мониторинг |
+| [`docs/integrations/NAPP_ENDPOINTS.md`](docs/integrations/NAPP_ENDPOINTS.md) | Backend | Справочник эндпоинтов НАПП |
+| [`docs/integrations/NAPP.md`](docs/integrations/NAPP.md) | Backend | Полный анализ НАПП API |
+| [`docs/PLAN.md`](docs/PLAN.md) | Тимлид | Архитектура, модули, роадмап |
+| [`docs/QUESTIONS.md`](docs/QUESTIONS.md) | Менеджер | Открытые вопросы к клиенту |
 | [`CLAUDE.md`](CLAUDE.md) | Claude AI | Управляющий файл для AI-ассистента |
 
 ---

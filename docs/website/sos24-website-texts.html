@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>SOS24 — Замена текстов сайта (eloctix.framer.website)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      background: #f4f4f4;
+      color: #111;
+      padding: 40px 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+    .meta {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    .legend {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 32px;
+      font-size: 13px;
+    }
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+    .dot-before { background: #fee2e2; border: 1px solid #fca5a5; }
+    .dot-after  { background: #dcfce7; border: 1px solid #86efac; }
+
+    .section {
+      background: #fff;
+      border-radius: 14px;
+      margin-bottom: 28px;
+      overflow: hidden;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    }
+    .section-header {
+      background: #111;
+      color: #fff;
+      padding: 14px 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .section-header span {
+      color: #e61428;
+      font-weight: 700;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: #f9f9f9; }
+    th {
+      padding: 10px 16px;
+      font-size: 11px;
+      color: #999;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    th:first-child { width: 180px; }
+    td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #f2f2f2;
+      vertical-align: top;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    td.label {
+      color: #888;
+      font-size: 12px;
+      font-weight: 600;
+      padding-top: 15px;
+      width: 180px;
+    }
+    td.before {
+      background: #fff8f8;
+      color: #991b1b;
+      font-style: italic;
+    }
+    td.after {
+      background: #f0fdf4;
+      color: #14532d;
+      font-weight: 600;
+    }
+
+    .note {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #78350f;
+      margin-bottom: 28px;
+    }
+    .note strong { color: #92400e; }
+  </style>
+</head>
+<body>
+
+<h1>SOS24 — Замена текстов сайта</h1>
+<p class="meta">
+  Шаблон: <strong>eloctix.framer.website</strong> &nbsp;→&nbsp; Бренд: <strong>SOS24</strong> (sos24.uz)<br>
+  Объём текста сохранён: замены подобраны по числу слов/знаков к оригиналу.
+</p>
+
+<div class="legend">
+  <span><div class="dot dot-before"></div> Оригинал (до)</span>
+  <span><div class="dot dot-after"></div> SOS24 (после)</span>
+</div>
+
+<div class="note">
+  <strong>Важно:</strong> ценовой раздел адаптирован под абонентскую подписку SOS24 (ежемесячные платежи).
+  Суммы в узбекских сумах. Валютный знак <strong>$</strong> замените на <strong>сум</strong> или уберите — в зависимости от поля шаблона.
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  НАВИГАЦИЯ                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Навигация / <span>Header</span></div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Логотип / название</td>
+        <td class="before">Eloctix</td>
+        <td class="after">SOS24</td>
+      </tr>
+      <tr>
+        <td class="label">Меню — пункт 1</td>
+        <td class="before">About</td>
+        <td class="after">О нас</td>
+      </tr>
+      <tr>
+        <td class="label">Меню — пункт 2</td>
+        <td class="before">Blogs</td>
+        <td class="after">Блог</td>
+      </tr>
+      <tr>
+        <td class="label">Меню — пункт 3</td>
+        <td class="before">contact us</td>
+        <td class="after">Контакты</td>
+      </tr>
+      <tr>
+        <td class="label">Доп. меню — О нас</td>
+        <td class="before">About Us</td>
+        <td class="after">О нас</td>
+      </tr>
+      <tr>
+        <td class="label">Доп. меню — Услуги</td>
+        <td class="before">Services</td>
+        <td class="after">Услуги</td>
+      </tr>
+      <tr>
+        <td class="label">Доп. меню — Проекты</td>
+        <td class="before">Projects</td>
+        <td class="after">Продукты</td>
+      </tr>
+      <tr>
+        <td class="label">Телефон</td>
+        <td class="before">+123 456 789 00</td>
+        <td class="after">+998 71 200 24 24</td>
+      </tr>
+      <tr>
+        <td class="label">Email</td>
+        <td class="before">info@eloctix.com</td>
+        <td class="after">info@sos24.uz</td>
+      </tr>
+      <tr>
+        <td class="label">Адрес</td>
+        <td class="before">1234 Market Street, CA 94103, USA</td>
+        <td class="after">ул. Амира Темура 107Б, Ташкент, Узбекистан</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  HERO                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Секция 01 — <span>Hero</span> / Главный экран</div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Главный заголовок</td>
+        <td class="before">Powering Your Lighting</td>
+        <td class="after">Страхование. Помощь. Защита.</td>
+      </tr>
+      <tr>
+        <td class="label">Подзаголовок</td>
+        <td class="before">Reliable, affordable, and safe electrical solutions for homes, offices, and commercial spaces — delivered by trained and certified professionals.</td>
+        <td class="after">Надёжная, быстрая и доступная защита при ДТП, страховых случаях и экстренных ситуациях — работаем по всему Узбекистану круглосуточно.</td>
+      </tr>
+      <tr>
+        <td class="label">Кнопка CTA</td>
+        <td class="before">get started now</td>
+        <td class="after">начать прямо сейчас</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  О НАС                                                          -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Секция 02 — <span>About Us</span> / О нас</div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка секции</td>
+        <td class="before">about us</td>
+        <td class="after">о нас</td>
+      </tr>
+      <tr>
+        <td class="label">Заголовок</td>
+        <td class="before">Powering Homes With Excellence</td>
+        <td class="after">Помощь с первой секунды</td>
+      </tr>
+      <tr>
+        <td class="label">Основной текст</td>
+        <td class="before">At Eloctix, we are dedicated to providing reliable and high-quality electrical services to homes, businesses, and industries. With years of experience in the field, our team of certified electricians ensures every job is completed safely, efficiently.</td>
+        <td class="after">SOS24 — платформа экстренной помощи и страхования для водителей, семей и бизнеса. Наша команда специалистов обеспечивает мгновенный выезд аджастера, оформление полисов и поддержку 24/7 по всему Узбекистану.</td>
+      </tr>
+      <tr>
+        <td class="label">Ссылка / CTA-текст</td>
+        <td class="before">get in touch</td>
+        <td class="after">связаться с нами</td>
+      </tr>
+      <tr>
+        <td class="label">Статистика 1</td>
+        <td class="before">25 years of experience</td>
+        <td class="after">24/7 поддержка всегда</td>
+      </tr>
+      <tr>
+        <td class="label">Статистика 2</td>
+        <td class="before">95 working success rate</td>
+        <td class="after">98% довольных клиентов</td>
+      </tr>
+      <tr>
+        <td class="label">Статистика 3</td>
+        <td class="before">500 Completed projects</td>
+        <td class="after">500+ партнёров по РУз</td>
+      </tr>
+      <tr>
+        <td class="label">Статистика 4</td>
+        <td class="before">40 M Total Manhours</td>
+        <td class="after">2 млн мгновенная выплата</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  УСЛУГИ                                                         -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Секция 03 — <span>Services</span> / Услуги</div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка секции</td>
+        <td class="before">Service</td>
+        <td class="after">Услуги</td>
+      </tr>
+      <tr>
+        <td class="label">Подзаголовок</td>
+        <td class="before">Expert Appliance Connection and Setup</td>
+        <td class="after">Все виды страхования и помощи</td>
+      </tr>
+
+      <!-- Карточка 1 -->
+      <tr>
+        <td class="label">Карточка 1 — название</td>
+        <td class="before">Residential Rewiring</td>
+        <td class="after">ОСАГО и КАСКО</td>
+      </tr>
+      <tr>
+        <td class="label">Карточка 1 — текст</td>
+        <td class="before">Complete home electrical system upgrades and rewiring services to ensure safety, code compliance.</td>
+        <td class="after">Оформление обязательного и добровольного автострахования онлайн за несколько минут, без очередей и бумаг.</td>
+      </tr>
+
+      <!-- Карточка 2 -->
+      <tr>
+        <td class="label">Карточка 2 — название</td>
+        <td class="before">Emergency Repairs</td>
+        <td class="after">Экстренная помощь</td>
+      </tr>
+      <tr>
+        <td class="label">Карточка 2 — текст</td>
+        <td class="before">24/7 rapid response service for urgent electrical issues including power outages and sparking outlets.</td>
+        <td class="after">Аджастер выезжает в течение 15 минут после SOS-вызова при ДТП, угоне или аварии.</td>
+      </tr>
+
+      <!-- Карточка 3 -->
+      <tr>
+        <td class="label">Карточка 3 — название</td>
+        <td class="before">Commercial Service</td>
+        <td class="after">Медицинская помощь</td>
+      </tr>
+      <tr>
+        <td class="label">Карточка 3 — текст</td>
+        <td class="before">Professional electrical system design and installation for offices, retail spaces, and industrial facilities.</td>
+        <td class="after">Партнёрские клиники, запись без очереди и цифровая медицинская книжка для всей семьи.</td>
+      </tr>
+
+      <!-- Карточка 4 -->
+      <tr>
+        <td class="label">Карточка 4 — название</td>
+        <td class="before">Lighting Installation</td>
+        <td class="after">Умный ассистент</td>
+      </tr>
+      <tr>
+        <td class="label">Карточка 4 — текст</td>
+        <td class="before">Creative and functional lighting solutions for indoor and outdoor spaces including LED upgrades.</td>
+        <td class="after">Чат-бот на базе ИИ направит ваш запрос к нужному специалисту или экстренной службе.</td>
+      </tr>
+
+      <!-- Хайлайт / подпись к картинке -->
+      <tr>
+        <td class="label">Хайлайт проекта</td>
+        <td class="before">Home Lighting Renovation</td>
+        <td class="after">Мгновенная выплата — ДТП</td>
+      </tr>
+      <tr>
+        <td class="label">Ссылка «больше»</td>
+        <td class="before">More Projects</td>
+        <td class="after">Узнать больше</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  ПОЧЕМУ МЫ                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Секция 04 — <span>Why Choose Us</span> / Почему мы</div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка секции</td>
+        <td class="before">why choose us?</td>
+        <td class="after">почему именно SOS24?</td>
+      </tr>
+      <tr>
+        <td class="label">Заголовок</td>
+        <td class="before">Reliable Electrical Solutions</td>
+        <td class="after">Надёжная защита всегда</td>
+      </tr>
+      <tr>
+        <td class="label">Цифра / статистика</td>
+        <td class="before">75+ active support member</td>
+        <td class="after">50+ партнёров по городу</td>
+      </tr>
+      <tr>
+        <td class="label">Вводный текст блока</td>
+        <td class="before">From initial sketches to refined concepts, we ensure that creativity drives every.</td>
+        <td class="after">От первого обращения до выплаты — берём на себя каждый шаг процесса.</td>
+      </tr>
+
+      <!-- Фича 1 -->
+      <tr>
+        <td class="label">Фича 1 — название</td>
+        <td class="before">Creative Ideas</td>
+        <td class="after">Экстренный вызов</td>
+      </tr>
+      <tr>
+        <td class="label">Фича 1 — текст</td>
+        <td class="before">Creative ideas are the foundation of every successful project and we focus.</td>
+        <td class="after">Один нажим — и к вам едет аджастер, скорая или эвакуатор 24/7.</td>
+      </tr>
+
+      <!-- Фича 2 -->
+      <tr>
+        <td class="label">Фича 2 — название</td>
+        <td class="before">Design Process</td>
+        <td class="after">Цифровой протокол</td>
+      </tr>
+      <tr>
+        <td class="label">Фича 2 — текст</td>
+        <td class="before">Our process encourages thinking outside the box while maintaining practical.</td>
+        <td class="after">Оформляйте мелкое ДТП самостоятельно, без полиции, прямо в приложении SOS24.</td>
+      </tr>
+
+      <tr>
+        <td class="label">Ссылка</td>
+        <td class="before">let's get started</td>
+        <td class="after">начнём прямо сейчас</td>
+      </tr>
+      <tr>
+        <td class="label">Кнопка</td>
+        <td class="before">Contact</td>
+        <td class="after">Связаться</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  ОТЗЫВЫ                                                         -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Секция 05 — <span>Testimonials</span> / Отзывы</div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка секции</td>
+        <td class="before">Testimonials</td>
+        <td class="after">Отзывы</td>
+      </tr>
+      <tr>
+        <td class="label">Заголовок</td>
+        <td class="before">Clients Speak Out</td>
+        <td class="after">Клиенты говорят сами</td>
+      </tr>
+      <tr>
+        <td class="label">Ссылка / CTA</td>
+        <td class="before">get in touch</td>
+        <td class="after">связаться с нами</td>
+      </tr>
+      <tr>
+        <td class="label">Цитата клиента</td>
+        <td class="before">The team was incredibly professional and efficient. They rewired our entire home safely and quickly, ensuring every outlet and appliance.</td>
+        <td class="after">Аджастер SOS24 приехал за 12 минут после вызова. Оформил всё прямо на месте, объяснил каждый шаг. Выплата пришла быстрее, чем ожидал.</td>
+      </tr>
+      <tr>
+        <td class="label">Автор отзыва</td>
+        <td class="before">Sophia G. Turner, Homeowner</td>
+        <td class="after">Азиз К., Ташкент, водитель</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  ТАРИФЫ                                                         -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Секция 06 — <span>Pricing</span> / Тарифы</div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка секции</td>
+        <td class="before">Pricing</td>
+        <td class="after">Тарифы</td>
+      </tr>
+      <tr>
+        <td class="label">Заголовок</td>
+        <td class="before">Flexible Packages for Everyone</td>
+        <td class="after">Гибкие пакеты для каждого</td>
+      </tr>
+
+      <!-- ПЛАН 1: STARTER → БАЗОВЫЙ -->
+      <tr>
+        <td class="label">▸ ПЛАН 1 — название</td>
+        <td class="before">Starter plan</td>
+        <td class="after">Базовый план</td>
+      </tr>
+      <tr>
+        <td class="label">▸ ПЛАН 1 — описание</td>
+        <td class="before">Our Starter Plan is designed for homeowners and small-scale projects.</td>
+        <td class="after">Базовый пакет разработан для частных водителей и небольших семей.</td>
+      </tr>
+      <tr>
+        <td class="label">▸ ПЛАН 1 — цена (число)</td>
+        <td class="before">$19</td>
+        <td class="after">59 000</td>
+      </tr>
+      <tr>
+        <td class="label">▸ ПЛАН 1 — период</td>
+        <td class="before">/mo</td>
+        <td class="after">/мес</td>
+      </tr>
+      <tr>
+        <td class="label">▸ ПЛАН 1 — слоган</td>
+        <td class="before">Try ground AI risk-free</td>
+        <td class="after">Попробуйте без всякого риска</td>
+      </tr>
+      <tr>
+        <td class="label">▸ ПЛАН 1 — кнопка</td>
+        <td class="before">book a call</td>
+        <td class="after">оформить сейчас</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 1</td>
+        <td class="before">Affordable Electrical Service Plans</td>
+        <td class="after">ОСАГО и КАСКО онлайн</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 2</td>
+        <td class="before">Reliable Power Solutions Packages</td>
+        <td class="after">Выезд аджастера 24/7</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 3</td>
+        <td class="before">Choose Your Service Plan</td>
+        <td class="after">SOS-кнопка в приложении</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 4</td>
+        <td class="before">Transparent Rates, Trusted Service</td>
+        <td class="after">Прозрачные тарифы без сюрпризов</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 5</td>
+        <td class="before">Quality Work, Fair Price</td>
+        <td class="after">Мгновенная выплата при ДТП</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 6</td>
+        <td class="before">Smart Electrical Service Options</td>
+        <td class="after">Европротокол прямо в смартфоне</td>
+      </tr>
+
+      <!-- ПЛАН 2: STANDARD → СТАНДАРТНЫЙ -->
+      <tr>
+        <td class="label">▸ ПЛАН 2 — название</td>
+        <td class="before">Standard Plan</td>
+        <td class="after">Стандартный план</td>
+      </tr>
+      <tr>
+        <td class="label">▸ ПЛАН 2 — описание</td>
+        <td class="before">The Standard Plan is ideal for medium-sized projects or commercial spaces.</td>
+        <td class="after">Стандартный пакет идеален для семей и малого бизнеса с расширенным покрытием.</td>
+      </tr>
+      <tr>
+        <td class="label">▸ ПЛАН 2 — цена (число)</td>
+        <td class="before">$39</td>
+        <td class="after">120 000</td>
+      </tr>
+      <tr>
+        <td class="label">▸ ПЛАН 2 — период</td>
+        <td class="before">/mo</td>
+        <td class="after">/мес</td>
+      </tr>
+      <tr>
+        <td class="label">▸ ПЛАН 2 — слоган</td>
+        <td class="before">Experience AI with no risk</td>
+        <td class="after">Полная защита без всякого риска</td>
+      </tr>
+      <tr>
+        <td class="label">▸ ПЛАН 2 — кнопка</td>
+        <td class="before">Book a call</td>
+        <td class="after">Оформить полис</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 1</td>
+        <td class="before">Latest Tech Access</td>
+        <td class="after">Медицинская страховка жизни</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 2</td>
+        <td class="before">Smart Device Support</td>
+        <td class="after">Страхование имущества жилья</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 3</td>
+        <td class="before">Secure Checkout System</td>
+        <td class="after">Цифровая медицинская книжка</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 4</td>
+        <td class="before">Trusted Brand Quality</td>
+        <td class="after">Приоритетная горячая линия</td>
+      </tr>
+      <tr>
+        <td class="label">▸ Фича 5</td>
+        <td class="before">24/7 Customer Support</td>
+        <td class="after">Поддержка 24/7 всегда</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  КОНТАКТЫ                                                       -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Секция 07 — <span>Contact Us</span> / Контакты</div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка секции</td>
+        <td class="before">Contact us</td>
+        <td class="after">Напишите нам</td>
+      </tr>
+      <tr>
+        <td class="label">Заголовок</td>
+        <td class="before">Apply Now to Join Our Team</td>
+        <td class="after">Оставьте заявку — перезвоним</td>
+      </tr>
+      <tr>
+        <td class="label">Описание</td>
+        <td class="before">Take the next step in your career by submitting your application today. We're looking for passionate, dedicated</td>
+        <td class="after">Оставьте заявку — наш специалист свяжется с вами в течение 15 минут. Работаем круглосуточно.</td>
+      </tr>
+      <tr>
+        <td class="label">Телефон</td>
+        <td class="before">+1 (202) 555-0147</td>
+        <td class="after">+998 71 200 24 24</td>
+      </tr>
+      <tr>
+        <td class="label">Email</td>
+        <td class="before">info@eloctix.com</td>
+        <td class="after">info@sos24.uz</td>
+      </tr>
+      <tr>
+        <td class="label">Адрес</td>
+        <td class="before">1234 Market Street, San Francisco, CA 94103, USA</td>
+        <td class="after">ул. Амира Темура 107Б, Ташкент, 100084, Узбекистан</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  БЛОГ                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Секция 08 — <span>Blog & Insights</span> / Блог</div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка секции</td>
+        <td class="before">insights</td>
+        <td class="after">статьи</td>
+      </tr>
+      <tr>
+        <td class="label">Заголовок</td>
+        <td class="before">blog & insights</td>
+        <td class="after">блог и статьи</td>
+      </tr>
+
+      <!-- Пост 1 -->
+      <tr>
+        <td class="label">Пост 1 — тег/категория</td>
+        <td class="before">Rewiring</td>
+        <td class="after">ОСАГО</td>
+      </tr>
+      <tr>
+        <td class="label">Пост 1 — заголовок</td>
+        <td class="before">Why Your Home Needs a Complete Electrical Rewiring</td>
+        <td class="after">Как оформить ОСАГО онлайн за пять минут</td>
+      </tr>
+      <tr>
+        <td class="label">Пост 1 — автор / дата</td>
+        <td class="before">Michael Thompson Oct 18, 2025</td>
+        <td class="after">Алишер Тошматов 18 окт 2025</td>
+      </tr>
+
+      <!-- Пост 2 -->
+      <tr>
+        <td class="label">Пост 2 — заголовок</td>
+        <td class="before">Emergency Electrical Problems – What to Do Before the Electrician Arrives</td>
+        <td class="after">ДТП на дороге — что делать до приезда аджастера SOS24</td>
+      </tr>
+      <tr>
+        <td class="label">Пост 2 — автор / дата</td>
+        <td class="before">Sarah Martinez Oct 16, 2025</td>
+        <td class="after">Нилуфар Расулова 16 окт 2025</td>
+      </tr>
+
+      <!-- Пост 3 -->
+      <tr>
+        <td class="label">Пост 3 — заголовок</td>
+        <td class="before">Commercial Electrical System – A Complete Guide for Property Owners</td>
+        <td class="after">Страхование имущества — полный гид для владельцев квартир</td>
+      </tr>
+      <tr>
+        <td class="label">Пост 3 — автор / дата</td>
+        <td class="before">David Chen Nov 1, 2025</td>
+        <td class="after">Давронбек Хасанов 1 ноя 2025</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  ФИНАЛЬНЫЙ CTA                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Секция 09 — <span>Финальный призыв</span> / Bottom CTA</div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Заголовок</td>
+        <td class="before">Ready to Elevate Your Startup?</td>
+        <td class="after">Готовы защитить себя прямо сейчас?</td>
+      </tr>
+      <tr>
+        <td class="label">Кнопка CTA</td>
+        <td class="before">Get call back</td>
+        <td class="after">Получить звонок</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  ФУТЕР                                                          -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">Футер / <span>Footer</span></div>
+  <table>
+    <thead>
+      <tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">Логотип</td>
+        <td class="before">Eloctix</td>
+        <td class="after">SOS24</td>
+      </tr>
+      <tr>
+        <td class="label">Телефон</td>
+        <td class="before">+123 456 789 00</td>
+        <td class="after">+998 71 200 24 24</td>
+      </tr>
+      <tr>
+        <td class="label">Email</td>
+        <td class="before">info@eloctix.com</td>
+        <td class="after">info@sos24.uz</td>
+      </tr>
+      <tr>
+        <td class="label">Адрес</td>
+        <td class="before">1234 Market Street, CA 94103, USA</td>
+        <td class="after">ул. Амира Темура 107Б, Ташкент, Узбекистан</td>
+      </tr>
+      <tr>
+        <td class="label">Копирайт / watermark</td>
+        <td class="before">Create a free website with Framer, the website builder loved by startups, designers and agencies.</td>
+        <td class="after">← Framer watermark — оставить как есть или убрать через план Framer</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  CMS — СТРАНИЦЫ УСЛУГ (4 детальные страницы)                          -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<h2 style="font-size:18px;font-weight:700;margin:40px 0 16px;color:#111;">
+  CMS-страницы услуг <span style="color:#e61428;">/service/…</span>
+</h2>
+<p style="font-size:13px;color:#666;margin-bottom:24px;">
+  Каждая карточка услуги на главной ведёт на отдельную CMS-страницу с этой структурой:
+  метка + заголовок + вводный текст + основной текст + 5 шагов + отзыв + кнопка.
+</p>
+
+
+<!-- ─── УСЛУГА 1: ОСАГО и КАСКО ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">CMS Услуга 1 — <span>ОСАГО и КАСКО</span> (было: Residential Rewiring)</div>
+  <table>
+    <thead><tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка страницы</td>
+        <td class="before">service details</td>
+        <td class="after">детали услуги</td>
+      </tr>
+      <tr>
+        <td class="label">Вводный текст</td>
+        <td class="before">Discover confirmed listings, compare what matters most, and find your next home with confidence.</td>
+        <td class="after">Оформление обязательного и добровольного автострахования онлайн за несколько минут, без очередей.</td>
+      </tr>
+      <tr>
+        <td class="label">Название услуги</td>
+        <td class="before">Residential Rewiring</td>
+        <td class="after">ОСАГО и КАСКО</td>
+      </tr>
+      <tr>
+        <td class="label">Основной текст</td>
+        <td class="before">Our residential rewiring service provides comprehensive electrical system overhauls that transform outdated, potentially hazardous wiring into safe, efficient, and code-compliant systems.</td>
+        <td class="after">Сервис SOS24 по автострахованию обеспечивает полное оформление полисов ОСАГО и КАСКО онлайн, превращая долгий процесс страхования в простые шаги за считанные минуты без визита в офис.</td>
+      </tr>
+      <!-- Шаги -->
+      <tr>
+        <td class="label">Шаг 1 — название</td>
+        <td class="before">Comprehensive Home Inspection</td>
+        <td class="after">Выбор типа полиса</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 1 — описание</td>
+        <td class="before">Testing circuits, examining panels, checking for code violations, identifying safety concerns</td>
+        <td class="after">Выбираете ОСАГО или КАСКО, указываете срок, территорию действия и тип страхового покрытия.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 2 — название</td>
+        <td class="before">Custom Rewiring Plan</td>
+        <td class="after">Данные автомобиля</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 2 — описание</td>
+        <td class="before">Designing detailed blueprints with outlet placement, circuit allocation, panel sizing, and phased timelines</td>
+        <td class="after">Вводите госномер — система автоматически получает данные автомобиля через государственный реестр НАПП.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 3 — название</td>
+        <td class="before">Safe Removal & Installation</td>
+        <td class="after">Расчёт стоимости</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 3 — описание</td>
+        <td class="before">Disconnecting old wiring, installing copper wiring, upgrading panels, adding GFCI/AFCI protection</td>
+        <td class="after">Система рассчитывает стоимость с учётом региона, стажа водителя, периода и применимых коэффициентов.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 4 — название</td>
+        <td class="before">Testing & Quality Assurance</td>
+        <td class="after">Оплата полиса</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 4 — описание</td>
+        <td class="before">Rigorous testing using professional equipment to verify voltage, grounding, and load distribution</td>
+        <td class="after">Оплачивайте картой Uzcard, Humo, через кошелёк SOS24, систему Payme или сервис Click.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 5 — название</td>
+        <td class="before">Final Inspection & Documentation</td>
+        <td class="after">Получение е-полиса</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 5 — описание</td>
+        <td class="before">Official inspection approval, documentation provision, system guidance, and warranty coverage</td>
+        <td class="after">Электронный полис с QR-кодом мгновенно поступает в приложение — готов для предъявления инспектору ГАИ.</td>
+      </tr>
+      <!-- Отзыв -->
+      <tr>
+        <td class="label">Отзыв — цитата</td>
+        <td class="before">The rewiring team was professional, punctual, and incredibly thorough. They transformed our 1960s electrical system into a modern, safe setup.</td>
+        <td class="after">Оформил ОСАГО за 4 минуты прямо с телефона. Полис пришёл мгновенно, без визита в офис. Теперь всегда страхуюсь только через SOS24.</td>
+      </tr>
+      <tr>
+        <td class="label">Отзыв — имя / роль</td>
+        <td class="before">Michael Thompson, Homeowner</td>
+        <td class="after">Азиз Каримов, водитель, Ташкент</td>
+      </tr>
+      <tr>
+        <td class="label">Кнопка CTA</td>
+        <td class="before">Book you slot</td>
+        <td class="after">Оформить полис</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ─── УСЛУГА 2: Экстренная помощь ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">CMS Услуга 2 — <span>Экстренная помощь</span> (было: Emergency Repairs)</div>
+  <table>
+    <thead><tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка страницы</td>
+        <td class="before">service details</td>
+        <td class="after">детали услуги</td>
+      </tr>
+      <tr>
+        <td class="label">Вводный текст</td>
+        <td class="before">24/7 rapid response service for urgent electrical issues including power outages and sparking outlets.</td>
+        <td class="after">Аджастер выезжает в течение 15 минут после SOS-вызова при ДТП, угоне или аварии.</td>
+      </tr>
+      <tr>
+        <td class="label">Название услуги</td>
+        <td class="before">Emergency Repairs</td>
+        <td class="after">Экстренная помощь</td>
+      </tr>
+      <tr>
+        <td class="label">Основной текст</td>
+        <td class="before">Our emergency electrical repair service operates around the clock, 365 days yearly for electrical disasters. Licensed electricians respond to complete power loss, dangerous outlet sparking, burning wire smells, and circuit breaker failures. Fully-equipped service vehicles arrive with essential parts and diagnostic tools, solving most problems on the first visit.</td>
+        <td class="after">Служба SOS24 работает круглосуточно, 365 дней в году при любых экстренных ситуациях. Сертифицированные аджастеры выезжают на ДТП, угоны и аварии. Автомобили оснащены всем необходимым для оформления на месте — большинство случаев закрывается за одну поездку.</td>
+      </tr>
+      <!-- Шаги -->
+      <tr>
+        <td class="label">Шаг 1 — название</td>
+        <td class="before">Immediate Response & Dispatch</td>
+        <td class="after">Вызов через приложение</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 1 — описание</td>
+        <td class="before">Nearest available licensed electrician dispatched to your location, typically arriving within 30-60 minutes depending on your area.</td>
+        <td class="after">Нажмите SOS-кнопку в приложении — ближайший свободный аджастер направляется к вам, прибытие в течение 15–30 минут.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 2 — название</td>
+        <td class="before">Safety Assessment & Hazard Control</td>
+        <td class="after">Оценка ситуации</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 2 — описание</td>
+        <td class="before">Electrician secures the area, identifies dangers, shuts off power to affected circuits if necessary, and ensures everyone's safety.</td>
+        <td class="after">Аджастер фиксирует обстановку, опрашивает участников ДТП и обеспечивает безопасность места происшествия.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 3 — название</td>
+        <td class="before">Rapid Diagnosis</td>
+        <td class="after">Фиксация ущерба</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 3 — описание</td>
+        <td class="before">Professional testing equipment pinpoints root causes—faulty breakers, damaged wiring, overloaded circuits, or external power issues—with clear explanations.</td>
+        <td class="after">Профессиональная фото- и видеофиксация повреждений, составление акта осмотра и детального описания обстоятельств.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 4 — название</td>
+        <td class="before">Emergency Repair Execution</td>
+        <td class="after">Оформление документов</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 4 — описание</td>
+        <td class="before">Necessary repairs implemented immediately using quality materials, restoring power safely and meeting electrical codes.</td>
+        <td class="after">Аджастер оформляет все документы на месте — заявление в страховую, протокол осмотра, акт о повреждениях.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 5 — название</td>
+        <td class="before">Testing & Prevention Guidance</td>
+        <td class="after">Передача в страховую</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 5 — описание</td>
+        <td class="before">System thoroughly tested for proper operation, related issues checked, and prevention advice provided.</td>
+        <td class="after">Пакет документов направляется в страховую компанию, вы получаете уведомление о принятии дела.</td>
+      </tr>
+      <!-- Отзыв -->
+      <tr>
+        <td class="label">Отзыв — цитата</td>
+        <td class="before">When our kitchen lost power during dinner rush, they arrived within 30 minutes and had us back up and running in under an hour.</td>
+        <td class="after">Попал в ДТП на Чиланзаре. Нажал SOS — аджастер приехал через 18 минут. Оформил всё на месте, я даже не опоздал на работу.</td>
+      </tr>
+      <tr>
+        <td class="label">Отзыв — имя / роль</td>
+        <td class="before">Sarah Martinez, Restaurant Owner</td>
+        <td class="after">Санжар Юсупов, клиент SOS24</td>
+      </tr>
+      <tr>
+        <td class="label">Кнопка CTA</td>
+        <td class="before">Book you slot</td>
+        <td class="after">Вызвать аджастера</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ─── УСЛУГА 3: Медицинская помощь ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">CMS Услуга 3 — <span>Медицинская помощь</span> (было: Commercial Service)</div>
+  <table>
+    <thead><tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка страницы</td>
+        <td class="before">service details</td>
+        <td class="after">детали услуги</td>
+      </tr>
+      <tr>
+        <td class="label">Вводный текст</td>
+        <td class="before">Professional electrical system design and installation for offices, retail spaces, and industrial facilities.</td>
+        <td class="after">Партнёрские клиники, запись без очереди и цифровая медицинская книжка для всей семьи.</td>
+      </tr>
+      <tr>
+        <td class="label">Название услуги</td>
+        <td class="before">Commercial Service</td>
+        <td class="after">Медицинская помощь</td>
+      </tr>
+      <tr>
+        <td class="label">Основной текст</td>
+        <td class="before">The company provides complete electrical system design and installation for businesses of all sizes. They handle everything from initial consultation through final inspection, ensuring reliability, efficiency, and compliance with commercial building codes.</td>
+        <td class="after">SOS24 предоставляет полный спектр медицинских сервисов: партнёрская сеть клиник по всему Ташкенту, запись без очереди, консультации специалистов и ведение цифровой медицинской книжки для каждого клиента.</td>
+      </tr>
+      <!-- Шаги -->
+      <tr>
+        <td class="label">Шаг 1 — название</td>
+        <td class="before">Business Needs Consultation</td>
+        <td class="after">Выбор клиники</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 1 — описание</td>
+        <td class="before">Meet to understand operations, equipment requirements, workflow patterns, and future expansion plans to create a comprehensive electrical strategy.</td>
+        <td class="after">Выбираете партнёрскую клинику в приложении по специализации, рейтингу, расстоянию и наличию свободного времени.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 2 — название</td>
+        <td class="before">System Design & Engineering</td>
+        <td class="after">Запись без очереди</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 2 — описание</td>
+        <td class="before">Design complete electrical systems including load calculations, panel sizing, circuit layouts, lighting plans, emergency systems, and energy efficiency measures.</td>
+        <td class="after">Бронируете удобное время приёма прямо в приложении — клиника подтверждает запись и ждёт вас в назначенный час.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 3 — название</td>
+        <td class="before">Permitting & Coordination</td>
+        <td class="after">Верификация клиента</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 3 — описание</td>
+        <td class="before">Handle permit applications, coordinate with utility companies for service upgrades, and work with contractors to integrate with project schedules.</td>
+        <td class="after">При визите предъявляете QR-код SOS24 — клиника видит ваш статус клиента и принимает вас без очереди.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 4 — название</td>
+        <td class="before">Professional Installation</td>
+        <td class="after">Медицинская консультация</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 4 — описание</td>
+        <td class="before">Install all components including panels, conduits, wiring, outlets, and lighting, working during off-hours to minimize business disruption.</td>
+        <td class="after">Врач-специалист проводит приём и фиксирует результаты — данные синхронизируются с вашей медкнижкой SOS24.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 5 — название</td>
+        <td class="before">Testing, Inspection & Training</td>
+        <td class="after">Цифровая медкнижка</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 5 — описание</td>
+        <td class="before">Conduct comprehensive testing, arrange official inspections, provide documentation, and train staff on system operation.</td>
+        <td class="after">Все записи, анализы и назначения хранятся в защищённой медкнижке — доступны вам и вашему врачу в любое время.</td>
+      </tr>
+      <!-- Отзыв -->
+      <tr>
+        <td class="label">Отзыв — цитата</td>
+        <td class="before">They handled our entire office buildout with impressive coordination and skill. The lighting design is perfect, and they finished two days ahead.</td>
+        <td class="after">Записался к кардиологу через SOS24 в воскресенье вечером. Утром в клинике ждали без очереди. Результаты осмотра сразу появились в приложении.</td>
+      </tr>
+      <tr>
+        <td class="label">Отзыв — имя / роль</td>
+        <td class="before">David Chen, Office Manager</td>
+        <td class="after">Бобур Рахимов, клиент SOS24</td>
+      </tr>
+      <tr>
+        <td class="label">Кнопка CTA</td>
+        <td class="before">Book you slot</td>
+        <td class="after">Записаться к врачу</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ─── УСЛУГА 4: Умный ассистент ────────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">CMS Услуга 4 — <span>Умный ассистент</span> (было: Lighting Installation)</div>
+  <table>
+    <thead><tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="label">Метка страницы</td>
+        <td class="before">service details</td>
+        <td class="after">детали услуги</td>
+      </tr>
+      <tr>
+        <td class="label">Вводный текст</td>
+        <td class="before">Discover confirmed listings, compare what matters most, and find your next home with confidence.</td>
+        <td class="after">Чат-бот на базе ИИ направит ваш запрос к нужному специалисту или экстренной службе SOS24.</td>
+      </tr>
+      <tr>
+        <td class="label">Название услуги</td>
+        <td class="before">Lighting Installation</td>
+        <td class="after">Умный ассистент</td>
+      </tr>
+      <tr>
+        <td class="label">Основной текст</td>
+        <td class="before">Professional lighting design and installation transforming spaces through strategic illumination. Services encompass residential ambiance enhancement, workplace visibility improvement, architectural feature highlighting, and outdoor security solutions.</td>
+        <td class="after">Умный ИИ-ассистент SOS24 обрабатывает запросы круглосуточно, направляя каждое обращение к нужному специалисту: страхование, медицина, аджастер или экстренные службы — на русском, узбекском, английском.</td>
+      </tr>
+      <!-- Шаги -->
+      <tr>
+        <td class="label">Шаг 1 — название</td>
+        <td class="before">Lighting Consultation & Assessment</td>
+        <td class="after">Напишите или скажите</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 1 — описание</td>
+        <td class="before">Initial space evaluation examining usage patterns, identifying deficiencies, discussing aesthetic preferences, and measuring areas for optimal fixture placement.</td>
+        <td class="after">Опишите вашу ситуацию текстом или голосом — ассистент понимает русский, узбекский и английский языки.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 2 — название</td>
+        <td class="before">Custom Lighting Design</td>
+        <td class="after">Анализ запроса</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 2 — описание</td>
+        <td class="before">Comprehensive planning including fixture selections, placement diagrams, switching schemes, and dimming options balancing vision with energy efficiency.</td>
+        <td class="after">ИИ классифицирует обращение: страховой случай, медицинский вопрос, вызов аджастера или другая экстренная ситуация.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 3 — название</td>
+        <td class="before">Product Selection & Preparation</td>
+        <td class="after">Маршрутизация</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 3 — описание</td>
+        <td class="before">Fixture selection assistance and electrical groundwork including circuit additions from diverse options.</td>
+        <td class="after">Запрос направляется в нужный модуль: страхование, медицина, аджастер или экстренный вызов помощи.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 4 — название</td>
+        <td class="before">Professional Installation</td>
+        <td class="after">Связь со специалистом</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 4 — описание</td>
+        <td class="before">Licensed electrician installation ensuring proper mounting, secure wiring, correct alignment, and safe operation while protecting property.</td>
+        <td class="after">Специалист или служба принимает запрос, подтверждает получение и даёт обратную связь в течение минут.</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 5 — название</td>
+        <td class="before">Final Adjustments & System Training</td>
+        <td class="after">Результат и история</td>
+      </tr>
+      <tr>
+        <td class="label">Шаг 5 — описание</td>
+        <td class="before">Fine-tuning lighting levels, programming smart features, demonstrating controls, and making adjustments for complete satisfaction.</td>
+        <td class="after">Все обращения сохраняются в истории — вы можете отследить статус каждого запроса в любое время.</td>
+      </tr>
+      <!-- Отзыв -->
+      <tr>
+        <td class="label">Отзыв — цитата</td>
+        <td class="before">Their lighting expertise elevated every project we've collaborated on. They understand how to layer light beautifully while keeping everything code-compliant and energy-efficient.</td>
+        <td class="after">Написал в чат «попал в ДТП, что делать» — ассистент за несколько секунд вызвал аджастера и прислал инструкцию. Больше не паникую на дороге.</td>
+      </tr>
+      <tr>
+        <td class="label">Отзыв — имя / роль</td>
+        <td class="before">Jennifer Brooks, Interior Designer</td>
+        <td class="after">Шерзод Мирзаев, клиент SOS24</td>
+      </tr>
+      <tr>
+        <td class="label">Кнопка CTA</td>
+        <td class="before">Book you slot</td>
+        <td class="after">Написать ассистенту</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  CMS — СТРАНИЦЫ БЛОГА (3 статьи)                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<h2 style="font-size:18px;font-weight:700;margin:40px 0 16px;color:#111;">
+  CMS-страницы блога <span style="color:#e61428;">/blog/…</span>
+</h2>
+<p style="font-size:13px;color:#666;margin-bottom:24px;">
+  Каждая карточка блога на главной ведёт на статью. Структура: заголовок + дата + автор + категория + вступление + 2–3 раздела с заголовком и текстом + заключение.
+</p>
+
+
+<!-- ─── БЛОГ 1 ─────────────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">CMS Блог 1 — <span>Как оформить ОСАГО онлайн за пять минут</span></div>
+  <table>
+    <thead><tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="label">Заголовок статьи</td>
+        <td class="before">Why Your Home Needs a Complete Electrical Rewiring</td>
+        <td class="after">Как оформить ОСАГО онлайн за пять минут</td>
+      </tr>
+      <tr>
+        <td class="label">Дата</td>
+        <td class="before">October 18, 2025</td>
+        <td class="after">18 октября 2025</td>
+      </tr>
+      <tr>
+        <td class="label">Автор</td>
+        <td class="before">Michael Thompson</td>
+        <td class="after">Алишер Тошматов</td>
+      </tr>
+      <tr>
+        <td class="label">Категория / тег</td>
+        <td class="before">Rewiring</td>
+        <td class="after">ОСАГО</td>
+      </tr>
+      <tr>
+        <td class="label">Вступление</td>
+        <td class="before">Your home's electrical system is the invisible network that powers your daily life, from morning coffee to late-night entertainment.</td>
+        <td class="after">Полис ОСАГО — обязательный документ каждого водителя, без которого движение запрещено. Но его оформление больше не требует очередей и офисов.</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 1 — заголовок</td>
+        <td class="before">Understanding the Lifespan of Wiring</td>
+        <td class="after">Почему ОСАГО нужен каждому</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 1 — текст</td>
+        <td class="before">Electrical wiring doesn't last forever. Most electrical systems have a functional lifespan of 30-40 years.</td>
+        <td class="after">Управление безопасности дорожного движения требует наличие действующего полиса ОСАГО у каждого водителя. Без него — штраф и задержание автомобиля.</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 2 — заголовок</td>
+        <td class="before">The Warning Signs: When to Consider Rewiring</td>
+        <td class="after">Что входит в покрытие ОСАГО</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 2 — текст</td>
+        <td class="before">Notable warning indicators include frequent breaker trips, flickering lights, discolored outlets, burning smells, and reliance on extension cords.</td>
+        <td class="after">ОСАГО покрывает ущерб третьим лицам при ДТП: ремонт автомобиля пострадавшего, медицинские расходы и материальный ущерб имуществу.</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 3 — заголовок</td>
+        <td class="before">The Safety and Financial Benefits of Rewiring</td>
+        <td class="after">Как оформить ОСАГО в SOS24</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 3 — текст</td>
+        <td class="before">Faulty wiring causes approximately 51,000 home fires annually, resulting in hundreds of deaths.</td>
+        <td class="after">Откройте приложение SOS24, введите госномер авто — данные заполнятся автоматически. Выберите период, оплатите — е-полис придёт мгновенно.</td>
+      </tr>
+      <tr>
+        <td class="label">Заключение</td>
+        <td class="before">Emphasizes rewiring as essential investment protecting family safety, property value, and quality of life.</td>
+        <td class="after">Не откладывайте оформление ОСАГО — штраф за его отсутствие в разы дороже стоимости полиса. Оформите в SOS24 за 5 минут прямо сейчас.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ─── БЛОГ 2 ─────────────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">CMS Блог 2 — <span>ДТП на дороге — что делать до приезда аджастера</span></div>
+  <table>
+    <thead><tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="label">Заголовок статьи</td>
+        <td class="before">Emergency Electrical Problems – What to Do Before the Electrician Arrives</td>
+        <td class="after">ДТП на дороге — что делать до приезда аджастера SOS24</td>
+      </tr>
+      <tr>
+        <td class="label">Дата</td>
+        <td class="before">October 16, 2025</td>
+        <td class="after">16 октября 2025</td>
+      </tr>
+      <tr>
+        <td class="label">Автор</td>
+        <td class="before">Sarah Martinez</td>
+        <td class="after">Нилуфар Расулова</td>
+      </tr>
+      <tr>
+        <td class="label">Категория / тег</td>
+        <td class="before">Emergency</td>
+        <td class="after">Аджастер</td>
+      </tr>
+      <tr>
+        <td class="label">Вступление</td>
+        <td class="before">Electrical emergencies strike without warning and always at the worst possible time—during a storm, in the middle of the night, or when hosting guests.</td>
+        <td class="after">ДТП случается внезапно и всегда в самый неподходящий момент — в час пик, в дождь, в незнакомом районе города. Первые действия определяют исход страхового дела.</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 1 — заголовок</td>
+        <td class="before">Identifying True Emergencies and Taking Immediate Action</td>
+        <td class="after">Первые минуты после ДТП</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 1 — текст</td>
+        <td class="before">The article identifies genuine emergencies: flames or smoke from outlets/panels (call 911 immediately), sparking outlets with burning smells, and complete home power loss when neighbors have electricity.</td>
+        <td class="after">Остановитесь, включите аварийную сигнализацию и выставьте знак аварийной остановки. Убедитесь в безопасности всех участников. Не перемещайте автомобили до приезда аджастера.</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 2 — заголовок</td>
+        <td class="before">Prevention and Professional Relationships</td>
+        <td class="after">Нажмите SOS — аджастер уже едет</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 2 — текст</td>
+        <td class="before">Overloaded circuits rank among the most common causes—plugging too many devices into a single circuit creates dangerous heat buildup. The article recommends establishing relationships with qualified electricians before emergencies occur.</td>
+        <td class="after">Откройте приложение SOS24 и нажмите кнопку «Аджастер». Укажите тип инцидента и адрес — специалист выедет в течение 15–30 минут и оформит все документы на месте.</td>
+      </tr>
+      <tr>
+        <td class="label">Заключение</td>
+        <td class="before">Emphasizes preparedness, prioritizing safety, never attempting self-repairs during emergencies, and maintaining systems proactively.</td>
+        <td class="after">Главное правило: не паникуйте и не уезжайте с места ДТП. SOS24 рядом круглосуточно — нажмите одну кнопку и доверьтесь профессионалам.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ─── БЛОГ 3 ─────────────────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-header">CMS Блог 3 — <span>Страхование имущества — полный гид</span></div>
+  <table>
+    <thead><tr><th>Элемент</th><th>Оригинал (до)</th><th>SOS24 (после)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="label">Заголовок статьи</td>
+        <td class="before">Commercial Electrical System – A Complete Guide for Property Owners</td>
+        <td class="after">Страхование имущества — полный гид для владельцев квартир</td>
+      </tr>
+      <tr>
+        <td class="label">Дата</td>
+        <td class="before">November 1, 2025</td>
+        <td class="after">1 ноября 2025</td>
+      </tr>
+      <tr>
+        <td class="label">Автор</td>
+        <td class="before">David Chen</td>
+        <td class="after">Давронбек Хасанов</td>
+      </tr>
+      <tr>
+        <td class="label">Категория / тег</td>
+        <td class="before">Commercial</td>
+        <td class="after">Имущество</td>
+      </tr>
+      <tr>
+        <td class="label">Вступление</td>
+        <td class="before">Your commercial electrical system is the invisible infrastructure that powers every aspect of your business operations, from computer networks and manufacturing equipment to lighting, HVAC, and security systems.</td>
+        <td class="after">Ваша квартира или дом — самая ценная собственность. Страхование имущества SOS24 защищает от пожара, затопления, кражи и других непредвиденных событий круглосуточно.</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 1 — заголовок</td>
+        <td class="before">Understanding Electrical Requirements</td>
+        <td class="after">Что покрывает страховка имущества</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 1 — текст</td>
+        <td class="before">Commercial and residential electrical systems differ significantly in complexity and capacity. Homes typically use single-phase 120/240-volt systems, while commercial facilities often require three-phase systems for heavy machinery.</td>
+        <td class="after">Страхование имущества SOS24 покрывает: пожар и задымление, затопление соседями, кражу и взлом, повреждение от стихийных бедствий, поломку бытовой техники — в одном полисе.</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 2 — заголовок</td>
+        <td class="before">Choosing Contractors and Efficiency</td>
+        <td class="after">Как рассчитать стоимость полиса</td>
+      </tr>
+      <tr>
+        <td class="label">Раздел 2 — текст</td>
+        <td class="before">Selecting qualified commercial electrical contractors is critical. Verify appropriate commercial licenses, adequate insurance coverage, and experience with similar projects. Request references from recent commercial clients.</td>
+        <td class="after">Стоимость полиса зависит от площади жилья, оценочной стоимости имущества, выбранных рисков и срока страхования. Рассчитайте онлайн за одну минуту в приложении SOS24.</td>
+      </tr>
+      <tr>
+        <td class="label">Заключение</td>
+        <td class="before">Commercial electrical systems directly impact operational capabilities, safety, efficiency, and profitability. Proper design and professional installation provide reliability, compliance, and cost control.</td>
+        <td class="after">Страхование имущества — это не расход, а вложение в спокойствие. Оформите полис в SOS24 онлайн за несколько минут и будьте уверены в защите вашего дома.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
