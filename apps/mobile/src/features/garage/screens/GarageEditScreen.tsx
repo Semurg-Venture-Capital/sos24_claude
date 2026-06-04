@@ -43,7 +43,7 @@ export function GarageEditScreen() {
   const [power, setPower] = useState('');
   const [lookupStatus, setLookupStatus] = useState<'idle' | 'loading' | 'found' | 'notFound'>('idle');
 
-  const canLookup = !!(plate.trim() && techSeria.trim() && techNumber.trim());
+  const canLookup = !!(plate?.trim() && techSeria?.trim() && techNumber?.trim());
 
   useEffect(() => {
     if (existing) {
@@ -105,7 +105,7 @@ export function GarageEditScreen() {
   };
 
   const submitting = createMutation.isPending || updateMutation.isPending;
-  const canSubmit = !!(plate.trim() && brand.trim() && model.trim() && year.trim());
+  const canSubmit = !!(plate?.trim() && brand?.trim() && model?.trim() && year?.trim());
 
   return (
     <PhoneFrame>
