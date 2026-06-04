@@ -55,7 +55,9 @@ export function CalcVehicleScreen() {
               onPress={() => setCar(c.id)}
             />
           ))}
-          <AddTile>Добавить новый автомобиль</AddTile>
+          <AddTile onPress={() => nav.navigate('GarageEdit', {})}>
+            Добавить новый автомобиль
+          </AddTile>
         </View>
       )}
     </WizardFrame>

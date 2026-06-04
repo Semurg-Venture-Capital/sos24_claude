@@ -5,6 +5,7 @@ import { CalcResultScreen } from '../features/purchase/screens/CalcResultScreen'
 import { CalcVehicleScreen } from '../features/purchase/screens/CalcVehicleScreen';
 import { CatalogScreen } from '../features/purchase/screens/CatalogScreen';
 import { CheckoutScreen } from '../features/purchase/screens/CheckoutScreen';
+import { GarageEditScreen } from '../features/garage/screens/GarageEditScreen';
 import { MyCardsScreen } from '../features/purchase/screens/MyCardsScreen';
 import { PaymentScreen } from '../features/purchase/screens/PaymentScreen';
 import { ProductDetailScreen } from '../features/purchase/screens/ProductDetailScreen';
@@ -31,6 +32,7 @@ export function PurchaseNavigator() {
       <Stack.Screen name="Payment" component={PaymentScreen} />
       <Stack.Screen name="Success" component={SuccessScreen} />
       <Stack.Screen name="MyCards" component={MyCardsScreen} />
+      <Stack.Screen name="GarageEdit" component={GarageEditScreen} />
     </Stack.Navigator>
   );
 }

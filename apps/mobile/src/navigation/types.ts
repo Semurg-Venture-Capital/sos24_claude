@@ -48,6 +48,8 @@ export type PurchaseStackParamList = {
   Payment: undefined;
   Success: undefined;
   MyCards: undefined;
+  // Добавление авто прямо в флоу покупки (возврат на CalcVehicle после сохранения)
+  GarageEdit: { id?: string };
 };
 
 export type AdjusterStackParamList = {
