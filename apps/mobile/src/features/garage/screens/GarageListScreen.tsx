@@ -1,7 +1,8 @@
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BlurView } from 'expo-blur';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useVehicles } from '../../../api/vehicles';
 import { IconCarSimple } from '../../../components/icons/LineIcons';
 import { FAB } from '../../../components/ui/FAB';
@@ -15,8 +16,22 @@ type Nav = NativeStackNavigationProp<GarageStackParamList, 'GarageList'>;
 // M3.1 — Список автомобилей. Пустое состояние или карточки.
 export function GarageListScreen() {
   const nav = useNavigation<Nav>();
-  const { data: vehicles, isLoading } = useVehicles();
+  const { data: vehicles, isLoading, refetch } = useVehicles();
   const isEmpty = !isLoading && (vehicles?.length ?? 0) === 0;
+
+  // Refetch при входе на экран — чтобы после добавления авто сразу видеть его в списке
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   return (
     <PhoneFrame>
@@ -94,6 +109,14 @@ export function GarageListScreen() {
             style={{ flex: 1 }}
             contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 160, gap: 12 }}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={tokens.red}
+                colors={[tokens.red]}
+              />
+            }
           >
             {vehicles?.map((v) => (
               <View key={v.id} style={{ borderRadius: 28, overflow: 'hidden' }}>
