@@ -110,7 +110,24 @@
 **S1 — Vehicles + NAPP mock:**
 - `Vehicle` (User 1:N, unique [userId,plate])
 - `VehiclesModule`: `GET/POST/PATCH/DELETE /me/vehicles` + `GET /me/vehicles/:id`
-- `NappModule`: `GET /napp/vehicle/:plate` (deterministic mock из пула 8 моделей по hash plate)
+- `NappModule`: `POST /napp/provider/osago/vehicle` — мок в **реальном формате НАПП**
+  (см. ниже «NAPP mock → формат NAPP» 2026-06-04)
+
+### NAPP mock приведён к реальному формату (2026-06-04)
+Мок поиска авто переведён со старого `GET /napp/vehicle/:plate` на структуру реального
+НАПП-эндпоинта `POST /api/provider/osago/vehicle` — чтобы при подключении реального НАПП
+заменить только внутренности, не трогая контракт.
+- **Запрос:** `{ techPassportSeria, techPassportNumber, govNumber }` (`ProviderVehicleDto`)
+- **Ответ:** конверт `{ error, error_message, result }` с `TechPassportInfo` (20 полей:
+  modelName, issueYear, vehicleTypeId, bodyNumber, engineNumber, horsePowers, vehicleColor,
+  fullWeight, fuelType, seats, owner, pinfl, division и т.д.)
+- Тестовый кейс «не найдено»: `techPassportNumber = "0000000"` → `error: 1`
+- Mobile `vehicles.ts`: `TechPassportInfo`, `NappEnvelope<T>`, `lookupVehicleByTechPassport()`,
+  хелпер `mapTechPassportToForm()` (парсит `modelName` → марка + модель)
+- `GarageEditScreen`: добавлены поля «Серия техпаспорта» + «Номер техпаспорта»;
+  кнопка «Найти» активна когда заполнены госномер + серия + номер ТП;
+  объём двигателя НАПП не отдаёт — вводится вручную
+- Модель `Vehicle` в БД не менялась (маппинг на существующие brand/model/year/power/vin/color)
 
 **S2 — Documents:**
 - `Document` enum `PASSPORT`/`DRIVER_LICENSE`, unique [userId,kind]

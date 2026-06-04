@@ -1,6 +1,7 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ProviderVehicleDto } from './dto/provider-vehicle.dto';
 import { NappService } from './napp.service';
 
 @ApiTags('napp')
@@ -10,14 +11,20 @@ import { NappService } from './napp.service';
 export class NappController {
   constructor(private readonly napp: NappService) {}
 
-  @Get('vehicle/:plate')
+  @Post('provider/osago/vehicle')
   @ApiOperation({
-    summary: 'Поиск авто по гос. номеру (NAPP mock).',
+    summary: 'Данные ТС по техпаспорту + госномеру (NAPP mock).',
     description:
-      'Имитирует ответ NAPP — возвращает детерминированные данные. ' +
-      'Когда NAPP подключим реально, контракт останется неизменным.',
+      'Имитирует POST /api/provider/osago/vehicle. Возвращает конверт ' +
+      '{ error, error_message, result } с TechPassportInfo. Когда NAPP подключим ' +
+      'реально, контракт останется неизменным. Для теста "не найдено" — ' +
+      'techPassportNumber = "0000000".',
   })
-  lookupVehicle(@Param('plate') plate: string) {
-    return this.napp.lookupVehicle(plate);
+  getVehicleByTechPassport(@Body() dto: ProviderVehicleDto) {
+    return this.napp.getVehicleByTechPassport(
+      dto.techPassportSeria,
+      dto.techPassportNumber,
+      dto.govNumber,
+    );
   }
 }

@@ -2,7 +2,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
-import { useCreateVehicle, useNappLookup, useUpdateVehicle, useVehicle } from '../../../api/vehicles';
+import { mapTechPassportToForm, useCreateVehicle, useNappLookup, useUpdateVehicle, useVehicle } from '../../../api/vehicles';
 import { IconSearch } from '../../../components/icons/LineIcons';
 import { BackButton } from '../../../components/ui/BackButton';
 import { DismissKeyboardView } from '../../../components/ui/DismissKeyboardView';
@@ -32,6 +32,8 @@ export function GarageEditScreen() {
   const nappMutation = useNappLookup();
 
   const [plate, setPlate] = useState('');
+  const [techSeria, setTechSeria] = useState('');
+  const [techNumber, setTechNumber] = useState('');
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
@@ -40,6 +42,8 @@ export function GarageEditScreen() {
   const [engine, setEngine] = useState('');
   const [power, setPower] = useState('');
   const [lookupStatus, setLookupStatus] = useState<'idle' | 'loading' | 'found' | 'notFound'>('idle');
+
+  const canLookup = !!(plate.trim() && techSeria.trim() && techNumber.trim());
 
   useEffect(() => {
     if (existing) {
@@ -55,17 +59,22 @@ export function GarageEditScreen() {
   }, [existing]);
 
   const onLookup = async () => {
-    if (!plate.trim()) return;
+    if (!canLookup) return;
     setLookupStatus('loading');
     try {
-      const result = await nappMutation.mutateAsync(plate.trim());
-      setBrand(result.brand);
-      setModel(result.model);
-      setYear(String(result.year));
-      setColor(result.color);
-      setVin(result.vin);
-      setEngine(result.engine);
-      setPower(result.power);
+      const info = await nappMutation.mutateAsync({
+        techPassportSeria: techSeria.trim().toUpperCase(),
+        techPassportNumber: techNumber.trim(),
+        govNumber: plate.trim().toUpperCase(),
+      });
+      const mapped = mapTechPassportToForm(info);
+      setBrand(mapped.brand);
+      setModel(mapped.model);
+      setYear(mapped.year);
+      setColor(mapped.color);
+      setVin(mapped.vin);
+      setPower(mapped.power);
+      // Объём двигателя НАПП не возвращает — заполняется вручную.
       setLookupStatus('found');
     } catch {
       setLookupStatus('notFound');
@@ -122,10 +131,10 @@ export function GarageEditScreen() {
       >
         <ScreenHeading
           title={isEdit ? 'Редактировать авто' : 'Добавить автомобиль'}
-          subtitle="Введите гос. номер — данные подтянутся из NAPP"
+          subtitle="Введите данные техпаспорта — остальное подтянется из НАПП"
         />
 
-        {/* Plate field with NAPP lookup */}
+        {/* NAPP lookup: техпаспорт (серия + номер) + госномер */}
         <View style={{ gap: 10 }}>
           <TextField
             label="Гос. номер"
@@ -144,6 +153,34 @@ export function GarageEditScreen() {
               )
             }
           />
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <TextField
+                label="Серия техпаспорта"
+                value={techSeria}
+                onChangeText={(t) => {
+                  setTechSeria(t.toUpperCase());
+                  if (lookupStatus !== 'idle') setLookupStatus('idle');
+                }}
+                placeholder="AAE"
+                autoCapitalize="characters"
+                maxLength={3}
+              />
+            </View>
+            <View style={{ flex: 1.4 }}>
+              <TextField
+                label="Номер техпаспорта"
+                value={techNumber}
+                onChangeText={(t) => {
+                  setTechNumber(t);
+                  if (lookupStatus !== 'idle') setLookupStatus('idle');
+                }}
+                placeholder="3000221"
+                keyboardType="number-pad"
+                maxLength={7}
+              />
+            </View>
+          </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             {lookupStatus === 'found' && (
               <Text
@@ -155,7 +192,7 @@ export function GarageEditScreen() {
                   paddingLeft: 4,
                 }}
               >
-                Данные найдены и заполнены автоматически
+                Данные найдены в НАПП и заполнены автоматически
               </Text>
             )}
             {lookupStatus === 'notFound' && (
@@ -168,11 +205,11 @@ export function GarageEditScreen() {
                   paddingLeft: 4,
                 }}
               >
-                Не нашли в NAPP — заполните вручную ниже
+                Не нашли в НАПП — заполните данные вручную ниже
               </Text>
             )}
             <View style={{ flex: lookupStatus === 'idle' ? 1 : undefined }}>
-              <FindButton onPress={onLookup} disabled={!plate.trim() || lookupStatus === 'loading'} />
+              <FindButton onPress={onLookup} disabled={!canLookup || lookupStatus === 'loading'} />
             </View>
           </View>
         </View>
