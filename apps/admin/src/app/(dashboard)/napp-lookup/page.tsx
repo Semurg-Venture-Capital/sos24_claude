@@ -152,7 +152,8 @@ export default function NappLookupPage() {
   const notFound = env && (env.error !== 0 || !env.result);
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-3xl mx-auto p-6 space-y-6">
       <div className="flex items-center gap-2">
         <UserSearch size={18} className="text-red-600" />
         <h1 className="font-semibold text-gray-900">Пробить человека по базе НАПП</h1>
@@ -245,6 +246,7 @@ export default function NappLookupPage() {
         </div>
       )}
       {env?.result && <PersonCard p={env.result} />}
+      </div>
     </div>
   );
 }
