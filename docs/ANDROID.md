@@ -109,6 +109,18 @@
 - ✅ Окружение сборки настроено: cmdline-tools установлены, лицензии приняты, ставится системный образ `android-36;google_apis;arm64-v8a`.
 - ✅ Скрипт окружения: `apps/mobile/scripts/android-env.sh` (`source` его → adb/emulator/JAVA_HOME).
 
+### ⚠️ JDK 17 обязателен (не JDK 21 из Android Studio)
+
+Встроенная в Android Studio JBR — **JDK 21**, с ней Gradle падает:
+`Class org.gradle.jvm.toolchain.JvmVendorSpec does not have member field '...IBM_SEMERU'`.
+Expo/RN требуют **JDK 17**. Ставится **без sudo** в `~/.jdks`:
+
+```bash
+curl -L -o /tmp/jdk17.tar.gz "https://api.adoptium.net/v3/binary/latest/17/ga/mac/aarch64/jdk/hotspot/normal/eclipse"
+mkdir -p ~/.jdks && tar -xzf /tmp/jdk17.tar.gz -C ~/.jdks
+# JAVA_HOME = ~/.jdks/jdk-17*/Contents/Home  (android-env.sh резолвит автоматически)
+```
+
 ### Быстрый старт (Android)
 
 ```bash

@@ -5,8 +5,10 @@
 
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 export ANDROID_SDK_ROOT="$ANDROID_HOME"
-# JDK, встроенный в Android Studio (не нужен отдельный системный JDK)
-export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+# JDK 17 — официально поддерживаемая для Expo/RN. JBR из Android Studio = JDK 21,
+# с ним Gradle падает (JvmVendorSpec IBM_SEMERU). Ставится без sudo в ~/.jdks
+# (см. docs/ANDROID.md). Резолвим путь по глобу.
+export JAVA_HOME="$(/bin/ls -d "$HOME"/.jdks/jdk-17*/Contents/Home 2>/dev/null | head -1)"
 export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$JAVA_HOME/bin:$PATH"
 
 echo "Android env готов:"
