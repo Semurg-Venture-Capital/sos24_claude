@@ -727,6 +727,18 @@ Finance-экран + карты с mock-балансом + Payme/Click init + и
 - **Mobile:** `GarageEditScreen` передаёт техпаспорт при сохранении.
 - **⚠️ Прод:** нужен whitelist IP + реальный `NAPP_SENDER_PINFL` компании Semurg.
 
+### ~~S16 — «Отдел NAPP»: все инструменты пробивки в админке~~ ✅ DONE 2026-06-08
+- **NappService +8 методов:** driver-license, driver-summary (ВУ+КБМ), driver-coefficient (КБМ), is-pensioner, provided-discounts, gtk-vehicle (иностранное авто), passenger-license, cadaster. Все проверены вживую на sandbox.
+- **`NappToolsController`** (`/admin/napp/lookup/*`, admin-guarded) — 12 инструментов; passport/pinfl перенесены сюда из AdminController.
+- **Admin UI:** конфиг-движок `nappTools.ts` + универсальный рендер результата; страница `/napp` (рабочее место с подменю слева); раздел «Отдел NAPP» в Sidebar (раскрывающийся, по группам: Человек / Водитель / Авто / Компания и имущество). Старая `/napp-lookup` удалена.
+- Новый инструмент добавляется одной записью в `nappTools.ts`.
+
+### S17 — Android-часть ← СЛЕДУЮЩИЙ ФРОНТ (анализ готов, см. `docs/ANDROID.md`)
+Переходим к тестированию Android. Полный анализ готовности — в **`docs/ANDROID.md`**. Ключевое:
+- 🔴 **Блокеры:** `android.package` не задан; **MyID только iOS** (а он обязателен в регистрации → на Android не пройти); таб-бар на SF Symbols (iOS-only); `android/` не сгенерирован; окружение сборки не настроено (нет JAVA_HOME/ANDROID_HOME, хотя Android Studio установлена).
+- ✅ **Готово кросс-платформенно:** все экраны/навигация/API/стейт/i18n/шрифты, нативные зависимости (autolinking), API-клиент уже знает про `10.0.2.2`.
+- **План:** (1) `android.package` + временный байпас MyID на Android (OTP-only) для разблокировки теста; (2) иконки таб-бара под Android; (3) настроить SDK/JDK/AVD; (4) `expo prebuild -p android` → `run:android`; (5) позже — нативный MyID Android SDK.
+
 ### S12 — Оффлайн + Apple/Google Wallet ← ОБСУЖДЕНО, НЕ НАЧАТО
 Обсуждены варианты оффлайн-режима (2026-06-02):
 - **Вариант 1 (минимум):** персистентный кэш TanStack Query — MMKV. Полисы/авто/QR доступны без сети.
