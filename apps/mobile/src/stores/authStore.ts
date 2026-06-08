@@ -1,8 +1,20 @@
+import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from '../lib/secure';
 import { storage, storageKeys } from '../lib/storage';
 
 export type AuthStatus = 'loading' | 'unauthenticated' | 'needs_verification' | 'authenticated';
+
+// Определяет статус по результату MyID-верификации.
+// ⚠️ Вариант A (временно): нативный MyID SDK есть только под iOS. Чтобы тестировать
+// приложение на Android, на этой платформе пропускаем MyID-гейт и пускаем в приложение
+// без верификации. TODO(android): убрать байпас после внедрения MyID Android SDK
+// (см. docs/ANDROID.md, Вариант B).
+function resolveAuthStatus(verificationStatus: string): AuthStatus {
+  if (verificationStatus === 'MYID_VERIFIED') return 'authenticated';
+  if (Platform.OS === 'android') return 'authenticated';
+  return 'needs_verification';
+}
 
 interface AuthState {
   status: AuthStatus;
@@ -35,7 +47,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const userId = storage.getString(storageKeys.userId) ?? null;
     const verificationStatus = storage.getString(storageKeys.verificationStatus) ?? 'NOT_VERIFIED';
     if (access && refresh && userId) {
-      const status = verificationStatus === 'MYID_VERIFIED' ? 'authenticated' : 'needs_verification';
+      const status = resolveAuthStatus(verificationStatus);
       set({ status, accessToken: access, refreshToken: refresh, userId });
     } else {
       set({ status: 'unauthenticated' });
@@ -46,7 +58,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await saveTokens(tokens.accessToken, tokens.refreshToken);
     storage.set(storageKeys.userId, userId);
     storage.set(storageKeys.verificationStatus, verificationStatus);
-    const status = verificationStatus === 'MYID_VERIFIED' ? 'authenticated' : 'needs_verification';
+    const status = resolveAuthStatus(verificationStatus);
     set({
       status,
       userId,

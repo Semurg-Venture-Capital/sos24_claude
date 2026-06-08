@@ -13,9 +13,12 @@ import type { MainStackParamList, MainTabParamList } from './types';
 const Tab = createNativeBottomTabNavigator<MainTabParamList>();
 
 // Нативный bottom tab bar — на iOS это родной UITabBarController, на iOS 26+
-// автоматически с Liquid Glass. Иконки — SF Symbols.
-// TODO(android): SF Symbols на Android не работают, нужны PNG-иконки
-// (type: 'image', source: require(...)). Добавим когда дойдём до Android.
+// автоматически с Liquid Glass. Иконки — SF Symbols (только iOS).
+// TODO(android): SF Symbols на Android не работают. Сейчас на Android иконки не
+// задаются (таб-бар с лейблами) — допилим PNG-иконки (type: 'image') после
+// первого запуска. См. docs/ANDROID.md, п. 3.5.
+const isIOS = Platform.OS === 'ios';
+
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -28,10 +31,9 @@ function MainTabs() {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Главная',
-          tabBarIcon: ({ focused }) => ({
-            type: 'sfSymbol',
-            name: focused ? 'house.fill' : 'house',
-          }),
+          tabBarIcon: isIOS
+            ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'house.fill' : 'house' })
+            : undefined,
         }}
       />
       <Tab.Screen
@@ -39,10 +41,9 @@ function MainTabs() {
         component={PoliciesNavigator}
         options={{
           tabBarLabel: 'Полисы',
-          tabBarIcon: ({ focused }) => ({
-            type: 'sfSymbol',
-            name: focused ? 'shield.fill' : 'shield',
-          }),
+          tabBarIcon: isIOS
+            ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'shield.fill' : 'shield' })
+            : undefined,
         }}
       />
       <Tab.Screen
@@ -50,10 +51,9 @@ function MainTabs() {
         component={GarageNavigator}
         options={{
           tabBarLabel: 'Гараж',
-          tabBarIcon: ({ focused }) => ({
-            type: 'sfSymbol',
-            name: focused ? 'car.fill' : 'car',
-          }),
+          tabBarIcon: isIOS
+            ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'car.fill' : 'car' })
+            : undefined,
         }}
       />
       <Tab.Screen
@@ -61,10 +61,9 @@ function MainTabs() {
         component={ProfileNavigator}
         options={{
           tabBarLabel: 'Профиль',
-          tabBarIcon: ({ focused }) => ({
-            type: 'sfSymbol',
-            name: focused ? 'person.fill' : 'person',
-          }),
+          tabBarIcon: isIOS
+            ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'person.fill' : 'person' })
+            : undefined,
         }}
       />
     </Tab.Navigator>
