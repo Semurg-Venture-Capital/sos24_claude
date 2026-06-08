@@ -1,7 +1,8 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProviderVehicleDto } from './dto/provider-vehicle.dto';
+import { NappReferenceService } from './napp-reference.service';
 import { NappService } from './napp.service';
 
 @ApiTags('napp')
@@ -9,7 +10,16 @@ import { NappService } from './napp.service';
 @UseGuards(JwtAuthGuard)
 @Controller('napp')
 export class NappController {
-  constructor(private readonly napp: NappService) {}
+  constructor(
+    private readonly napp: NappService,
+    private readonly references: NappReferenceService,
+  ) {}
+
+  @Get('references/:name')
+  @ApiOperation({ summary: 'Справочник НАПП по имени (vehicle-types-osago, genders, regions и т.д.).' })
+  getReference(@Param('name') name: string) {
+    return this.references.get(name);
+  }
 
   @Post('provider/osago/vehicle')
   @ApiOperation({

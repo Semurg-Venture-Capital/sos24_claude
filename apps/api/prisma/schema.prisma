@@ -179,6 +179,27 @@ model Vehicle {
   vin       String?
   color     String?
 
+  // --- Данные из НАПП (e-osgo.uz /provider/osago/vehicle). Промо-поля для админки/полисов. ---
+  techPassportSeria   String?   // серия техпаспорта (AAF)
+  techPassportNumber  String?   // номер техпаспорта (2949568)
+  techPassportDate    DateTime? // дата выдачи техпаспорта
+  vehicleTypeId       Int?      // тип ТС (ref vehicle-types-osago: 1=легковой и т.д.)
+  bodyNumber          String?   // номер кузова / VIN из НАПП
+  engineNumber        String?   // номер двигателя
+  fuelType            String?   // код типа топлива (отдельного справочника НАПП нет)
+  seats               Int?      // мест сидячих
+  stands              Int?      // мест стоячих
+  fullWeight          String?   // полная масса, кг
+  emptyWeight         String?   // снаряжённая масса, кг
+  division            String?   // отдел регистрации ТС
+  pVehicleId          String?   // id ТС в гос. реестре
+  ownerName           String?   // ФИО / название владельца
+  ownerInn            String?   // ИНН (если владелец — юрлицо)
+  ownerPinfl          String?   // ПИНФЛ (если владелец — физлицо)
+  nappRaw             Json?     // полный ответ НАПП по ТС (TechPassportInfo)
+  nappOrgRaw          Json?     // карточка организации-владельца (/provider/inn), если юрлицо
+  nappSyncedAt        DateTime? // когда последний раз подтянули из НАПП
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

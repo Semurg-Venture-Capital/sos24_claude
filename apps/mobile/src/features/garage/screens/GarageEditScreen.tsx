@@ -91,6 +91,9 @@ export function GarageEditScreen() {
       ...(power.trim() && { power: power.trim() }),
       ...(vin.trim() && { vin: vin.trim() }),
       ...(color.trim() && { color: color.trim() }),
+      // При создании передаём техпаспорт — backend подтянет и сохранит данные НАПП.
+      ...(techSeria.trim() && { techPassportSeria: techSeria.trim().toUpperCase() }),
+      ...(techNumber.trim() && { techPassportNumber: techNumber.trim() }),
     };
     try {
       if (isEdit && vehicleId) {

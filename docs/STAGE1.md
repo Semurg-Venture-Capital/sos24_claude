@@ -714,7 +714,18 @@ Finance-экран + карты с mock-балансом + Payme/Click init + и
 Мок NAPP заменён на живой sandbox (`sandboxerspapiv2.e-osgo.uz`). Новый `NappAuthService` — OAuth2 password grant + кэш токена (буфер 60 c) + авто-refresh через `refresh_token` + single-flight. `NappService.getVehicleByTechPassport()` стал async: ходит на `POST /api/provider/osago/vehicle` с Bearer-токеном, на 401 сбрасывает кэш токена. Тоггл `NAPP_MOCK` (офлайн-мок) + `NAPP_MOCK_FALLBACK` (если sandbox вернул not-found/недоступен → детерминированный мок-авто из POOL, логируется). Контракт DTO/конверт не изменился — мобиль не трогали.
 - **Проверено вживую:** токен выдаётся (`expires_in ≈ 12 дней`), эндпоинт отвечает, DI собирается, typecheck чистый, dotenv корректно читает пароль со спецсимволами (одинарные кавычки).
 - **⚠️ Ограничения:** в sandbox нет наших тест-авто (любой техпаспорт → `404 не найдено`) → пока работает fallback-мок. Прод (`erspapiv2.e-osgo.uz`) выдаёт токен, но данные висят по таймауту — нужен **whitelist IP** наших серверов у НАПП.
-- **Дальше (P1):** провайдер-эндпоинты `pinfl-v2` (владелец), `driver-summary-v2` (водитель + КБМ), регистрация е-полиса `POST /api/v3/osago/contract` + `confirm-payed`.
+- **Дальше (P1):** `driver-summary-v2` (водитель + КБМ), регистрация е-полиса `POST /api/v3/osago/contract` + `confirm-payed`.
+
+### ~~S15 — НАПП: справочники + хранение данных авто + админка~~ ✅ DONE 2026-06-08
+Расширение живой НАПП-интеграции (проверено вживую на реальных данных ГБДФЛ):
+- **Prisma Vehicle** +18 полей НАПП (techPassport*, vehicleTypeId, bodyNumber, engineNumber, fuelType, seats/stands, массы, division, owner*, pVehicleId) + `nappRaw` + `nappOrgRaw` JSONB + `nappSyncedAt`. Миграция `vehicle_napp_fields`.
+- **NappReferenceService** — кэш справочников НАПП (44 шт., TTL 24ч). `GET /napp/references/:name`. Расшифровка `vehicleTypeId` → «Легковые автомобили» и т.д. ⚠️ Справочника топлива НАПП не отдаёт — `fuelType` хранится кодом.
+- **NappService** +методы: `getOrganizationByInn` (/provider/inn), `getPersonByPassport` (/provider/passport-birth-date-v2), `getPersonByPinfl` (/provider/pinfl-v2). Нюансы НАПП: `transactionId` — строка; `senderPinfl` проверяется по контрольной цифре (env `NAPP_SENDER_PINFL`).
+- **Сохранение при создании авто:** `POST /me/vehicles` принимает techPassportSeria/Number → backend re-fetch из НАПП, сохраняет промо-поля + nappRaw; если владелец юрлицо — тянет карточку организации по ИНН (nappOrgRaw). Данные человека по-прежнему через **MyID** (НАПП person — только админ-инструмент).
+- **Admin API:** `GET /admin/vehicles` (список+поиск), `GET /admin/vehicles/:id` (полные данные+decoded), авто в карточке пользователя, `POST /admin/napp/lookup/passport|pinfl`.
+- **Admin UI:** страница «Автомобили» (список+детали со всеми НАПП-полями и организацией), блок «Авто» в карточке пользователя (myid-test), страница «Пробить (НАПП)» по паспорту/ПИНФЛ. Пункты в Sidebar.
+- **Mobile:** `GarageEditScreen` передаёт техпаспорт при сохранении.
+- **⚠️ Прод:** нужен whitelist IP + реальный `NAPP_SENDER_PINFL` компании Semurg.
 
 ### S12 — Оффлайн + Apple/Google Wallet ← ОБСУЖДЕНО, НЕ НАЧАТО
 Обсуждены варианты оффлайн-режима (2026-06-02):

@@ -47,4 +47,18 @@ export class CreateVehicleDto {
   @IsString()
   @MaxLength(24)
   color?: string;
+
+  // Если переданы серия+номер техпаспорта — backend подтянет полные данные из НАПП
+  // (по техпаспорту + госномеру) и сохранит nappRaw + промо-поля + организацию владельца.
+  @ApiPropertyOptional({ example: 'AAF', description: 'Серия техпаспорта для дозагрузки данных из НАПП' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(5)
+  techPassportSeria?: string;
+
+  @ApiPropertyOptional({ example: '2949568', description: 'Номер техпаспорта для дозагрузки данных из НАПП' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(12)
+  techPassportNumber?: string;
 }

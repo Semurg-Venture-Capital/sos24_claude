@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NappReferenceService } from '../napp/napp-reference.service';
+import { NappService } from '../napp/napp.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly napp: NappService,
+    private readonly references: NappReferenceService,
+  ) {}
 
   async getStats() {
     const today = new Date();
@@ -205,6 +211,21 @@ export class AdminService {
             status: true,
           },
         },
+        vehicles: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            plate: true,
+            brand: true,
+            model: true,
+            year: true,
+            color: true,
+            ownerName: true,
+            ownerInn: true,
+            vehicleTypeId: true,
+            nappSyncedAt: true,
+          },
+        },
       },
     });
     return user;
@@ -224,5 +245,76 @@ export class AdminService {
         createdAt: true,
       },
     });
+  }
+
+  // ───────────────────────── Автомобили (НАПП) ─────────────────────────
+
+  /** Список всех авто с пагинацией и поиском по номеру/владельцу/марке. */
+  async getVehicles(page: number, limit: number, search?: string) {
+    const where: import('@prisma/client').Prisma.VehicleWhereInput = search
+      ? {
+          OR: [
+            { plate: { contains: search, mode: 'insensitive' } },
+            { brand: { contains: search, mode: 'insensitive' } },
+            { model: { contains: search, mode: 'insensitive' } },
+            { ownerName: { contains: search, mode: 'insensitive' } },
+            { ownerInn: { contains: search } },
+          ],
+        }
+      : {};
+
+    const [items, total] = await Promise.all([
+      this.prisma.vehicle.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: {
+          id: true,
+          plate: true,
+          brand: true,
+          model: true,
+          year: true,
+          color: true,
+          ownerName: true,
+          ownerInn: true,
+          vehicleTypeId: true,
+          nappSyncedAt: true,
+          createdAt: true,
+          user: { select: { id: true, name: true, surname: true, phone: true } },
+        },
+      }),
+      this.prisma.vehicle.count({ where }),
+    ]);
+
+    return { items, total, page, limit, pages: Math.ceil(total / limit) };
+  }
+
+  /** Детали авто со всеми НАПП-полями + расшифровкой справочников. */
+  async getVehicle(id: string) {
+    const v = await this.prisma.vehicle.findUnique({
+      where: { id },
+      include: {
+        user: { select: { id: true, name: true, surname: true, phone: true, pinfl: true } },
+      },
+    });
+    if (!v) return null;
+
+    // Расшифровка кодов справочниками НАПП.
+    const vehicleType = await this.references.label('vehicle-types-osago', v.vehicleTypeId);
+
+    return { ...v, decoded: { vehicleType } };
+  }
+
+  // ───────────────────────── Пробивка по человеку (НАПП) ─────────────────────────
+
+  /** Админ-инструмент: данные физлица по паспорту + дате рождения. */
+  async nappLookupPassport(document: string, birthDate: string) {
+    return this.napp.getPersonByPassport(document, birthDate);
+  }
+
+  /** Админ-инструмент: данные физлица по ПИНФЛ + любому его документу. */
+  async nappLookupPinfl(pinfl: string, document: string) {
+    return this.napp.getPersonByPinfl(pinfl, document);
   }
 }

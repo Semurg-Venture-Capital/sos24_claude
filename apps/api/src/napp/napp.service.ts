@@ -42,6 +42,53 @@ export interface TechPassportInfo {
   horsePowers: string;           // Лошадиные силы
 }
 
+// Личные данные физлица (passport-birth-date-v2 / pinfl-v2).
+export interface PersonInfoV2 {
+  currentPinfl: string;
+  pinfls: string[];
+  currentDocument: string;
+  documents: Array<{
+    document: string;
+    type: string;
+    docgiveplace: string;
+    docgiveplaceid: number;
+    datebegin: string;
+    dateend: string | null;
+    status: number;
+  }>;
+  lastNameLatin: string;
+  firstNameLatin: string;
+  middleNameLatin: string;
+  engName?: string;
+  engSurname?: string;
+  birthDate: string;
+  birthPlace: string;
+  birthCountry: string;
+  gender: string;
+  address: string;
+  regionId: number;
+  districtId: number;
+}
+
+// Карточка организации (/provider/inn) — основные поля.
+export interface OrgInfo {
+  name: string;
+  nameShort: string;
+  gdFullName: string;        // ФИО директора
+  inn?: string;
+  oked: string;
+  okedTitle: string;
+  bankName: string;
+  bankMfo: string;
+  account: string;
+  address: string;
+  regCertificate: string;
+  regCertificateIssueDate: string;
+  phone: string;
+  fund: number;
+  [k: string]: unknown;
+}
+
 // Конверт ответа НАПП (одинаков для всех эндпоинтов).
 export interface NappEnvelope<T> {
   error: number;          // 0 = успех, иначе код ошибки
@@ -124,6 +171,8 @@ export class NappService {
   private readonly isMock: boolean;
   private readonly mockFallback: boolean;
   private readonly baseUrl: string;
+  private readonly senderPinfl: string;
+  private txCounter = 1;
 
   constructor(
     private readonly config: ConfigService,
@@ -132,6 +181,28 @@ export class NappService {
     this.isMock = this.config.get<string>('NAPP_MOCK') === 'true';
     this.mockFallback = this.config.get<string>('NAPP_MOCK_FALLBACK') === 'true';
     this.baseUrl = (this.config.get<string>('NAPP_BASE_URL') ?? 'https://sandboxerspapiv2.e-osgo.uz').replace(/\/+$/, '');
+    // ПИНФЛ страховой-отправителя для provider-запросов по людям.
+    // На проде — реальный ПИНФЛ компании; дефолт — контрольно-валидный плейсхолдер sandbox.
+    this.senderPinfl = this.config.get<string>('NAPP_SENDER_PINFL') ?? '31105899999999';
+  }
+
+  /** Авторизованный POST к НАПП с конвертом { error, error_message, result }. */
+  private async post<T>(path: string, body: Record<string, unknown>): Promise<NappEnvelope<T>> {
+    const token = await this.auth.getToken();
+    const { data } = await axios.post<NappEnvelope<T>>(`${this.baseUrl}${path}`, body, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      timeout: 25_000,
+      validateStatus: (s) => s < 500, // 404 "не найдено"/422 валидация — валидные бизнес-ответы
+    });
+    return data;
+  }
+
+  private nextTxId(): string {
+    return String(Date.now()) + String(this.txCounter++);
   }
 
   /**
@@ -229,5 +300,61 @@ export class NappService {
       error_message: '',
       result: { govNumber: gov, pVehicleId, ...POOL[idx] },
     };
+  }
+
+  /**
+   * Карточка организации по ИНН. POST /api/provider/inn.
+   * Используется когда владелец ТС — юрлицо.
+   */
+  async getOrganizationByInn(inn: string): Promise<NappEnvelope<OrgInfo>> {
+    if (this.isMock) {
+      return { error: 0, error_message: '', result: null };
+    }
+    try {
+      return await this.post<OrgInfo>('/api/provider/inn', { inn: inn.trim() });
+    } catch (e) {
+      this.logger.error(`NAPP inn ${inn} провалился: ${(e as Error).message}`);
+      return { error: -1, error_message: 'Сервис НАПП недоступен', result: null };
+    }
+  }
+
+  /**
+   * Личные данные по паспорту + дате рождения. POST /api/provider/passport-birth-date-v2.
+   * @param document серия+номер паспорта ("AC2523171")
+   * @param birthDate "YYYY-MM-DD"
+   */
+  async getPersonByPassport(document: string, birthDate: string): Promise<NappEnvelope<PersonInfoV2>> {
+    try {
+      return await this.post<PersonInfoV2>('/api/provider/passport-birth-date-v2', {
+        transactionId: this.nextTxId(),
+        isConsent: 'Y',
+        senderPinfl: this.senderPinfl,
+        document: document.trim().toUpperCase(),
+        birthDate: birthDate.trim(),
+      });
+    } catch (e) {
+      this.logger.error(`NAPP passport ${document} провалился: ${(e as Error).message}`);
+      return { error: -1, error_message: 'Сервис НАПП недоступен', result: null };
+    }
+  }
+
+  /**
+   * Личные данные по ПИНФЛ. POST /api/provider/pinfl-v2.
+   * @param pinfl ПИНФЛ субъекта
+   * @param document любой его документ (серия+номер) — обязателен в запросе
+   */
+  async getPersonByPinfl(pinfl: string, document: string): Promise<NappEnvelope<PersonInfoV2>> {
+    try {
+      return await this.post<PersonInfoV2>('/api/provider/pinfl-v2', {
+        transactionId: this.nextTxId(),
+        isConsent: 'Y',
+        senderPinfl: this.senderPinfl,
+        document: document.trim().toUpperCase(),
+        pinfl: pinfl.trim(),
+      });
+    } catch (e) {
+      this.logger.error(`NAPP pinfl ${pinfl} провалился: ${(e as Error).message}`);
+      return { error: -1, error_message: 'Сервис НАПП недоступен', result: null };
+    }
   }
 }

@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { ChevronDown, ChevronRight, ShieldCheck, User, Eye } from 'lucide-react';
+import { ChevronDown, ChevronRight, ShieldCheck, User, Eye, Car } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -42,6 +43,18 @@ interface MyIdUserData {
     issuedBy: string | null;
     expiresAt: string | null;
     status: string;
+  }>;
+  vehicles: Array<{
+    id: string;
+    plate: string;
+    brand: string;
+    model: string;
+    year: number;
+    color: string | null;
+    ownerName: string | null;
+    ownerInn: string | null;
+    vehicleTypeId: number | null;
+    nappSyncedAt: string | null;
   }>;
 }
 
@@ -168,6 +181,44 @@ function UserDetailPanel({ userId }: { userId: string }) {
             <div className="py-3 text-sm text-gray-400 italic">Паспорт не найден</div>
           )}
         </div>
+      </section>
+
+      {/* Vehicles (НАПП) */}
+      <section>
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <Car size={14} /> Автомобили ({data.vehicles?.length ?? 0})
+        </h3>
+        {data.vehicles?.length ? (
+          <div className="space-y-2">
+            {data.vehicles.map((v) => (
+              <Link
+                key={v.id}
+                href="/vehicles"
+                className="block bg-white border border-gray-100 rounded-xl px-4 py-3 hover:border-red-200 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-900">
+                    {v.plate} · {v.brand} {v.model} · {v.year}
+                  </span>
+                  {v.nappSyncedAt && (
+                    <span className="text-[10px] text-green-600 bg-green-50 rounded px-1.5 py-0.5">НАПП</span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-400 mt-0.5">
+                  {v.ownerName ? `Владелец (НАПП): ${v.ownerName}` : 'Данные НАПП не загружены'}
+                  {v.ownerInn ? ` · ИНН ${v.ownerInn}` : ''}
+                </div>
+              </Link>
+            ))}
+            <Link href="/vehicles" className="inline-block text-xs text-blue-600 hover:text-blue-800 font-medium mt-1">
+              Открыть раздел «Автомобили» →
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white border border-gray-100 rounded-2xl px-4 py-3 text-sm text-gray-400 italic">
+            Нет автомобилей
+          </div>
+        )}
       </section>
 
       {/* Technical */}

@@ -25,6 +25,9 @@ export interface CreateVehicleInput {
   power?: string;
   vin?: string;
   color?: string;
+  // Если переданы — backend дозагрузит и сохранит полные данные ТС из НАПП.
+  techPassportSeria?: string;
+  techPassportNumber?: string;
 }
 
 export type UpdateVehicleInput = Partial<CreateVehicleInput>;
