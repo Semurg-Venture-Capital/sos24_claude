@@ -13,12 +13,12 @@ export class NappController {
 
   @Post('provider/osago/vehicle')
   @ApiOperation({
-    summary: 'Данные ТС по техпаспорту + госномеру (NAPP mock).',
+    summary: 'Данные ТС по техпаспорту + госномеру (NAPP).',
     description:
-      'Имитирует POST /api/provider/osago/vehicle. Возвращает конверт ' +
-      '{ error, error_message, result } с TechPassportInfo. Когда NAPP подключим ' +
-      'реально, контракт останется неизменным. Для теста "не найдено" — ' +
-      'techPassportNumber = "0000000".',
+      'Проксирует POST /api/provider/osago/vehicle НАПП. Возвращает конверт ' +
+      '{ error, error_message, result } с TechPassportInfo. По умолчанию ходит в ' +
+      'живой sandbox; режим переключается env (NAPP_MOCK / NAPP_MOCK_FALLBACK). ' +
+      'В мок-режиме для теста "не найдено" — techPassportNumber = "0000000".',
   })
   getVehicleByTechPassport(@Body() dto: ProviderVehicleDto) {
     return this.napp.getVehicleByTechPassport(

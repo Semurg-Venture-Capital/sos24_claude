@@ -710,6 +710,12 @@ Finance-экран + карты с mock-балансом + Payme/Click init + и
 ### ~~S11 — MyID Native iOS SDK~~ ✅ DONE 2026-06-02
 Нативная интеграция `MyIdSDK 3.1.3` через Config Plugin. Тест-ключи подключены, протестировано на iPhone 13 Pro Max. ProfileScreen + DocumentScreen read-only. Admin `/myid-test`. Полное описание выше в журнале.
 
+### ~~S14 — НАПП живой sandbox~~ ✅ DONE 2026-06-08
+Мок NAPP заменён на живой sandbox (`sandboxerspapiv2.e-osgo.uz`). Новый `NappAuthService` — OAuth2 password grant + кэш токена (буфер 60 c) + авто-refresh через `refresh_token` + single-flight. `NappService.getVehicleByTechPassport()` стал async: ходит на `POST /api/provider/osago/vehicle` с Bearer-токеном, на 401 сбрасывает кэш токена. Тоггл `NAPP_MOCK` (офлайн-мок) + `NAPP_MOCK_FALLBACK` (если sandbox вернул not-found/недоступен → детерминированный мок-авто из POOL, логируется). Контракт DTO/конверт не изменился — мобиль не трогали.
+- **Проверено вживую:** токен выдаётся (`expires_in ≈ 12 дней`), эндпоинт отвечает, DI собирается, typecheck чистый, dotenv корректно читает пароль со спецсимволами (одинарные кавычки).
+- **⚠️ Ограничения:** в sandbox нет наших тест-авто (любой техпаспорт → `404 не найдено`) → пока работает fallback-мок. Прод (`erspapiv2.e-osgo.uz`) выдаёт токен, но данные висят по таймауту — нужен **whitelist IP** наших серверов у НАПП.
+- **Дальше (P1):** провайдер-эндпоинты `pinfl-v2` (владелец), `driver-summary-v2` (водитель + КБМ), регистрация е-полиса `POST /api/v3/osago/contract` + `confirm-payed`.
+
 ### S12 — Оффлайн + Apple/Google Wallet ← ОБСУЖДЕНО, НЕ НАЧАТО
 Обсуждены варианты оффлайн-режима (2026-06-02):
 - **Вариант 1 (минимум):** персистентный кэш TanStack Query — MMKV. Полисы/авто/QR доступны без сети.

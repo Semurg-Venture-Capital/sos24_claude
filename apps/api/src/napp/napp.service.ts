@@ -1,13 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
+import { NappAuthService } from './napp-auth.service';
 
-// MOCK NAPP-сервис.
+// NAPP-сервис: живой вызов sandbox/prod + мок-фолбэк.
 //
-// Структура запроса/ответа повторяет реальный эндпоинт НАПП
+// Контракт (DTO + конверт { error, error_message, result } с TechPassportInfo)
+// одинаков для мока и живого НАПП — мобильный клиент и контроллер не зависят
+// от того, откуда пришли данные.
+//
+// Режимы (env):
+//   NAPP_MOCK=true            → всегда мок (offline/demo, без сети)
+//   NAPP_MOCK=false (default) → живой POST /api/provider/osago/vehicle
+//   NAPP_MOCK_FALLBACK=true   → если живой НАПП вернул "не найдено"/ошибку сети,
+//                               подставить детерминированный мок (удобно для демо,
+//                               пока в sandbox нет наших тест-авто). Каждый фолбэк логируется.
+//
 // POST /api/provider/osago/vehicle (см. docs/integrations/NAPP_ENDPOINTS.md).
-// Когда подключим реальный НАПП — заменим только внутренности getVehicleByTechPassport(),
-// контракт (DTO + формат ответа) останется неизменным.
-//
-// Реальный ответ НАПП оборачивается в конверт { error, error_message, result }.
 
 // Соответствует TechPassportInfo из НАПП OpenAPI.
 export interface TechPassportInfo {
@@ -111,24 +120,101 @@ function hashCode(input: string): number {
 
 @Injectable()
 export class NappService {
+  private readonly logger = new Logger(NappService.name);
+  private readonly isMock: boolean;
+  private readonly mockFallback: boolean;
+  private readonly baseUrl: string;
+
+  constructor(
+    private readonly config: ConfigService,
+    private readonly auth: NappAuthService,
+  ) {
+    this.isMock = this.config.get<string>('NAPP_MOCK') === 'true';
+    this.mockFallback = this.config.get<string>('NAPP_MOCK_FALLBACK') === 'true';
+    this.baseUrl = (this.config.get<string>('NAPP_BASE_URL') ?? 'https://sandboxerspapiv2.e-osgo.uz').replace(/\/+$/, '');
+  }
+
   /**
-   * Имитирует POST /api/provider/osago/vehicle.
-   * Возвращает данные ТС из гос. реестра по серии+номеру техпаспорта и госномеру.
+   * Данные ТС из гос. реестра по серии+номеру техпаспорта и госномеру.
+   * POST /api/provider/osago/vehicle.
    *
-   * Тестовые сценарии:
-   *  - techPassportNumber === '0000000' → "не найдено" (для проверки ветки ошибки)
+   * Мок-режим (NAPP_MOCK=true):
+   *  - techPassportNumber === '0000000' → "не найдено" (проверка ветки ошибки)
    *  - иначе → детерминированно одно из заготовленных авто
    */
-  getVehicleByTechPassport(
+  async getVehicleByTechPassport(
     techPassportSeria: string,
     techPassportNumber: string,
     govNumber: string,
-  ): NappEnvelope<TechPassportInfo> {
+  ): Promise<NappEnvelope<TechPassportInfo>> {
     const seria = techPassportSeria.trim().toUpperCase();
     const number = techPassportNumber.trim();
     const gov = govNumber.trim().toUpperCase();
 
-    // Тестовый кейс "не найдено"
+    if (this.isMock) {
+      return this.mockVehicle(seria, number, gov);
+    }
+
+    // Живой вызов НАПП
+    try {
+      const token = await this.auth.getToken();
+      const { data } = await axios.post<NappEnvelope<TechPassportInfo>>(
+        `${this.baseUrl}/api/provider/osago/vehicle`,
+        { techPassportSeria: seria, techPassportNumber: number, govNumber: gov },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          timeout: 25_000,
+          // НАПП на "не найдено" отвечает HTTP 404 с тем же конвертом — это валидный
+          // бизнес-ответ, не сетевая ошибка. Принимаем любой <500.
+          validateStatus: (s) => s < 500,
+        },
+      );
+
+      if (data?.error === 0 && data.result) {
+        return data;
+      }
+
+      // НАПП ответил "не найдено"/бизнес-ошибкой
+      this.logger.warn(
+        `NAPP vehicle не найден (seria=${seria} num=${number} gov=${gov}): error=${data?.error} "${data?.error_message}"`,
+      );
+      if (this.mockFallback) {
+        this.logger.warn('NAPP_MOCK_FALLBACK=true → подставляю мок-авто');
+        return this.mockVehicle(seria, number, gov);
+      }
+      return {
+        error: data?.error ?? 404,
+        error_message: data?.error_message || 'Транспортное средство не найдено в государственном реестре',
+        result: null,
+      };
+    } catch (e) {
+      const msg = axios.isAxiosError(e)
+        ? `HTTP ${e.response?.status ?? 'timeout'} ${JSON.stringify(e.response?.data ?? e.message)}`
+        : (e as Error).message;
+      this.logger.error(`NAPP vehicle запрос провалился: ${msg}`);
+
+      // 401 → токен мог протухнуть на стороне НАПП, сбрасываем кэш на след. раз
+      if (axios.isAxiosError(e) && e.response?.status === 401) {
+        this.auth.invalidate();
+      }
+      if (this.mockFallback) {
+        this.logger.warn('NAPP недоступен, NAPP_MOCK_FALLBACK=true → подставляю мок-авто');
+        return this.mockVehicle(seria, number, gov);
+      }
+      return {
+        error: -1,
+        error_message: 'Сервис НАПП временно недоступен. Заполните данные вручную.',
+        result: null,
+      };
+    }
+  }
+
+  /** Детерминированный мок из POOL (для NAPP_MOCK=true и фолбэка). */
+  private mockVehicle(seria: string, number: string, gov: string): NappEnvelope<TechPassportInfo> {
     if (number === '0000000') {
       return {
         error: 1,
@@ -136,10 +222,8 @@ export class NappService {
         result: null,
       };
     }
-
     const idx = hashCode(seria + number + gov) % POOL.length;
     const pVehicleId = `PV${hashCode(gov).toString().padStart(10, '0').slice(0, 10)}`;
-
     return {
       error: 0,
       error_message: '',

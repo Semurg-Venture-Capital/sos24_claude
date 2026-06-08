@@ -742,16 +742,18 @@ nappRefs.getUseTerritoryRegions()
 
 ```bash
 # НАПП (e-osgo.uz)
+NAPP_MOCK=false                                    # true → офлайн-мок без сети
+NAPP_MOCK_FALLBACK=true                            # живой НАПП "не найдено"/недоступен → мок-авто (демо). В проде false
 NAPP_BASE_URL=https://sandboxerspapiv2.e-osgo.uz   # sandbox; prod: https://erspapiv2.e-osgo.uz
 NAPP_CLIENT_ID=<client_id>
 NAPP_CLIENT_SECRET=<client_secret>
 NAPP_USERNAME=<username>
-NAPP_PASSWORD=<password>
-NAPP_SENDER_PINFL=<pinfl_страховой_компании>        # нужен для provider запросов
-NAPP_AGENCY_ID=<agency_id>                          # ID нашего агента в системе НАПП
+NAPP_PASSWORD='<password>'                          # в кавычках — пароль содержит спецсимволы #$}
 ```
 
-> **Production URL:** вероятно `https://erspapiv2.e-osgo.uz` (без `sandbox` и `test`). Уточнить у НАПП при переходе на прод.
+> **Статус (2026-06-08):** живой **sandbox подключён**. `NappAuthService` (OAuth password grant + кэш токена + авто-refresh + single-flight) и `NappService` ходят на `POST /api/provider/osago/vehicle`. Credentials `semurg_insurance` проверены вживую: токен выдаётся (`expires_in ≈ 12 дней`), эндпоинт отвечает. ⚠️ В sandbox-реестре **нет наших тест-авто** — любой техпаспорт даёт `404 «Данных не найдено»`; для реальных данных нужны согласованные с НАПП тест-записи. Поэтому включён `NAPP_MOCK_FALLBACK=true` (демо показывает мок-авто, каждый фолбэк логируется через `Logger.warn`).
+>
+> **Production URL:** `https://erspapiv2.e-osgo.uz`. Токен на проде выдаётся, но запрос данных висит по таймауту — нужен **whitelist IP наших серверов** на стороне НАПП.
 
 ---
 
