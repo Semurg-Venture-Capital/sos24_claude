@@ -89,6 +89,59 @@ export interface OrgInfo {
   [k: string]: unknown;
 }
 
+// Водительское удостоверение (driver-license).
+export interface DriverLicenseInfo {
+  licenseNumber: string;
+  licenseSeria: string;
+  issueDate: string;
+  pOwner: string;
+  pOwnerDate: string;
+  modelDLNew: string;
+  [k: string]: unknown;
+}
+
+// Сводка по водителю (driver-summary-v2): личные данные + ВУ + КБМ.
+export interface DriverSummaryInfo {
+  DriverPersonInfo: PersonInfoV2 | null;
+  DriverInfo: DriverLicenseInfo | null;
+  DiscountInfo: unknown;
+  coefficient: string | null; // КБМ
+  [k: string]: unknown;
+}
+
+// Иностранное ТС (gtk-vehicle).
+export interface ForeignVehicleInfo {
+  citizenshipCode: string;
+  passportNumber: string;
+  passportSeria: string;
+  vehicleType: string;
+  firstName: string;
+  lastName: string;
+  [k: string]: unknown;
+}
+
+// Лицензия пассажироперевозчика (passenger-license).
+export interface PassengerLicenseInfo {
+  pSery: string;
+  pNumber: string;
+  pBeginDate: string;
+  pEndDate: string;
+  pTypeCode: string;
+  [k: string]: unknown;
+}
+
+// Недвижимость по кадастру (cadaster).
+export interface CadasterInfo {
+  shortAddress: string;
+  address: string;
+  region: string;
+  district: string;
+  objectArea: string;
+  cost: string;
+  subjects: unknown;
+  [k: string]: unknown;
+}
+
 // Конверт ответа НАПП (одинаков для всех эндпоинтов).
 export interface NappEnvelope<T> {
   error: number;          // 0 = успех, иначе код ошибки
@@ -354,6 +407,77 @@ export class NappService {
       });
     } catch (e) {
       this.logger.error(`NAPP pinfl ${pinfl} провалился: ${(e as Error).message}`);
+      return { error: -1, error_message: 'Сервис НАПП недоступен', result: null };
+    }
+  }
+
+  /** Водительское удостоверение по ПИНФЛ. POST /api/provider/driver-license. */
+  async getDriverLicense(pinfl: string, passportSeries?: string, passportNumber?: string): Promise<NappEnvelope<DriverLicenseInfo>> {
+    return this.safePost<DriverLicenseInfo>('/api/provider/driver-license', {
+      pinfl: pinfl.trim(),
+      ...(passportSeries?.trim() && { passportSeries: passportSeries.trim().toUpperCase() }),
+      ...(passportNumber?.trim() && { passportNumber: passportNumber.trim() }),
+    });
+  }
+
+  /** Сводка по водителю (личные данные + ВУ + КБМ). POST /api/provider/driver-summary-v2. */
+  async getDriverSummary(pinfl: string, document: string): Promise<NappEnvelope<DriverSummaryInfo>> {
+    return this.safePost<DriverSummaryInfo>('/api/provider/driver-summary-v2', {
+      transactionId: this.nextTxId(),
+      isConsent: 'Y',
+      senderPinfl: this.senderPinfl,
+      document: document.trim().toUpperCase(),
+      pinfl: pinfl.trim(),
+    });
+  }
+
+  /** КБМ (бонус-малус) по ПИНФЛ. POST /api/provider/driver-coefficient. */
+  async getDriverCoefficient(pinfl: string): Promise<NappEnvelope<{ coefficient: string }>> {
+    return this.safePost<{ coefficient: string }>('/api/provider/driver-coefficient', { pinfl: pinfl.trim() });
+  }
+
+  /** Пенсионный статус. POST /api/provider/is-pensioner. */
+  async getIsPensioner(pinfl: string, passportSeries: string, passportNumber: string): Promise<NappEnvelope<{ isPensioner: number }>> {
+    return this.safePost<{ isPensioner: number }>('/api/provider/is-pensioner', {
+      pinfl: pinfl.trim(),
+      passportSeries: passportSeries.trim().toUpperCase(),
+      passportNumber: passportNumber.trim(),
+    });
+  }
+
+  /** Уже применённые скидки по паре ПИНФЛ+госномер. POST /api/provider/provided-discounts. */
+  async getProvidedDiscounts(pinfl: string, govNumber: string): Promise<NappEnvelope<{ result: string; discounts: unknown[] }>> {
+    return this.safePost('/api/provider/provided-discounts', {
+      pinfl: pinfl.trim(),
+      govNumber: govNumber.replace(/\s+/g, '').toUpperCase(),
+    });
+  }
+
+  /** Иностранное ТС по госномеру. POST /api/provider/gtk-vehicle. */
+  async getForeignVehicle(govNumber: string): Promise<NappEnvelope<ForeignVehicleInfo>> {
+    return this.safePost<ForeignVehicleInfo>('/api/provider/gtk-vehicle', {
+      govNumber: govNumber.replace(/\s+/g, '').toUpperCase(),
+    });
+  }
+
+  /** Лицензия пассажироперевозчика по госномеру. POST /api/provider/passenger-license. */
+  async getPassengerLicense(govNumber: string): Promise<NappEnvelope<PassengerLicenseInfo>> {
+    return this.safePost<PassengerLicenseInfo>('/api/provider/passenger-license', {
+      govNumber: govNumber.replace(/\s+/g, '').toUpperCase(),
+    });
+  }
+
+  /** Недвижимость по кадастровому номеру. POST /api/provider/cadaster. */
+  async getCadaster(cadasterNumber: string): Promise<NappEnvelope<CadasterInfo>> {
+    return this.safePost<CadasterInfo>('/api/provider/cadaster', { cadasterNumber: cadasterNumber.trim() });
+  }
+
+  /** Обёртка post() с единым перехватом ошибок → конверт вместо исключения. */
+  private async safePost<T>(path: string, body: Record<string, unknown>): Promise<NappEnvelope<T>> {
+    try {
+      return await this.post<T>(path, body);
+    } catch (e) {
+      this.logger.error(`NAPP ${path} провалился: ${(e as Error).message}`);
       return { error: -1, error_message: 'Сервис НАПП недоступен', result: null };
     }
   }

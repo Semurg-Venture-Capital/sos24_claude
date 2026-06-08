@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NappReferenceService } from '../napp/napp-reference.service';
-import { NappService } from '../napp/napp.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly napp: NappService,
     private readonly references: NappReferenceService,
   ) {}
 
@@ -304,17 +302,5 @@ export class AdminService {
     const vehicleType = await this.references.label('vehicle-types-osago', v.vehicleTypeId);
 
     return { ...v, decoded: { vehicleType } };
-  }
-
-  // ───────────────────────── Пробивка по человеку (НАПП) ─────────────────────────
-
-  /** Админ-инструмент: данные физлица по паспорту + дате рождения. */
-  async nappLookupPassport(document: string, birthDate: string) {
-    return this.napp.getPersonByPassport(document, birthDate);
-  }
-
-  /** Админ-инструмент: данные физлица по ПИНФЛ + любому его документу. */
-  async nappLookupPinfl(pinfl: string, document: string) {
-    return this.napp.getPersonByPinfl(pinfl, document);
   }
 }

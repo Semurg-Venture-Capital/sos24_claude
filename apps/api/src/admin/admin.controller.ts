@@ -1,9 +1,8 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from './admin.guard';
 import { AdminService } from './admin.service';
-import { NappLookupPassportDto, NappLookupPinflDto } from './dto/napp-lookup.dto';
 
 @ApiTags('admin')
 @ApiBearerAuth()
@@ -67,17 +66,5 @@ export class AdminController {
   @ApiOperation({ summary: 'Детали авто: все НАПП-поля, владелец, организация, расшифровка справочников.' })
   getVehicle(@Param('id') id: string) {
     return this.adminService.getVehicle(id);
-  }
-
-  @Post('napp/lookup/passport')
-  @ApiOperation({ summary: 'Пробить физлицо по паспорту + дате рождения (НАПП).' })
-  nappLookupPassport(@Body() dto: NappLookupPassportDto) {
-    return this.adminService.nappLookupPassport(dto.document, dto.birthDate);
-  }
-
-  @Post('napp/lookup/pinfl')
-  @ApiOperation({ summary: 'Пробить физлицо по ПИНФЛ + документу (НАПП).' })
-  nappLookupPinfl(@Body() dto: NappLookupPinflDto) {
-    return this.adminService.nappLookupPinfl(dto.pinfl, dto.document);
   }
 }
