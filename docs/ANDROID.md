@@ -98,3 +98,29 @@
 | AVD (эмулятор) | ❌ не создан |
 
 > Перед сборкой: открыть Android Studio → SDK Manager (поставить SDK Platform 35, build-tools, platform-tools, emulator, system image) → создать AVD; затем задать env-переменные.
+
+---
+
+## 6. Сделано 2026-06-08 (байпас MyID — Вариант A)
+
+- ✅ `android.package = "uz.sos24.app"` в `app.json`.
+- ✅ **Байпас MyID на Android:** `authStore.resolveAuthStatus()` — на Android `NOT_VERIFIED → authenticated` (MyID-гейт пропускается). Регистрация по OTP, дальше — всё приложение. TODO: убрать после MyID Android SDK.
+- ✅ Таб-иконки SF Symbols обёрнуты в `Platform.OS === 'ios'`; на Android пока лейблы без иконок (допилить PNG).
+- ✅ Окружение сборки настроено: cmdline-tools установлены, лицензии приняты, ставится системный образ `android-36;google_apis;arm64-v8a`.
+- ✅ Скрипт окружения: `apps/mobile/scripts/android-env.sh` (`source` его → adb/emulator/JAVA_HOME).
+
+### Быстрый старт (Android)
+
+```bash
+# 1. окружение (один раз на сессию терминала)
+source apps/mobile/scripts/android-env.sh
+
+# 2. запустить эмулятор
+emulator -avd sos24_pixel &        # список: emulator -list-avds
+
+# 3. поднять приложение на эмуляторе (из apps/mobile)
+cd apps/mobile && npx expo run:android
+```
+
+> На эмуляторе API-хост уже `10.0.2.2` (loopback к localhost Mac) — бэкенд на `:3030` доступен автоматически.
+> MyID-экран на Android не показывается (байпас) — вход по OTP `6330`.
