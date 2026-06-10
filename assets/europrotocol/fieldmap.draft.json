@@ -24,43 +24,51 @@
       "Реальный бланк содержит ~22 обстоятельства (не 17 как в EUROPROTOCOL.md §6) — поправить research-доку.",
       "Сторона A заполняется из наших данных (MyID+Vehicle+Policy), сторона B — госномер→НАПП, остальное вручную.",
       "Y указан как baseline текста; для comb может потребоваться +2..3pt вертикальной подгонки."
+    ],
+    "calibrationFindings_2026-06-10": [
+      "ПРОВЕРЕНО пиксель-детектором (detect.py): реальный шаг comb-клеток ≈ 7.5pt (НЕ 12.8). Полноширинный ряд колонки ≈ 30 клеток.",
+      "ПРОВЕРЕНО: '7. русуми/маркаси' — это ДВЕ ЛИНИИ (тип text), а не comb. Тип в partyBlockTemplate исправлен.",
+      "Раздел регистрации = ДВА разных comb-поля: 'давлат рўйхатига олиш рақами' (справа) + 'гувоҳнома: серия/рақам'.",
+      "БЛОКЕР точной автокалибровки: в скане перегородки клеток бледные/рваные → нужен CV-инструмент (numpy/opencv) ИЛИ ручные визуальные итерации. Без этого x_first/cells части полей остаются оценкой.",
+      "Надёжно измерено для колонки A: body_no baseline≈594.6, engine_no baseline≈554, regstate_no x≈131/pitch7.5."
     ]
   },
 
   "page0_common": [
     { "id": "place",        "type": "text",     "x": 92,  "y": 797, "maxWidth": 150, "size": 8,  "source": "incident.place",        "label": "1. Место ДТП (нас.пункт, улица, дом)" },
-    { "id": "date",         "type": "comb",     "x": 96,  "y": 770, "pitch": 12, "cells": 8, "size": 9, "format": "DDMMYYYY", "source": "incident.date", "label": "2. Дата ДТП" },
-    { "id": "time",         "type": "comb",     "x": 200, "y": 762, "pitch": 12, "cells": 4, "size": 9, "format": "HHMM", "source": "incident.time", "label": "соат, дақиқа (время)" },
-    { "id": "damaged_count","type": "comb",     "x": 258, "y": 790, "pitch": 12, "cells": 2, "size": 9, "source": "incident.damagedVehicles", "label": "3. Число пострадавших ТС" },
+    { "id": "date",         "type": "comb",     "x": 96,  "y": 770, "pitch": 7.5, "cells": 8, "size": 9, "format": "DDMMYYYY", "source": "incident.date", "label": "2. Дата ДТП" },
+    { "id": "time",         "type": "comb",     "x": 200, "y": 762, "pitch": 7.5, "cells": 4, "size": 9, "format": "HHMM", "source": "incident.time", "label": "соат, дақиқа (время)" },
+    { "id": "damaged_count","type": "comb",     "x": 258, "y": 790, "pitch": 7.5, "cells": 2, "size": 9, "source": "incident.damagedVehicles", "label": "3. Число пострадавших ТС" },
     { "id": "med_check",    "type": "checkbox", "options": [ { "value": "yes", "x": 254, "y": 750 }, { "value": "no", "x": 254, "y": 741 } ], "source": "incident.medCheckDone", "label": "4. Медосвидетельствование пройдено (Ҳа/Йўқ)" },
     { "id": "witnesses",    "type": "text",     "x": 70,  "y": 718, "maxWidth": 480, "size": 8, "source": "incident.witnesses", "label": "5. Свидетели (ФИО, адрес)" },
     { "id": "official_check","type": "checkbox","options": [ { "value": "yes", "x": 256, "y": 690 }, { "value": "no", "x": 256, "y": 681 } ], "source": "incident.officialRegistered", "label": "6. Оформлено сотрудником ОВД (Ҳа/Йўқ)" },
-    { "id": "service_no",   "type": "comb",     "x": 430, "y": 690, "pitch": 12, "cells": 10, "size": 9, "source": "incident.serviceEventNo", "label": "6. № служебного события" }
+    { "id": "service_no",   "type": "comb",     "x": 430, "y": 690, "pitch": 7.5, "cells": 10, "size": 9, "source": "incident.serviceEventNo", "label": "6. № служебного события" }
   ],
 
   "partyBlockTemplate": {
     "comment": "Один и тот же набор полей для A и B. Координаты ниже даны для A; для B берётся то же Y и X из columns.B (или X+336). Источник вида partyA.* / partyB.*",
     "rows": [
-      { "id": "make_model",   "type": "comb", "yA": 622, "x": 17, "pitch": 12.8, "cells": 18, "source": "make+model",            "label": "7. Марка/модель ТС" },
-      { "id": "body_no",      "type": "comb", "yA": 602, "x": 17, "pitch": 12.8, "cells": 17, "source": "bodyNumber/VIN",         "label": "№ кузова/шасси" },
-      { "id": "engine_no",    "type": "comb", "yA": 582, "x": 17, "pitch": 12.8, "cells": 16, "source": "engineNumber",          "label": "№ двигателя" },
-      { "id": "regcert_seria","type": "comb", "yA": 548, "x": 17, "pitch": 12.8, "cells": 3,  "source": "regCertSeria",          "label": "Свид-во о рег.: серия" },
-      { "id": "regcert_no",   "type": "comb", "yA": 548, "x": 70, "pitch": 12.8, "cells": 7,  "source": "regCertNumber",         "label": "Свид-во о рег.: номер" },
+      { "id": "make_model",   "type": "text", "yA": 628, "x": 18, "maxWidth": 226, "size": 9, "source": "make+model", "calibrated": true, "label": "7. Марка/модель ТС (ТЕКСТ — две линии, не comb)" },
+      { "id": "body_no",      "type": "comb", "yA": 595, "x": 18, "pitch": 7.5, "cells": 30, "calibrated": true, "source": "bodyNumber/VIN", "label": "№ кузова/шасси" },
+      { "id": "engine_no",    "type": "comb", "yA": 555, "x": 18, "pitch": 7.5, "cells": 30, "calibrated": true, "source": "engineNumber", "label": "№ двигателя" },
+      { "id": "regstate_no",  "type": "comb", "yA": 539, "x": 131, "pitch": 7.5, "cells": 11, "calibrated": true, "source": "regStateNumber", "label": "Гос. рег. номер ТС (давлат рўйхатига олиш рақами)" },
+      { "id": "regcert_seria","type": "comb", "yA": 512, "x": 100, "pitch": 7.5, "cells": 4,  "source": "regCertSeria",          "label": "Свид-во о рег.: серия (оценка)" },
+      { "id": "regcert_no",   "type": "comb", "yA": 512, "x": 150, "pitch": 7.5, "cells": 11, "source": "regCertNumber",         "label": "Свид-во о рег.: номер (оценка)" },
       { "id": "owner_name",   "type": "text", "yA": 518, "x": 17, "maxWidth": 228, "source": "ownerFullName",                    "label": "8. Владелец ТС (ФИО)" },
       { "id": "owner_addr",   "type": "text", "yA": 494, "x": 17, "maxWidth": 228, "source": "ownerAddress",                     "label": "8. Адрес владельца" },
       { "id": "driver_name",  "type": "text", "yA": 472, "x": 17, "maxWidth": 228, "source": "driverFullName",                   "label": "9. Водитель (ФИО)" },
-      { "id": "driver_birth", "type": "comb", "yA": 450, "x": 90, "pitch": 12, "cells": 8, "format": "DDMMYYYY", "source": "driverBirthDate", "label": "9. Дата рождения водителя" },
+      { "id": "driver_birth", "type": "comb", "yA": 450, "x": 90, "pitch": 7.5, "cells": 8, "format": "DDMMYYYY", "source": "driverBirthDate", "label": "9. Дата рождения водителя" },
       { "id": "driver_addr",  "type": "text", "yA": 430, "x": 17, "maxWidth": 228, "source": "driverAddress",                    "label": "9. Адрес водителя" },
-      { "id": "phone",        "type": "comb", "yA": 408, "x": 75, "pitch": 12, "cells": 9, "source": "driverPhone",               "label": "Телефон" },
-      { "id": "dl_seria",     "type": "comb", "yA": 376, "x": 75, "pitch": 12, "cells": 3, "source": "driverLicenseSeria",        "label": "ВУ: серия" },
-      { "id": "dl_no",        "type": "comb", "yA": 376, "x": 125,"pitch": 12, "cells": 7, "source": "driverLicenseNumber",       "label": "ВУ: номер" },
+      { "id": "phone",        "type": "comb", "yA": 408, "x": 75, "pitch": 7.5, "cells": 9, "source": "driverPhone",               "label": "Телефон" },
+      { "id": "dl_seria",     "type": "comb", "yA": 376, "x": 75, "pitch": 7.5, "cells": 3, "source": "driverLicenseSeria",        "label": "ВУ: серия" },
+      { "id": "dl_no",        "type": "comb", "yA": 376, "x": 125,"pitch": 7.5, "cells": 7, "source": "driverLicenseNumber",       "label": "ВУ: номер" },
       { "id": "dl_category",  "type": "marks","yA": 352, "options": { "A": 60, "B": 76, "C": 92, "D": 108, "BE": 126, "CE": 150, "DE": 174 }, "source": "driverLicenseCategories", "label": "Категория (обвести)" },
-      { "id": "dl_issue",     "type": "comb", "yA": 352, "x": 200,"pitch": 12, "cells": 8, "format": "DDMMYYYY", "source": "driverLicenseIssueDate", "label": "Дата выдачи ВУ" },
+      { "id": "dl_issue",     "type": "comb", "yA": 352, "x": 200,"pitch": 7.5, "cells": 8, "format": "DDMMYYYY", "source": "driverLicenseIssueDate", "label": "Дата выдачи ВУ" },
       { "id": "ownership_doc","type": "text", "yA": 330, "x": 17, "maxWidth": 228, "source": "ownershipDoc",                     "label": "Документ о праве владения" },
       { "id": "insurer",      "type": "text", "yA": 306, "x": 17, "maxWidth": 228, "source": "insurerName",                      "label": "10. Страховщик" },
-      { "id": "policy_seria", "type": "comb", "yA": 282, "x": 90, "pitch": 12, "cells": 3, "source": "policySeria",              "label": "Полис: серия" },
-      { "id": "policy_no",    "type": "comb", "yA": 282, "x": 140,"pitch": 12, "cells": 7, "source": "policyNumber",             "label": "Полис: номер" },
-      { "id": "policy_valid", "type": "comb", "yA": 258, "x": 90, "pitch": 12, "cells": 8, "format": "DDMMYYYY", "source": "policyValidUntil", "label": "Срок действия полиса" },
+      { "id": "policy_seria", "type": "comb", "yA": 282, "x": 90, "pitch": 7.5, "cells": 3, "source": "policySeria",              "label": "Полис: серия" },
+      { "id": "policy_no",    "type": "comb", "yA": 282, "x": 140,"pitch": 7.5, "cells": 7, "source": "policyNumber",             "label": "Полис: номер" },
+      { "id": "policy_valid", "type": "comb", "yA": 258, "x": 90, "pitch": 7.5, "cells": 8, "format": "DDMMYYYY", "source": "policyValidUntil", "label": "Срок действия полиса" },
       { "id": "kasko",        "type": "checkbox", "yA": 236, "options": [ { "value": "yes", "x": 195, "y": 236 }, { "value": "no", "x": 225, "y": 236 } ], "source": "hasKasko", "label": "КАСКО (Ҳа/Йўқ)" },
       { "id": "impact_point", "type": "image","rectA": { "x": 55, "y": 130, "w": 130, "h": 65 }, "source": "impactPointImage", "label": "11. Место первого удара (стрелка на схеме авто)" },
       { "id": "damage_desc",  "type": "text", "yA": 105, "x": 17, "maxWidth": 228, "lines": 3, "lineHeight": 14, "source": "damageDescription", "label": "12. Описание повреждений" },
@@ -77,7 +85,7 @@
     "aCheckX": 256,
     "bCheckX": 342,
     "source": "circumstances.a[1..22] / circumstances.b[1..22] (boolean)",
-    "checkedCountBox": { "type": "comb", "x": 300, "y": 240, "pitch": 12, "cells": 2, "source": "circumstances.aCount/bCount", "label": "Число отмеченных клеток (для A и B)" }
+    "checkedCountBox": { "type": "comb", "x": 300, "y": 240, "pitch": 7.5, "cells": 2, "source": "circumstances.aCount/bCount", "label": "Число отмеченных клеток (для A и B)" }
   },
 
   "page0_schema": [
