@@ -1,9 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, RefreshControl, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { useCollapsingHeader } from '../../../lib/useCollapsingHeader';
 import type { Policy } from '../../../api/policies';
 import { usePolicies } from '../../../api/policies';
 import type { ProductType } from '../../../api/types';
@@ -65,6 +68,8 @@ export function PoliciesListScreen() {
     }, [refetch]),
   );
 
+  const insets = useSafeAreaInsets();
+  const { onScroll, headerAnimatedStyle } = useCollapsingHeader();
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -81,54 +86,29 @@ export function PoliciesListScreen() {
   const expiring = active.filter((p) => computeDaysLeft(p.endDate) < 30).length;
 
   return (
-    <PhoneFrame>
-      {/* Top: title + search */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: 24,
-          paddingTop: 8,
-          paddingBottom: 16,
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: 'NeueMontreal-Medium',
-            fontSize: 28,
-            letterSpacing: -0.28,
-            color: tokens.ink,
-          }}
-        >
-          Мои полисы
-        </Text>
-        <IconButton>
-          <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={tokens.inkDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            <Circle cx={11} cy={11} r={7} />
-            <Path d="M21 21l-4.5-4.5" />
-          </Svg>
-        </IconButton>
-      </View>
-
-      {isLoading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator color={tokens.red} />
-        </View>
-      ) : (
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 24, gap: 16 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={tokens.red}
-              colors={[tokens.red]}
-            />
-          }
-        >
+    <PhoneFrame bottomSafeArea={false} topSafeArea={false}>
+      <View style={{ flex: 1 }}>
+        {isLoading ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator color={tokens.red} />
+          </View>
+        ) : (
+          <Animated.ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 120, paddingHorizontal: 24, gap: 16 }}
+            showsVerticalScrollIndicator={false}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={tokens.red}
+                colors={[tokens.red]}
+                progressViewOffset={insets.top + 60}
+              />
+            }
+          >
           {/* Stats */}
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <StatPill label="Активных" value={String(active.length)} tone="ink" />
@@ -234,8 +214,52 @@ export function PoliciesListScreen() {
               </>
             )}
           </View>
-        </ScrollView>
-      )}
+          </Animated.ScrollView>
+        )}
+
+        {/* Fade-overlay сверху: контент мягко исчезает за status bar / DI. */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={[tokens.pageBg, 'rgba(228,228,228,0)']}
+          style={{ position: 'absolute', left: 0, right: 0, top: 0, height: insets.top + 24 }}
+        />
+
+        {/* Floating-заголовок (large title): тает при скролле вверх, возвращается к началу. */}
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              top: insets.top,
+              left: 0,
+              right: 0,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 24,
+              paddingTop: 8,
+              paddingBottom: 16,
+            },
+            headerAnimatedStyle,
+          ]}
+        >
+          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 28, letterSpacing: -0.28, color: tokens.ink }}>
+            Мои полисы
+          </Text>
+          <IconButton>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={tokens.inkDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <Circle cx={11} cy={11} r={7} />
+              <Path d="M21 21l-4.5-4.5" />
+            </Svg>
+          </IconButton>
+        </Animated.View>
+
+        {/* Fade-overlay снизу: контент мягко исчезает над таб-баром. */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={['rgba(228,228,228,0)', tokens.pageBg]}
+          style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 110 }}
+        />
+      </View>
     </PhoneFrame>
   );
 }

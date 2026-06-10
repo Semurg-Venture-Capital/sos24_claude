@@ -1,8 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Glass } from '../../../components/ui/Glass';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useCollapsingHeader } from '../../../lib/useCollapsingHeader';
 import { useMe } from '../../../api/auth';
 import { useDocuments } from '../../../api/documents';
 import { IconChat, IconFile, IconInfo, IconLanguage, IconLicense, IconLogout, IconPalette, IconPassport, IconPencil, IconQuestion, IconWallet } from '../../../components/icons/LineIcons';
@@ -45,6 +48,8 @@ export function ProfileScreen() {
   const { data: cards } = useCards();
   const passport = documents?.find((d) => d.kind === 'PASSPORT');
   const license = documents?.find((d) => d.kind === 'DRIVER_LICENSE');
+  const insets = useSafeAreaInsets();
+  const { onScroll, headerAnimatedStyle } = useCollapsingHeader();
   const fullName =
     me && (me.surname || me.name || me.patronymic)
       ? [me.surname, me.name, me.patronymic].filter(Boolean).join(' ')
@@ -52,25 +57,15 @@ export function ProfileScreen() {
   const isVerified = me?.verificationStatus === 'MYID_VERIFIED';
 
   return (
-    <PhoneFrame>
-      <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 16 }}>
-        <Text
-          style={{
-            fontFamily: 'NeueMontreal-Medium',
-            fontSize: 28,
-            letterSpacing: -0.28,
-            color: tokens.ink,
-          }}
+    <PhoneFrame bottomSafeArea={false} topSafeArea={false}>
+      <View style={{ flex: 1 }}>
+        <Animated.ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingTop: insets.top + 64, paddingHorizontal: 24, paddingBottom: 140, gap: 24 }}
+          showsVerticalScrollIndicator={false}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
         >
-          Профиль
-        </Text>
-      </View>
-
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 140, gap: 24 }}
-        showsVerticalScrollIndicator={false}
-      >
         {/* Profile header */}
         <View style={{ borderRadius: 28, overflow: 'hidden' }}>
           <Glass
@@ -208,7 +203,34 @@ export function ProfileScreen() {
             onPress={() => void signOut()}
           />
         </View>
-      </ScrollView>
+        </Animated.ScrollView>
+
+        {/* Fade-overlay сверху: контент мягко исчезает за status bar / DI. */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={[tokens.pageBg, 'rgba(228,228,228,0)']}
+          style={{ position: 'absolute', left: 0, right: 0, top: 0, height: insets.top + 24 }}
+        />
+
+        {/* Floating-заголовок (large title): тает при скролле вверх, возвращается к началу. */}
+        <Animated.View
+          style={[
+            { position: 'absolute', top: insets.top, left: 0, right: 0, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 16 },
+            headerAnimatedStyle,
+          ]}
+        >
+          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 28, letterSpacing: -0.28, color: tokens.ink }}>
+            Профиль
+          </Text>
+        </Animated.View>
+
+        {/* Fade-overlay снизу: контент мягко исчезает над таб-баром. */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={['rgba(228,228,228,0)', tokens.pageBg]}
+          style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 110 }}
+        />
+      </View>
     </PhoneFrame>
   );
 }

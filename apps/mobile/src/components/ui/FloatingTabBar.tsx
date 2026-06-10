@@ -26,9 +26,15 @@ const H_MARGIN = 16;
 const BAR_HEIGHT = 64;
 const PILL_INSET = 6;
 
-export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
+export function FloatingTabBar({ state, navigation, descriptors }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+
+  // Скрываем бар, если активная вкладка попросила tabBarStyle.display:'none'
+  // (например, детальная страница авто внутри стека Гаража).
+  const focusedOptions = descriptors[state.routes[state.index].key]?.options;
+  const tabBarStyle = focusedOptions?.tabBarStyle as { display?: 'flex' | 'none' } | undefined;
+  if (tabBarStyle?.display === 'none') return null;
 
   const n = state.routes.length;
   const barWidth = width - H_MARGIN * 2;

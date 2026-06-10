@@ -1,5 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
+import { getFocusedRouteNameFromRoute, type RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform } from 'react-native';
 import { AdjusterNavigator } from './AdjusterNavigator';
@@ -13,6 +14,18 @@ import { tokens } from '../theme/colors';
 import type { MainStackParamList, MainTabParamList } from './types';
 
 const isIOS = Platform.OS === 'ios';
+
+// Нижнее меню показываем только на корневом экране вкладки. На любом внутреннем
+// экране стека (деталь/редактирование/…) — скрываем: у них своя кнопка «назад» сверху.
+// display:'none' читают и нативный iOS-таб (→ tabBarHidden), и FloatingTabBar (Android).
+function tabBarStyleFor(
+  route: RouteProp<MainTabParamList, 'Policies' | 'Garage' | 'Profile'>,
+  rootName: string,
+): { display: 'flex' | 'none' } {
+  const focused = getFocusedRouteNameFromRoute(route);
+  const hide = focused !== undefined && focused !== rootName;
+  return { display: hide ? 'none' : 'flex' };
+}
 
 // ───────────────────────── iOS: нативный таб-бар ─────────────────────────
 // На iOS это родной UITabBarController, на iOS 26+ автоматически с Liquid Glass.
@@ -39,32 +52,35 @@ function IosTabs() {
       <Tab.Screen
         name="Policies"
         component={PoliciesNavigator}
-        options={{
+        options={({ route }) => ({
           tabBarLabel: 'Полисы',
           tabBarIcon: isIOS
             ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'shield.fill' : 'shield' })
             : undefined,
-        }}
+          tabBarStyle: tabBarStyleFor(route, 'PoliciesList'),
+        })}
       />
       <Tab.Screen
         name="Garage"
         component={GarageNavigator}
-        options={{
+        options={({ route }) => ({
           tabBarLabel: 'Гараж',
           tabBarIcon: isIOS
             ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'car.fill' : 'car' })
             : undefined,
-        }}
+          tabBarStyle: tabBarStyleFor(route, 'GarageList'),
+        })}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileNavigator}
-        options={{
+        options={({ route }) => ({
           tabBarLabel: 'Профиль',
           tabBarIcon: isIOS
             ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'person.fill' : 'person' })
             : undefined,
-        }}
+          tabBarStyle: tabBarStyleFor(route, 'ProfileMain'),
+        })}
       />
     </Tab.Navigator>
   );
@@ -80,9 +96,21 @@ function AndroidTabs() {
       tabBar={(props) => <FloatingTabBar {...props} />}
     >
       <JsTab.Screen name="Home" component={HomeScreen} />
-      <JsTab.Screen name="Policies" component={PoliciesNavigator} />
-      <JsTab.Screen name="Garage" component={GarageNavigator} />
-      <JsTab.Screen name="Profile" component={ProfileNavigator} />
+      <JsTab.Screen
+        name="Policies"
+        component={PoliciesNavigator}
+        options={({ route }) => ({ tabBarStyle: tabBarStyleFor(route, 'PoliciesList') })}
+      />
+      <JsTab.Screen
+        name="Garage"
+        component={GarageNavigator}
+        options={({ route }) => ({ tabBarStyle: tabBarStyleFor(route, 'GarageList') })}
+      />
+      <JsTab.Screen
+        name="Profile"
+        component={ProfileNavigator}
+        options={({ route }) => ({ tabBarStyle: tabBarStyleFor(route, 'ProfileMain') })}
+      />
     </JsTab.Navigator>
   );
 }
