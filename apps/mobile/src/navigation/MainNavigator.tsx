@@ -1,7 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { LiquidGlassBackdropView } from '@sos24/liquid-glass';
 import { Platform } from 'react-native';
 import { AdjusterNavigator } from './AdjusterNavigator';
 import { GarageNavigator } from './GarageNavigator';
@@ -9,7 +8,7 @@ import { HomeScreen } from '../features/main/screens/HomeScreen';
 import { PoliciesNavigator } from './PoliciesNavigator';
 import { ProfileNavigator } from './ProfileNavigator';
 import { PurchaseNavigator } from './PurchaseNavigator';
-import { LiquidGlassTabBar, LIQUID_BACKDROP_ID } from '../components/ui/LiquidGlassTabBar';
+import { FloatingTabBar } from '../components/ui/FloatingTabBar';
 import { tokens } from '../theme/colors';
 import type { MainStackParamList, MainTabParamList } from './types';
 
@@ -71,28 +70,24 @@ function IosTabs() {
   );
 }
 
-// ──────────────── Android: JS-табы + кастомный Liquid Glass бар ────────────────
+// ──────────────── Android: JS-табы + плавающий бар (Вариант 3) ────────────────
 const JsTab = createBottomTabNavigator<MainTabParamList>();
 
 function AndroidTabs() {
-  // LiquidGlassBackdropView записывает сцену в RenderNode — нативное стекло бара
-  // (тот же backdropId) преломляет этот фон (порт kyant).
   return (
-    <LiquidGlassBackdropView backdropId={LIQUID_BACKDROP_ID} style={{ flex: 1 }}>
-      <JsTab.Navigator
-        screenOptions={{ headerShown: false }}
-        tabBar={(props) => <LiquidGlassTabBar {...props} />}
-      >
-        <JsTab.Screen name="Home" component={HomeScreen} />
-        <JsTab.Screen name="Policies" component={PoliciesNavigator} />
-        <JsTab.Screen name="Garage" component={GarageNavigator} />
-        <JsTab.Screen name="Profile" component={ProfileNavigator} />
-      </JsTab.Navigator>
-    </LiquidGlassBackdropView>
+    <JsTab.Navigator
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <FloatingTabBar {...props} />}
+    >
+      <JsTab.Screen name="Home" component={HomeScreen} />
+      <JsTab.Screen name="Policies" component={PoliciesNavigator} />
+      <JsTab.Screen name="Garage" component={GarageNavigator} />
+      <JsTab.Screen name="Profile" component={ProfileNavigator} />
+    </JsTab.Navigator>
   );
 }
 
-// Селектор: нативный таб-бар на iOS, кастомный Liquid Glass — на Android.
+// Селектор: нативный таб-бар на iOS, плавающий — на Android.
 function MainTabs() {
   return isIOS ? <IosTabs /> : <AndroidTabs />;
 }
