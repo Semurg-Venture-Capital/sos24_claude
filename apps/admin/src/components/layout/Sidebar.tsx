@@ -17,6 +17,7 @@ import {
   Car,
   Radar,
   ChevronDown,
+  FileWarning,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NAPP_TOOLS, NAPP_GROUPS } from '@/lib/nappTools';
@@ -27,6 +28,7 @@ const NAV = [
   { href: '/policies', label: 'Полисы', icon: ShieldCheck },
   { href: '/vehicles', label: 'Автомобили', icon: Car },
   { href: '/adjuster', label: 'Аджастер', icon: Siren },
+  { href: '/europrotocols', label: 'Европротоколы', icon: FileWarning },
   { href: '/myid-test', label: 'MyID данные', icon: Fingerprint },
 ];
 

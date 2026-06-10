@@ -91,3 +91,49 @@ export function useCreateAdjusterUser() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'adjuster-users'] }),
   });
 }
+
+// ── Европротоколы (M9/M10) ──
+export function useEuroStats() {
+  return useQuery({
+    queryKey: ['admin', 'euro', 'stats'],
+    queryFn: () =>
+      api.get('/admin/europrotocols/stats').then(
+        (r) =>
+          r.data as {
+            submitted: number;
+            review: number;
+            needInfo: number;
+            approved: number;
+            paid: number;
+            rejected: number;
+          },
+      ),
+  });
+}
+
+export function useEuroProtocols(status = '', page = 1, limit = 20) {
+  return useQuery({
+    queryKey: ['admin', 'euro', status, page],
+    queryFn: () =>
+      api
+        .get('/admin/europrotocols', { params: { status: status || undefined, page, limit } })
+        .then((r) => r.data),
+  });
+}
+
+export function useEuroProtocol(id: string | null) {
+  return useQuery({
+    queryKey: ['admin', 'euro', 'one', id],
+    queryFn: () => api.get(`/admin/europrotocols/${id}`).then((r) => r.data),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateEuroStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status, adminNote }: { id: string; status: string; adminNote?: string }) =>
+      api.patch(`/admin/europrotocols/${id}`, { status, adminNote }).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'euro'] }),
+  });
+}
