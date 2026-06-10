@@ -59,6 +59,13 @@ interface EuroState {
   otherPolicyValid: boolean | null; // null = не проверяли
   otherPhone: string;
 
+  // Шаг 3 — схема + описание
+  schemeType: SchemeType | null;
+  description: string;
+
+  // Шаг 4 — фотофиксация (только камера, антифрод). uri + метка времени.
+  photos: Record<PhotoKey, EuroPhoto | null>;
+
   setScreening: (key: keyof EuroScreening, value: boolean) => void;
   captureNow: () => void;
   setLocation: (place: string, lat?: number, lng?: number) => void;
@@ -68,8 +75,22 @@ interface EuroState {
   setOtherField: (key: OtherTextField, value: string) => void;
   setOtherVehicle: (v: TechPassportInfo | null) => void;
   setOtherPolicyValid: (v: boolean | null) => void;
+  setScheme: (v: SchemeType) => void;
+  setDescription: (v: string) => void;
+  setPhoto: (key: PhotoKey, photo: EuroPhoto | null) => void;
   reset: () => void;
 }
+
+// Тип схемы столкновения (готовые шаблоны).
+export type SchemeType = 'rear' | 'front' | 'side';
+
+// Слоты фотофиксации. overview/myCar/otherCar — обязательные, scene — опционально.
+export type PhotoKey = 'overview' | 'myCar' | 'otherCar' | 'scene';
+export interface EuroPhoto {
+  uri: string;
+  at: string; // время съёмки HH:MM
+}
+export const REQUIRED_PHOTOS: PhotoKey[] = ['overview', 'myCar', 'otherCar'];
 
 const INITIAL = {
   screening: {
@@ -96,6 +117,9 @@ const INITIAL = {
   otherPolicyNumber: '',
   otherPolicyValid: null as boolean | null,
   otherPhone: '',
+  schemeType: null as SchemeType | null,
+  description: '',
+  photos: { overview: null, myCar: null, otherCar: null, scene: null } as Record<PhotoKey, EuroPhoto | null>,
 };
 
 export const useEuroStore = create<EuroState>((set) => ({
@@ -109,7 +133,10 @@ export const useEuroStore = create<EuroState>((set) => ({
   setOtherField: (key, value) => set({ [key]: value } as Partial<EuroState>),
   setOtherVehicle: (v) => set({ otherVehicle: v }),
   setOtherPolicyValid: (v) => set({ otherPolicyValid: v }),
-  reset: () => set({ ...INITIAL, screening: { ...INITIAL.screening } }),
+  setScheme: (v) => set({ schemeType: v }),
+  setDescription: (v) => set({ description: v }),
+  setPhoto: (key, photo) => set((st) => ({ photos: { ...st.photos, [key]: photo } })),
+  reset: () => set({ ...INITIAL, screening: { ...INITIAL.screening }, photos: { ...INITIAL.photos } }),
 }));
 
 // Все 5 условий подтверждены?

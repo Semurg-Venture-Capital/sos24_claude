@@ -120,7 +120,7 @@ export function EuroStep2Screen() {
       eyebrow="Шаг 2 из 5 · Участники"
       primary="Далее"
       primaryEnabled={canNext}
-      primaryAction={() => Alert.alert('Шаг 3', 'Схема ДТП и описание — рисуем дальше.')}
+      primaryAction={() => nav.navigate('EuroStep3')}
       onBack={() => nav.goBack()}
     >
       <ScreenHeading title="Участники ДТП" subtitle="Оба участника подтверждаются через MyID" />
