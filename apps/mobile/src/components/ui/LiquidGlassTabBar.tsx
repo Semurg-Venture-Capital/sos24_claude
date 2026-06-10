@@ -1,10 +1,10 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { LiquidGlassView } from '@uginy/react-native-liquid-glass';
 import { useEffect, useRef, type RefObject } from 'react';
-import { Animated, Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TabIconCar, TabIconHome, TabIconShield, TabIconUser } from '../icons/TabIcons';
 import { tokens } from '../../theme/colors';
-import { Glass } from './Glass';
 
 // Кастомный нижний бар «Liquid Glass» для Android (аналог iOS 26).
 // Плавающая стеклянная пилюля + «капелька» — жидкая подсветка, пружинисто
@@ -61,6 +61,7 @@ export function LiquidGlassTabBar({ state, navigation, blurTarget }: Props) {
     >
       <View
         style={{
+          height: BAR_HEIGHT,
           borderRadius: 30,
           overflow: 'hidden',
           // мягкая тень под плавающей пилюлей
@@ -71,36 +72,38 @@ export function LiquidGlassTabBar({ state, navigation, blurTarget }: Props) {
           elevation: 12,
         }}
       >
-        <Glass
-          intensity={28}
-          tint="light"
-          blurTarget={blurTarget}
-          style={{
-            height: BAR_HEIGHT,
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: 'rgba(255,255,255,0.55)',
-            borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.45)',
-          }}
-        >
-          {/* «Капелька» — жидкая подсветка под активной вкладкой */}
-          <Animated.View
-            pointerEvents="none"
-            style={{
-              position: 'absolute',
-              width: DROP_W,
-              height: DROP_H,
-              left: -DROP_W / 2,
-              top: (BAR_HEIGHT - DROP_H) / 2,
-              borderRadius: 22,
-              backgroundColor: 'rgba(230,20,40,0.12)',
-              borderWidth: 1,
-              borderColor: 'rgba(230,20,40,0.18)',
-              transform: [{ translateX: dropX }, { scaleX: squish }],
-            }}
-          />
+        {/* Слой 1: настоящее стекло (AGSL-рефракция фона под баром) */}
+        <LiquidGlassView
+          blurRadius={44}
+          refractionStrength={0.07}
+          chromaticAberration={0.02}
+          edgeGlowIntensity={0.45}
+          glareIntensity={0.32}
+          glassOpacity={0.12}
+          tintColor="#ffffff"
+          cornerRadius={30}
+          style={StyleSheet.absoluteFillObject}
+        />
 
+        {/* Слой 2: «капелька» — жидкая подсветка под активной вкладкой (над стеклом) */}
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            width: DROP_W,
+            height: DROP_H,
+            left: -DROP_W / 2,
+            top: (BAR_HEIGHT - DROP_H) / 2,
+            borderRadius: 22,
+            backgroundColor: 'rgba(230,20,40,0.14)',
+            borderWidth: 1,
+            borderColor: 'rgba(230,20,40,0.22)',
+            transform: [{ translateX: dropX }, { scaleX: squish }],
+          }}
+        />
+
+        {/* Слой 3: иконки и лейблы (поверх стекла) */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', height: BAR_HEIGHT }}>
           {state.routes.map((route, i) => {
             const focused = state.index === i;
             const Icon = ICONS[route.name];
@@ -133,7 +136,7 @@ export function LiquidGlassTabBar({ state, navigation, blurTarget }: Props) {
               </Pressable>
             );
           })}
-        </Glass>
+        </View>
       </View>
     </View>
   );
