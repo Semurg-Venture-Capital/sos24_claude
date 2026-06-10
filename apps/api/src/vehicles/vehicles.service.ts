@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma, Vehicle } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NappService, TechPassportInfo } from '../napp/napp.service';
@@ -73,6 +73,35 @@ export class VehiclesService {
   async remove(userId: string, id: string): Promise<void> {
     await this.findOne(userId, id);
     await this.prisma.vehicle.delete({ where: { id } });
+  }
+
+  /**
+   * Пере-синхронизация данных авто из НАПП. Серию+номер техпаспорта берём из тела
+   * запроса или из сохранённых у авто. Сохраняет техпаспорт + промо-поля + nappRaw.
+   * Возвращает { found } — нашёл ли НАПП данные (для фидбэка в UI).
+   */
+  async syncNapp(
+    userId: string,
+    id: string,
+    body: { techPassportSeria?: string; techPassportNumber?: string },
+  ): Promise<{ found: boolean; vehicle: Vehicle }> {
+    const current = await this.findOne(userId, id);
+    const seria = (body.techPassportSeria ?? current.techPassportSeria ?? '').trim();
+    const number = (body.techPassportNumber ?? current.techPassportNumber ?? '').trim();
+    if (!seria || !number) {
+      throw new BadRequestException('Укажите серию и номер техпаспорта');
+    }
+
+    const nappData = await this.enrichFromNapp(current.plate, seria, number);
+    const found = Object.keys(nappData).length > 0;
+
+    // Серию/номер сохраняем всегда (чтобы ввод пользователя не пропал), НАПП-поля — если нашлись.
+    const vehicle = await this.prisma.vehicle.update({
+      where: { id },
+      data: { techPassportSeria: seria, techPassportNumber: number, ...nappData },
+    });
+
+    return { found, vehicle };
   }
 
   /**

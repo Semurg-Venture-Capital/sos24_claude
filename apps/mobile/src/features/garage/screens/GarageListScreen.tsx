@@ -1,8 +1,12 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Glass } from '../../../components/ui/Glass';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Pressable, RefreshControl, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+import { useCollapsingHeader } from '../../../lib/useCollapsingHeader';
 import { useVehicles } from '../../../api/vehicles';
 import { IconCarSimple } from '../../../components/icons/LineIcons';
 import { FAB } from '../../../components/ui/FAB';
@@ -12,6 +16,14 @@ import { tokens } from '../../../theme/colors';
 import type { GarageStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<GarageStackParamList, 'GarageList'>;
+
+function Chevron() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path d="M9 6l6 6-6 6" stroke={tokens.inkMuted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
 
 // M3.1 — Список автомобилей. Пустое состояние или карточки.
 export function GarageListScreen() {
@@ -26,6 +38,8 @@ export function GarageListScreen() {
     }, [refetch]),
   );
 
+  const insets = useSafeAreaInsets();
+  const { onScroll, headerAnimatedStyle } = useCollapsingHeader();
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -34,16 +48,25 @@ export function GarageListScreen() {
   }, [refetch]);
 
   return (
-    <PhoneFrame>
-      <View
-        style={{
+    <PhoneFrame bottomSafeArea={false} topSafeArea={false}>
+      <View style={{ flex: 1 }}>
+      <Animated.View
+        style={[
+        {
+          position: 'absolute',
+          top: insets.top,
+          left: 0,
+          right: 0,
+          zIndex: 10,
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingHorizontal: 24,
           paddingTop: 8,
           paddingBottom: 16,
-        }}
+        },
+        headerAnimatedStyle,
+        ]}
       >
         <Text
           style={{
@@ -55,7 +78,7 @@ export function GarageListScreen() {
         >
           Гараж
         </Text>
-      </View>
+      </Animated.View>
 
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -105,21 +128,28 @@ export function GarageListScreen() {
         </View>
       ) : (
         <>
-          <ScrollView
+          <Animated.ScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 160, gap: 12 }}
+            contentContainerStyle={{ paddingTop: insets.top + 64, paddingHorizontal: 24, paddingBottom: 160, gap: 12 }}
             showsVerticalScrollIndicator={false}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
                 tintColor={tokens.red}
                 colors={[tokens.red]}
+                progressViewOffset={insets.top + 60}
               />
             }
           >
             {vehicles?.map((v) => (
-              <View key={v.id} style={{ borderRadius: 28, overflow: 'hidden' }}>
+              <Pressable
+                key={v.id}
+                onPress={() => nav.navigate('VehicleDetail', { id: v.id })}
+                style={({ pressed }) => ({ borderRadius: 28, overflow: 'hidden', opacity: pressed ? 0.7 : 1 })}
+              >
                 <Glass
                   intensity={20}
                   tint="light"
@@ -161,13 +191,28 @@ export function GarageListScreen() {
                       {v.brand} {v.model} · {v.year}
                     </Text>
                   </View>
+                  <Chevron />
                 </Glass>
-              </View>
+              </Pressable>
             ))}
-          </ScrollView>
+          </Animated.ScrollView>
           <FAB onPress={() => nav.navigate('GarageEdit', {})} bottom={110} />
         </>
       )}
+
+      {/* Fade-overlay сверху: контент мягко исчезает за status bar / DI. */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={[tokens.pageBg, 'rgba(228,228,228,0)']}
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, height: insets.top + 24 }}
+      />
+      {/* Fade-overlay снизу: контент мягко исчезает над таб-баром. */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(228,228,228,0)', tokens.pageBg]}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 110 }}
+      />
+      </View>
     </PhoneFrame>
   );
 }

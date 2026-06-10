@@ -12,6 +12,25 @@ export interface Vehicle {
   power: string | null;
   vin: string | null;
   color: string | null;
+
+  // --- Данные из НАПП (госреестр). Заполняются при создании/синхронизации авто. ---
+  techPassportSeria: string | null;
+  techPassportNumber: string | null;
+  techPassportDate: string | null;
+  vehicleTypeId: number | null;
+  bodyNumber: string | null;
+  engineNumber: string | null;
+  fuelType: string | null;
+  seats: number | null;
+  stands: number | null;
+  fullWeight: string | null;
+  emptyWeight: string | null;
+  division: string | null;
+  ownerName: string | null;
+  ownerInn: string | null;
+  ownerPinfl: string | null;
+  nappSyncedAt: string | null;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -119,6 +138,20 @@ export async function updateVehicle(id: string, input: UpdateVehicleInput) {
 export async function deleteVehicle(id: string) {
   await api.delete(`/me/vehicles/${id}`);
 }
+
+// Серия+номер ТП опциональны — если не переданы, бэкенд берёт сохранённые у авто.
+export interface SyncNappInput {
+  techPassportSeria?: string;
+  techPassportNumber?: string;
+}
+export interface SyncNappResult {
+  found: boolean;
+  vehicle: Vehicle;
+}
+export async function syncVehicleNapp(id: string, input: SyncNappInput) {
+  const { data } = await api.post<SyncNappResult>(`/me/vehicles/${id}/sync-napp`, input);
+  return data;
+}
 // Запрос данных ТС из НАПП по техпаспорту + госномеру.
 // Бросает Error с текстом, если НАПП вернул error !== 0 (не найдено и т.п.).
 export async function lookupVehicleByTechPassport(input: NappVehicleLookupInput) {
@@ -173,4 +206,40 @@ export function useDeleteVehicle() {
 
 export function useNappLookup() {
   return useMutation({ mutationFn: lookupVehicleByTechPassport });
+}
+
+export function useSyncVehicleNapp() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: SyncNappInput }) => syncVehicleNapp(id, input),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: KEYS.list });
+      qc.invalidateQueries({ queryKey: KEYS.one(vars.id) });
+    },
+  });
+}
+
+// --- Справочник типов ТС НАПП (для расшифровки vehicleTypeId) ---
+export interface NappRefItem {
+  id: number | string;
+  name: string;
+  nameUz?: string;
+  nameUzc?: string;
+}
+export async function getVehicleTypes() {
+  const { data } = await api.get<NappRefItem[]>('/napp/references/vehicle-types-osago');
+  return data;
+}
+// Возвращает функцию-декодер vehicleTypeId → подпись (или null, пока не загружено).
+export function useVehicleTypeLabel() {
+  const { data } = useQuery({
+    queryKey: ['napp-ref', 'vehicle-types-osago'],
+    queryFn: getVehicleTypes,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+  return (id: number | null | undefined): string | null => {
+    if (id === null || id === undefined) return null;
+    const item = data?.find((x) => String(x.id) === String(id));
+    return item?.name ?? null;
+  };
 }

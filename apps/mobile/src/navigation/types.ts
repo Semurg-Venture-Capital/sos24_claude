@@ -32,6 +32,7 @@ export type ProfileStackParamList = {
 
 export type GarageStackParamList = {
   GarageList: undefined;
+  VehicleDetail: { id: string };
   GarageEdit: { id?: string };
 };
 

@@ -4,6 +4,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
+import { SyncNappDto } from './dto/sync-napp.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { VehiclesService } from './vehicles.service';
 
@@ -40,6 +41,16 @@ export class VehiclesController {
     @Body() dto: UpdateVehicleDto,
   ) {
     return this.vehicles.update(user.sub, id, dto);
+  }
+
+  @Post(':id/sync-napp')
+  @ApiOperation({ summary: 'Пере-синхронизировать данные авто из НАПП по техпаспорту.' })
+  syncNapp(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: SyncNappDto,
+  ) {
+    return this.vehicles.syncNapp(user.sub, id, dto);
   }
 
   @Delete(':id')
