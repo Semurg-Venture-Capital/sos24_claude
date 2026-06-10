@@ -1,8 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { EuroParticipant, Prisma } from '@prisma/client';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { EuroParticipant, EuroStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { MyidService, type MyIdUserData } from '../myid/myid.service';
 import { NappService } from '../napp/napp.service';
+import type { SubmitEuroDto } from './dto/submit-euro.dto';
+
+// include для детального ответа (участник + авто инициатора).
+const EURO_INCLUDE = {
+  participant: true,
+  vehicle: { select: { id: true, plate: true, brand: true, model: true, year: true } },
+} satisfies Prisma.EuroProtocolInclude;
 
 @Injectable()
 export class EuroprotocolService {
@@ -13,6 +20,101 @@ export class EuroprotocolService {
     private readonly myid: MyidService,
     private readonly napp: NappService,
   ) {}
+
+  // ── Отправка европротокола (сбор данных визарда) ──
+  async submit(userId: string, dto: SubmitEuroDto): Promise<{ id: string; number: string }> {
+    const number = `EP-26-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`;
+    const created = await this.prisma.euroProtocol.create({
+      data: {
+        number,
+        userId,
+        vehicleId: dto.vehicleId ?? null,
+        selfVerified: dto.selfVerified ?? false,
+        incidentDate: new Date(dto.incidentDate),
+        incidentTime: dto.incidentTime,
+        place: dto.place,
+        lat: dto.lat ?? null,
+        lng: dto.lng ?? null,
+        participantId: dto.participantId ?? null,
+        otherGov: dto.otherGov ?? null,
+        otherPhone: dto.otherPhone ?? null,
+        otherVehicleRaw: (dto.otherVehicleRaw ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        otherPolicySeria: dto.otherPolicySeria ?? null,
+        otherPolicyNumber: dto.otherPolicyNumber ?? null,
+        otherPolicyValid: dto.otherPolicyValid ?? null,
+        schemeType: dto.schemeType ?? null,
+        description: dto.description ?? null,
+        photos: (dto.photos ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      },
+      select: { id: true, number: true },
+    });
+    return created;
+  }
+
+  // ── Список европротоколов пользователя ──
+  async listByUser(userId: string) {
+    return this.prisma.euroProtocol.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: EURO_INCLUDE,
+    });
+  }
+
+  // ── Деталь (свой) ──
+  async findOneForUser(userId: string, id: string) {
+    const p = await this.prisma.euroProtocol.findFirst({ where: { id, userId }, include: EURO_INCLUDE });
+    if (!p) throw new NotFoundException('Европротокол не найден');
+    return p;
+  }
+
+  // ── Админ: список с фильтром по статусу + пагинация ──
+  async adminList(status: EuroStatus | undefined, page = 1, limit = 20) {
+    const where = status ? { status } : {};
+    const [items, total] = await Promise.all([
+      this.prisma.euroProtocol.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { ...EURO_INCLUDE, user: { select: { name: true, surname: true, phone: true } } },
+      }),
+      this.prisma.euroProtocol.count({ where }),
+    ]);
+    return { items, total, page, limit };
+  }
+
+  // ── Админ: деталь ──
+  async adminFindOne(id: string) {
+    const p = await this.prisma.euroProtocol.findUnique({
+      where: { id },
+      include: { ...EURO_INCLUDE, user: { select: { name: true, surname: true, phone: true } } },
+    });
+    if (!p) throw new NotFoundException('Европротокол не найден');
+    return p;
+  }
+
+  // ── Админ: KPI ──
+  async adminStats() {
+    const [submitted, review, needInfo, approved, paid, rejected] = await Promise.all([
+      this.prisma.euroProtocol.count({ where: { status: 'SUBMITTED' } }),
+      this.prisma.euroProtocol.count({ where: { status: 'REVIEW' } }),
+      this.prisma.euroProtocol.count({ where: { status: 'NEED_INFO' } }),
+      this.prisma.euroProtocol.count({ where: { status: 'APPROVED' } }),
+      this.prisma.euroProtocol.count({ where: { status: 'PAID' } }),
+      this.prisma.euroProtocol.count({ where: { status: 'REJECTED' } }),
+    ]);
+    return { submitted, review, needInfo, approved, paid, rejected };
+  }
+
+  // ── Админ: смена статуса + примечание ──
+  async updateStatus(id: string, status: EuroStatus, adminNote?: string) {
+    await this.adminFindOne(id);
+    return this.prisma.euroProtocol.update({
+      where: { id },
+      data: { status, ...(adminNote !== undefined ? { adminNote } : {}) },
+      include: { ...EURO_INCLUDE, user: { select: { name: true, surname: true, phone: true } } },
+    });
+  }
 
   /**
    * Шаг-ап инициатора: подтверждаем, что физически присутствует владелец аккаунта.

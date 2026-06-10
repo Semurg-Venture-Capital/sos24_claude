@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Alert, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { OutlineButton } from '../../../components/ui/OutlineButton';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
@@ -104,8 +104,13 @@ export function EuroSuccessScreen() {
       {/* Действия */}
       <View style={{ paddingHorizontal: 24, paddingBottom: 32, gap: 10 }}>
         <RedButton onPress={goHome}>На главную</RedButton>
-        <OutlineButton onPress={() => Alert.alert('Скоро', 'Раздел «Заявления» (M10) — в разработке.')}>
-          Мои заявления
+        <OutlineButton
+          onPress={() => {
+            reset();
+            nav.navigate('EuroList');
+          }}
+        >
+          Мои европротоколы
         </OutlineButton>
       </View>
     </PhoneFrame>

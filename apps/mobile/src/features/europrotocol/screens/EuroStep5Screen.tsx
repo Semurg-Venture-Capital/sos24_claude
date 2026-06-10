@@ -1,9 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { useVehicles } from '../../../api/vehicles';
-import { participantFullName } from '../../../api/europrotocol';
+import { participantFullName, useSubmitEuroProtocol } from '../../../api/europrotocol';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { SummaryBlock } from '../../../components/ui/SummaryBlock';
@@ -30,13 +30,37 @@ export function EuroStep5Screen() {
 
   const myVehicle = vehicles?.find((v) => v.id === s.myVehicleId);
   const photosCount = REQUIRED_PHOTOS.filter((k) => s.photos[k]).length;
+  const submitMutation = useSubmitEuroProtocol();
 
   const submit = () => {
-    // Заглушка отправки: генерируем № извещения. Реальная регистрация в реестре
-    // (НАПП/страховая) + PDF — отдельный блок.
-    const n = `EP-26-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`;
-    s.setSubmittedNumber(n);
-    nav.navigate('EuroSuccess');
+    submitMutation.mutate(
+      {
+        incidentDate: s.date,
+        incidentTime: s.time,
+        place: s.place,
+        lat: s.lat,
+        lng: s.lng,
+        vehicleId: s.myVehicleId,
+        selfVerified: s.selfVerified,
+        participantId: s.participant?.id,
+        otherGov: s.otherGov || undefined,
+        otherPhone: s.otherPhone || undefined,
+        otherVehicleRaw: (s.otherVehicle as unknown as Record<string, unknown>) ?? undefined,
+        otherPolicySeria: s.otherPolicySeria || undefined,
+        otherPolicyNumber: s.otherPolicyNumber || undefined,
+        otherPolicyValid: s.otherPolicyValid ?? undefined,
+        schemeType: s.schemeType ?? undefined,
+        description: s.description || undefined,
+        photos: REQUIRED_PHOTOS.filter((k) => s.photos[k]).map((k) => ({ key: k, at: s.photos[k]?.at })),
+      },
+      {
+        onSuccess: (res) => {
+          s.setSubmittedNumber(res.number);
+          nav.navigate('EuroSuccess');
+        },
+        onError: () => Alert.alert('Ошибка', 'Не удалось отправить европротокол. Попробуйте ещё раз.'),
+      },
+    );
   };
 
   return (
@@ -44,8 +68,8 @@ export function EuroStep5Screen() {
       step={5}
       total={5}
       eyebrow="Шаг 5 из 5 · Подтверждение"
-      primary="Подписать и отправить"
-      primaryEnabled={confirmed}
+      primary={submitMutation.isPending ? 'Отправка…' : 'Подписать и отправить'}
+      primaryEnabled={confirmed && !submitMutation.isPending}
       primaryAction={submit}
       onBack={() => nav.goBack()}
     >

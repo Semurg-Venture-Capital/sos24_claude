@@ -139,6 +139,7 @@ model User {
   payments          Payment[]
   adjusterRequests  AdjusterRequest[]  @relation("RequestOwner")
   assignedRequests  AdjusterRequest[]  @relation("AssignedAdjuster")
+  euroProtocols     EuroProtocol[]
 
   @@map("users")
 }
@@ -204,6 +205,7 @@ model Vehicle {
   updatedAt DateTime @updatedAt
 
   policies  Policy[]
+  euroProtocols EuroProtocol[]
 
   @@unique([userId, plate])
   @@index([userId])
@@ -465,5 +467,62 @@ model EuroParticipant {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
+  protocols  EuroProtocol[]
+
   @@map("euro_participants")
+}
+
+// Статус европротокола (флоу урегулирования/выплаты).
+enum EuroStatus {
+  SUBMITTED  // подано
+  REVIEW     // на рассмотрении
+  NEED_INFO  // требуется информация
+  APPROVED   // одобрено
+  REJECTED   // отклонено
+  PAID       // выплачено
+}
+
+// Оформленный европротокол — собранные данные ДТП (без PDF пока).
+model EuroProtocol {
+  id     String @id @default(cuid())
+  number String @unique // EP-26-XXXXX
+
+  // Сторона A — инициатор
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleId    String?
+  vehicle      Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  selfVerified Boolean  @default(false)
+
+  // Обстоятельства
+  incidentDate DateTime
+  incidentTime String
+  place        String
+  lat          Float?
+  lng          Float?
+
+  // Сторона B — второй участник
+  participantId     String?          @map("participant_id")
+  participant       EuroParticipant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
+  otherGov          String?          @map("other_gov")
+  otherPhone        String?          @map("other_phone")
+  otherVehicleRaw   Json?            @map("other_vehicle_raw") // TechPassportInfo из НАПП
+  otherPolicySeria  String?          @map("other_policy_seria")
+  otherPolicyNumber String?          @map("other_policy_number")
+  otherPolicyValid  Boolean?         @map("other_policy_valid")
+
+  // Схема / описание / фото (метаданные, без бинарей пока)
+  schemeType  String? @map("scheme_type")
+  description String?
+  photos      Json?
+
+  status    EuroStatus @default(SUBMITTED)
+  adminNote String?    @map("admin_note")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status, createdAt])
+  @@map("euro_protocols")
 }

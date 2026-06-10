@@ -7,6 +7,8 @@ import { EuroStep3Screen } from '../features/europrotocol/screens/EuroStep3Scree
 import { EuroStep4Screen } from '../features/europrotocol/screens/EuroStep4Screen';
 import { EuroStep5Screen } from '../features/europrotocol/screens/EuroStep5Screen';
 import { EuroSuccessScreen } from '../features/europrotocol/screens/EuroSuccessScreen';
+import { EuroListScreen } from '../features/europrotocol/screens/EuroListScreen';
+import { EuroDetailScreen } from '../features/europrotocol/screens/EuroDetailScreen';
 import type { EuroStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<EuroStackParamList>();
@@ -22,6 +24,8 @@ export function EuroNavigator() {
       <Stack.Screen name="EuroStep4" component={EuroStep4Screen} />
       <Stack.Screen name="EuroStep5" component={EuroStep5Screen} />
       <Stack.Screen name="EuroSuccess" component={EuroSuccessScreen} options={{ gestureEnabled: false }} />
+      <Stack.Screen name="EuroList" component={EuroListScreen} />
+      <Stack.Screen name="EuroDetail" component={EuroDetailScreen} />
     </Stack.Navigator>
   );
 }

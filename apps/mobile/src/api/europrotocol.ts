@@ -1,6 +1,53 @@
 import { startMyIdSdk } from '@sos24/myid-sdk';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
 import { createMyIdSession } from './myid';
+
+export type EuroStatus = 'SUBMITTED' | 'REVIEW' | 'NEED_INFO' | 'APPROVED' | 'REJECTED' | 'PAID';
+
+// Запись европротокола (ответ бэкенда).
+export interface EuroProtocolRecord {
+  id: string;
+  number: string;
+  status: EuroStatus;
+  incidentDate: string;
+  incidentTime: string;
+  place: string;
+  selfVerified: boolean;
+  schemeType: string | null;
+  description: string | null;
+  otherGov: string | null;
+  otherPhone: string | null;
+  otherPolicySeria: string | null;
+  otherPolicyNumber: string | null;
+  otherPolicyValid: boolean | null;
+  otherVehicleRaw: Record<string, unknown> | null;
+  adminNote: string | null;
+  createdAt: string;
+  updatedAt: string;
+  vehicle?: { id: string; plate: string; brand: string; model: string; year: number } | null;
+  participant?: EuroParticipant | null;
+}
+
+export interface SubmitEuroPayload {
+  incidentDate: string;
+  incidentTime: string;
+  place: string;
+  lat?: number;
+  lng?: number;
+  vehicleId?: string;
+  selfVerified?: boolean;
+  participantId?: string;
+  otherGov?: string;
+  otherPhone?: string;
+  otherVehicleRaw?: Record<string, unknown>;
+  otherPolicySeria?: string;
+  otherPolicyNumber?: string;
+  otherPolicyValid?: boolean;
+  schemeType?: string;
+  description?: string;
+  photos?: unknown[];
+}
 
 export interface StepUpResult {
   ok: boolean;
@@ -61,3 +108,53 @@ export async function validateOtherPolicy(seria: string, number: string): Promis
 export function participantFullName(p: EuroParticipant): string {
   return [p.surname, p.name, p.patronymic].filter(Boolean).join(' ') || p.pinfl;
 }
+
+// ── Отправка / список / деталь ──
+export async function submitEuroProtocol(payload: SubmitEuroPayload) {
+  const { data } = await api.post<{ id: string; number: string }>('/europrotocol', payload);
+  return data;
+}
+export async function listMyEuroProtocols() {
+  const { data } = await api.get<EuroProtocolRecord[]>('/europrotocol/mine');
+  return data;
+}
+export async function getEuroProtocol(id: string) {
+  const { data } = await api.get<EuroProtocolRecord>(`/europrotocol/${id}`);
+  return data;
+}
+
+export function useMyEuroProtocols() {
+  return useQuery({ queryKey: ['europrotocols'], queryFn: listMyEuroProtocols });
+}
+export function useEuroProtocol(id: string | undefined) {
+  return useQuery({
+    queryKey: ['europrotocol', id],
+    queryFn: () => getEuroProtocol(id!),
+    enabled: !!id,
+  });
+}
+export function useSubmitEuroProtocol() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: submitEuroProtocol,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['europrotocols'] }),
+  });
+}
+
+// Лейблы статусов + тон бейджа (для списка/трекера).
+export const EURO_STATUS_LABEL: Record<EuroStatus, string> = {
+  SUBMITTED: 'Подано',
+  REVIEW: 'На рассмотрении',
+  NEED_INFO: 'Требуется информация',
+  APPROVED: 'Одобрено',
+  REJECTED: 'Отклонено',
+  PAID: 'Выплачено',
+};
+export const EURO_STATUS_TONE: Record<EuroStatus, 'ink' | 'blue' | 'yellow' | 'green' | 'red'> = {
+  SUBMITTED: 'ink',
+  REVIEW: 'blue',
+  NEED_INFO: 'yellow',
+  APPROVED: 'green',
+  REJECTED: 'red',
+  PAID: 'green',
+};

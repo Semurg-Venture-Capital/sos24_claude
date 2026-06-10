@@ -69,6 +69,8 @@ export type EuroStackParamList = {
   EuroStep4: undefined; // M9.3 шаг 4 — фотофиксация (только камера)
   EuroStep5: undefined; // M9.3 шаг 5 — итог + подтверждение + отправка
   EuroSuccess: undefined; // экран успеха (№ извещения)
+  EuroList: undefined; // M10.1 — список оформленных европротоколов
+  EuroDetail: { id: string }; // M10.2 — деталь + трекер статуса
 };
 
 // Корневой стек, оборачивающий tab-нав и модальные потоки.

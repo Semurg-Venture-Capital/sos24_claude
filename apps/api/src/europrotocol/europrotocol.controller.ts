@@ -1,8 +1,9 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
+import { SubmitEuroDto } from './dto/submit-euro.dto';
 import { ValidatePolicyDto } from './dto/validate-policy.dto';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { EuroprotocolService } from './europrotocol.service';
@@ -30,5 +31,23 @@ export class EuroprotocolController {
   @ApiOperation({ summary: 'Валидация полиса ОСАГО второго участника по серии+номеру через НАПП.' })
   validatePolicy(@Body() dto: ValidatePolicyDto) {
     return this.euro.validatePolicy(dto.seria, dto.number);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Отправить европротокол (сбор данных визарда).' })
+  submit(@CurrentUser() user: JwtPayload, @Body() dto: SubmitEuroDto) {
+    return this.euro.submit(user.sub, dto);
+  }
+
+  @Get('mine')
+  @ApiOperation({ summary: 'Список европротоколов текущего пользователя.' })
+  listMine(@CurrentUser() user: JwtPayload) {
+    return this.euro.listByUser(user.sub);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Деталь европротокола (свой).' })
+  detail(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.euro.findOneForUser(user.sub, id);
   }
 }
