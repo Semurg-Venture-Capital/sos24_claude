@@ -152,15 +152,16 @@ export function LiquidGlassTabBar({ state, navigation }: BottomTabBarProps) {
             refractionHeight={14}
             refractionAmount={16}
             blurRadius={3}
-            highlightOpacity={0.7}
+            highlightOpacity={0.8}
             highlightAngle={-90}
             highlightFalloff={2}
             style={StyleSheet.absoluteFillObject}
           />
-          <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(230,20,40,0.12)' }]} />
+          {/* Чисто стекло: лёгкий нейтральный фрост + светлый бордер по краю, без цвета. */}
+          <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(255,255,255,0.14)' }]} />
           <View
             pointerEvents="none"
-            style={[StyleSheet.absoluteFillObject, { borderRadius: pillH / 2, borderWidth: 1, borderColor: 'rgba(230,20,40,0.2)' }]}
+            style={[StyleSheet.absoluteFillObject, { borderRadius: pillH / 2, borderWidth: 1, borderColor: 'rgba(255,255,255,0.45)' }]}
           />
         </Animated.View>
 
