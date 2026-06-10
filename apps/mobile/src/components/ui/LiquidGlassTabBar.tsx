@@ -115,21 +115,21 @@ export function LiquidGlassTabBar({ state, navigation }: BottomTabBarProps) {
           elevation: 12,
         }}
       >
-        {/* Слой 1: стекло капсулы (порт kyant). */}
+        {/* Слой 1: стекло капсулы (порт kyant). Усиленная рефракция для нашего фона. */}
         <LiquidGlassNativeView
           pointerEvents="none"
           backdropId={LIQUID_BACKDROP_ID}
           cornerRadius={capsule}
-          refractionHeight={24}
-          refractionAmount={24}
-          blurRadius={8}
-          highlightOpacity={0.6}
+          refractionHeight={28}
+          refractionAmount={42}
+          blurRadius={3}
+          highlightOpacity={0.7}
           highlightAngle={-90}
           highlightFalloff={2}
           style={StyleSheet.absoluteFillObject}
         />
-        {/* Слой 2: молочный тинт (kyant containerColor #FAFAFA @ 40%). */}
-        <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(250,250,250,0.4)' }]} />
+        {/* Слой 2: лёгкий тинт стекла (меньше молочности — больше видно преломление). */}
+        <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(250,250,250,0.22)' }]} />
 
         {/* Слой 3: индикатор-«капелька» — тоже нативное стекло + красный тинт. */}
         <Animated.View
@@ -149,10 +149,10 @@ export function LiquidGlassTabBar({ state, navigation }: BottomTabBarProps) {
             pointerEvents="none"
             backdropId={LIQUID_BACKDROP_ID}
             cornerRadius={pillH / 2}
-            refractionHeight={14}
-            refractionAmount={16}
-            blurRadius={3}
-            highlightOpacity={0.8}
+            refractionHeight={18}
+            refractionAmount={30}
+            blurRadius={1}
+            highlightOpacity={0.85}
             highlightAngle={-90}
             highlightFalloff={2}
             style={StyleSheet.absoluteFillObject}
