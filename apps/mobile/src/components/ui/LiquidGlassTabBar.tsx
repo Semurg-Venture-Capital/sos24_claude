@@ -56,16 +56,18 @@ export function LiquidGlassTabBar({ state, navigation }: BottomTabBarProps) {
     Animated.spring(sy, { toValue: 1, useNativeDriver: false, friction: 5, tension: 120 }).start();
   };
 
-  // Перетекание к активной вкладке + лёгкое «жидкое» сжатие.
+  // Перетекание к активной вкладке + «жидкий» стрейч (растягивается по ходу, потом settle).
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(dropX, { toValue: state.index * tabWidth, useNativeDriver: false, friction: 7, tension: 80 }),
+      Animated.spring(dropX, { toValue: state.index * tabWidth, useNativeDriver: false, friction: 6, tension: 90 }),
       Animated.sequence([
-        Animated.timing(sx, { toValue: 0.82, duration: 110, useNativeDriver: false }),
-        Animated.spring(sx, { toValue: 1, useNativeDriver: false, friction: 4, tension: 120 }),
+        Animated.timing(sx, { toValue: 1.16, duration: 120, useNativeDriver: false }),
+        Animated.timing(sy, { toValue: 0.92, duration: 120, useNativeDriver: false }),
+        Animated.spring(sx, { toValue: 1, useNativeDriver: false, friction: 5, tension: 110 }),
       ]),
+      Animated.spring(sy, { toValue: 1, useNativeDriver: false, friction: 5, tension: 110, delay: 120 }),
     ]).start();
-  }, [state.index, tabWidth, dropX, sx]);
+  }, [state.index, tabWidth, dropX, sx, sy]);
 
   // Свайп: тянем индикатор пальцем + растяжение по скорости; на отпускании — ближайшая вкладка.
   const pan = useMemo(
@@ -131,7 +133,8 @@ export function LiquidGlassTabBar({ state, navigation }: BottomTabBarProps) {
         {/* Слой 2: лёгкий тинт стекла (меньше молочности — больше видно преломление). */}
         <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(250,250,250,0.22)' }]} />
 
-        {/* Слой 3: индикатор-«капелька» — тоже нативное стекло + красный тинт. */}
+        {/* Слой 3: индикатор-«капелька». Видимая фрост-пилюля + тень (lifted),
+            рефракция МИНИМАЛЬНА (в покое без искажений, как у kyant). */}
         <Animated.View
           pointerEvents="none"
           style={{
@@ -140,29 +143,35 @@ export function LiquidGlassTabBar({ state, navigation }: BottomTabBarProps) {
             top: PILL_INSET,
             width: pillW,
             height: pillH,
-            borderRadius: pillH / 2,
-            overflow: 'hidden',
             transform: [{ translateX: dropX }, { scaleX: sx }, { scaleY: sy }],
+            // тень для «приподнятости» (не клипаем — overflow на внутреннем слое)
+            shadowColor: '#000',
+            shadowOpacity: 0.12,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 4,
           }}
         >
-          <LiquidGlassNativeView
-            pointerEvents="none"
-            backdropId={LIQUID_BACKDROP_ID}
-            cornerRadius={pillH / 2}
-            refractionHeight={18}
-            refractionAmount={30}
-            blurRadius={1}
-            highlightOpacity={0.85}
-            highlightAngle={-90}
-            highlightFalloff={2}
-            style={StyleSheet.absoluteFillObject}
-          />
-          {/* Чисто стекло: лёгкий нейтральный фрост + светлый бордер по краю, без цвета. */}
-          <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(255,255,255,0.14)' }]} />
-          <View
-            pointerEvents="none"
-            style={[StyleSheet.absoluteFillObject, { borderRadius: pillH / 2, borderWidth: 1, borderColor: 'rgba(255,255,255,0.45)' }]}
-          />
+          <View style={{ flex: 1, borderRadius: pillH / 2, overflow: 'hidden' }}>
+            <LiquidGlassNativeView
+              pointerEvents="none"
+              backdropId={LIQUID_BACKDROP_ID}
+              cornerRadius={pillH / 2}
+              refractionHeight={8}
+              refractionAmount={8}
+              blurRadius={2}
+              highlightOpacity={0.35}
+              highlightAngle={-90}
+              highlightFalloff={3}
+              style={StyleSheet.absoluteFillObject}
+            />
+            {/* Видимый фрост + светлый бордер: чисто стекло, без цвета, читается на сером. */}
+            <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(255,255,255,0.5)' }]} />
+            <View
+              pointerEvents="none"
+              style={[StyleSheet.absoluteFillObject, { borderRadius: pillH / 2, borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)' }]}
+            />
+          </View>
         </Animated.View>
 
         {/* Слой 4: иконки и лейблы (поверх стекла, кликабельны). */}
