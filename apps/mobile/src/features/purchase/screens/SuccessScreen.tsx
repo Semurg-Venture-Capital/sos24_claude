@@ -2,7 +2,7 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { usePolicy } from '../../../api/policies';
 import { CloseIcon } from '../../../components/icons/CloseIcon';
-import { BlurView } from 'expo-blur';
+import { Glass } from '../../../components/ui/Glass';
 import { OutlineButton } from '../../../components/ui/OutlineButton';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { PolicyQR } from '../../../components/ui/PolicyQR';
@@ -85,9 +85,9 @@ export function SuccessScreen() {
             opacity: pressed ? 0.7 : 1,
           })}
         >
-          <BlurView intensity={32} tint="light" style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center' }}>
+          <Glass intensity={32} tint="light" style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center' }}>
             <CloseIcon size={14} color={tokens.inkDark} />
-          </BlurView>
+          </Glass>
         </Pressable>
       </View>
 

@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
+import { Glass } from '../../../components/ui/Glass';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -122,7 +122,7 @@ export function MyCardsScreen() {
             </View>
 
             <View style={{ borderRadius: 20, overflow: 'hidden', marginTop: 6 }}>
-              <BlurView
+              <Glass
                 intensity={20}
                 tint="light"
                 style={{
@@ -160,7 +160,7 @@ export function MyCardsScreen() {
                 >
                   Поддерживаются карты Uzcard и Humo. Visa и Mastercard скоро.{'\n'}Удержите карту для удаления.
                 </Text>
-              </BlurView>
+              </Glass>
             </View>
           </View>
         )}

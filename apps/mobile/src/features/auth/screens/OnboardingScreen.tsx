@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BlurView } from 'expo-blur';
+import { Glass } from '../../../components/ui/Glass';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, View } from 'react-native';
@@ -94,7 +94,7 @@ export function OnboardingScreen() {
           overflow: 'hidden',
         }}
       >
-        <BlurView
+        <Glass
           intensity={40}
           tint="light"
           style={{
@@ -113,7 +113,7 @@ export function OnboardingScreen() {
           <RedButton onPress={onPrimary} style={{ alignSelf: 'stretch' }}>
             {isLast ? t('common.start') : t('common.next')}
           </RedButton>
-        </BlurView>
+        </Glass>
       </View>
     </PhoneFrame>
   );

@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -174,7 +174,7 @@ export function ProductCard({
         elevation: 4,
       }}
     >
-      {dark ? content : <BlurView intensity={20} tint="light" style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}>{content}</BlurView>}
+      {dark ? content : <Glass intensity={20} tint="light" style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}>{content}</Glass>}
     </View>
   );
 }

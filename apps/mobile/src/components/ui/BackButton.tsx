@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { Pressable, View } from 'react-native';
 import { BackArrow } from '../icons/BackArrow';
 import { tokens } from '../../theme/colors';
@@ -24,7 +24,7 @@ export function BackButton({ onPress }: Props) {
         elevation: 2,
       })}
     >
-      <BlurView
+      <Glass
         intensity={32}
         tint="light"
         style={{
@@ -37,7 +37,7 @@ export function BackButton({ onPress }: Props) {
         <View style={{ marginRight: 2 }}>
           <BackArrow size={16} color={tokens.inkDark} />
         </View>
-      </BlurView>
+      </Glass>
     </Pressable>
   );
 }

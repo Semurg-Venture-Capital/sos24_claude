@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { Text, View, type ViewStyle } from 'react-native';
 import { tokens } from '../../theme/colors';
 
@@ -62,9 +62,9 @@ export function StatPill({ label, value, tone = 'ink', style }: Props) {
       ]}
     >
       {p.isGlass ? (
-        <BlurView intensity={20} tint="light" style={{ flex: 1, backgroundColor: p.bg }}>
+        <Glass intensity={20} tint="light" style={{ flex: 1, backgroundColor: p.bg }}>
           {content}
-        </BlurView>
+        </Glass>
       ) : (
         content
       )}

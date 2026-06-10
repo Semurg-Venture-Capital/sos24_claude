@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import { tokens } from '../../theme/colors';
@@ -14,7 +14,7 @@ interface Props {
 export function BenefitRow({ icon, title, body }: Props) {
   return (
     <View style={{ borderRadius: 20, overflow: 'hidden' }}>
-      <BlurView
+      <Glass
         intensity={20}
         tint="light"
         style={{
@@ -59,7 +59,7 @@ export function BenefitRow({ icon, title, body }: Props) {
             {body}
           </Text>
         </View>
-      </BlurView>
+      </Glass>
     </View>
   );
 }

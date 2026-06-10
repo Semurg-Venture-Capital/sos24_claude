@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { Pressable, Text, View } from 'react-native';
 import { tokens } from '../../theme/colors';
 
@@ -17,7 +17,7 @@ export function Segmented({ options, active, onChange }: Props) {
         overflow: 'hidden',
       }}
     >
-      <BlurView
+      <Glass
         intensity={20}
         tint="light"
         style={{
@@ -55,7 +55,7 @@ export function Segmented({ options, active, onChange }: Props) {
             </Text>
           </Pressable>
         ))}
-      </BlurView>
+      </Glass>
     </View>
   );
 }

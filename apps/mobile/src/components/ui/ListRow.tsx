@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { ChevronRight } from '../icons/ChevronRight';
@@ -33,7 +33,7 @@ export function ListRow({ icon, title, meta, value, trailing = 'chevron', onPres
         opacity: pressed && onPress ? 0.85 : 1,
       })}
     >
-      <BlurView
+      <Glass
         intensity={20}
         tint="light"
         style={{
@@ -84,7 +84,7 @@ export function ListRow({ icon, title, meta, value, trailing = 'chevron', onPres
           </Text>
         )}
         {trailEl}
-      </BlurView>
+      </Glass>
     </Pressable>
   );
 }

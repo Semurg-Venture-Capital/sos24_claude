@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { forwardRef, type ReactNode } from 'react';
 import {
   Text,
@@ -52,7 +52,7 @@ export const TextField = forwardRef<RNTextInput, Props>(function TextField(
           overflow: 'hidden',
         }}
       >
-        <BlurView intensity={20} tint="light" style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)' }}>
+        <Glass intensity={20} tint="light" style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)' }}>
           <View
             style={{
               flex: 1,
@@ -81,7 +81,7 @@ export const TextField = forwardRef<RNTextInput, Props>(function TextField(
             />
             {suffix && <View>{suffix}</View>}
           </View>
-        </BlurView>
+        </Glass>
       </View>
       {hint && (
         <Text

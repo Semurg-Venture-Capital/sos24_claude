@@ -1,6 +1,6 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BlurView } from 'expo-blur';
+import { Glass } from '../../../components/ui/Glass';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -266,7 +266,7 @@ function UploadTile({ label }: { label: string }) {
         opacity: pressed ? 0.7 : 1,
       })}
     >
-      <BlurView
+      <Glass
         intensity={20}
         tint="light"
         style={{
@@ -285,7 +285,7 @@ function UploadTile({ label }: { label: string }) {
         <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkSubtle }}>
           {label}
         </Text>
-      </BlurView>
+      </Glass>
     </Pressable>
   );
 }

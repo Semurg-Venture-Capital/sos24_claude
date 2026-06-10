@@ -1,6 +1,6 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BlurView } from 'expo-blur';
+import { Glass } from '../../../components/ui/Glass';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Pressable, Share, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -95,7 +95,7 @@ export function PolicyQrFullscreenScreen() {
             opacity: pressed ? 0.7 : 1,
           })}
         >
-          <BlurView
+          <Glass
             intensity={20}
             tint="dark"
             style={{
@@ -108,7 +108,7 @@ export function PolicyQrFullscreenScreen() {
             <Svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="#fff" strokeWidth={1.8} strokeLinecap="round">
               <Path d="M2 2l10 10M12 2L2 12" />
             </Svg>
-          </BlurView>
+          </Glass>
         </Pressable>
 
         <SosLogo size="md" color="#fff" />
@@ -123,7 +123,7 @@ export function PolicyQrFullscreenScreen() {
             opacity: pressed ? 0.7 : 1,
           })}
         >
-          <BlurView
+          <Glass
             intensity={20}
             tint="dark"
             style={{
@@ -136,7 +136,7 @@ export function PolicyQrFullscreenScreen() {
             <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
               <Path d="M4 12v7a2 2 0 002 2h12a2 2 0 002-2v-7M16 6l-4-4-4 4M12 2v14" />
             </Svg>
-          </BlurView>
+          </Glass>
         </Pressable>
       </View>
 
@@ -212,7 +212,7 @@ export function PolicyQrFullscreenScreen() {
       {/* Tip pill at bottom */}
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36, alignItems: 'center' }}>
         <View style={{ borderRadius: 999, overflow: 'hidden' }}>
-          <BlurView
+          <Glass
             intensity={20}
             tint="dark"
             style={{
@@ -231,7 +231,7 @@ export function PolicyQrFullscreenScreen() {
             <Text style={{ color: 'rgba(255,255,255,0.85)', fontFamily: 'Manrope_400Regular', fontSize: 13 }}>
               Покажите инспектору или сохраните
             </Text>
-          </BlurView>
+          </Glass>
         </View>
       </View>
     </View>

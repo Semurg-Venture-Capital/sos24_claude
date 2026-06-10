@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { tokens } from '../../theme/colors';
@@ -131,9 +131,9 @@ export function CarCard({ selected, plate, name, year, engine, power, onPress }:
       {selected ? (
         content
       ) : (
-        <BlurView intensity={20} tint="light" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
+        <Glass intensity={20} tint="light" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
           {content}
-        </BlurView>
+        </Glass>
       )}
     </Pressable>
   );

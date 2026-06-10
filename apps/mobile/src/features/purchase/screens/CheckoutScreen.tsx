@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BlurView } from 'expo-blur';
+import { Glass } from '../../../components/ui/Glass';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -371,7 +371,7 @@ export function CheckoutScreen() {
             overflow: 'hidden',
           }}
         >
-          <BlurView
+          <Glass
             intensity={20}
             tint="light"
             style={{
@@ -398,7 +398,7 @@ export function CheckoutScreen() {
               <Text style={{ color: tokens.inkDark, textDecorationLine: 'underline' }}>условиями оферты</Text>
               {' '}и согласен на обработку персональных данных
             </Text>
-          </BlurView>
+          </Glass>
         </View>
       </ScrollView>
 

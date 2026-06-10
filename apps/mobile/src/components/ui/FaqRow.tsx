@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -24,7 +24,7 @@ export function FaqRow({ question, answer, defaultOpen = false }: Props) {
         opacity: pressed && canExpand ? 0.85 : 1,
       })}
     >
-      <BlurView
+      <Glass
         intensity={20}
         tint="light"
         style={{
@@ -71,7 +71,7 @@ export function FaqRow({ question, answer, defaultOpen = false }: Props) {
             {answer}
           </Text>
         )}
-      </BlurView>
+      </Glass>
     </Pressable>
   );
 }

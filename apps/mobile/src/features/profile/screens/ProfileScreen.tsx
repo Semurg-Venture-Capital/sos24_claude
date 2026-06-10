@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BlurView } from 'expo-blur';
+import { Glass } from '../../../components/ui/Glass';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useMe } from '../../../api/auth';
@@ -73,7 +73,7 @@ export function ProfileScreen() {
       >
         {/* Profile header */}
         <View style={{ borderRadius: 28, overflow: 'hidden' }}>
-          <BlurView
+          <Glass
             intensity={20}
             tint="light"
             style={{
@@ -138,7 +138,7 @@ export function ProfileScreen() {
                 <IconPencil size={18} />
               </Pressable>
             )}
-          </BlurView>
+          </Glass>
         </View>
 
         <Section title="Мои документы">

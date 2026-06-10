@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BlurView } from 'expo-blur';
+import { Glass } from '../../../components/ui/Glass';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useVehicles } from '../../../api/vehicles';
@@ -120,7 +120,7 @@ export function GarageListScreen() {
           >
             {vehicles?.map((v) => (
               <View key={v.id} style={{ borderRadius: 28, overflow: 'hidden' }}>
-                <BlurView
+                <Glass
                   intensity={20}
                   tint="light"
                   style={{
@@ -161,7 +161,7 @@ export function GarageListScreen() {
                       {v.brand} {v.model} · {v.year}
                     </Text>
                   </View>
-                </BlurView>
+                </Glass>
               </View>
             ))}
           </ScrollView>

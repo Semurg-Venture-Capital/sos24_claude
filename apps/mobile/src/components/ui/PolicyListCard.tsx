@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { Pressable, Text, View } from 'react-native';
 import { PolicyQR } from './PolicyQR';
 import { Tag } from './Tag';
@@ -124,9 +124,9 @@ export function PolicyListCard({
       {dark ? (
         content
       ) : (
-        <BlurView intensity={20} tint="light" style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}>
+        <Glass intensity={20} tint="light" style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}>
           {content}
-        </BlurView>
+        </Glass>
       )}
     </Pressable>
   );

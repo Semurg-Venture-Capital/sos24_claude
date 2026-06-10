@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { tokens } from '../../theme/colors';
@@ -26,7 +26,7 @@ export function SummaryBlock({ eyebrow, rows, editable, onEdit }: Props) {
         overflow: 'hidden',
       }}
     >
-      <BlurView
+      <Glass
         intensity={20}
         tint="light"
         style={{
@@ -94,7 +94,7 @@ export function SummaryBlock({ eyebrow, rows, editable, onEdit }: Props) {
             </View>
           ))}
         </View>
-      </BlurView>
+      </Glass>
     </View>
   );
 }

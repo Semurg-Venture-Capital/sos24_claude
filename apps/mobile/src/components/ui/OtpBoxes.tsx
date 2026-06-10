@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { tokens } from '../../theme/colors';
@@ -59,7 +59,7 @@ export function OtpBoxes({
                 overflow: 'hidden',
               }}
             >
-              <BlurView intensity={20} tint="light" style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)' }}>
+              <Glass intensity={20} tint="light" style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.5)' }}>
                 <View
                   style={{
                     flex: 1,
@@ -91,7 +91,7 @@ export function OtpBoxes({
                     />
                   )}
                 </View>
-              </BlurView>
+              </Glass>
             </View>
           );
         })}

@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { Pressable, Text, View } from 'react-native';
 import { ChevronRight } from '../icons/ChevronRight';
 import { tokens } from '../../theme/colors';
@@ -22,7 +22,7 @@ export function PolicyListCardCompact({ type, car, plate, expiredAt, onPress }: 
         opacity: pressed ? 0.6 : 0.7,
       })}
     >
-      <BlurView
+      <Glass
         intensity={20}
         tint="light"
         style={{
@@ -71,7 +71,7 @@ export function PolicyListCardCompact({ type, car, plate, expiredAt, onPress }: 
           </Text>
         </View>
         <ChevronRight size={12} />
-      </BlurView>
+      </Glass>
     </Pressable>
   );
 }

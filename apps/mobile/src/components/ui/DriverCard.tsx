@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -30,7 +30,7 @@ export function DriverCard({ name, doc, experience, onRemove }: Props) {
         borderColor: tokens.hairline,
       }}
     >
-      <BlurView
+      <Glass
         intensity={20}
         tint="light"
         style={{
@@ -79,7 +79,7 @@ export function DriverCard({ name, doc, experience, onRemove }: Props) {
             </Svg>
           </Pressable>
         )}
-      </BlurView>
+      </Glass>
     </View>
   );
 }

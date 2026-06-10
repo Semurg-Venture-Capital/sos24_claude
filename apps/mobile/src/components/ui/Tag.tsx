@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import type { ReactNode } from 'react';
 import { Text, View, type ViewStyle } from 'react-native';
 import { tokens } from '../../theme/colors';
@@ -45,9 +45,9 @@ export function Tag({ children, tone = 'ink', style }: Props) {
   if (p.isGlass) {
     return (
       <View style={[base, style]}>
-        <BlurView intensity={20} tint="light" style={{ ...base, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: p.bg }}>
+        <Glass intensity={20} tint="light" style={{ ...base, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: p.bg }}>
           {inner}
-        </BlurView>
+        </Glass>
       </View>
     );
   }

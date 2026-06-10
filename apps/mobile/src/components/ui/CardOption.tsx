@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { Glass } from './Glass';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { tokens } from '../../theme/colors';
@@ -117,7 +117,7 @@ export function CardOption({ brand, last4, expiry, selected, onPress }: Props) {
         elevation: selected ? 4 : 0,
       })}
     >
-      {selected ? content : <BlurView intensity={20} tint="light" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>{content}</BlurView>}
+      {selected ? content : <Glass intensity={20} tint="light" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>{content}</Glass>}
     </Pressable>
   );
 }
