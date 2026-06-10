@@ -1,18 +1,16 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
-import { Platform } from 'react-native';
 import { saveTokens } from '../lib/secure';
 import { useAuthStore } from '../stores/authStore';
 
-// EXPO_PUBLIC_API_HOST задаётся в apps/mobile/.env (LAN IP для реального устройства).
-// Симулятор/Android-эмулятор используют localhost / 10.0.2.2.
-function getApiHost(): string {
-  if (Platform.OS === 'android') return '10.0.2.2';
-  const envHost = process.env.EXPO_PUBLIC_API_HOST;
-  if (envHost) return envHost;
-  return 'localhost';
-}
+// ХАРДКОД LAN-IP Mac (dev). Телефон и Mac в одной локальной сети.
+// ⚠️ Поменять при смене сети: `ipconfig getifaddr en0` на Mac.
+// Работает и для реального устройства, и для симулятора (Mac достижим по LAN).
+const DEV_API_HOST = '192.168.13.88';
 
-export const API_BASE_URL = `http://${getApiHost()}:3030`;
+export function apiBaseUrl(): string {
+  return `http://${DEV_API_HOST}:3030`;
+}
+export const API_BASE_URL = apiBaseUrl();
 
 export const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -20,6 +18,9 @@ export const api: AxiosInstance = axios.create({
 });
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  // Пересчитываем хост на каждый запрос — устойчиво к кешу модуля/Fast Refresh
+  // и к смене активного IP Mac (берётся хост Metro, достижимый с устройства).
+  config.baseURL = apiBaseUrl();
   const token = useAuthStore.getState().accessToken;
   if (token) {
     config.headers.set('Authorization', `Bearer ${token}`);

@@ -152,15 +152,9 @@ export function MainNavigator() {
             : { presentation: 'modal', animation: 'slide_from_bottom' }
         }
       />
-      <Stack.Screen
-        name="EuroProtocol"
-        component={EuroNavigator}
-        options={
-          Platform.OS === 'web'
-            ? {}
-            : { presentation: 'modal', animation: 'slide_from_bottom' }
-        }
-      />
+      {/* Европротокол — обычные push-страницы (НЕ модалка): иначе нативный MyID SDK
+          не может презентовать свой экран поверх модального стека (зависает спиннер). */}
+      <Stack.Screen name="EuroProtocol" component={EuroNavigator} />
     </Stack.Navigator>
   );
 }

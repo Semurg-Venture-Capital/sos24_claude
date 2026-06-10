@@ -175,18 +175,7 @@ export function EuroStep2Screen() {
           label="Верифицировать участника (MyID)"
           loading={verifyingOther}
           onPress={verifyOther}
-          onSimulate={
-            __DEV__
-              ? async () => {
-                  try {
-                    const p = await verifyParticipant('mock-code');
-                    s.setParticipant(p);
-                  } catch {
-                    s.setParticipant(MOCK_PARTICIPANT);
-                  }
-                }
-              : undefined
-          }
+          onSimulate={__DEV__ ? () => s.setParticipant(MOCK_PARTICIPANT) : undefined}
         />
       )}
 
