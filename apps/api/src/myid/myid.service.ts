@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 // Структура: profile.common_data + profile.doc_data + profile.address + profile.contacts
 // + служебные: comparison_value (liveness score), job_id, reuid.
 // Документация: https://docs.myid.uz/#/
-interface MyIdUserData {
+export interface MyIdUserData {
   // common_data
   pinfl: string;
   name: string;              // first_name (кириллица)
@@ -118,11 +118,14 @@ export class MyidService {
 
   // Шаг 2: SDK вернул code → получаем данные пользователя → обновляем юзера в БД.
   async verifyCode(userId: string, code: string): Promise<void> {
-    const userData = this.isMock
-      ? MOCK_USER_DATA
-      : await this.fetchUserData(code);
-
+    const userData = await this.fetchProfileByCode(code);
     await this.applyVerification(userId, userData);
+  }
+
+  // Получить профиль MyID по коду (без записи в БД). Переиспользуется европротоколом
+  // для шаг-ап инициатора и верификации второго участника.
+  async fetchProfileByCode(code: string): Promise<MyIdUserData> {
+    return this.isMock ? MOCK_USER_DATA : await this.fetchUserData(code);
   }
 
   private async applyVerification(userId: string, d: MyIdUserData): Promise<void> {

@@ -4,6 +4,7 @@ import { getFocusedRouteNameFromRoute, type RouteProp } from '@react-navigation/
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform } from 'react-native';
 import { AdjusterNavigator } from './AdjusterNavigator';
+import { EuroNavigator } from './EuroNavigator';
 import { GarageNavigator } from './GarageNavigator';
 import { HomeScreen } from '../features/main/screens/HomeScreen';
 import { PoliciesNavigator } from './PoliciesNavigator';
@@ -145,6 +146,15 @@ export function MainNavigator() {
       <Stack.Screen
         name="Adjuster"
         component={AdjusterNavigator}
+        options={
+          Platform.OS === 'web'
+            ? {}
+            : { presentation: 'modal', animation: 'slide_from_bottom' }
+        }
+      />
+      <Stack.Screen
+        name="EuroProtocol"
+        component={EuroNavigator}
         options={
           Platform.OS === 'web'
             ? {}

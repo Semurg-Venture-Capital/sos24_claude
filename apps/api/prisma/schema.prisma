@@ -433,3 +433,37 @@ model AdjusterRequest {
   @@index([assignedAdjusterId])
   @@map("adjuster_requests")
 }
+
+// Второй участник европротокола — личность, подтверждённая через MyID.
+// Find-or-create по ПИНФЛ. Не логинимый аккаунт (отдельно от User).
+// Авто и полис участника привязаны к конкретному ДТП, а не к личности,
+// поэтому здесь хранится только MyID-профиль.
+model EuroParticipant {
+  id         String    @id @default(cuid())
+  pinfl      String    @unique
+
+  // MyID-профиль
+  name       String?
+  surname    String?
+  patronymic String?
+  nameEn     String?   @map("name_en")
+  surnameEn  String?   @map("surname_en")
+  birthDate  DateTime? @map("birth_date")
+  birthPlace String?   @map("birth_place")
+  gender     String?
+  nationality String?
+  citizenship String?
+  address    String?
+
+  // Паспорт
+  passportSeria  String? @map("passport_seria")
+  passportNumber String? @map("passport_number")
+
+  myidRaw    Json?     @map("myid_raw")
+  verifiedAt DateTime  @default(now()) @map("verified_at")
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("euro_participants")
+}

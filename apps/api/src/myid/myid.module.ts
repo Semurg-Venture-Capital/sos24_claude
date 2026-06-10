@@ -8,5 +8,6 @@ import { MyidService } from './myid.service';
   imports: [PrismaModule, UsersModule],
   controllers: [MyidController],
   providers: [MyidService],
+  exports: [MyidService],
 })
 export class MyidModule {}

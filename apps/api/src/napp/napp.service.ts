@@ -254,6 +254,65 @@ export class NappService {
     return data;
   }
 
+  private async get<T>(path: string): Promise<NappEnvelope<T>> {
+    const token = await this.auth.getToken();
+    const { data } = await axios.get<NappEnvelope<T>>(`${this.baseUrl}${path}`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      timeout: 25_000,
+      validateStatus: (s) => s < 500,
+    });
+    return data;
+  }
+
+  /**
+   * Полис ОСАГО по серии+номеру. GET /api/v3/osago/insurance-form-show-by-seria-number.
+   * Используется для валидации полиса второго участника европротокола.
+   * NAPP_MOCK=true → всегда мок; NAPP_MOCK_FALLBACK=true → мок, если НАПП не нашёл/недоступен.
+   */
+  async getOsagoPolicyBySeriaNumber(seria: string, number: string): Promise<NappEnvelope<unknown>> {
+    const ser = seria.trim();
+    const num = number.trim();
+    if (this.isMock) return this.mockPolicy(ser, num);
+
+    const q = `seria=${encodeURIComponent(ser)}&number=${encodeURIComponent(num)}`;
+    try {
+      const env = await this.get(`/api/v3/osago/insurance-form-show-by-seria-number?${q}`);
+      if ((env.error !== 0 || !env.result) && this.mockFallback) {
+        this.logger.warn(`НАПП полис ${ser} ${num} не найден → NAPP_MOCK_FALLBACK → мок-полис`);
+        return this.mockPolicy(ser, num);
+      }
+      return env;
+    } catch (e) {
+      this.logger.error(`getOsagoPolicyBySeriaNumber провалился: ${(e as Error).message}`);
+      if (this.mockFallback) {
+        this.logger.warn('НАПП недоступен → NAPP_MOCK_FALLBACK → мок-полис');
+        return this.mockPolicy(ser, num);
+      }
+      return { error: 1, error_message: 'НАПП недоступен', result: null };
+    }
+  }
+
+  /** Детерминированный мок-полис (для NAPP_MOCK=true и фолбэка). */
+  private mockPolicy(seria: string, number: string): NappEnvelope<Record<string, unknown>> {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const end = new Date(now.getFullYear(), 11, 31);
+    return {
+      error: 0,
+      error_message: '',
+      result: {
+        seria: seria || 'OSG',
+        number: number || '0000000',
+        status: 'active',
+        statusName: 'Действует',
+        insuranceCompany: 'SOS24 Sugʻurta (mock)',
+        startDate: start.toISOString().slice(0, 10),
+        endDate: end.toISOString().slice(0, 10),
+        isMock: true,
+      },
+    };
+  }
+
   private nextTxId(): string {
     return String(Date.now()) + String(this.txCounter++);
   }

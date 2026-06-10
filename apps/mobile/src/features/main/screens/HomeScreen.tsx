@@ -100,6 +100,11 @@ export function HomeScreen() {
     if (root) root.navigate('Purchase', { screen: 'ProductDetail', params: { type } });
   };
 
+  const openEuro = () => {
+    const root = nav.getParent<RootNav>();
+    if (root) root.navigate('EuroProtocol');
+  };
+
   // nav здесь — Tab navigator, поэтому navigate('Policies', {screen}) работает напрямую.
   const openQr = (id: string) => {
     (nav as any).navigate('Policies', { screen: 'PolicyQrFullscreen', params: { id } });
@@ -233,7 +238,7 @@ export function HomeScreen() {
               </View>
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <ActionTile icon={<QuickIconPartners />} label="Партнёры" />
-                <ActionTile icon={<QuickIconEuroProtocol />} label="Европротокол" />
+                <ActionTile icon={<QuickIconEuroProtocol />} label="Европротокол" onPress={openEuro} />
               </View>
             </View>
           </View>

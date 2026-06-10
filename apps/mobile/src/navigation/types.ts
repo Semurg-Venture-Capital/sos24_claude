@@ -59,6 +59,14 @@ export type AdjusterStackParamList = {
   AdjusterStatus: { requestId: string };
 };
 
+// Европротокол (M9) — модальный поток оформления ДТП.
+export type EuroStackParamList = {
+  EuroStart: undefined; // M9.1 — выбор формата (европротокол / инспектор / обычное)
+  EuroCheck: undefined; // M9.2 — скрининг условий применимости европротокола
+  EuroStep1: undefined; // M9.3 шаг 1 — обстоятельства (когда и где)
+  EuroStep2: undefined; // M9.3 шаг 2 — транспортные средства / второй участник
+};
+
 // Корневой стек, оборачивающий tab-нав и модальные потоки.
 export type MainStackParamList = {
   Tabs: undefined;
@@ -73,5 +81,11 @@ export type MainStackParamList = {
     | {
         screen: keyof AdjusterStackParamList;
         params?: AdjusterStackParamList[keyof AdjusterStackParamList];
+      };
+  EuroProtocol:
+    | undefined
+    | {
+        screen: keyof EuroStackParamList;
+        params?: EuroStackParamList[keyof EuroStackParamList];
       };
 };
