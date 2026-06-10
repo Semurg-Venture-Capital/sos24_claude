@@ -67,6 +67,8 @@ export type EuroStackParamList = {
   EuroStep2: undefined; // M9.3 шаг 2 — транспортные средства / второй участник
   EuroStep3: undefined; // M9.3 шаг 3 — схема ДТП + описание обстоятельств
   EuroStep4: undefined; // M9.3 шаг 4 — фотофиксация (только камера)
+  EuroStep5: undefined; // M9.3 шаг 5 — итог + подтверждение + отправка
+  EuroSuccess: undefined; // экран успеха (№ извещения)
 };
 
 // Корневой стек, оборачивающий tab-нав и модальные потоки.

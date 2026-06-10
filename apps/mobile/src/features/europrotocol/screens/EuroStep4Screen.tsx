@@ -58,7 +58,7 @@ export function EuroStep4Screen() {
       eyebrow="Шаг 4 из 5 · Фотофиксация"
       primary="К подписанию"
       primaryEnabled={allRequired}
-      primaryAction={() => Alert.alert('Шаг 5', 'Подписание и отправка — рисуем дальше.')}
+      primaryAction={() => nav.navigate('EuroStep5')}
       onBack={() => nav.goBack()}
     >
       <ScreenHeading title="Сфотографируйте место" subtitle="Минимум 3 кадра. Снимайте, не перемещая автомобили" />

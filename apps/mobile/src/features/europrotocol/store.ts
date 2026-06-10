@@ -66,6 +66,9 @@ interface EuroState {
   // Шаг 4 — фотофиксация (только камера, антифрод). uri + метка времени.
   photos: Record<PhotoKey, EuroPhoto | null>;
 
+  // Шаг 5 — отправка
+  submittedNumber: string | null; // присвоенный № извещения после отправки
+
   setScreening: (key: keyof EuroScreening, value: boolean) => void;
   captureNow: () => void;
   setLocation: (place: string, lat?: number, lng?: number) => void;
@@ -78,6 +81,7 @@ interface EuroState {
   setScheme: (v: SchemeType) => void;
   setDescription: (v: string) => void;
   setPhoto: (key: PhotoKey, photo: EuroPhoto | null) => void;
+  setSubmittedNumber: (n: string) => void;
   reset: () => void;
 }
 
@@ -120,6 +124,7 @@ const INITIAL = {
   schemeType: null as SchemeType | null,
   description: '',
   photos: { overview: null, myCar: null, otherCar: null, scene: null } as Record<PhotoKey, EuroPhoto | null>,
+  submittedNumber: null as string | null,
 };
 
 export const useEuroStore = create<EuroState>((set) => ({
@@ -136,6 +141,7 @@ export const useEuroStore = create<EuroState>((set) => ({
   setScheme: (v) => set({ schemeType: v }),
   setDescription: (v) => set({ description: v }),
   setPhoto: (key, photo) => set((st) => ({ photos: { ...st.photos, [key]: photo } })),
+  setSubmittedNumber: (n) => set({ submittedNumber: n }),
   reset: () => set({ ...INITIAL, screening: { ...INITIAL.screening }, photos: { ...INITIAL.photos } }),
 }));
 
