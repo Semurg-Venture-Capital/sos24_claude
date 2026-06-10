@@ -136,3 +136,22 @@ cd apps/mobile && npx expo run:android
 
 > На эмуляторе API-хост уже `10.0.2.2` (loopback к localhost Mac) — бэкенд на `:3030` доступен автоматически.
 > MyID-экран на Android не показывается (байпас) — вход по OTP `6330`.
+
+---
+
+## 7. Нижний таб-бар на Android — итог (2026-06-10)
+
+**Контекст iOS:** на iOS используется родной `createNativeBottomTabNavigator` (UITabBar, на iOS 26+ системный Liquid Glass, иконки SF Symbols). **iOS не трогаем.**
+
+**Что пробовали на Android (история, чтобы не повторять):**
+1. **expo-blur** (`experimentalBlurMethod`/`blurMethod=dimezisBlurView`) — в SDK 55 требует `<BlurTargetView>` + `blurTarget`; над плоским серым фоном эффект почти не виден.
+2. **`@uginy/react-native-liquid-glass`** (AGSL-шейдеры) — работает, но вид не как у kyant (фростед-блюр, не рефракция).
+3. **Свой нативный порт kyant** — модуль `packages/liquid-glass` (`@sos24/liquid-glass`): порт AGSL-шейдеров `Kyant0/AndroidLiquidGlass` (Apache-2.0) в нативный Android-View. Реальная edge-рефракция заработала (Bitmap-снимок фона без стёкол → `RuntimeShader.setInputShader`, чтобы разорвать цикл glass↔backdrop и SIGSEGV-рекурсию RenderNode).
+
+**Вывод и решение:** liquid glass «играет» только над **цветным/детальным фоном** (как в демо kyant на ярких обоях). У нас экраны — **плоский светло-серый + белые карточки**, поэтому над баром преломлять физически нечего → эффект почти не виден. Плюс на Android нет системного Liquid Glass. **Поэтому от liquid glass на Android отказались.**
+
+**Что стоит сейчас (финал):** `apps/mobile/src/components/ui/FloatingTabBar.tsx` — **плавающий бар (fintech-стиль):** белая капсула с тенью, красная пилюля-индикатор плавно перетекает к активной вкладке (`Animated.spring`), ripple на нажатии, иконки — наши SVG `TabIcons` (как на iOS). Подключён в `MainNavigator` для Android (`AndroidTabs`), iOS остался на нативном баре.
+
+**Модуль `packages/liquid-glass`** оставлен в репо (рабочий порт kyant), но **в приложении не используется** — на случай, если позже появятся цветные экраны/фоны, где стекло заиграет. `@uginy/react-native-liquid-glass` остался в зависимостях, тоже не используется (можно удалить при чистке).
+
+**Осталось по Android (на потом):** PNG-иконки для таб-бара не нужны (используем SVG); допилить нативный MyID Android SDK (убрать байпас); пройти все экраны на разных плотностях; релизный keystore.
