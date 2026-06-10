@@ -98,12 +98,9 @@ export function EuroStartScreen() {
             onPress={callInspector}
           />
 
-          <View style={{ alignItems: 'center', marginTop: 4, gap: 12 }}>
+          <View style={{ alignItems: 'center', marginTop: 4 }}>
             <TextLink color={tokens.inkSubtle} onPress={openRegularClaim}>
               Подать обычное заявление
-            </TextLink>
-            <TextLink color={tokens.red} onPress={() => nav.navigate('EuroList')}>
-              Мои европротоколы
             </TextLink>
           </View>
         </View>

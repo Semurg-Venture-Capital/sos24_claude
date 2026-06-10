@@ -15,7 +15,10 @@ const Stack = createNativeStackNavigator<EuroStackParamList>();
 
 export function EuroNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'rgb(228,228,228)' } }}>
+    <Stack.Navigator
+      initialRouteName="EuroList"
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'rgb(228,228,228)' } }}
+    >
       <Stack.Screen name="EuroStart" component={EuroStartScreen} />
       <Stack.Screen name="EuroCheck" component={EuroCheckScreen} />
       <Stack.Screen name="EuroStep1" component={EuroStep1Screen} />

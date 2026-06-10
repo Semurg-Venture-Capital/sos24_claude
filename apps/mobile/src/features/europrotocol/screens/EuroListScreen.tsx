@@ -8,8 +8,10 @@ import {
   type EuroProtocolRecord,
 } from '../../../api/europrotocol';
 import { BackButton } from '../../../components/ui/BackButton';
+import { FAB } from '../../../components/ui/FAB';
 import { Glass } from '../../../components/ui/Glass';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
+import { RedButton } from '../../../components/ui/RedButton';
 import { tokens } from '../../../theme/colors';
 import { EuroStatusBadge } from '../components/EuroStatusBadge';
 import type { EuroStackParamList } from '../../../navigation/types';
@@ -55,19 +57,25 @@ export function EuroListScreen() {
             Пока нет европротоколов
           </Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center' }}>
-            Оформленные извещения о ДТП появятся здесь
+            Оформите извещение о ДТП — оба участника подтверждаются через MyID
           </Text>
+          <View style={{ width: 260, marginTop: 12 }}>
+            <RedButton onPress={() => nav.navigate('EuroStart')}>Оформить европротокол</RedButton>
+          </View>
         </View>
       ) : (
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40, gap: 12 }}
-          showsVerticalScrollIndicator={false}
-        >
-          {data?.map((p) => (
-            <EuroCard key={p.id} item={p} onPress={() => nav.navigate('EuroDetail', { id: p.id })} />
-          ))}
-        </ScrollView>
+        <>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 160, gap: 12 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {data?.map((p) => (
+              <EuroCard key={p.id} item={p} onPress={() => nav.navigate('EuroDetail', { id: p.id })} />
+            ))}
+          </ScrollView>
+          <FAB onPress={() => nav.navigate('EuroStart')} bottom={32} />
+        </>
       )}
     </PhoneFrame>
   );
