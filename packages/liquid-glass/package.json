@@ -1,0 +1,12 @@
+{
+  "name": "@sos24/liquid-glass",
+  "version": "1.0.0",
+  "description": "Нативный Android Liquid Glass для RN — порт AGSL-шейдеров Kyant0/AndroidLiquidGlass (Apache-2.0). iOS использует системный glass и этот модуль не задействует.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "peerDependencies": {
+    "expo": ">=52",
+    "expo-modules-core": "*",
+    "react-native": "*"
+  }
+}

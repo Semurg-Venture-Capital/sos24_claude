@@ -287,6 +287,9 @@ importers:
       '@sos24/i18n-strings':
         specifier: workspace:*
         version: link:../../packages/i18n-strings
+      '@sos24/liquid-glass':
+        specifier: workspace:*
+        version: link:../../packages/liquid-glass
       '@sos24/myid-sdk':
         specifier: workspace:*
         version: link:../../packages/myid-sdk
@@ -439,6 +442,18 @@ importers:
   packages/config-ts: {}
 
   packages/i18n-strings: {}
+
+  packages/liquid-glass:
+    dependencies:
+      expo:
+        specifier: '>=52'
+        version: 55.0.25(@babel/core@7.29.0)(@expo/dom-webview@55.0.6)(@expo/metro-runtime@55.0.11)(react-dom@19.2.4(react@19.2.4))(react-native-worklets@0.7.4(@babel/core@7.29.0)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4))(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+      expo-modules-core:
+        specifier: '*'
+        version: 55.0.25(react-native-worklets@0.7.4(@babel/core@7.29.0)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4))(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4)
+      react-native:
+        specifier: '*'
+        version: 0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.4)
 
   packages/myid-sdk:
     dependencies:

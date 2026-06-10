@@ -1,16 +1,15 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { BlurTargetView } from 'expo-blur';
-import { useRef } from 'react';
-import { Platform, View } from 'react-native';
+import { LiquidGlassBackdropView } from '@sos24/liquid-glass';
+import { Platform } from 'react-native';
 import { AdjusterNavigator } from './AdjusterNavigator';
 import { GarageNavigator } from './GarageNavigator';
 import { HomeScreen } from '../features/main/screens/HomeScreen';
 import { PoliciesNavigator } from './PoliciesNavigator';
 import { ProfileNavigator } from './ProfileNavigator';
 import { PurchaseNavigator } from './PurchaseNavigator';
-import { LiquidGlassTabBar } from '../components/ui/LiquidGlassTabBar';
+import { LiquidGlassTabBar, LIQUID_BACKDROP_ID } from '../components/ui/LiquidGlassTabBar';
 import { tokens } from '../theme/colors';
 import type { MainStackParamList, MainTabParamList } from './types';
 
@@ -76,21 +75,20 @@ function IosTabs() {
 const JsTab = createBottomTabNavigator<MainTabParamList>();
 
 function AndroidTabs() {
-  // BlurTargetView оборачивает сцены — нижний таб-бар блюрит этот контент
-  // (настоящее стекло, когда под баром скроллится экран).
-  const sceneRef = useRef<View>(null);
+  // LiquidGlassBackdropView записывает сцену в RenderNode — нативное стекло бара
+  // (тот же backdropId) преломляет этот фон (порт kyant).
   return (
-    <BlurTargetView ref={sceneRef} style={{ flex: 1 }}>
+    <LiquidGlassBackdropView backdropId={LIQUID_BACKDROP_ID} style={{ flex: 1 }}>
       <JsTab.Navigator
         screenOptions={{ headerShown: false }}
-        tabBar={(props) => <LiquidGlassTabBar {...props} blurTarget={sceneRef} />}
+        tabBar={(props) => <LiquidGlassTabBar {...props} />}
       >
         <JsTab.Screen name="Home" component={HomeScreen} />
         <JsTab.Screen name="Policies" component={PoliciesNavigator} />
         <JsTab.Screen name="Garage" component={GarageNavigator} />
         <JsTab.Screen name="Profile" component={ProfileNavigator} />
       </JsTab.Navigator>
-    </BlurTargetView>
+    </LiquidGlassBackdropView>
   );
 }
 

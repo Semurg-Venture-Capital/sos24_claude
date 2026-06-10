@@ -1,6 +1,6 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { LiquidGlassView } from '@uginy/react-native-liquid-glass';
-import { useEffect, useRef, type RefObject } from 'react';
+import { LiquidGlassNativeView } from '@sos24/liquid-glass';
+import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TabIconCar, TabIconHome, TabIconShield, TabIconUser } from '../icons/TabIcons';
@@ -23,14 +23,15 @@ const LABELS: Record<string, string> = {
   Profile: 'Профиль',
 };
 
+// Общий id: сцена (LiquidGlassBackdropView) ↔ бар (LiquidGlassNativeView).
+export const LIQUID_BACKDROP_ID = 1;
+
 const H_MARGIN = 14;
 const BAR_HEIGHT = 66;
 const DROP_W = 56;
 const DROP_H = 46;
 
-type Props = BottomTabBarProps & { blurTarget?: RefObject<View | null> };
-
-export function LiquidGlassTabBar({ state, navigation, blurTarget }: Props) {
+export function LiquidGlassTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
@@ -72,16 +73,16 @@ export function LiquidGlassTabBar({ state, navigation, blurTarget }: Props) {
           elevation: 12,
         }}
       >
-        {/* Слой 1: настоящее стекло (AGSL-рефракция фона под баром) */}
-        <LiquidGlassView
-          blurRadius={44}
-          refractionStrength={0.07}
-          chromaticAberration={0.02}
-          edgeGlowIntensity={0.45}
-          glareIntensity={0.32}
-          glassOpacity={0.12}
-          tintColor="#ffffff"
+        {/* Слой 1: настоящее стекло (порт kyant — AGSL refraction фона под баром) */}
+        <LiquidGlassNativeView
+          backdropId={LIQUID_BACKDROP_ID}
           cornerRadius={30}
+          refractionHeight={22}
+          refractionAmount={26}
+          blurRadius={5}
+          highlightOpacity={0.5}
+          highlightAngle={-45}
+          highlightFalloff={3}
           style={StyleSheet.absoluteFillObject}
         />
 

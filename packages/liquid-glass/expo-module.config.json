@@ -1,0 +1,9 @@
+{
+  "platforms": ["android"],
+  "android": {
+    "modules": [
+      "com.sos24.liquidglass.LiquidGlassViewModule",
+      "com.sos24.liquidglass.LiquidGlassBackdropModule"
+    ]
+  }
+}

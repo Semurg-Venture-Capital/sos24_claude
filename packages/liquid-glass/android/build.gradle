@@ -1,0 +1,16 @@
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'expo-module-gradle-plugin'
+
+group = 'com.sos24.liquidglass'
+version = '1.0.0'
+
+android {
+  namespace 'com.sos24.liquidglass'
+
+  defaultConfig {
+    minSdkVersion 24
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
