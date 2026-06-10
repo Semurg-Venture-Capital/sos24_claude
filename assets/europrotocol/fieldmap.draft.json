@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "template": "evroprotokol-uz-template.pdf",
+    "pages": 2,
+    "pageSize": { "width": 595.276, "height": 841.89, "unit": "pt", "format": "A4" },
+    "origin": "bottom-left (как в pdf-lib): X вправо, Y вверх",
+    "calibrated": false,
+    "confidence": "DRAFT — координаты сняты визуально с координатной сетки (calibration/grid.pdf), погрешность ±~8–10pt. Уточняются тест-рендером с реальными данными.",
+    "columns": {
+      "A": { "valueX": 17, "valueMaxWidth": 228, "comment": "левый зелёный блок ≈ x14–248" },
+      "B": { "valueX": 353, "valueMaxWidth": 226, "comment": "правый зелёный блок ≈ x352–582; обычно = A.x + 336" },
+      "center": { "aCheckX": 256, "numberX": 300, "bCheckX": 342, "comment": "центральный список обстоятельств x≈250–348" }
+    },
+    "fieldTypes": {
+      "text": "обычная строка по (x,y) baseline, перенос по maxWidth",
+      "comb": "по символу в клетку: x = центр/лево первой клетки, pitch = шаг между клетками, cells = число клеток",
+      "checkbox": "поставить × в квадрат по (x,y)",
+      "marks": "обвести/отметить один из преднапечатанных вариантов (категория ВУ и т.п.)",
+      "image": "вставить картинку в прямоугольник (x,y,w,h): схема ДТП, зоны удара, подпись",
+      "static": "преднапечатанный текст бланка — НЕ заполняем"
+    },
+    "notes": [
+      "Шрифт обязателен к встраиванию (в PDF шрифтов нет): Inter/Mont TTF + fontkit.",
+      "Реальный бланк содержит ~22 обстоятельства (не 17 как в EUROPROTOCOL.md §6) — поправить research-доку.",
+      "Сторона A заполняется из наших данных (MyID+Vehicle+Policy), сторона B — госномер→НАПП, остальное вручную.",
+      "Y указан как baseline текста; для comb может потребоваться +2..3pt вертикальной подгонки."
+    ]
+  },
+
+  "page0_common": [
+    { "id": "place",        "type": "text",     "x": 92,  "y": 797, "maxWidth": 150, "size": 8,  "source": "incident.place",        "label": "1. Место ДТП (нас.пункт, улица, дом)" },
+    { "id": "date",         "type": "comb",     "x": 96,  "y": 770, "pitch": 12, "cells": 8, "size": 9, "format": "DDMMYYYY", "source": "incident.date", "label": "2. Дата ДТП" },
+    { "id": "time",         "type": "comb",     "x": 200, "y": 762, "pitch": 12, "cells": 4, "size": 9, "format": "HHMM", "source": "incident.time", "label": "соат, дақиқа (время)" },
+    { "id": "damaged_count","type": "comb",     "x": 258, "y": 790, "pitch": 12, "cells": 2, "size": 9, "source": "incident.damagedVehicles", "label": "3. Число пострадавших ТС" },
+    { "id": "med_check",    "type": "checkbox", "options": [ { "value": "yes", "x": 254, "y": 750 }, { "value": "no", "x": 254, "y": 741 } ], "source": "incident.medCheckDone", "label": "4. Медосвидетельствование пройдено (Ҳа/Йўқ)" },
+    { "id": "witnesses",    "type": "text",     "x": 70,  "y": 718, "maxWidth": 480, "size": 8, "source": "incident.witnesses", "label": "5. Свидетели (ФИО, адрес)" },
+    { "id": "official_check","type": "checkbox","options": [ { "value": "yes", "x": 256, "y": 690 }, { "value": "no", "x": 256, "y": 681 } ], "source": "incident.officialRegistered", "label": "6. Оформлено сотрудником ОВД (Ҳа/Йўқ)" },
+    { "id": "service_no",   "type": "comb",     "x": 430, "y": 690, "pitch": 12, "cells": 10, "size": 9, "source": "incident.serviceEventNo", "label": "6. № служебного события" }
+  ],
+
+  "partyBlockTemplate": {
+    "comment": "Один и тот же набор полей для A и B. Координаты ниже даны для A; для B берётся то же Y и X из columns.B (или X+336). Источник вида partyA.* / partyB.*",
+    "rows": [
+      { "id": "make_model",   "type": "comb", "yA": 622, "x": 17, "pitch": 12.8, "cells": 18, "source": "make+model",            "label": "7. Марка/модель ТС" },
+      { "id": "body_no",      "type": "comb", "yA": 602, "x": 17, "pitch": 12.8, "cells": 17, "source": "bodyNumber/VIN",         "label": "№ кузова/шасси" },
+      { "id": "engine_no",    "type": "comb", "yA": 582, "x": 17, "pitch": 12.8, "cells": 16, "source": "engineNumber",          "label": "№ двигателя" },
+      { "id": "regcert_seria","type": "comb", "yA": 548, "x": 17, "pitch": 12.8, "cells": 3,  "source": "regCertSeria",          "label": "Свид-во о рег.: серия" },
+      { "id": "regcert_no",   "type": "comb", "yA": 548, "x": 70, "pitch": 12.8, "cells": 7,  "source": "regCertNumber",         "label": "Свид-во о рег.: номер" },
+      { "id": "owner_name",   "type": "text", "yA": 518, "x": 17, "maxWidth": 228, "source": "ownerFullName",                    "label": "8. Владелец ТС (ФИО)" },
+      { "id": "owner_addr",   "type": "text", "yA": 494, "x": 17, "maxWidth": 228, "source": "ownerAddress",                     "label": "8. Адрес владельца" },
+      { "id": "driver_name",  "type": "text", "yA": 472, "x": 17, "maxWidth": 228, "source": "driverFullName",                   "label": "9. Водитель (ФИО)" },
+      { "id": "driver_birth", "type": "comb", "yA": 450, "x": 90, "pitch": 12, "cells": 8, "format": "DDMMYYYY", "source": "driverBirthDate", "label": "9. Дата рождения водителя" },
+      { "id": "driver_addr",  "type": "text", "yA": 430, "x": 17, "maxWidth": 228, "source": "driverAddress",                    "label": "9. Адрес водителя" },
+      { "id": "phone",        "type": "comb", "yA": 408, "x": 75, "pitch": 12, "cells": 9, "source": "driverPhone",               "label": "Телефон" },
+      { "id": "dl_seria",     "type": "comb", "yA": 376, "x": 75, "pitch": 12, "cells": 3, "source": "driverLicenseSeria",        "label": "ВУ: серия" },
+      { "id": "dl_no",        "type": "comb", "yA": 376, "x": 125,"pitch": 12, "cells": 7, "source": "driverLicenseNumber",       "label": "ВУ: номер" },
+      { "id": "dl_category",  "type": "marks","yA": 352, "options": { "A": 60, "B": 76, "C": 92, "D": 108, "BE": 126, "CE": 150, "DE": 174 }, "source": "driverLicenseCategories", "label": "Категория (обвести)" },
+      { "id": "dl_issue",     "type": "comb", "yA": 352, "x": 200,"pitch": 12, "cells": 8, "format": "DDMMYYYY", "source": "driverLicenseIssueDate", "label": "Дата выдачи ВУ" },
+      { "id": "ownership_doc","type": "text", "yA": 330, "x": 17, "maxWidth": 228, "source": "ownershipDoc",                     "label": "Документ о праве владения" },
+      { "id": "insurer",      "type": "text", "yA": 306, "x": 17, "maxWidth": 228, "source": "insurerName",                      "label": "10. Страховщик" },
+      { "id": "policy_seria", "type": "comb", "yA": 282, "x": 90, "pitch": 12, "cells": 3, "source": "policySeria",              "label": "Полис: серия" },
+      { "id": "policy_no",    "type": "comb", "yA": 282, "x": 140,"pitch": 12, "cells": 7, "source": "policyNumber",             "label": "Полис: номер" },
+      { "id": "policy_valid", "type": "comb", "yA": 258, "x": 90, "pitch": 12, "cells": 8, "format": "DDMMYYYY", "source": "policyValidUntil", "label": "Срок действия полиса" },
+      { "id": "kasko",        "type": "checkbox", "yA": 236, "options": [ { "value": "yes", "x": 195, "y": 236 }, { "value": "no", "x": 225, "y": 236 } ], "source": "hasKasko", "label": "КАСКО (Ҳа/Йўқ)" },
+      { "id": "impact_point", "type": "image","rectA": { "x": 55, "y": 130, "w": 130, "h": 65 }, "source": "impactPointImage", "label": "11. Место первого удара (стрелка на схеме авто)" },
+      { "id": "damage_desc",  "type": "text", "yA": 105, "x": 17, "maxWidth": 228, "lines": 3, "lineHeight": 14, "source": "damageDescription", "label": "12. Описание повреждений" },
+      { "id": "objections",   "type": "text", "yA": 55,  "x": 17, "maxWidth": 228, "source": "objections",                     "label": "13. Возражения/замечания" },
+      { "id": "signature",    "type": "image","rectA": { "x": 110, "y": 18, "w": 120, "h": 22 }, "source": "signatureImage", "label": "Подпись водителя (или штамп MyID/OTP)" }
+    ]
+  },
+
+  "page0_circumstances": {
+    "comment": "22 пункта обстоятельств. Для каждого — чекбокс A (aCheckX) и B (bCheckX). Y от 628 с шагом ~-18.86.",
+    "rowYStart": 628,
+    "rowPitch": -18.86,
+    "count": 22,
+    "aCheckX": 256,
+    "bCheckX": 342,
+    "source": "circumstances.a[1..22] / circumstances.b[1..22] (boolean)",
+    "checkedCountBox": { "type": "comb", "x": 300, "y": 240, "pitch": 12, "cells": 2, "source": "circumstances.aCount/bCount", "label": "Число отмеченных клеток (для A и B)" }
+  },
+
+  "page0_schema": [
+    { "id": "schema",          "type": "image", "rect": { "x": 252, "y": 100, "w": 150, "h": 130 }, "source": "schemaImage", "label": "15. Схема ДТП (картинка из конструктора/фото)" },
+    { "id": "no_dispute_signA","type": "image", "rect": { "x": 410, "y": 40, "w": 70, "h": 18 }, "source": "signatureImageA", "label": "16. Подпись «А» — разногласий нет" },
+    { "id": "no_dispute_signB","type": "image", "rect": { "x": 500, "y": 40, "w": 70, "h": 18 }, "source": "signatureImageB", "label": "16. Подпись «В» — разногласий нет" }
+  ],
+
+  "page1_back": [
+    { "id": "circumstances_text", "type": "text", "x": 30, "y": 788, "maxWidth": 535, "lines": 18, "lineHeight": 17, "source": "circumstancesText", "label": "7. Обстоятельства ДТП своими словами (общий блок строк)" },
+    { "id": "is_owner",  "type": "checkbox", "options": [ { "value": "yes", "x": 250, "y": 455 }, { "value": "no", "x": 250, "y": 447 } ], "source": "driverIsOwner", "label": "7.4 Водитель является владельцем ТС (Ҳа/Йўқ)" },
+    { "id": "can_move",  "type": "checkbox", "options": [ { "value": "yes", "x": 250, "y": 420 }, { "value": "no", "x": 250, "y": 412 } ], "source": "vehicleCanMove", "label": "7.5 ТС может двигаться самостоятельно (Ҳа/Йўқ)" },
+    { "id": "remarks",   "type": "text", "x": 30, "y": 392, "maxWidth": 535, "lines": 4, "lineHeight": 16, "source": "remarks", "label": "8. Дополнительные замечания" },
+    { "id": "photo_zone","type": "image", "rect": { "x": 30, "y": 250, "w": 535, "h": 60 }, "source": "photoStripImage", "label": "Зона фотофиксации (превью кадров / зоны повреждений)" },
+    { "id": "sign_back_left",  "type": "image", "rect": { "x": 40,  "y": 252, "w": 120, "h": 18 }, "source": "signatureImage", "label": "Подпись (низ)" },
+    { "id": "sign_back_right", "type": "image", "rect": { "x": 320, "y": 252, "w": 120, "h": 18 }, "source": "signatureImage", "label": "Подпись (низ)" },
+    { "id": "legal_instructions", "type": "static", "label": "Инструкция по заполнению (преднапечатано) — НЕ заполняем" }
+  ]
+}
