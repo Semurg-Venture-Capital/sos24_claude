@@ -79,6 +79,10 @@ kubectl -n sos24-dev logs job/sos24-api-migrate
 ```
 
 ## Шаг 3 — внешний nginx (ВМ с белым IP)
+> **Развёрнуто 2026-06-11.** nginx-ВМ `10.10.38.30` (nginx-quic 1.30.2, HTTP/3+geoip2),
+> белый IP `146.120.18.70`, домены `api.sos24.uz`/`admin.sos24.uz` (SSL уже был).
+> Реально применённые конфиги — `deploy/nginx/live/` (upstream на 3 ноды + proxy_pass в NodePort).
+> Оригиналы забэкаплены на ВМ в `/etc/nginx/conf.d/backup-<ts>/`.
 ```bash
 # 1) скопировать конфиг, заменить K8S_NODE_IP и домены
 sudo cp deploy/nginx/sos24.conf /etc/nginx/conf.d/sos24.conf
