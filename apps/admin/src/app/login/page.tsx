@@ -68,7 +68,7 @@ export default function LoginPage() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+998 99 328-63-30"
+                    placeholder="+998 90 123-45-67"
                     className="h-10 px-3 rounded-lg border border-[rgba(20,20,40,0.12)] bg-[#fafafa] text-sm text-[#151515] placeholder:text-[#c0c0c0] outline-none focus:border-[#e61428] transition-colors"
                     required
                   />
@@ -78,7 +78,9 @@ export default function LoginPage() {
                   {loading ? 'Отправляем...' : 'Получить код'}
                 </button>
               </form>
-              <p className="text-xs text-[#c0c0c0] text-center mt-5">Dev: +998993286330 / 6330</p>
+              {process.env.NODE_ENV !== 'production' && (
+                <p className="text-xs text-[#c0c0c0] text-center mt-5">Dev: +998993286330 / 6330</p>
+              )}
             </>
           ) : (
             <>
@@ -94,7 +96,7 @@ export default function LoginPage() {
                     type="text"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    placeholder="6330"
+                    placeholder="Код из SMS"
                     maxLength={6}
                     className="h-10 px-3 rounded-lg border border-[rgba(20,20,40,0.12)] bg-[#fafafa] text-sm text-[#151515] placeholder:text-[#c0c0c0] outline-none focus:border-[#e61428] transition-colors tracking-widest text-center font-mono"
                     required
