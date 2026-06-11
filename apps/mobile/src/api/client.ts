@@ -2,13 +2,20 @@ import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig 
 import { saveTokens } from '../lib/secure';
 import { useAuthStore } from '../stores/authStore';
 
+// Прод-API (TestFlight/релиз). Только HTTPS — iOS ATS не пускает http к не-localhost.
+const PROD_API_URL = 'https://api.sos24.uz';
+
 // ХАРДКОД LAN-IP Mac (dev). Телефон и Mac в одной локальной сети.
 // ⚠️ Поменять при смене сети: `ipconfig getifaddr en0` на Mac.
 // Работает и для реального устройства, и для симулятора (Mac достижим по LAN).
 const DEV_API_HOST = '192.168.13.88';
 
 export function apiBaseUrl(): string {
-  return `http://${DEV_API_HOST}:3030`;
+  // Явный оверрайд (EXPO_PUBLIC_* инлайнится Expo на этапе сборки) — высший приоритет.
+  const fromEnv = process.env.EXPO_PUBLIC_API_URL;
+  if (fromEnv) return fromEnv;
+  // dev-сборка (Metro / Dev Client) → LAN-IP Mac; релиз (TestFlight) → прод HTTPS.
+  return __DEV__ ? `http://${DEV_API_HOST}:3030` : PROD_API_URL;
 }
 export const API_BASE_URL = apiBaseUrl();
 
