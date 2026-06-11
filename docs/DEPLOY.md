@@ -18,7 +18,9 @@ PostgreSQL — уже поднят DevOps в кластере (postgresql.sos24-
 ```
 
 ## Окружение от DevOps (2026-06-11)
-- **Кластер:** `ssh ubuntu@10.10.38.11` · kubeconfig от DevOps → `~/.kube/config`
+- **Кластер:** RKE2, **3 control-plane ноды в HA** — `10.10.38.11/12/13` (etcd-кворум 3/3,
+  apiserver:6443 на всех; «главного-одного» нет). NodePort открыт на всех трёх.
+  SSH только по ключу (парольный вход отключён); kubeconfig от DevOps → `~/.kube/config`.
 - **Namespace:** `sos24-dev`
 - **Registry (insecure):** `10.10.38.11:30500` → образы пушим как `10.10.38.11:30500/sos24/<svc>`.
   Локальный Docker Desktop: добавить в `insecure-registries` → `["10.10.38.11:30500"]`.
