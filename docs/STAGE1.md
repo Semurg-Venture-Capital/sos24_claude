@@ -2,11 +2,46 @@
 
 > Журнал реальных работ Этапа 1. Что сделано, что отложено, где остановились, как продолжить.
 >
-> **Последнее обновление:** 2026-06-02 (сессия 2)
+> **Последнее обновление:** 2026-06-11 (прод-деплой)
 
 ---
 
 ## Где остановились
+
+> **Статус 2026-06-11 — ПЕРВЫЙ ПРОД-ДЕПЛОЙ API+admin готов и доступен снаружи по HTTPS.** Ветка `main`.
+>
+> **Инфраструктура (DevOps).** Кластер RKE2 v1.35.5 — **3 ноды, все control-plane,etcd (HA)**:
+> `10.10.38.11/12/13` (SSH `ubuntu@`, пароль у пользователя). Namespace **`sos24-dev`**. Insecure-реестр
+> `10.10.38.11:30500`. Postgres (PG 18.4, `postgresql-0`, PVC local-path) + Redis уже подняты в кластере.
+> Внешний nginx-ВМ `10.10.38.30` (nginx-quic, HTTP/3), белый IP **`146.120.18.70`**, домены
+> `api.sos24.uz`/`admin.sos24.uz` (SSL есть). kubeconfig на Mac: `~/.kube/sos24.yaml`.
+>
+> **Что задеплоено.** Образы `sos24-api`/`sos24-admin` (amd64) в реестре; манифесты `deploy/k8s/`
+> (Deployment×2 реплики + NodePort 30030/30035 + migrate-Job); секрет из `apps/api/.env` (БД на
+> кластерный Postgres, пароль `%40`-кодирован). nginx проксирует домены в NodePort всех 3 нод
+> (`deploy/nginx/live/`). Проверено снаружи: `https://api.sos24.uz/api-docs` 200, `/partners` JSON,
+> `https://admin.sos24.uz/login` 200, сертификаты валидны → **iOS ATS ок**.
+>
+> **Dev-аккаунт в проде (засеян).** `+998993286330` / код `6330` → Азиз Каримов, `MYID_VERIFIED`,
+> `role=ADMIN` (вход и в приложение, и в админку), с машинами/полисами/картами/партнёрами.
+>
+> **Подсказки скрыты на проде.** OTP-хинт в мобайле (`__DEV__`), `devCode` в API (`NODE_ENV`),
+> «Dev: …» на логине админки (`NODE_ENV`) + нейтральные плейсхолдеры.
+>
+> **Нюансы сборки (исправлено).** Dockerfile API: `pnpm deploy --legacy` + `prisma generate` внутри
+> `/app` (иначе runtime падал `Cannot find module '.prisma/client/default'`). node1 не имел
+> `registries.yaml` → создан по образцу node2 + рестарт rke2. Сборка amd64 на Mac — `--platform linux/amd64`.
+>
+> **Мобильный API-хост** теперь по окружению (`apps/mobile/src/api/client.ts`): `EXPO_PUBLIC_API_URL` →
+> иначе `__DEV__ ? LAN-IP : https://api.sos24.uz`. Release/TestFlight автоматически на прод.
+>
+> **🔒 Перед публичным запуском (КРИТИЧНО):** SMS-OTP пока нет — на проде код `6330` принимает вход для
+> ЛЮБОГО номера и авто-создаёт юзера. Подключить Playmobile + реальную проверку OTP, убрать `DEV_OTP_CODE`.
+> Также: prod-ключи MyID (тест-ключи работают только с лицами команды), whitelist IP `146.120.18.70` у НАПП.
+>
+> Полный runbook — `docs/DEPLOY.md`. Память: `memory/project-deploy-infra.md`.
+
+---
 
 > **Статус 2026-06-10 (вечер) — S13 Европротокол, основной флоу ГОТОВ end-to-end.** Ветка `main`.
 >
