@@ -18,10 +18,12 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
-  async requestOtp(phone: string): Promise<{ sent: true; devCode: string }> {
-    // На dev мы не отправляем SMS — код всегда 6330. Возвращаем devCode только
-    // для удобства разработки; в продакшене заменим на интеграцию с Playmobile.
-    return { sent: true, devCode: DEV_OTP_CODE };
+  async requestOtp(phone: string): Promise<{ sent: true; devCode?: string }> {
+    // SMS пока не отправляем — код всегда 6330 (см. DEV_OTP_CODE).
+    // devCode отдаём только вне прода (удобство разработки); на проде не светим.
+    // TODO: интеграция Playmobile + реальная генерация/проверка OTP.
+    const isProd = this.config.get<string>('NODE_ENV') === 'production';
+    return isProd ? { sent: true } : { sent: true, devCode: DEV_OTP_CODE };
   }
 
   async verifyOtp(

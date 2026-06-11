@@ -146,17 +146,19 @@ export function OtpScreen() {
           </Text>
         )}
 
-        <Text
-          style={{
-            marginTop: 8,
-            textAlign: 'center',
-            fontFamily: 'Manrope_400Regular',
-            fontSize: 12,
-            color: tokens.inkMuted,
-          }}
-        >
-          Dev-режим: код 6330
-        </Text>
+        {__DEV__ && (
+          <Text
+            style={{
+              marginTop: 8,
+              textAlign: 'center',
+              fontFamily: 'Manrope_400Regular',
+              fontSize: 12,
+              color: tokens.inkMuted,
+            }}
+          >
+            Dev-режим: код 6330
+          </Text>
+        )}
 
         {submitting && (
           <Text style={{ textAlign: 'center', color: tokens.inkMuted, fontFamily: 'Manrope_400Regular' }}>
