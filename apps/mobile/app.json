@@ -15,6 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "uz.sos24.app",
+      "appleTeamId": "SRGDG34MV6",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "SOS24 использует вашу геопозицию для определения адреса при вызове аджастера.",
         "NSCameraUsageDescription": "SOS24 использует камеру для верификации личности через MyID.",
