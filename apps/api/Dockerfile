@@ -14,11 +14,12 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter api exec prisma generate
 RUN pnpm --filter api run build
 # pruned prod-сборка только для api (включает prisma CLI + @prisma/client — они в deps)
-RUN pnpm --filter api deploy --prod --ignore-scripts /app
-# собранный код + схема + сгенерированный prisma-клиент
+RUN pnpm --filter api deploy --prod --legacy --ignore-scripts /app
+# собранный код + схема
 RUN cp -r apps/api/dist /app/dist \
- && cp -r apps/api/prisma /app/prisma \
- && (cp -r node_modules/.prisma /app/node_modules/.prisma 2>/dev/null || true)
+ && cp -r apps/api/prisma /app/prisma
+# Prisma-клиент генерируем ВНУТРИ /app — попадёт в правильное место его node_modules
+RUN cd /app && ./node_modules/.bin/prisma generate --schema prisma/schema.prisma
 
 # ---------- runtime ----------
 FROM node:22-slim AS runtime
