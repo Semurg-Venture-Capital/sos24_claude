@@ -1,0 +1,41 @@
+# SOS24 Admin (Next.js) — Deployment + NodePort.
+# NEXT_PUBLIC_API_URL вшивается на этапе СБОРКИ образа (--build-arg), здесь не задаётся.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sos24-admin
+  namespace: sos24-dev
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: sos24-admin }
+  template:
+    metadata:
+      labels: { app: sos24-admin }
+    spec:
+      containers:
+        - name: admin
+          image: __REGISTRY__/sos24-admin:latest
+          ports:
+            - containerPort: 3035
+          readinessProbe:
+            httpGet: { path: /login, port: 3035 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits: { cpu: "1", memory: "768Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sos24-admin
+  namespace: sos24-dev
+spec:
+  type: NodePort
+  selector: { app: sos24-admin }
+  ports:
+    - port: 3035
+      targetPort: 3035
+      nodePort: 30035

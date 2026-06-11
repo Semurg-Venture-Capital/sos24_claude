@@ -1,0 +1,18 @@
+# Не отправляем в Docker build context
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.expo
+apps/mobile/ios
+apps/mobile/android
+**/*.log
+.git
+.github
+**/.env
+**/.env.*
+!**/.env.example
+SOS24
+assets/europrotocol/calibration
+docs
+**/.DS_Store

@@ -87,3 +87,6 @@ coverage/
 .stylelintcache
 .cache/
 .parcel-cache/
+
+# k8s secrets (не коммитим)
+deploy/k8s/secret.yaml
