@@ -40,6 +40,19 @@
 > Также: prod-ключи MyID (тест-ключи работают только с лицами команды), whitelist IP `146.120.18.70` у НАПП.
 >
 > Полный runbook — `docs/DEPLOY.md`. Память: `memory/project-deploy-infra.md`.
+>
+> **Apple / TestFlight (подготовка).** Команда подписи переключена с бесплатной персональной на
+> организацию **Semurg Venture Capital, MCHJ** — Team ID **`SRGDG34MV6`** (Organization). Прописано в
+> `app.json` → `expo.ios.appleTeamId` (источник истины, пишет DEVELOPMENT_TEAM при `expo prebuild`); bundle
+> id `uz.sos24.app`. Память: `memory/project-ios-signing.md`. **Осталось для TestFlight:** App ID
+> `uz.sos24.app` в аккаунте Semurg (Xcode создаст при Archive) → App Store Connect создать app →
+> `Apple Distribution` сертификат (automatic signing) → Archive → Distribute → Upload → тестировщики.
+>
+> **Локальный dev-запуск (для теста на телефоне).** БД — docker `sos24-db` (postgres:16, `localhost:5434`,
+> `.env`). API: `pnpm dev:api` → `:3030`. Metro: `pnpm dev:mobile` (`expo start --lan`, БЕЗ `CI=1` — иначе
+> hot-reload выключен) → `:8081`. Mac с двумя IP (en0 **192.168.13.88**, en1 .89); `DEV_API_HOST` в
+> `client.ts` захардкожен на **.88**. На телефоне в Dev Client URL `http://192.168.13.88:8081`. Dev-аккаунт
+> `+998993286330` / `6330` засеян и в локальной, и в прод-БД.
 
 ---
 
