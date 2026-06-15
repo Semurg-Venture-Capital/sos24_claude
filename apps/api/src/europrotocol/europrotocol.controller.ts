@@ -1,11 +1,13 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post, Res, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { SubmitEuroDto } from './dto/submit-euro.dto';
 import { ValidatePolicyDto } from './dto/validate-policy.dto';
 import { VerifyCodeDto } from './dto/verify-code.dto';
+import { EuroprotocolPdfService } from './europrotocol-pdf.service';
 import { EuroprotocolService } from './europrotocol.service';
 
 @ApiTags('europrotocol')
@@ -13,7 +15,10 @@ import { EuroprotocolService } from './europrotocol.service';
 @UseGuards(JwtAuthGuard)
 @Controller('europrotocol')
 export class EuroprotocolController {
-  constructor(private readonly euro: EuroprotocolService) {}
+  constructor(
+    private readonly euro: EuroprotocolService,
+    private readonly pdf: EuroprotocolPdfService,
+  ) {}
 
   @Post('me/step-up')
   @ApiOperation({ summary: 'Шаг-ап MyID инициатора — подтвердить присутствие владельца аккаунта.' })
@@ -49,5 +54,19 @@ export class EuroprotocolController {
   @ApiOperation({ summary: 'Деталь европротокола (свой).' })
   detail(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
     return this.euro.findOneForUser(user.sub, id);
+  }
+
+  @Get(':id/pdf')
+  @ApiOperation({ summary: 'Сгенерировать PDF бланка «Извещение о ДТП» (свой европротокол).' })
+  @ApiProduces('application/pdf')
+  async pdfFile(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Res() res: Response) {
+    await this.euro.findOneForUser(user.sub, id); // проверка владельца (бросит 404, если не свой)
+    const { buffer, filename } = await this.pdf.generate(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="${filename}"`,
+      'Content-Length': String(buffer.length),
+    });
+    res.end(buffer);
   }
 }

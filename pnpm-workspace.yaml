@@ -9,5 +9,6 @@ allowBuilds:
   '@prisma/engines': true # Prisma — postinstall скачивает query-engine
   '@scarf/scarf': false # телеметрия, не нужна
   prisma: true # Prisma CLI
+  puppeteer: true # Puppeteer — postinstall скачивает Chromium (генерация PDF Европротокола)
   sharp: true # обработка изображений в Next.js
   unrs-resolver: true # резолвер модулей для сборщиков (Rspack/Rsbuild)
