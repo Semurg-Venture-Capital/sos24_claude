@@ -1,0 +1,112 @@
+<!-- Блок одного участника (А или В). Контекст: party.* -->
+<div class="f">
+  <span class="lab">7. Т/в нинг русуми, маркаси</span>
+  <span class="fill-line">{{party.makeModel}}</span>
+  <span class="fill-line">&nbsp;</span>
+</div>
+
+<div class="f">
+  <span class="lab">Т/в кузови/шассиси рақами</span>
+  {{comb party.bodyNo 17}}
+</div>
+
+<div class="f">
+  <span class="lab">Т/в двигатели рақами</span>
+  {{comb party.engineNo 17}}
+</div>
+
+<div class="f">
+  <span class="lab">Т/в ни рўйхатдан ўтказиш тўғрисидаги гувоҳнома</span>
+  <div class="inl"><span style="font-size:6.4pt">давлат рўйхатига олиш рақами</span> {{comb party.regStateNo 8}}</div>
+  <div class="inl" style="margin-top:0.8mm">
+    <span style="font-size:6.4pt">серия</span> {{comb party.regCertSeria 2}}
+    <span style="font-size:6.4pt; margin-left:2mm">рақам</span> {{comb party.regCertNo 7}}
+  </div>
+</div>
+
+<div class="f">
+  <span class="lab">8. Т/в эгаси</span>
+  <span class="fill-line">{{party.ownerName}}</span>
+  <div class="sub">(фамилияси, исми, отасининг исми (юридик шахс номи))</div>
+</div>
+<div class="f">
+  <span class="lab">Манзил</span>
+  <span class="fill-line">{{party.ownerAddr}}</span>
+</div>
+
+<div class="f">
+  <span class="lab">9. Т/в ҳайдовчиси</span>
+  <span class="fill-line">{{party.driverName}}</span>
+  <div class="sub">(фамилияси, исми, отасининг исми)</div>
+</div>
+<div class="f inl">
+  <span class="lab">Туғилган санаси</span>
+  {{comb party.driverBirth 8}}
+  <span class="sub" style="margin-left:1mm">кун, ой, йил</span>
+</div>
+<div class="f">
+  <span class="lab">Манзил</span>
+  <span class="fill-line">{{party.driverAddr}}</span>
+</div>
+<div class="f inl">
+  <span class="lab">Телефон</span>
+  {{comb party.phone 9}}
+</div>
+<div class="f">
+  <span class="lab">Ҳайдовчилик гувоҳномаси</span>
+  <div class="inl">
+    <span style="font-size:6.4pt">серия</span> {{comb party.dlSeria 3}}
+    <span style="font-size:6.4pt; margin-left:2mm">рақам</span> {{comb party.dlNo 7}}
+  </div>
+</div>
+<div class="f inl">
+  <span class="lab">Тойфа</span>
+  <span class="nowrap" style="letter-spacing:1.5px; font-size:7.6pt">A B C D BE CE DE</span>
+  <span class="sub" style="margin-left:2mm">берилган сана</span>
+  {{comb party.dlIssue 8}}
+</div>
+<div class="f">
+  <span class="lab" style="font-size:6.8pt">Т/в эгалик қилиш, фойдаланиш, тасарруф этиш ҳуқуқи тўғрисидаги ҳужжат</span>
+  <span class="fill-line">{{party.ownershipDoc}}</span>
+</div>
+
+<div class="f">
+  <span class="lab">10. Суғурталовчи</span>
+  <span class="fill-line">{{party.insurer}}</span>
+</div>
+<div class="f">
+  <span class="lab">Суғурта полиси</span>
+  <div class="inl">
+    <span style="font-size:6.4pt">серия</span> {{comb party.policySeria 3}}
+    <span style="font-size:6.4pt; margin-left:2mm">рақам</span> {{comb party.policyNo 7}}
+  </div>
+</div>
+<div class="f inl">
+  <span class="lab">Амал қилиш санаси</span>
+  {{comb party.policyValid 8}}
+</div>
+<div class="f inl">
+  <span class="lab" style="font-size:6.8pt">Т/в шикаст етказилишидан суғурталанган</span>
+  <span class="ckopt" style="margin-left:2mm"><span class="ckbox {{on party.kasko 'yes'}}"></span> Ҳа</span>
+  <span class="ckopt"><span class="ckbox {{on party.kasko 'no'}}"></span> Йўқ</span>
+</div>
+
+<div class="f">
+  <span class="lab">11. Бошланғич зарба етказилган жойи</span>
+  <div class="impact-box">{{#if party.impactImg}}<img src="{{party.impactImg}}" style="max-width:100%;max-height:100%" />{{/if}}</div>
+</div>
+
+<div class="f">
+  <span class="lab" style="font-size:6.8pt">12. Т/в нинг шикастланиш ҳолатлари, шикастланган қисмлари тавсифлари ва рўйхати</span>
+  <div class="text-area">{{party.damageDesc}}</div>
+</div>
+
+<div class="f">
+  <span class="lab">13. Эътирозлар</span>
+  <div class="text-area" style="min-height:9mm">{{party.objections}}</div>
+</div>
+
+<div class="sign-line">
+  <span class="nowrap" style="font-size:6.8pt">«{{party.side}}» т/в ҳайдовчисининг имзоси</span>
+  <span class="fill-line">{{#if party.signImg}}<img src="{{party.signImg}}" style="height:5mm" />{{/if}}</span>
+</div>
