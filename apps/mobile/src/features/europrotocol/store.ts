@@ -65,10 +65,46 @@ interface EuroState {
 
   // Шаг 4 — фотофиксация (только камера, антифрод). uri + метка времени.
   photos: Record<PhotoKey, EuroPhoto | null>;
+  videos: EuroPhoto[]; // видео (доп. к фото)
+
+  // --- Общая часть бланка (пп.4–6) ---
+  medCheck: boolean | null; // медосвидетельствование пройдено
+  witnesses: string; // свидетели (ФИО, телефон)
+  officialRegistered: boolean | null; // оформлено сотрудником ГАИ
+
+  // --- Обстоятельства ДТП (22 чекбокса на сторону) ---
+  circumstancesA: boolean[];
+  circumstancesB: boolean[];
+
+  // --- Сторона A: доп. поля ---
+  damageDescA: string;
+  objectionsA: string;
+
+  // --- Сторона B: ручной ввод (НАПП/MyID не покрывают) ---
+  otherOwnerAddr: string;
+  otherDlSeria: string;
+  otherDlNumber: string;
+  otherDlCategories: string;
+  otherDlIssue: string; // YYYY-MM-DD
+  otherInsurer: string;
+  otherPolicyValidUntil: string; // YYYY-MM-DD
+  damageDescB: string;
+  objectionsB: string;
+  otherSigned: boolean; // сторона B подписала по OTP
+
+  // --- Оборот (стр.2) ---
+  driverRole: 'owner' | 'other' | null;
+  canMove: boolean | null;
+  cannotMovePlace: string;
+  remarks: string;
 
   // Шаг 5 — отправка
   submittedNumber: string | null; // присвоенный № извещения после отправки
 
+  patch: (p: Partial<EuroState>) => void;
+  toggleCircumstance: (side: 'a' | 'b', index: number) => void;
+  addVideo: (v: EuroPhoto) => void;
+  removeVideo: (index: number) => void;
   setScreening: (key: keyof EuroScreening, value: boolean) => void;
   captureNow: () => void;
   setLocation: (place: string, lat?: number, lng?: number) => void;
@@ -124,11 +160,42 @@ const INITIAL = {
   schemeType: null as SchemeType | null,
   description: '',
   photos: { overview: null, myCar: null, otherCar: null, scene: null } as Record<PhotoKey, EuroPhoto | null>,
+  videos: [] as EuroPhoto[],
+  medCheck: null as boolean | null,
+  witnesses: '',
+  officialRegistered: null as boolean | null,
+  circumstancesA: Array(22).fill(false) as boolean[],
+  circumstancesB: Array(22).fill(false) as boolean[],
+  damageDescA: '',
+  objectionsA: '',
+  otherOwnerAddr: '',
+  otherDlSeria: '',
+  otherDlNumber: '',
+  otherDlCategories: '',
+  otherDlIssue: '',
+  otherInsurer: '',
+  otherPolicyValidUntil: '',
+  damageDescB: '',
+  objectionsB: '',
+  otherSigned: false,
+  driverRole: null as 'owner' | 'other' | null,
+  canMove: null as boolean | null,
+  cannotMovePlace: '',
+  remarks: '',
   submittedNumber: null as string | null,
 };
 
 export const useEuroStore = create<EuroState>((set) => ({
   ...INITIAL,
+  patch: (p) => set(p),
+  toggleCircumstance: (side, index) =>
+    set((st) => {
+      const arr = [...(side === 'a' ? st.circumstancesA : st.circumstancesB)];
+      arr[index] = !arr[index];
+      return side === 'a' ? { circumstancesA: arr } : { circumstancesB: arr };
+    }),
+  addVideo: (v) => set((st) => ({ videos: [...st.videos, v] })),
+  removeVideo: (index) => set((st) => ({ videos: st.videos.filter((_, i) => i !== index) })),
   setScreening: (key, value) => set((s) => ({ screening: { ...s.screening, [key]: value } })),
   captureNow: () => set({ date: todayISO(), time: nowHHMM() }),
   setLocation: (place, lat, lng) => set({ place, lat, lng }),
@@ -142,7 +209,15 @@ export const useEuroStore = create<EuroState>((set) => ({
   setDescription: (v) => set({ description: v }),
   setPhoto: (key, photo) => set((st) => ({ photos: { ...st.photos, [key]: photo } })),
   setSubmittedNumber: (n) => set({ submittedNumber: n }),
-  reset: () => set({ ...INITIAL, screening: { ...INITIAL.screening }, photos: { ...INITIAL.photos } }),
+  reset: () =>
+    set({
+      ...INITIAL,
+      screening: { ...INITIAL.screening },
+      photos: { ...INITIAL.photos },
+      videos: [],
+      circumstancesA: Array(22).fill(false),
+      circumstancesB: Array(22).fill(false),
+    }),
 }));
 
 // Все 5 условий подтверждены?

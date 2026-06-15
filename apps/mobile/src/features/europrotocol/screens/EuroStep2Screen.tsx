@@ -265,6 +265,66 @@ export function EuroStep2Screen() {
             keyboardType="phone-pad"
             placeholder="+998 90 123 45 67"
           />
+
+          <Text style={subLabel}>Водительское удостоверение «В»</Text>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TextField
+              label="Серия"
+              value={s.otherDlSeria}
+              onChangeText={(v) => s.patch({ otherDlSeria: v.toUpperCase() })}
+              autoCapitalize="characters"
+              placeholder="AC"
+              containerStyle={{ flex: 1 }}
+            />
+            <TextField
+              label="Номер"
+              value={s.otherDlNumber}
+              onChangeText={(v) => s.patch({ otherDlNumber: v })}
+              keyboardType="number-pad"
+              placeholder="1234567"
+              containerStyle={{ flex: 1.6 }}
+            />
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TextField
+              label="Категории"
+              value={s.otherDlCategories}
+              onChangeText={(v) => s.patch({ otherDlCategories: v.toUpperCase() })}
+              autoCapitalize="characters"
+              placeholder="B, C"
+              containerStyle={{ flex: 1 }}
+            />
+            <TextField
+              label="Дата выдачи ВУ"
+              value={s.otherDlIssue}
+              onChangeText={(v) => s.patch({ otherDlIssue: v })}
+              placeholder="2019-03-01"
+              containerStyle={{ flex: 1 }}
+            />
+          </View>
+
+          <TextField
+            label="Адрес владельца авто «В»"
+            value={s.otherOwnerAddr}
+            onChangeText={(v) => s.patch({ otherOwnerAddr: v })}
+            placeholder="Тошкент ш., Юнусобод…"
+          />
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TextField
+              label="Страховщик «В»"
+              value={s.otherInsurer}
+              onChangeText={(v) => s.patch({ otherInsurer: v })}
+              placeholder="Apex Insurance"
+              containerStyle={{ flex: 1.4 }}
+            />
+            <TextField
+              label="Полис действует до"
+              value={s.otherPolicyValidUntil}
+              onChangeText={(v) => s.patch({ otherPolicyValidUntil: v })}
+              placeholder="2026-12-31"
+              containerStyle={{ flex: 1 }}
+            />
+          </View>
         </>
       )}
     </WizardFrame>

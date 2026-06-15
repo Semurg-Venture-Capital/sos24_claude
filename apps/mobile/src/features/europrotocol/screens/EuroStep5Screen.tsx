@@ -3,13 +3,19 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useVehicles } from '../../../api/vehicles';
-import { participantFullName, useSubmitEuroProtocol } from '../../../api/europrotocol';
+import {
+  participantFullName,
+  signOtherParty,
+  uploadEuroMedia,
+  useSubmitEuroProtocol,
+} from '../../../api/europrotocol';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { SummaryBlock } from '../../../components/ui/SummaryBlock';
+import { TextField } from '../../../components/ui/TextField';
 import { WizardFrame } from '../../../components/ui/WizardFrame';
 import { tokens } from '../../../theme/colors';
-import { REQUIRED_PHOTOS, useEuroStore } from '../store';
+import { REQUIRED_PHOTOS, useEuroStore, type PhotoKey } from '../store';
 import type { EuroStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStep5'>;
@@ -27,14 +33,49 @@ export function EuroStep5Screen() {
   const s = useEuroStore();
   const { data: vehicles } = useVehicles();
   const [confirmed, setConfirmed] = useState(false);
+  const [otpB, setOtpB] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState('');
 
   const myVehicle = vehicles?.find((v) => v.id === s.myVehicleId);
   const photosCount = REQUIRED_PHOTOS.filter((k) => s.photos[k]).length;
+  const circCount = s.circumstancesA.filter(Boolean).length + s.circumstancesB.filter(Boolean).length;
   const submitMutation = useSubmitEuroProtocol();
 
-  const submit = () => {
-    submitMutation.mutate(
-      {
+  // Заливает фото/видео в MinIO, возвращает массив метаданных (ключ + слот + время).
+  const uploadMedia = async () => {
+    const out: { key: string; slot?: string; at?: string; type: 'image' | 'video' }[] = [];
+    const slots: PhotoKey[] = ['overview', 'myCar', 'otherCar', 'scene'];
+    for (const slot of slots) {
+      const ph = s.photos[slot];
+      if (!ph?.uri) continue;
+      try {
+        const { key } = await uploadEuroMedia(ph.uri, 'image');
+        out.push({ key, slot, at: ph.at, type: 'image' });
+      } catch {
+        /* не блокируем отправку из-за одного файла */
+      }
+    }
+    for (const v of s.videos) {
+      if (!v.uri) continue;
+      try {
+        const { key } = await uploadEuroMedia(v.uri, 'video');
+        out.push({ key, at: v.at, type: 'video' });
+      } catch {
+        /* skip */
+      }
+    }
+    return out;
+  };
+
+  const submit = async () => {
+    setBusy(true);
+    try {
+      setPhase('Загрузка медиа…');
+      const photos = await uploadMedia();
+
+      setPhase('Отправка…');
+      const res = await submitMutation.mutateAsync({
         incidentDate: s.date,
         incidentTime: s.time,
         place: s.place,
@@ -51,16 +92,52 @@ export function EuroStep5Screen() {
         otherPolicyValid: s.otherPolicyValid ?? undefined,
         schemeType: s.schemeType ?? undefined,
         description: s.description || undefined,
-        photos: REQUIRED_PHOTOS.filter((k) => s.photos[k]).map((k) => ({ key: k, at: s.photos[k]?.at })),
-      },
-      {
-        onSuccess: (res) => {
-          s.setSubmittedNumber(res.number);
-          nav.navigate('EuroSuccess');
-        },
-        onError: () => Alert.alert('Ошибка', 'Не удалось отправить европротокол. Попробуйте ещё раз.'),
-      },
-    );
+        photos,
+        // общая часть
+        medCheck: s.medCheck ?? undefined,
+        witnesses: s.witnesses || undefined,
+        officialRegistered: s.officialRegistered ?? undefined,
+        // обстоятельства
+        circumstancesA: s.circumstancesA,
+        circumstancesB: s.circumstancesB,
+        // сторона A
+        damageDescA: s.damageDescA || undefined,
+        objectionsA: s.objectionsA || undefined,
+        // сторона B
+        otherOwnerAddr: s.otherOwnerAddr || undefined,
+        otherDlSeria: s.otherDlSeria || undefined,
+        otherDlNumber: s.otherDlNumber || undefined,
+        otherDlCategories: s.otherDlCategories || undefined,
+        otherDlIssue: s.otherDlIssue || undefined,
+        otherInsurer: s.otherInsurer || undefined,
+        otherPolicyValidUntil: s.otherPolicyValidUntil || undefined,
+        damageDescB: s.damageDescB || undefined,
+        objectionsB: s.objectionsB || undefined,
+        // оборот
+        driverRole: s.driverRole ?? undefined,
+        canMove: s.canMove ?? undefined,
+        cannotMovePlace: s.cannotMovePlace || undefined,
+        remarks: s.remarks || undefined,
+      });
+
+      // Подпись стороны «В» по OTP (если введён код)
+      if (otpB.trim() && s.otherPhone) {
+        setPhase('Подпись стороны В…');
+        try {
+          await signOtherParty(res.id, otpB.trim());
+        } catch {
+          /* подпись необязательна для отправки — оператор увидит статус */
+        }
+      }
+
+      s.setSubmittedNumber(res.number);
+      nav.navigate('EuroSuccess');
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось отправить европротокол. Попробуйте ещё раз.');
+    } finally {
+      setBusy(false);
+      setPhase('');
+    }
   };
 
   return (
@@ -68,8 +145,8 @@ export function EuroStep5Screen() {
       step={5}
       total={5}
       eyebrow="Шаг 5 из 5 · Подтверждение"
-      primary={submitMutation.isPending ? 'Отправка…' : 'Подписать и отправить'}
-      primaryEnabled={confirmed && !submitMutation.isPending}
+      primary={busy ? phase || 'Отправка…' : 'Подписать и отправить'}
+      primaryEnabled={confirmed && !busy}
       primaryAction={submit}
       onBack={() => nav.goBack()}
     >
@@ -81,7 +158,8 @@ export function EuroStep5Screen() {
           { label: 'Дата и время', value: `${formatDate(s.date)} · ${s.time}` },
           { label: 'Место', value: s.place || '—' },
           { label: 'Схема', value: s.schemeType ? SCHEME_LABEL[s.schemeType] : '—' },
-          { label: 'Фото', value: `${photosCount} из ${REQUIRED_PHOTOS.length}` },
+          { label: 'Фото / видео', value: `${photosCount} из ${REQUIRED_PHOTOS.length} · ${s.videos.length} видео` },
+          { label: 'Обстоятельства', value: circCount ? `отмечено ${circCount}` : '—' },
         ]}
       />
 
@@ -112,6 +190,25 @@ export function EuroStep5Screen() {
 
       {s.description ? (
         <SummaryBlock eyebrow="Описание" rows={[{ label: '', value: s.description }]} />
+      ) : null}
+
+      {/* Подпись стороны «В» по OTP */}
+      {s.otherPhone ? (
+        <View style={{ gap: 8 }}>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.07 }}>
+            Подпись второго участника
+          </Text>
+          <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 16 }}>
+            Код отправлен на {s.otherPhone}. Попросите второго участника продиктовать код для подписи.
+          </Text>
+          <TextField
+            label="Код из SMS (необязательно)"
+            value={otpB}
+            onChangeText={setOtpB}
+            keyboardType="number-pad"
+            placeholder="••••"
+          />
+        </View>
       ) : null}
 
       {/* Подтверждение */}

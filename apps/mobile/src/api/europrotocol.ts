@@ -45,8 +45,39 @@ export interface SubmitEuroPayload {
   otherPolicyNumber?: string;
   otherPolicyValid?: boolean;
   schemeType?: string;
+  schemeImageKey?: string;
   description?: string;
   photos?: unknown[];
+
+  // Общая часть
+  medCheck?: boolean;
+  witnesses?: string;
+  officialRegistered?: boolean;
+
+  // Обстоятельства (22 boolean на сторону)
+  circumstancesA?: boolean[];
+  circumstancesB?: boolean[];
+
+  // Сторона A — доп.
+  damageDescA?: string;
+  objectionsA?: string;
+
+  // Сторона B — ручной ввод
+  otherOwnerAddr?: string;
+  otherDlSeria?: string;
+  otherDlNumber?: string;
+  otherDlCategories?: string;
+  otherDlIssue?: string;
+  otherInsurer?: string;
+  otherPolicyValidUntil?: string;
+  damageDescB?: string;
+  objectionsB?: string;
+
+  // Оборот
+  driverRole?: 'owner' | 'other';
+  canMove?: boolean;
+  cannotMovePlace?: string;
+  remarks?: string;
 }
 
 export interface StepUpResult {
@@ -107,6 +138,40 @@ export async function validateOtherPolicy(seria: string, number: string): Promis
 
 export function participantFullName(p: EuroParticipant): string {
   return [p.surname, p.name, p.patronymic].filter(Boolean).join(' ') || p.pinfl;
+}
+
+// ── Загрузка медиа в MinIO (через API) ──
+export interface UploadedMedia {
+  key: string;
+  contentType: string;
+  size: number;
+}
+
+// Заливает локальный файл (фото/видео) на бэкенд → MinIO. Возвращает ключ объекта.
+export async function uploadEuroMedia(uri: string, kind: 'image' | 'video'): Promise<UploadedMedia> {
+  const ext = (uri.split('.').pop() || '').toLowerCase();
+  const type =
+    kind === 'video'
+      ? ext === 'mp4'
+        ? 'video/mp4'
+        : 'video/quicktime'
+      : ext === 'png'
+        ? 'image/png'
+        : 'image/jpeg';
+  const name = `media.${ext || (kind === 'video' ? 'mov' : 'jpg')}`;
+  const form = new FormData();
+  // RN FormData принимает { uri, name, type } как файл.
+  form.append('file', { uri, name, type } as unknown as Blob);
+  const { data } = await api.post<UploadedMedia>('/files/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
+// Подпись стороны «В» по OTP (на otherPhone).
+export async function signOtherParty(id: string, code: string): Promise<{ signedAt: string }> {
+  const { data } = await api.post<{ signedAt: string }>(`/europrotocol/${id}/sign-other`, { code });
+  return data;
 }
 
 // ── Отправка / список / деталь ──

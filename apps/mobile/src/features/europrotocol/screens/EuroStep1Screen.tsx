@@ -9,6 +9,7 @@ import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { Tag } from '../../../components/ui/Tag';
 import { WizardFrame } from '../../../components/ui/WizardFrame';
 import { tokens } from '../../../theme/colors';
+import { FieldInput, SectionLabel, YesNoToggle } from '../components/EuroFields';
 import { useEuroStore } from '../store';
 import type { EuroStackParamList } from '../../../navigation/types';
 
@@ -23,7 +24,8 @@ function formatDate(iso: string): string {
 // (read-only, антифрод), место — определяется по GPS по кнопке.
 export function EuroStep1Screen() {
   const nav = useNavigation<Nav>();
-  const { date, time, place, vehicleCount, setLocation } = useEuroStore();
+  const { date, time, place, vehicleCount, setLocation, medCheck, witnesses, officialRegistered, patch } =
+    useEuroStore();
   const [geoLoading, setGeoLoading] = useState(false);
 
   const detectLocation = async () => {
@@ -155,6 +157,28 @@ export function EuroStep1Screen() {
             {geoLoading ? 'Определяем…' : place ? 'Определить заново' : 'Определить местоположение'}
           </Text>
         </Pressable>
+      </View>
+
+      {/* Дополнительно (пп. 4–6 бланка) */}
+      <View style={{ gap: 12, marginTop: 4 }}>
+        <SectionLabel>Дополнительно</SectionLabel>
+        <YesNoToggle
+          label="Медосвидетельствование пройдено (в течение 4 часов)"
+          value={medCheck}
+          onChange={(v) => patch({ medCheck: v })}
+        />
+        <FieldInput
+          label="Свидетели (ФИО, телефон) — если есть"
+          value={witnesses}
+          onChangeText={(v) => patch({ witnesses: v })}
+          placeholder="Олимов Ж., +998 90 111 22 33"
+          multiline
+        />
+        <YesNoToggle
+          label="Оформлено сотрудником ГАИ?"
+          value={officialRegistered}
+          onChange={(v) => patch({ officialRegistered: v })}
+        />
       </View>
     </WizardFrame>
   );

@@ -25,7 +25,39 @@ function nowHHMM(): string {
 // M9.3 шаг 4 — направляемая фотофиксация. Только камера (антифрод), без галереи.
 export function EuroStep4Screen() {
   const nav = useNavigation<Nav>();
-  const { photos, setPhoto } = useEuroStore();
+  const { photos, setPhoto, videos, addVideo, removeVideo } = useEuroStore();
+
+  const captureVideo = async (fromLibrary: boolean) => {
+    try {
+      const ImagePicker = await import('expo-image-picker');
+      if (fromLibrary) {
+        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert('Галерея', 'Разрешите доступ к медиатеке.');
+          return;
+        }
+        const res = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+          quality: 0.7,
+        });
+        if (!res.canceled && res.assets[0]) addVideo({ uri: res.assets[0].uri, at: nowHHMM() });
+      } else {
+        const perm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert('Камера', 'Разрешите доступ к камере.');
+          return;
+        }
+        const res = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+          videoMaxDuration: 60,
+          quality: 0.7,
+        });
+        if (!res.canceled && res.assets[0]) addVideo({ uri: res.assets[0].uri, at: nowHHMM() });
+      }
+    } catch (e) {
+      Alert.alert('Видео', (e as Error).message || 'Запись недоступна.');
+    }
+  };
 
   const capture = async (key: PhotoKey) => {
     try {
@@ -107,7 +139,64 @@ export function EuroStep4Screen() {
           />
         ))}
       </View>
+
+      {/* Видео (опционально) */}
+      <View style={{ gap: 10, marginTop: 4 }}>
+        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.07 }}>
+          Видео (опционально)
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <VideoButton label="Снять видео" onPress={() => captureVideo(false)} />
+          <VideoButton label="Из галереи" onPress={() => captureVideo(true)} />
+        </View>
+        {videos.map((v, i) => (
+          <View
+            key={i}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10,
+              padding: 12,
+              borderRadius: 14,
+              backgroundColor: 'rgba(255,255,255,0.6)',
+              borderWidth: 1,
+              borderColor: tokens.hairline,
+            }}
+          >
+            <View style={{ width: 30, height: 30, borderRadius: 8, backgroundColor: 'rgba(230,20,40,0.1)', alignItems: 'center', justifyContent: 'center' }}>
+              <Svg width={14} height={14} viewBox="0 0 24 24" fill={tokens.red}><Path d="M8 5v14l11-7z" /></Svg>
+            </View>
+            <Text style={{ flex: 1, fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkDark }}>
+              Видео {i + 1} · {v.at}
+            </Text>
+            <Pressable onPress={() => removeVideo(i)} hitSlop={8}>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red }}>Удалить</Text>
+            </Pressable>
+          </View>
+        ))}
+      </View>
     </WizardFrame>
+  );
+}
+
+function VideoButton({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
+        flex: 1,
+        height: 48,
+        borderRadius: 14,
+        borderWidth: 1.5,
+        borderColor: 'rgba(230,20,40,0.4)',
+        borderStyle: 'dashed',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red }}>{label}</Text>
+    </Pressable>
   );
 }
 

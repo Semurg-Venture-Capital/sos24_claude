@@ -6,6 +6,8 @@ import { Glass } from '../../../components/ui/Glass';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { WizardFrame } from '../../../components/ui/WizardFrame';
 import { tokens } from '../../../theme/colors';
+import { EURO_CIRCUMSTANCES } from '../circumstances';
+import { FieldInput, SectionLabel, Segmented, YesNoToggle } from '../components/EuroFields';
 import { useEuroStore, type SchemeType } from '../store';
 import type { EuroStackParamList } from '../../../navigation/types';
 
@@ -20,7 +22,8 @@ const SCHEMES: { key: SchemeType; label: string; Illu: () => React.ReactElement 
 // M9.3 шаг 3 — схема столкновения (шаблон) + описание обстоятельств своими словами.
 export function EuroStep3Screen() {
   const nav = useNavigation<Nav>();
-  const { schemeType, description, setScheme, setDescription } = useEuroStore();
+  const s = useEuroStore();
+  const { schemeType, description, setScheme, setDescription, patch, toggleCircumstance } = s;
 
   return (
     <WizardFrame
@@ -77,7 +80,116 @@ export function EuroStep3Screen() {
           Текст войдёт в извещение о ДТП. Чем точнее — тем быстрее рассмотрят выплату.
         </Text>
       </View>
+
+      {/* Обстоятельства ДТП (22 пункта) — отметьте для А (вы) и В (второй) */}
+      <View style={{ gap: 8, marginTop: 4 }}>
+        <SectionLabel>Обстоятельства ДТП</SectionLabel>
+        <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 16, paddingLeft: 2 }}>
+          Отметьте подходящие пункты для «А» (вы) и «В» (второй участник).
+        </Text>
+        <View style={{ borderRadius: 16, borderWidth: 1, borderColor: tokens.hairline, overflow: 'hidden' }}>
+          {EURO_CIRCUMSTANCES.map((text, i) => (
+            <CircumstanceRow
+              key={i}
+              index={i}
+              text={text}
+              a={!!s.circumstancesA[i]}
+              b={!!s.circumstancesB[i]}
+              onToggleA={() => toggleCircumstance('a', i)}
+              onToggleB={() => toggleCircumstance('b', i)}
+              last={i === EURO_CIRCUMSTANCES.length - 1}
+            />
+          ))}
+        </View>
+      </View>
+
+      {/* Повреждения и возражения */}
+      <View style={{ gap: 12, marginTop: 4 }}>
+        <SectionLabel>Повреждения и возражения</SectionLabel>
+        <FieldInput label="Повреждения вашего авто (А)" value={s.damageDescA} onChangeText={(v) => patch({ damageDescA: v })} placeholder="Олд бампер, ўнг фара…" multiline />
+        <FieldInput label="Повреждения авто «В»" value={s.damageDescB} onChangeText={(v) => patch({ damageDescB: v })} placeholder="Орқа бампер…" multiline />
+        <FieldInput label="Возражения (А) — если есть" value={s.objectionsA} onChangeText={(v) => patch({ objectionsA: v })} placeholder="Эътирозлар…" />
+        <FieldInput label="Возражения (В) — если есть" value={s.objectionsB} onChangeText={(v) => patch({ objectionsB: v })} placeholder="Эътирозлар…" />
+      </View>
+
+      {/* Оборот бланка */}
+      <View style={{ gap: 12, marginTop: 4 }}>
+        <SectionLabel>Дополнительно (оборотная сторона)</SectionLabel>
+        <Segmented
+          label="Кто управлял вашим ТС?"
+          value={s.driverRole}
+          options={[
+            { key: 'owner', label: 'Я — владелец' },
+            { key: 'other', label: 'По доверенности' },
+          ]}
+          onChange={(v) => patch({ driverRole: v })}
+        />
+        <YesNoToggle label="ТС может двигаться самостоятельно?" value={s.canMove} onChange={(v) => patch({ canMove: v })} />
+        {s.canMove === false ? (
+          <FieldInput label="Где сейчас находится ТС" value={s.cannotMovePlace} onChangeText={(v) => patch({ cannotMovePlace: v })} placeholder="Адрес стоянки / эвакуатора" />
+        ) : null}
+        <FieldInput label="Замечания (Изоҳ)" value={s.remarks} onChangeText={(v) => patch({ remarks: v })} placeholder="Доп. замечания…" multiline />
+      </View>
     </WizardFrame>
+  );
+}
+
+// Строка обстоятельства: текст + переключатели «А» и «В».
+function CircumstanceRow({
+  index,
+  text,
+  a,
+  b,
+  onToggleA,
+  onToggleB,
+  last,
+}: {
+  index: number;
+  text: string;
+  a: boolean;
+  b: boolean;
+  onToggleA: () => void;
+  onToggleB: () => void;
+  last: boolean;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        borderBottomWidth: last ? 0 : 1,
+        borderBottomColor: tokens.hairline,
+        backgroundColor: 'rgba(255,255,255,0.4)',
+      }}
+    >
+      <Text style={{ width: 18, fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: tokens.inkSubtle }}>{index + 1}</Text>
+      <Text style={{ flex: 1, fontFamily: 'Manrope_500Medium', fontSize: 11.5, lineHeight: 15, color: tokens.inkDark }}>{text}</Text>
+      <SideBox label="А" active={a} onPress={onToggleA} />
+      <SideBox label="В" active={b} onPress={onToggleB} />
+    </View>
+  );
+}
+
+function SideBox({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        width: 30,
+        height: 30,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: active ? tokens.red : 'rgba(20,20,20,0.05)',
+        borderWidth: 1,
+        borderColor: active ? tokens.red : tokens.hairline,
+      }}
+    >
+      <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 12, color: active ? '#fff' : tokens.inkMuted }}>{label}</Text>
+    </Pressable>
   );
 }
 
