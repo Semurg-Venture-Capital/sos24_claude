@@ -24,6 +24,18 @@ export class EuroprotocolService {
   // ── Отправка европротокола (сбор данных визарда) ──
   async submit(userId: string, dto: SubmitEuroDto): Promise<{ id: string; number: string }> {
     const number = `EP-26-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`;
+
+    // Участник стороны B — только если реально существует в БД (иначе FK упадёт;
+    // например dev-mock из симулятора MyID). Данные авто/полиса всё равно сохранятся.
+    let participantId = dto.participantId ?? null;
+    if (participantId) {
+      const exists = await this.prisma.euroParticipant.findUnique({
+        where: { id: participantId },
+        select: { id: true },
+      });
+      if (!exists) participantId = null;
+    }
+
     const created = await this.prisma.euroProtocol.create({
       data: {
         number,
@@ -35,7 +47,7 @@ export class EuroprotocolService {
         place: dto.place,
         lat: dto.lat ?? null,
         lng: dto.lng ?? null,
-        participantId: dto.participantId ?? null,
+        participantId,
         otherGov: dto.otherGov ?? null,
         otherPhone: dto.otherPhone ?? null,
         otherVehicleRaw: (dto.otherVehicleRaw ?? Prisma.JsonNull) as Prisma.InputJsonValue,
@@ -68,10 +80,10 @@ export class EuroprotocolService {
         otherDlSeria: dto.otherDlSeria ?? null,
         otherDlNumber: dto.otherDlNumber ?? null,
         otherDlCategories: dto.otherDlCategories ?? null,
-        otherDlIssue: dto.otherDlIssue ? new Date(dto.otherDlIssue) : null,
+        otherDlIssue: toDate(dto.otherDlIssue),
         otherOwnershipDoc: dto.otherOwnershipDoc ?? null,
         otherInsurer: dto.otherInsurer ?? null,
-        otherPolicyValidUntil: dto.otherPolicyValidUntil ? new Date(dto.otherPolicyValidUntil) : null,
+        otherPolicyValidUntil: toDate(dto.otherPolicyValidUntil),
         damageDescB: dto.damageDescB ?? null,
         objectionsB: dto.objectionsB ?? null,
         impactZoneB: dto.impactZoneB ?? null,
@@ -230,6 +242,13 @@ export class EuroprotocolService {
       result: env.result ?? null,
     };
   }
+}
+
+// Безопасный парсинг даты из строки: невалидное/пустое → null (не валим create).
+function toDate(s?: string | null): Date | null {
+  if (!s) return null;
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 // "AA4587213" → seria "AA" + number "4587213"
