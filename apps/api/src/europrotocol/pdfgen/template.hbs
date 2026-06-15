@@ -96,7 +96,7 @@
   /* ── Страница 2 (оборот) ── */
   .p2 { font-size: 9pt; }
   .p2 .qnum { font-weight: 700; }
-  .p2 .blk { margin-top: 4mm; }
+  .p2 .blk { margin-top: 2.5mm; }
   /* разлинованная зона свободного текста */
   .lined {
     line-height: 6.4mm;
@@ -106,21 +106,21 @@
   .p2 .ck2 { display: flex; align-items: center; gap: 2mm; margin-top: 1.5mm; }
   .p2 .ck2 .ckbox { width: 3.6mm; height: 3.6mm; }
   .p2 .yn { display: inline-flex; align-items: center; gap: 1.5mm; margin-right: 8mm; }
-  .photo-note { font-weight: 700; margin-top: 5mm; }
+  .photo-note { font-weight: 700; margin-top: 3mm; }
   /* строки подписей: дата | имзо | ФИО */
-  .sig2 { display: flex; justify-content: space-between; margin-top: 7mm; }
+  .sig2 { display: flex; justify-content: space-between; margin-top: 4mm; }
   .sig2 .cellg { text-align: center; }
   .sig2 .ln { display: inline-block; border-bottom: 0.5pt solid #000; height: 1em; }
   .sig2 .cap { font-size: 6.6pt; font-style: italic; margin-top: 0.5mm; }
   /* блок инструкции */
-  .instr { margin-top: 7mm; font-size: 8pt; line-height: 1.3; text-align: justify; }
-  .instr h4 { font-size: 8.5pt; font-weight: 700; margin: 3mm 0 1mm; }
+  .instr { margin-top: 4mm; font-size: 7.8pt; line-height: 1.22; text-align: justify; }
+  .instr h4 { font-size: 8.2pt; font-weight: 700; margin: 2mm 0 0.8mm; }
   .instr ol { margin: 0; padding-left: 5mm; }
   .instr ul { margin: 0; padding-left: 5mm; list-style: none; }
   .instr ul li { text-indent: -3mm; padding-left: 3mm; }
   .instr ul li::before { content: "– "; }
-  .instr li { margin-bottom: 0.8mm; }
-  .p2foot { margin-top: 5mm; font-size: 8pt; font-style: italic; }
+  .instr li { margin-bottom: 0.4mm; }
+  .p2foot { margin-top: 3.5mm; font-size: 8pt; font-style: italic; }
   .p2foot .h { font-weight: 700; font-style: normal; }
 </style>
 </head>
@@ -249,7 +249,7 @@
     <span class="qnum nowrap">1. ЙТҲ ҳолати</span>
     <span class="fill-line">&nbsp;</span>
   </div>
-  <div class="lined" style="height:84mm">{{back.circumstancesText}}</div>
+  <div class="lined" style="height:62mm">{{back.circumstancesText}}</div>
 
   <!-- 2. Кимнинг бошқаруви остида -->
   <div class="blk row" style="align-items:flex-start">
@@ -275,7 +275,7 @@
 
   <!-- 4. Изоҳ -->
   <div class="blk"><span class="qnum">4. Изоҳ:</span></div>
-  <div class="lined" style="height:20mm">{{back.remarks}}</div>
+  <div class="lined" style="height:15mm">{{back.remarks}}</div>
 
   <!-- Фото -->
   <div class="photo-note">Фотосурат ва видеоёзувлар илова қилинади</div>
