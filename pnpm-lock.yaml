@@ -393,6 +393,9 @@ importers:
       '@types/react':
         specifier: ~19.2.14
         version: 19.2.14
+      babel-preset-expo:
+        specifier: 55.0.22
+        version: 55.0.22(@babel/core@7.29.0)(@babel/runtime@7.29.2)(expo@55.0.25)(react-refresh@0.14.2)
       tailwindcss:
         specifier: ^3.4.19
         version: 3.4.19(yaml@2.9.0)
