@@ -175,6 +175,14 @@ export function EuroStep4Screen() {
           </View>
         ))}
       </View>
+
+      {__DEV__ ? (
+        <Pressable onPress={() => nav.navigate('EuroStep5')} style={{ alignSelf: 'center', paddingVertical: 8, marginTop: 2 }}>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkSubtle }}>
+            Пропустить фото (DEV)
+          </Text>
+        </Pressable>
+      ) : null}
     </WizardFrame>
   );
 }
