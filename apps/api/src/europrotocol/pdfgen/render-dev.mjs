@@ -80,12 +80,25 @@ const sampleParty = (side) => ({
   objections: '',
 });
 
+const backBlank = {
+  circumstancesText: '',
+  driverRole: '',
+  canMove: '',
+  cannotMovePlace: '',
+  remarks: '',
+  signRows: [
+    { day: '', month: '', year: '', signature: '', fio: '' },
+    { day: '', month: '', year: '', signature: '', fio: '' },
+  ],
+};
+
 const data = blank
   ? {
       common: {},
       parties: { a: { side: 'А' }, b: { side: 'В' } },
       circumstances: CIRC.map((text) => ({ text, a: false, b: false })),
       counts: { a: '', b: '' },
+      back: backBlank,
     }
   : {
       common: {
@@ -101,6 +114,18 @@ const data = blank
       parties: { a: sampleParty('А'), b: sampleParty('В') },
       circumstances: CIRC.map((text, i) => ({ text, a: i === 6, b: i === 9 })),
       counts: { a: '1', b: '1' },
+      back: {
+        circumstancesText:
+          'Мен Амир Темур кўчаси бўйлаб тўғрига ҳаракатланиб кетаётган эдим. Чорраҳада «В» т/в ўнг қаторга ўтаётганда менинг т/в нинг олд қисмига урилди.',
+        driverRole: 'owner',
+        canMove: 'yes',
+        cannotMovePlace: '',
+        remarks: 'Эътирозим йўқ.',
+        signRows: [
+          { day: '15', month: '06', year: '26', signature: '', fio: 'Каримов А. Б.' },
+          { day: '15', month: '06', year: '26', signature: '', fio: 'Юсупов Ш. А.' },
+        ],
+      },
     };
 
 const html = template(data);

@@ -20,7 +20,7 @@
     position: relative;
     width: 210mm;
     height: 297mm;
-    padding: 6mm 6mm 5mm 6mm;
+    padding: 4mm 6mm 3mm 6mm;
     overflow: hidden;
     page-break-after: always;
   }
@@ -30,68 +30,98 @@
   .row { display: flex; align-items: flex-end; }
   .nowrap { white-space: nowrap; }
   .fill-line { flex: 1; border-bottom: 0.5pt solid #000; min-height: 1em; padding: 0 2px; }
-  .hint { font-size: 6.4pt; font-style: italic; text-align: center; color: #000; }
+  .hint { font-size: 6.2pt; font-style: italic; text-align: center; color: #000; }
   .center { text-align: center; }
   .b { font-weight: 700; }
 
   /* comb — посимвольные клетки */
   .comb { display: inline-flex; vertical-align: bottom; }
   .comb .cell {
-    width: 2.65mm; height: 4.6mm;
+    width: 2.5mm; height: 3.9mm;
     border: 0.4pt solid #000; border-right: none;
     display: flex; align-items: center; justify-content: center;
-    font-size: 8pt;
+    font-size: 7.5pt;
   }
   .comb .cell:last-child { border-right: 0.4pt solid #000; }
 
   /* чекбокс-квадрат */
-  .ckbox { display: inline-block; width: 3.4mm; height: 3.4mm; border: 0.6pt solid #000; position: relative; vertical-align: middle; }
-  .ckbox.on::after { content: "✕"; position: absolute; inset: -1.2mm 0 0 0; text-align: center; font-size: 9pt; font-weight: 700; }
+  .ckbox { display: inline-block; width: 3mm; height: 3mm; border: 0.6pt solid #000; position: relative; vertical-align: middle; }
+  .ckbox.on::after { content: "✕"; position: absolute; inset: -1.4mm 0 0 0; text-align: center; font-size: 8pt; font-weight: 700; }
 
   /* ── Заголовок ── */
-  .topref { position: absolute; top: 6mm; right: 6mm; width: 70mm; text-align: right; font-style: italic; font-size: 8pt; line-height: 1.25; }
-  .topref .ilova { text-align: center; margin-top: 1mm; }
-  .title { text-align: center; font-weight: 700; font-size: 15pt; margin: 16mm 0 3mm; }
+  .topref { position: absolute; top: 4mm; right: 6mm; width: 66mm; text-align: right; font-style: italic; font-size: 7.6pt; line-height: 1.2; }
+  .topref .ilova { text-align: center; margin-top: 0.8mm; }
+  .title { text-align: center; font-weight: 700; font-size: 13.5pt; margin: 9mm 0 2mm; }
 
   /* ── Общая часть (пп.1–6) ── */
-  .common .line { display: flex; align-items: flex-end; margin-top: 2.4mm; }
+  .common .line { display: flex; align-items: flex-end; margin-top: 1.5mm; }
   .common .lab { white-space: nowrap; padding-right: 3px; }
-  .common .sub { font-size: 6.4pt; font-style: italic; text-align: center; margin-top: 0.5mm; }
-  .ckopt { display: inline-flex; align-items: center; gap: 1.5mm; margin-left: 4mm; }
+  .common .sub { font-size: 6.2pt; font-style: italic; text-align: center; margin-top: 0.3mm; }
+  .ckopt { display: inline-flex; align-items: center; gap: 1.2mm; margin-left: 3.5mm; }
 
   /* ── Колонки А / В / центр ── */
-  .cols { display: flex; gap: 1.5mm; margin-top: 2mm; }
-  .col-a, .col-b { flex: 0 0 78mm; }
+  .cols { display: flex; gap: 1.2mm; margin-top: 1.5mm; align-items: flex-start; }
+  .col-a, .col-b { flex: 0 0 77mm; }
   .col-c { flex: 1; }
 
-  .ghead { background: #1f9d4d; color: #fff; font-weight: 700; text-align: center; font-size: 9pt; padding: 1.2mm 0; border-radius: 3mm 3mm 0 0; }
+  .ghead { background: #1f9d4d; color: #fff; font-weight: 700; text-align: center; font-size: 8.5pt; padding: 0.8mm 0; border-radius: 2.5mm 2.5mm 0 0; }
   .ghead small { font-weight: 700; font-size: 7pt; }
-  .pbody { border: 0.5pt solid #1f9d4d; border-top: none; padding: 1.5mm 1.8mm; }
+  .pbody { border: 0.5pt solid #1f9d4d; border-top: none; padding: 1mm 1.4mm; }
 
   /* строка поля внутри колонки */
-  .f { margin-top: 1.6mm; }
-  .f .lab { display: block; font-size: 7.6pt; }
-  .f .sub { font-size: 6.2pt; font-style: italic; text-align: center; }
+  .f { margin-top: 0.9mm; }
+  .f .lab { display: block; font-size: 7.4pt; }
+  .f .sub { font-size: 6pt; font-style: italic; text-align: center; }
   .inl { display: flex; align-items: flex-end; gap: 2px; }
 
   /* центр: обстоятельства */
-  .cc-head { background: #1f9d4d; color: #fff; font-weight: 700; text-align: center; font-size: 8pt; padding: 1.2mm 1mm; border-radius: 3mm 3mm 0 0; }
-  .cc-ab { display: flex; justify-content: space-between; font-weight: 700; padding: 0.6mm 2mm; border-left: 0.5pt solid #1f9d4d; border-right: 0.5pt solid #1f9d4d; }
+  .cc-head { background: #1f9d4d; color: #fff; font-weight: 700; text-align: center; font-size: 8pt; padding: 0.8mm 1mm; border-radius: 2.5mm 2.5mm 0 0; }
+  .cc-ab { display: flex; justify-content: space-between; font-weight: 700; padding: 0.4mm 2mm; border-left: 0.5pt solid #1f9d4d; border-right: 0.5pt solid #1f9d4d; }
   .crow { display: flex; align-items: stretch; border-left: 0.5pt solid #1f9d4d; border-right: 0.5pt solid #1f9d4d; border-top: 0.3pt solid #cfe8d8; }
-  .crow .ck { flex: 0 0 6mm; display: flex; align-items: center; justify-content: center; }
-  .crow .num { flex: 0 0 4mm; text-align: center; align-self: center; font-size: 7pt; }
-  .crow .txt { flex: 1; text-align: center; font-size: 6.6pt; line-height: 1.08; padding: 0.6mm 0.5mm; align-self: center; }
-  .cc-count { border: 0.5pt solid #1f9d4d; border-top: none; text-align: center; font-size: 6.6pt; padding: 1mm; }
+  .crow .ck { flex: 0 0 5.5mm; display: flex; align-items: center; justify-content: center; }
+  .crow .num { flex: 0 0 3.5mm; text-align: center; align-self: center; font-size: 6.6pt; }
+  .crow .txt { flex: 1; text-align: center; font-size: 6.2pt; line-height: 1.04; padding: 0.3mm 0.4mm; align-self: center; }
+  .cc-count { border: 0.5pt solid #1f9d4d; border-top: none; text-align: center; font-size: 6.4pt; padding: 0.7mm; }
 
   /* схема ДТП */
-  .scheme-head { text-align: center; font-weight: 700; margin-top: 1.5mm; }
-  .scheme-box { border: 0.5pt solid #000; height: 38mm; margin-top: 1mm; }
-  .scheme-legend { font-size: 5.8pt; line-height: 1.25; margin-top: 1mm; }
+  .scheme-head { text-align: center; font-weight: 700; margin-top: 1mm; font-size: 7.6pt; }
+  .scheme-box { border: 0.5pt solid #000; height: 24mm; margin-top: 0.8mm; }
+  .scheme-legend { font-size: 5.6pt; line-height: 1.2; margin-top: 0.8mm; }
 
   /* блоки 11/12/13 в колонке */
-  .impact-box { border: 0.5pt solid #000; height: 22mm; margin-top: 1mm; display: flex; align-items: center; justify-content: center; }
-  .text-area { border: 0.5pt solid #000; margin-top: 1mm; padding: 1mm; min-height: 14mm; font-size: 7pt; }
-  .sign-line { display: flex; align-items: flex-end; margin-top: 2mm; }
+  .impact-box { border: 0.5pt solid #000; height: 14mm; margin-top: 0.8mm; display: flex; align-items: center; justify-content: center; }
+  .text-area { border: 0.5pt solid #000; margin-top: 0.8mm; padding: 0.8mm; min-height: 8mm; font-size: 7pt; }
+  .sign-line { display: flex; align-items: flex-end; margin-top: 1.5mm; }
+
+  /* ── Страница 2 (оборот) ── */
+  .p2 { font-size: 9pt; }
+  .p2 .qnum { font-weight: 700; }
+  .p2 .blk { margin-top: 4mm; }
+  /* разлинованная зона свободного текста */
+  .lined {
+    line-height: 6.4mm;
+    background-image: repeating-linear-gradient(to bottom, #000 0 0.35pt, transparent 0.35pt 6.4mm);
+    padding-top: 6.4mm;
+  }
+  .p2 .ck2 { display: flex; align-items: center; gap: 2mm; margin-top: 1.5mm; }
+  .p2 .ck2 .ckbox { width: 3.6mm; height: 3.6mm; }
+  .p2 .yn { display: inline-flex; align-items: center; gap: 1.5mm; margin-right: 8mm; }
+  .photo-note { font-weight: 700; margin-top: 5mm; }
+  /* строки подписей: дата | имзо | ФИО */
+  .sig2 { display: flex; justify-content: space-between; margin-top: 7mm; }
+  .sig2 .cellg { text-align: center; }
+  .sig2 .ln { display: inline-block; border-bottom: 0.5pt solid #000; height: 1em; }
+  .sig2 .cap { font-size: 6.6pt; font-style: italic; margin-top: 0.5mm; }
+  /* блок инструкции */
+  .instr { margin-top: 7mm; font-size: 8pt; line-height: 1.3; text-align: justify; }
+  .instr h4 { font-size: 8.5pt; font-weight: 700; margin: 3mm 0 1mm; }
+  .instr ol { margin: 0; padding-left: 5mm; }
+  .instr ul { margin: 0; padding-left: 5mm; list-style: none; }
+  .instr ul li { text-indent: -3mm; padding-left: 3mm; }
+  .instr ul li::before { content: "– "; }
+  .instr li { margin-bottom: 0.8mm; }
+  .p2foot { margin-top: 5mm; font-size: 8pt; font-style: italic; }
+  .p2foot .h { font-weight: 700; font-style: normal; }
 </style>
 </head>
 <body>
@@ -209,6 +239,94 @@
       <div class="ghead">«В» транспорт воситаси<small>*</small></div>
       <div class="pbody">{{> partyBlock party=parties.b}}</div>
     </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ СТРАНИЦА 2 (оборот) ═══════════════════ -->
+<section class="page p2">
+  <!-- 1. ЙТҲ ҳолати -->
+  <div class="row" style="align-items:flex-end">
+    <span class="qnum nowrap">1. ЙТҲ ҳолати</span>
+    <span class="fill-line">&nbsp;</span>
+  </div>
+  <div class="lined" style="height:84mm">{{back.circumstancesText}}</div>
+
+  <!-- 2. Кимнинг бошқаруви остида -->
+  <div class="blk row" style="align-items:flex-start">
+    <span class="qnum" style="flex:0 0 88mm">2. Т/в кимнинг бошқарув остида бўлган</span>
+    <span>
+      <span class="ck2"><span class="ckbox {{on back.driverRole 'owner'}}"></span> <b>Т/в эгаси</b></span>
+      <span class="ck2"><span class="ckbox {{on back.driverRole 'other'}}"></span> <b>Т/в ни бошқариш ҳуқуқига эга бўлган бошқа шахс</b></span>
+    </span>
+  </div>
+
+  <!-- 3. Яроқлими -->
+  <div class="blk row" style="align-items:flex-start">
+    <span class="qnum" style="flex:0 0 88mm">
+      3. Т/в бошқаришга яроқлими (ҳаракатлана оладими)?<br />
+      <span style="font-weight:400">Агар яроқсиз бўлса, т/в нинг турган жойи</span>
+    </span>
+    <span style="padding-top:0.5mm">
+      <span class="yn"><span class="ckbox {{on back.canMove 'yes'}}"></span> ҳа</span>
+      <span class="yn"><span class="ckbox {{on back.canMove 'no'}}"></span> йўқ</span>
+    </span>
+  </div>
+  <div class="lined" style="height:13mm">{{back.cannotMovePlace}}</div>
+
+  <!-- 4. Изоҳ -->
+  <div class="blk"><span class="qnum">4. Изоҳ:</span></div>
+  <div class="lined" style="height:20mm">{{back.remarks}}</div>
+
+  <!-- Фото -->
+  <div class="photo-note">Фотосурат ва видеоёзувлар илова қилинади</div>
+
+  <!-- Подписи (2 строки) -->
+  {{#each back.signRows}}
+  <div class="sig2">
+    <div class="cellg" style="flex:0 0 56mm">
+      <span class="ln" style="width:14mm">{{this.day}}</span>
+      <span class="ln" style="width:18mm">{{this.month}}</span>
+      20<span class="ln" style="width:8mm">{{this.year}}</span> й.
+      <div class="cap">(тўлдирилган сана)</div>
+    </div>
+    <div class="cellg" style="flex:0 0 44mm">
+      <span class="ln" style="width:40mm">{{this.signature}}</span>
+      <div class="cap">(имзо)</div>
+    </div>
+    <div class="cellg" style="flex:0 0 70mm">
+      (<span class="ln" style="width:60mm">{{this.fio}}</span>)
+      <div class="cap">(фамилияси, исми отасининг исми)</div>
+    </div>
+  </div>
+  {{/each}}
+
+  <!-- Инструкция -->
+  <div class="instr">
+    <h4>Йўл-транспорт ходисаси тўғрисидаги хабарномани тўлдириш тартиби:</h4>
+    <ol>
+      <li>Йўл-транспорт ходисаси тўғрисидаги хабарнома маълумотлар кўк сиёҳдаги ручка билан тўлдирилади.</li>
+      <li>Йўл-транспорт ходисаси тўғрисидаги хабарнома икки нусхада тўлдирилади.</li>
+      <li>Йўл-транспорт ходисаси содир бўлган жой ва транспорт воситасининг шикастланиши (ҳаракатсиз бўлган тўсиклар, йўл белгилари ва бошқалар) фотосурат ҳамда (ёки) видеоёзувлар тушурилади.</li>
+      <li>Йўл-транспорт ходисаси иштирокчилари ЙТХ содир этилган кундан бошлаб 3 иш куни ичида йўл-транспорт ходисаси тўғрисидаги хабарномани суғурта қилган суғурталовчига юбориши шарт.</li>
+    </ol>
+
+    <h4>Йўл-транспорт ходисаси тўғрисидаги хабарномани тузиш учун бир вақтнинг ўзида қуйидагилар асос бўлади:</h4>
+    <ul>
+      <li>йўл-транспорт ходисаси жабрланувчига енгил тан жароҳати етказилишига ёхуд йўл ҳаракатини тартибга солувчи воситалар ёки бошқа мол-мулк шикастланишига олиб келмаган бўлса;</li>
+      <li>йўл-транспорт ходисаси иккита транспорт воситаси (шу жумладан тиркамали транспорт воситалари) тўқнашуви натижасида рўй берган ҳамда фақат уларга шикаст етказилган бўлса;</li>
+      <li>йўл-транспорт ходисаси пиёда иштирокисиз содир этилган бўлса;</li>
+      <li>транспорт воситалари эгаларининг фуқаролик жавобгарлиги йўл-транспорт ходисалари содир этилгунига қадар суғурта қилинган бўлса;</li>
+      <li>йўл-транспорт ходисаси иштирок этган ҳайдовчиларда ҳайдовчилик гувоҳномаси, транспорт воситаси рўйхатдан ўтказилганлиги тўғрисидаги гувоҳнома, ишончнома (бундан ишончнома талаб этилмайдиган холлар бундан мустасно), йўл варакаси (қонунчиликда назарда тутилган холларда) мавжуд бўлиб, мазкур ҳужжатларнинг амал қилиш муддати ўтмаган бўлса;</li>
+      <li>йўл-транспорт ходисаси иштирокчилари бўлган ҳайдовчиларда мастлик ҳолати бўлмаса;</li>
+      <li>йўл-транспорт ходисаси натижасида транспорт воситаларининг шикастланиши ҳолатлари, шунингдек транспорт воситаларининг шикастланган қисмлари тавсифлари ва рўйхати йўл-транспорт ходисаси иштирокчилари ўртасида келишмовчиликларни (низоларни) келтириб чиқармаса.</li>
+    </ul>
+    <div style="margin-top:2mm">Юқорида кўрсатилган асослардан биттаси мавжуд бўлмаган тақдирда, тузилган йўл-транспорт ходисаси тўғрисидаги хабарнома хақиқий эмас деб ҳисобланади.</div>
+  </div>
+
+  <div class="p2foot">
+    <div class="h">Изоҳ.</div>
+    ЙТҲ – йўл-транспорт ходисаси<br />
+    Т/в – транспорт воситаси
   </div>
 </section>
 
