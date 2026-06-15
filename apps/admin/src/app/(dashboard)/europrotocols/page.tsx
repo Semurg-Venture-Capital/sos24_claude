@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
+import { api } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 import { useEuroProtocols, useEuroProtocol, useEuroStats, useUpdateEuroStatus } from '@/lib/admin-hooks';
 
@@ -153,6 +154,22 @@ function EuroDrawer({ id, onClose }: { id: string; onClose: () => void }) {
   const update = useUpdateEuroStatus();
   const [status, setStatusVal] = useState<EuroStatus | ''>('');
   const [note, setNote] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  // Скачивание PDF извещения (с Bearer-токеном → blob → новая вкладка).
+  const openPdf = async () => {
+    setPdfLoading(true);
+    try {
+      const res = await api.get(`/admin/europrotocols/${id}/pdf`, { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data as Blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      alert('Не удалось сформировать PDF. Попробуйте ещё раз.');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   const otherVehicle = (p?.otherVehicleRaw as { modelName?: string } | null) ?? null;
   const curStatus = (status || (p?.status as EuroStatus)) as EuroStatus;
@@ -177,9 +194,18 @@ function EuroDrawer({ id, onClose }: { id: string; onClose: () => void }) {
           <div className="p-10 text-center text-[#9a9a9a]">Загрузка…</div>
         ) : (
           <div className="p-5 space-y-4">
-            <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLE[p.status as EuroStatus]}`}>
-              {STATUS_LABEL[p.status as EuroStatus]}
-            </span>
+            <div className="flex items-center justify-between gap-3">
+              <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLE[p.status as EuroStatus]}`}>
+                {STATUS_LABEL[p.status as EuroStatus]}
+              </span>
+              <button
+                onClick={openPdf}
+                disabled={pdfLoading}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-[#151515] hover:bg-black disabled:opacity-50 transition"
+              >
+                {pdfLoading ? 'Формируем…' : '↓ PDF извещения'}
+              </button>
+            </div>
 
             <Section title="Обстоятельства">
               <Row label="Дата · время" value={`${formatDate(p.incidentDate)} · ${p.incidentTime}`} />
