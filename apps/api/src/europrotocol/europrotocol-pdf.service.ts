@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { MinioService } from '../files/minio.service';
 import { CIRCUMSTANCES, renderEuroPdf, type EuroPartyData, type EuroPdfData } from './pdfgen/render';
 
 // Название нашей СК-заказчика (одна компания на старте). TODO: вынести в конфиг/справочник.
@@ -7,7 +8,12 @@ const SELF_INSURER = 'SOS24 Sugʻurta';
 
 @Injectable()
 export class EuroprotocolPdfService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(EuroprotocolPdfService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly minio: MinioService,
+  ) {}
 
   /** Сгенерировать PDF бланка по id европротокола. */
   async generate(id: string): Promise<{ buffer: Buffer; filename: string }> {
@@ -18,7 +24,7 @@ export class EuroprotocolPdfService {
     return { buffer, filename: `europrotocol-${meta.number}.pdf` };
   }
 
-  /** Собрать данные шаблона из БД (что есть; недостающее — см. docs/europrotocol/FIELD_MAPPING.md). */
+  /** Собрать данные шаблона из БД. Недостающее без значения — пусто (см. FIELD_MAPPING.md). */
   async buildData(id: string): Promise<EuroPdfData> {
     const p = await this.prisma.euroProtocol.findUnique({
       where: { id },
@@ -68,14 +74,15 @@ export class EuroprotocolPdfService {
       dlSeria: dl?.series || '',
       dlNo: dl?.number || '',
       dlIssue: fmtDate(dl?.issuedAt),
-      ownershipDoc: '',
+      ownershipDoc: p.ownershipDocA || '',
       insurer: osago ? SELF_INSURER : '',
       policySeria: osagoSeria,
       policyNo: osagoNumber,
       policyValid: fmtDate(osago?.endDate),
       kasko: kasko ? 'yes' : 'no',
-      damageDesc: '',
-      objections: '',
+      damageDesc: p.damageDescA || '',
+      objections: p.objectionsA || '',
+      signStamp: signStamp(p.signedAAt, 'MyID'),
     };
 
     // ── Сторона B (второй участник) ──
@@ -89,10 +96,6 @@ export class EuroprotocolPdfService {
       }
       return '';
     };
-    const { seria: bSeria, number: bNumber } = {
-      seria: p.otherPolicySeria || '',
-      number: p.otherPolicyNumber || '',
-    };
 
     const b: EuroPartyData = {
       side: 'В',
@@ -104,23 +107,34 @@ export class EuroprotocolPdfService {
       regCertSeria: str('techPassportSeria', 'techSeria'),
       regCertNo: str('techPassportNumber', 'techNumber'),
       ownerName: str('ownerName', 'owner'),
-      ownerAddr: '', // НАПП адрес владельца не отдаёт → ручной ввод (нет поля)
+      ownerAddr: p.otherOwnerAddr || '',
       driverName: part ? fio(part.surname, part.name, part.patronymic) : '',
       driverBirth: fmtDate(part?.birthDate),
       driverAddr: part?.address || '',
       phone: localPhone(p.otherPhone),
-      dlSeria: '', // у participant паспорт, не ВУ → ручной ввод (нет поля)
-      dlNo: '',
-      dlIssue: '',
-      ownershipDoc: '',
-      insurer: '', // название СК 2-го → ручной ввод (нет поля)
-      policySeria: bSeria,
-      policyNo: bNumber,
-      policyValid: '', // есть только otherPolicyValid (bool), даты нет
+      dlSeria: p.otherDlSeria || '',
+      dlNo: p.otherDlNumber || '',
+      dlIssue: fmtDate(p.otherDlIssue),
+      ownershipDoc: p.otherOwnershipDoc || '',
+      insurer: p.otherInsurer || '',
+      policySeria: p.otherPolicySeria || '',
+      policyNo: p.otherPolicyNumber || '',
+      policyValid: fmtDate(p.otherPolicyValidUntil),
       kasko: '',
-      damageDesc: '',
-      objections: '',
+      damageDesc: p.damageDescB || '',
+      objections: p.objectionsB || '',
+      signStamp: signStamp(p.signedBAt, 'OTP'),
     };
+
+    // ── Обстоятельства (22 boolean на сторону) ──
+    const circA = toBoolArray(p.circumstancesA);
+    const circB = toBoolArray(p.circumstancesB);
+    const circumstances = CIRCUMSTANCES.map((text, i) => ({ text, a: !!circA[i], b: !!circB[i] }));
+    const countA = circA.filter(Boolean).length;
+    const countB = circB.filter(Boolean).length;
+
+    // ── Схема ДТП: встраиваем картинку из MinIO как data-URI ──
+    const schemeImg = await this.embedImage(p.schemeImageKey);
 
     return {
       common: {
@@ -128,27 +142,42 @@ export class EuroprotocolPdfService {
         date: fmtDate(p.incidentDate),
         time: (p.incidentTime || '').replace(/\D/g, '').slice(0, 4),
         damagedCount: '2', // европротокол = 2 ТС
-        medCheck: '', // нет в модели
-        witnesses: '', // нет в модели
-        official: '', // нет в модели
-        serviceNo: '',
+        medCheck: ynOpt(p.medCheck),
+        witnesses: p.witnesses || '',
+        official: ynOpt(p.officialRegistered),
+        serviceNo: p.officerBadgeNo || '',
       },
       parties: { a, b },
-      // обстоятельства пока не собираются в визарде → все пустые
-      circumstances: CIRCUMSTANCES.map((text) => ({ text, a: false, b: false })),
-      counts: { a: '', b: '' },
+      circumstances,
+      counts: { a: countA ? String(countA) : '', b: countB ? String(countB) : '' },
+      schemeImg,
+      signA: signStamp(p.signedAAt, 'MyID'),
+      signB: signStamp(p.signedBAt, 'OTP'),
       back: {
         circumstancesText: p.description || '',
-        driverRole: '',
-        canMove: '',
-        cannotMovePlace: '',
-        remarks: '',
+        driverRole: (p.driverRole as 'owner' | 'other' | null) || '',
+        canMove: ynOpt(p.canMove),
+        cannotMovePlace: p.cannotMovePlace || '',
+        remarks: p.remarks || '',
         signRows: [
-          { day: '', month: '', year: '', signature: '', fio: userFio },
-          { day: '', month: '', year: '', signature: '', fio: b.driverName },
+          { ...dateParts(p.signedAAt), signature: signStamp(p.signedAAt, 'MyID'), fio: userFio },
+          { ...dateParts(p.signedBAt), signature: signStamp(p.signedBAt, 'OTP'), fio: b.driverName },
         ],
       },
     };
+  }
+
+  /** Скачать картинку из MinIO и вернуть data-URI (или undefined). */
+  private async embedImage(key?: string | null): Promise<string | undefined> {
+    if (!key) return undefined;
+    try {
+      const buf = await this.minio.get(key);
+      const mime = key.endsWith('.jpg') || key.endsWith('.jpeg') ? 'image/jpeg' : 'image/png';
+      return `data:${mime};base64,${buf.toString('base64')}`;
+    } catch (e) {
+      this.logger.warn(`Не удалось загрузить схему ${key}: ${(e as Error).message}`);
+      return undefined;
+    }
   }
 }
 
@@ -160,19 +189,41 @@ function splitPolicy(s?: string | null): { seria: string; number: string } {
   return { seria: m[1].toUpperCase(), number: m[2] };
 }
 
-// Date → "DDMMYYYY"
+// Date → "DDMMYYYY" (для comb-полей бланка)
 function fmtDate(d?: Date | null): string {
   if (!d) return '';
   const dt = new Date(d);
-  const dd = String(dt.getUTCDate()).padStart(2, '0');
-  const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
-  const yyyy = String(dt.getUTCFullYear());
-  return `${dd}${mm}${yyyy}`;
+  return `${pad(dt.getUTCDate())}${pad(dt.getUTCMonth() + 1)}${dt.getUTCFullYear()}`;
+}
+
+// Date → { day, month, year(2 цифры) } для строк подписей оборота
+function dateParts(d?: Date | null): { day: string; month: string; year: string } {
+  if (!d) return { day: '', month: '', year: '' };
+  const dt = new Date(d);
+  return { day: pad(dt.getUTCDate()), month: pad(dt.getUTCMonth() + 1), year: String(dt.getUTCFullYear()).slice(-2) };
+}
+
+// Штамп подписи: "Имзоланган (OTP) 15.06.2026"
+function signStamp(d?: Date | null, method = 'OTP'): string {
+  if (!d) return '';
+  const dt = new Date(d);
+  return `Имзоланган (${method}) ${pad(dt.getUTCDate())}.${pad(dt.getUTCMonth() + 1)}.${dt.getUTCFullYear()}`;
+}
+
+function ynOpt(b?: boolean | null): 'yes' | 'no' | '' {
+  return b === true ? 'yes' : b === false ? 'no' : '';
+}
+
+function toBoolArray(j: unknown): boolean[] {
+  return Array.isArray(j) ? j.map((x) => !!x) : [];
+}
+
+function pad(n: number): string {
+  return String(n).padStart(2, '0');
 }
 
 // "+998901234567" → "901234567" (последние 9 цифр для comb-клеток)
 function localPhone(phone?: string | null): string {
   if (!phone) return '';
-  const digits = phone.replace(/\D/g, '');
-  return digits.slice(-9);
+  return phone.replace(/\D/g, '').slice(-9);
 }

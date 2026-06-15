@@ -43,12 +43,67 @@ export class EuroprotocolService {
         otherPolicyNumber: dto.otherPolicyNumber ?? null,
         otherPolicyValid: dto.otherPolicyValid ?? null,
         schemeType: dto.schemeType ?? null,
+        schemeImageKey: dto.schemeImageKey ?? null,
         description: dto.description ?? null,
         photos: (dto.photos ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+
+        // Общая часть
+        medCheck: dto.medCheck ?? null,
+        witnesses: dto.witnesses ?? null,
+        officialRegistered: dto.officialRegistered ?? null,
+        officerBadgeNo: dto.officerBadgeNo ?? null,
+
+        // Обстоятельства
+        circumstancesA: (dto.circumstancesA ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        circumstancesB: (dto.circumstancesB ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+
+        // Сторона A — доп.
+        ownershipDocA: dto.ownershipDocA ?? null,
+        damageDescA: dto.damageDescA ?? null,
+        objectionsA: dto.objectionsA ?? null,
+        impactZoneA: dto.impactZoneA ?? null,
+
+        // Сторона B — ручной ввод
+        otherOwnerAddr: dto.otherOwnerAddr ?? null,
+        otherDlSeria: dto.otherDlSeria ?? null,
+        otherDlNumber: dto.otherDlNumber ?? null,
+        otherDlCategories: dto.otherDlCategories ?? null,
+        otherDlIssue: dto.otherDlIssue ? new Date(dto.otherDlIssue) : null,
+        otherOwnershipDoc: dto.otherOwnershipDoc ?? null,
+        otherInsurer: dto.otherInsurer ?? null,
+        otherPolicyValidUntil: dto.otherPolicyValidUntil ? new Date(dto.otherPolicyValidUntil) : null,
+        damageDescB: dto.damageDescB ?? null,
+        objectionsB: dto.objectionsB ?? null,
+        impactZoneB: dto.impactZoneB ?? null,
+
+        // Оборот
+        driverRole: dto.driverRole ?? null,
+        canMove: dto.canMove ?? null,
+        cannotMovePlace: dto.cannotMovePlace ?? null,
+        remarks: dto.remarks ?? null,
+
+        // Подпись A — инициатор подтверждён через MyID step-up при submit
+        signedAAt: dto.selfVerified ? new Date() : null,
       },
       select: { id: true, number: true },
     });
     return created;
+  }
+
+  /**
+   * Подпись стороны B по OTP (на otherPhone). SMS-OTP ещё не интегрирован —
+   * пока принимаем DEV-код (как и весь auth), фиксируем факт+время подписи.
+   * TODO: реальная отправка/проверка OTP на otherPhone (Playmobile).
+   */
+  async signOther(userId: string, id: string, _code: string): Promise<{ signedAt: Date }> {
+    const p = await this.prisma.euroProtocol.findFirst({ where: { id, userId }, select: { id: true } });
+    if (!p) throw new NotFoundException('Европротокол не найден');
+    const updated = await this.prisma.euroProtocol.update({
+      where: { id },
+      data: { signedBAt: new Date() },
+      select: { signedBAt: true },
+    });
+    return { signedAt: updated.signedBAt! };
   }
 
   // ── Список европротоколов пользователя ──

@@ -38,6 +38,12 @@ export class EuroprotocolController {
     return this.euro.validatePolicy(dto.seria, dto.number);
   }
 
+  @Post(':id/sign-other')
+  @ApiOperation({ summary: 'Подпись стороны «В» по OTP (на otherPhone). Фиксирует факт+время подписи.' })
+  signOther(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: VerifyCodeDto) {
+    return this.euro.signOther(user.sub, id, dto.code);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Отправить европротокол (сбор данных визарда).' })
   submit(@CurrentUser() user: JwtPayload, @Body() dto: SubmitEuroDto) {

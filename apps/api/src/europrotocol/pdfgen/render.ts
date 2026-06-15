@@ -60,13 +60,14 @@ export interface EuroPartyData {
   objections?: string;
   impactImg?: string;
   signImg?: string;
+  signStamp?: string; // текстовый штамп подписи (OTP/MyID), если нет картинки
 }
 
 export interface EuroSignRow {
   day?: string;
   month?: string;
   year?: string;
-  signature?: string;
+  signature?: string; // текст в графе «имзо» (штамп OTP/MyID)
   fio?: string;
 }
 

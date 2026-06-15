@@ -511,10 +511,50 @@ model EuroProtocol {
   otherPolicyNumber String?          @map("other_policy_number")
   otherPolicyValid  Boolean?         @map("other_policy_valid")
 
-  // Схема / описание / фото (метаданные, без бинарей пока)
-  schemeType  String? @map("scheme_type")
-  description String?
-  photos      Json?
+  // Схема / описание / фото
+  schemeType     String? @map("scheme_type")
+  schemeImageKey String? @map("scheme_image_key") // ключ нарисованной/загруженной схемы в MinIO
+  description    String? // = оборот «1. ЙТҲ ҳолати» (обстоятельства своими словами)
+  photos         Json?   // массив ключей MinIO + метаданные
+
+  // --- Общая часть бланка (пп. 4–6) ---
+  medCheck           Boolean? @map("med_check")            // 4. медосвидетельствование пройдено
+  witnesses          String?                               // 5. свидетели (ФИО, адрес)
+  officialRegistered Boolean? @map("official_registered")  // 6. оформлено сотрудником ИИО/ДЙҲХ
+  officerBadgeNo     String?  @map("officer_badge_no")      // 6. № нагрудного знака
+
+  // --- Обстоятельства ДТП: 22 чекбокса на каждую сторону (массив boolean[22]) ---
+  circumstancesA Json? @map("circumstances_a")
+  circumstancesB Json? @map("circumstances_b")
+
+  // --- Сторона A: доп. поля бланка ---
+  ownershipDocA String? @map("ownership_doc_a") // документ о праве владения (если водитель ≠ владелец)
+  damageDescA   String? @map("damage_desc_a")   // 12. описание повреждений
+  objectionsA   String? @map("objections_a")    // 13. возражения
+  impactZoneA   String? @map("impact_zone_a")    // 11. зона первого удара (код зоны)
+
+  // --- Сторона B: ручной ввод (НАПП/MyID не покрывают) ---
+  otherOwnerAddr        String?   @map("other_owner_addr")
+  otherDlSeria          String?   @map("other_dl_seria")
+  otherDlNumber         String?   @map("other_dl_number")
+  otherDlCategories     String?   @map("other_dl_categories")
+  otherDlIssue          DateTime? @map("other_dl_issue") @db.Date
+  otherOwnershipDoc     String?   @map("other_ownership_doc")
+  otherInsurer          String?   @map("other_insurer")
+  otherPolicyValidUntil DateTime? @map("other_policy_valid_until") @db.Date
+  damageDescB           String?   @map("damage_desc_b")
+  objectionsB           String?   @map("objections_b")
+  impactZoneB           String?   @map("impact_zone_b")
+
+  // --- Оборот (стр. 2) ---
+  driverRole      String?  @map("driver_role")       // 'owner' | 'other'
+  canMove         Boolean? @map("can_move")          // ТС может двигаться самостоятельно
+  cannotMovePlace String?  @map("cannot_move_place") // место стоянки, если не может
+  remarks         String?                            // 4. Изоҳ (доп. замечания)
+
+  // --- Подписи (OTP/MyID — храним факт + время, рендерим штамп) ---
+  signedAAt DateTime? @map("signed_a_at") // сторона A (инициатор, MyID step-up)
+  signedBAt DateTime? @map("signed_b_at") // сторона B (OTP по otherPhone)
 
   status    EuroStatus @default(SUBMITTED)
   adminNote String?    @map("admin_note")

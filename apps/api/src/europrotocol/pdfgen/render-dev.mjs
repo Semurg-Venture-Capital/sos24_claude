@@ -78,6 +78,7 @@ const sampleParty = (side) => ({
   kasko: side === 'А' ? 'no' : 'no',
   damageDesc: side === 'А' ? 'Олд бампер, ўнг фара, капот' : 'Орқа бампер, юк хонаси қопқоғи',
   objections: '',
+  signStamp: side === 'А' ? 'Имзоланган (MyID) 15.06.2026' : 'Имзоланган (OTP) 15.06.2026',
 });
 
 const backBlank = {
@@ -114,6 +115,8 @@ const data = blank
       parties: { a: sampleParty('А'), b: sampleParty('В') },
       circumstances: CIRC.map((text, i) => ({ text, a: i === 6, b: i === 9 })),
       counts: { a: '1', b: '1' },
+      signA: 'Имзоланган (MyID) 15.06.2026',
+      signB: 'Имзоланган (OTP) 15.06.2026',
       back: {
         circumstancesText:
           'Мен Амир Темур кўчаси бўйлаб тўғрига ҳаракатланиб кетаётган эдим. Чорраҳада «В» т/в ўнг қаторга ўтаётганда менинг т/в нинг олд қисмига урилди.',
@@ -122,8 +125,8 @@ const data = blank
         cannotMovePlace: '',
         remarks: 'Эътирозим йўқ.',
         signRows: [
-          { day: '15', month: '06', year: '26', signature: '', fio: 'Каримов А. Б.' },
-          { day: '15', month: '06', year: '26', signature: '', fio: 'Юсупов Ш. А.' },
+          { day: '15', month: '06', year: '26', signature: 'Имзоланган (MyID)', fio: 'Каримов А. Б.' },
+          { day: '15', month: '06', year: '26', signature: 'Имзоланган (OTP)', fio: 'Юсупов Ш. А.' },
         ],
       },
     };
