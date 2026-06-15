@@ -2,11 +2,51 @@
 
 > Журнал реальных работ Этапа 1. Что сделано, что отложено, где остановились, как продолжить.
 >
-> **Последнее обновление:** 2026-06-11 (прод-деплой)
+> **Последнее обновление:** 2026-06-15 (Европротокол: PDF + MinIO + полный визард; TestFlight; иконка/сплеш)
 
 ---
 
 ## Где остановились
+
+> **Статус 2026-06-15 — Европротокол доведён до «полного»: генерация PDF бланка, файловое хранилище MinIO, расширенный визард в мобайле.** Ветка `main`.
+>
+> **PDF бланка «Йўл-транспорт ҳодисаси тўғрисидаги хабарнома» (2 стр.).** Подход — воссоздан в HTML/CSS точь-в-точь
+> и печатается headless Chromium (Puppeteer), а не координатным впечатыванием в плоский PDF (старый путь буксовал,
+> см. `docs/europrotocol/PDF_FILL.md`). Шаблоны: `apps/api/src/europrotocol/pdfgen/{template.hbs,partyBlock.hbs}`
+> + `render.ts` (Handlebars-хелперы, singleton-браузер, типы `EuroPdfData`, 22 обстоятельства). Сборка копирует `.hbs`
+> в `dist/src` (`nest-cli.json` assets). Dev-рендер для выверки: `node src/europrotocol/pdfgen/render-dev.mjs [out.pdf] [--blank]`.
+> `EuroprotocolPdfService.buildData()` маппит `EuroProtocol`+`User`/MyID+`Vehicle`(+НАПП)+`Document`(ВУ)+`Policy` в шаблон,
+> рисует штампы подписей (MyID/A, OTP/B), встраивает схему из MinIO. Эндпоинты: `GET /europrotocol/:id/pdf` (свой),
+> `GET /admin/europrotocols/:id/pdf`. В админке — кнопка «↓ PDF извещения» в drawer (`apps/admin/.../europrotocols/page.tsx`).
+>
+> **MinIO (self-hosted S3).** `docker-compose` сервис `minio` (S3 :9000, консоль :9001, логин `sos24`/`sos24minio`).
+> `FilesModule` (@Global) + `MinioService` (ensureBucket, put/get, presigned GET/PUT, remove). Эндпоинт `POST /files/upload`
+> (multipart, фото/видео ≤80 МБ → MinIO). Env `MINIO_*` (dev в `.env`; прод — плейсхолдеры в `secret.example.yaml`,
+> `minio.<ns>.svc`). Аудит полей бланка ↔ наши данные: `docs/europrotocol/FIELD_MAPPING.md`.
+>
+> **Схема `EuroProtocol` расширена** (миграция `euro_full_fields`): общая часть (medCheck/witnesses/officialRegistered/
+> officerBadgeNo), 22 обстоятельства A/B (Json bool[22]), доп. поля стороны A, ручной ввод стороны B (ВУ/адрес/СК/дата полиса),
+> оборот (driverRole/canMove/cannotMovePlace/remarks), schemeImageKey, подписи signedAAt/signedBAt.
+>
+> **Мобильный визард расширен** (поля в существующие 5 шагов): шаг1 — медосвид./свидетели/ГАИ; шаг2 — ручные поля «В»;
+> шаг3 — 22 обстоятельства (чекбоксы А/В) + повреждения/возражения + оборот; шаг4 — **видео** (доп. к фото) + кнопка
+> «Пропустить фото (DEV)»; шаг5 — заливка фото/видео в MinIO, **OTP-подпись «В»**, submit со всеми полями.
+> `uploadEuroMedia()`/`signOtherParty()` в API-клиенте; `components/EuroFields`; `circumstances.ts` (22 пункта).
+> Решения: оборот = 1 экз. (сторона A); подпись «В» = OTP. Submit-фиксы: безопасный парсинг дат (невалид→null),
+> dev-mock участник без записи в БД → participantId=null.
+>
+> **TestFlight (iOS).** Локальная сборка на Mac mini через Xcode Archive (Team **Semurg `SRGDG34MV6`**, bundle `uz.sos24.app`).
+> Чинены сборочные пробелы pnpm: `@expo/config-plugins`, `babel-preset-expo` объявлены прямыми dev-зависимостями mobile.
+> Имя приложения → **SOS24** (было «mobile»), иконка → брендовый логотип (`assets/icon.png` + AppIcon), build number = 3.
+> Нативный сплеш Expo очищен (убран плейсхолдер `SplashScreenLegacy`) → бесшовно в свой JS-сплеш.
+>
+> **Локальный дев-стек** (одной командой каждый): docker `sos24-db` (:5434) + `sos24-minio` (:9000/:9001);
+> `pnpm dev:api` (:3030); `pnpm dev:admin` (:3000); `pnpm dev:mobile` (Metro :8081). `expo run:ios` собирает дев-билд на симулятор.
+> Если Docker закрылся — `open -a Docker`, затем `docker compose up -d db minio`.
+>
+> **Следующее по Европротоколу:** реальный SMS-OTP (Playmobile) вместо dev-кода для подписи «В»; опционально date-picker
+> для дат ВУ/полиса (сейчас текст-ввод); конструктор схемы ДТП (сейчас шаблоны rear/front/side); куда уходит готовый пакет
+> (страховая/НАПП claims/диспетчер) — открытый вопрос в `FIELD_MAPPING.md`.
 
 > **Статус 2026-06-11 — ПЕРВЫЙ ПРОД-ДЕПЛОЙ API+admin готов и доступен снаружи по HTTPS.** Ветка `main`.
 >
