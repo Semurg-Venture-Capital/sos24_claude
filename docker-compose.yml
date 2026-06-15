@@ -17,5 +17,25 @@ services:
       timeout: 5s
       retries: 10
 
+  minio:
+    image: minio/minio:latest
+    container_name: sos24-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: sos24
+      MINIO_ROOT_PASSWORD: sos24minio
+    ports:
+      - "9000:9000"  # S3 API
+      - "9001:9001"  # web-консоль (http://localhost:9001)
+    volumes:
+      - sos24-minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 volumes:
   sos24-db-data:
+  sos24-minio-data:
