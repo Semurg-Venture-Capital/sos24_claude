@@ -24,7 +24,7 @@ function formatDate(iso: string): string {
 // (read-only, антифрод), место — определяется по GPS по кнопке.
 export function EuroStep1Screen() {
   const nav = useNavigation<Nav>();
-  const { date, time, place, vehicleCount, setLocation, medCheck, witnesses, officialRegistered, patch } =
+  const { date, time, place, vehicleCount, setLocation, medCheck, witnesses, officialRegistered, officerBadgeNo, patch } =
     useEuroStore();
   const [geoLoading, setGeoLoading] = useState(false);
 
@@ -173,12 +173,23 @@ export function EuroStep1Screen() {
           onChangeText={(v) => patch({ witnesses: v })}
           placeholder="Олимов Ж., +998 90 111 22 33"
           multiline
+          maxLength={300}
         />
         <YesNoToggle
           label="Оформлено сотрудником ГАИ?"
           value={officialRegistered}
           onChange={(v) => patch({ officialRegistered: v })}
         />
+        {officialRegistered === true ? (
+          <FieldInput
+            label="№ нагрудного знака сотрудника"
+            value={officerBadgeNo}
+            onChangeText={(v) => patch({ officerBadgeNo: v })}
+            placeholder="0000000"
+            keyboardType="number-pad"
+            maxLength={20}
+          />
+        ) : null}
       </View>
     </WizardFrame>
   );

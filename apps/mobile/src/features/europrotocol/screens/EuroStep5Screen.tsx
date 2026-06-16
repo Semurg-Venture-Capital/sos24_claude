@@ -97,14 +97,19 @@ export function EuroStep5Screen() {
         medCheck: s.medCheck ?? undefined,
         witnesses: s.witnesses || undefined,
         officialRegistered: s.officialRegistered ?? undefined,
+        officerBadgeNo: s.officerBadgeNo || undefined,
         // обстоятельства
         circumstancesA: s.circumstancesA,
         circumstancesB: s.circumstancesB,
         // сторона A
         damageDescA: s.damageDescA || undefined,
         objectionsA: s.objectionsA || undefined,
+        impactZoneA: s.impactZoneA || undefined,
+        ownershipDocA: s.ownershipDocA || undefined,
         // сторона B
         otherOwnerAddr: s.otherOwnerAddr || undefined,
+        otherOwnershipDoc: s.otherOwnershipDoc || undefined,
+        impactZoneB: s.impactZoneB || undefined,
         otherDlSeria: s.otherDlSeria || undefined,
         otherDlNumber: s.otherDlNumber || undefined,
         otherDlCategories: s.otherDlCategories || undefined,
@@ -204,9 +209,10 @@ export function EuroStep5Screen() {
           <TextField
             label="Код из SMS (необязательно)"
             value={otpB}
-            onChangeText={setOtpB}
+            onChangeText={(v) => setOtpB(v.replace(/\D/g, ''))}
             keyboardType="number-pad"
             placeholder="••••"
+            maxLength={6}
           />
         </View>
       ) : null}

@@ -1,6 +1,9 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import Svg, { Path } from 'react-native-svg';
 import {
   EURO_STATUS_LABEL,
@@ -8,6 +11,8 @@ import {
   useEuroProtocol,
   type EuroStatus,
 } from '../../../api/europrotocol';
+import { apiBaseUrl } from '../../../api/client';
+import { useAuthStore } from '../../../stores/authStore';
 import { BackButton } from '../../../components/ui/BackButton';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { SummaryBlock } from '../../../components/ui/SummaryBlock';
@@ -39,6 +44,27 @@ export function EuroDetailScreen() {
   const nav = useNavigation<Nav>();
   const { id } = useRoute<R>().params;
   const { data: p, isLoading } = useEuroProtocol(id);
+  const [pdfBusy, setPdfBusy] = useState(false);
+
+  // Скачивает PDF извещения (с Bearer-токеном) во временный файл и открывает «Поделиться».
+  const openPdf = async () => {
+    setPdfBusy(true);
+    try {
+      const token = useAuthStore.getState().accessToken;
+      const target = `${FileSystem.cacheDirectory}europrotocol-${p?.number ?? id}.pdf`;
+      const dl = await FileSystem.downloadAsync(`${apiBaseUrl()}/europrotocol/${id}/pdf`, target, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (dl.status !== 200) throw new Error(String(dl.status));
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(dl.uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
+      }
+    } catch {
+      Alert.alert('PDF', 'Не удалось получить PDF. Попробуйте позже.');
+    } finally {
+      setPdfBusy(false);
+    }
+  };
 
   if (isLoading || !p) {
     return (
@@ -84,6 +110,31 @@ export function EuroDetailScreen() {
             </View>
           ) : null}
         </View>
+
+        {/* PDF извещения */}
+        <Pressable
+          onPress={openPdf}
+          disabled={pdfBusy}
+          style={({ pressed }) => ({
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            paddingVertical: 15,
+            borderRadius: 18,
+            backgroundColor: 'rgba(255,255,255,0.6)',
+            borderWidth: 1,
+            borderColor: tokens.hairline,
+            opacity: pressed || pdfBusy ? 0.7 : 1,
+          })}
+        >
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={tokens.red} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+            <Path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+          </Svg>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkDark }}>
+            {pdfBusy ? 'Готовим PDF…' : 'PDF извещения'}
+          </Text>
+        </Pressable>
 
         {/* Трекер */}
         <View style={{ padding: 20, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: tokens.hairline }}>

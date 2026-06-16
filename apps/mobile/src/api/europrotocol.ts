@@ -54,6 +54,7 @@ export interface SubmitEuroPayload {
   medCheck?: boolean;
   witnesses?: string;
   officialRegistered?: boolean;
+  officerBadgeNo?: string;
 
   // Обстоятельства (22 boolean на сторону)
   circumstancesA?: boolean[];
@@ -62,6 +63,8 @@ export interface SubmitEuroPayload {
   // Сторона A — доп.
   damageDescA?: string;
   objectionsA?: string;
+  impactZoneA?: string;
+  ownershipDocA?: string;
 
   // Сторона B — ручной ввод
   otherOwnerAddr?: string;
@@ -69,10 +72,12 @@ export interface SubmitEuroPayload {
   otherDlNumber?: string;
   otherDlCategories?: string;
   otherDlIssue?: string;
+  otherOwnershipDoc?: string;
   otherInsurer?: string;
   otherPolicyValidUntil?: string;
   damageDescB?: string;
   objectionsB?: string;
+  impactZoneB?: string;
 
   // Оборот
   driverRole?: 'owner' | 'other';

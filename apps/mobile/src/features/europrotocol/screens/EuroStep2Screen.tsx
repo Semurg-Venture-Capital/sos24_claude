@@ -20,6 +20,7 @@ import { Tag } from '../../../components/ui/Tag';
 import { TextField } from '../../../components/ui/TextField';
 import { WizardFrame } from '../../../components/ui/WizardFrame';
 import { tokens } from '../../../theme/colors';
+import { DateField } from '../components/EuroFields';
 import { useEuroStore } from '../store';
 import type { EuroStackParamList } from '../../../navigation/types';
 
@@ -105,13 +106,15 @@ export function EuroStep2Screen() {
 
   const canLookupVehicle = s.otherTpSeria.trim() && s.otherTpNumber.trim() && s.otherGov.trim();
   const canCheckPolicy = s.otherPolicySeria.trim() && s.otherPolicyNumber.trim();
+  // Узбекский номер: +998 + 9 цифр (пробелы игнорируем).
+  const phoneOk = /^\+?998\d{9}$/.test(s.otherPhone.replace(/\s+/g, ''));
   const canNext =
     s.selfVerified &&
     !!s.myVehicleId &&
     !!s.participant &&
     !!s.otherVehicle &&
-    !!canCheckPolicy &&
-    s.otherPhone.trim().length > 0;
+    s.otherPolicyValid === true && // полис должен быть проверен и валиден
+    phoneOk;
 
   return (
     <WizardFrame
@@ -190,14 +193,16 @@ export function EuroStep2Screen() {
               onChangeText={(v) => s.setOtherField('otherTpSeria', v.toUpperCase())}
               autoCapitalize="characters"
               placeholder="AAF"
+              maxLength={3}
               containerStyle={{ flex: 1 }}
             />
             <TextField
               label="Номер ТП"
               value={s.otherTpNumber}
-              onChangeText={(v) => s.setOtherField('otherTpNumber', v)}
+              onChangeText={(v) => s.setOtherField('otherTpNumber', v.replace(/\D/g, ''))}
               keyboardType="number-pad"
               placeholder="2949568"
+              maxLength={8}
               containerStyle={{ flex: 1.4 }}
             />
           </View>
@@ -207,6 +212,7 @@ export function EuroStep2Screen() {
             onChangeText={(v) => s.setOtherField('otherGov', v.toUpperCase())}
             autoCapitalize="characters"
             placeholder="01 A 123 BB"
+            maxLength={12}
           />
           <ActionButton
             label={s.otherVehicle ? 'Найти заново' : 'Найти авто'}
@@ -232,17 +238,19 @@ export function EuroStep2Screen() {
               }}
               autoCapitalize="characters"
               placeholder="OSG"
+              maxLength={3}
               containerStyle={{ flex: 1 }}
             />
             <TextField
               label="Номер"
               value={s.otherPolicyNumber}
               onChangeText={(v) => {
-                s.setOtherField('otherPolicyNumber', v);
+                s.setOtherField('otherPolicyNumber', v.replace(/\D/g, ''));
                 s.setOtherPolicyValid(null);
               }}
               keyboardType="number-pad"
               placeholder="1234567"
+              maxLength={10}
               containerStyle={{ flex: 1.6 }}
             />
           </View>
@@ -264,6 +272,9 @@ export function EuroStep2Screen() {
             onChangeText={(v) => s.setOtherField('otherPhone', v)}
             keyboardType="phone-pad"
             placeholder="+998 90 123 45 67"
+            maxLength={17}
+            error={s.otherPhone.length > 0 && !phoneOk}
+            hint={s.otherPhone.length > 0 && !phoneOk ? 'Формат: +998 XX XXX XX XX' : undefined}
           />
 
           <Text style={subLabel}>Водительское удостоверение «В»</Text>
@@ -274,14 +285,16 @@ export function EuroStep2Screen() {
               onChangeText={(v) => s.patch({ otherDlSeria: v.toUpperCase() })}
               autoCapitalize="characters"
               placeholder="AC"
+              maxLength={3}
               containerStyle={{ flex: 1 }}
             />
             <TextField
               label="Номер"
               value={s.otherDlNumber}
-              onChangeText={(v) => s.patch({ otherDlNumber: v })}
+              onChangeText={(v) => s.patch({ otherDlNumber: v.replace(/\D/g, '') })}
               keyboardType="number-pad"
               placeholder="1234567"
+              maxLength={7}
               containerStyle={{ flex: 1.6 }}
             />
           </View>
@@ -292,13 +305,13 @@ export function EuroStep2Screen() {
               onChangeText={(v) => s.patch({ otherDlCategories: v.toUpperCase() })}
               autoCapitalize="characters"
               placeholder="B, C"
+              maxLength={20}
               containerStyle={{ flex: 1 }}
             />
-            <TextField
+            <DateField
               label="Дата выдачи ВУ"
               value={s.otherDlIssue}
-              onChangeText={(v) => s.patch({ otherDlIssue: v })}
-              placeholder="2019-03-01"
+              onChange={(v) => s.patch({ otherDlIssue: v })}
               containerStyle={{ flex: 1 }}
             />
           </View>
@@ -308,6 +321,7 @@ export function EuroStep2Screen() {
             value={s.otherOwnerAddr}
             onChangeText={(v) => s.patch({ otherOwnerAddr: v })}
             placeholder="Тошкент ш., Юнусобод…"
+            maxLength={500}
           />
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <TextField
@@ -315,13 +329,13 @@ export function EuroStep2Screen() {
               value={s.otherInsurer}
               onChangeText={(v) => s.patch({ otherInsurer: v })}
               placeholder="Apex Insurance"
+              maxLength={150}
               containerStyle={{ flex: 1.4 }}
             />
-            <TextField
+            <DateField
               label="Полис действует до"
               value={s.otherPolicyValidUntil}
-              onChangeText={(v) => s.patch({ otherPolicyValidUntil: v })}
-              placeholder="2026-12-31"
+              onChange={(v) => s.patch({ otherPolicyValidUntil: v })}
               containerStyle={{ flex: 1 }}
             />
           </View>

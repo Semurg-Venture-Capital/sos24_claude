@@ -71,6 +71,7 @@ interface EuroState {
   medCheck: boolean | null; // медосвидетельствование пройдено
   witnesses: string; // свидетели (ФИО, телефон)
   officialRegistered: boolean | null; // оформлено сотрудником ГАИ
+  officerBadgeNo: string; // № нагрудного знака (если оформлял сотрудник)
 
   // --- Обстоятельства ДТП (22 чекбокса на сторону) ---
   circumstancesA: boolean[];
@@ -79,6 +80,9 @@ interface EuroState {
   // --- Сторона A: доп. поля ---
   damageDescA: string;
   objectionsA: string;
+  impactZoneA: string | null; // зона первого удара (код)
+  ownershipDocA: string; // док. о праве владения (если водитель ≠ владелец)
+  otherOwnershipDoc: string; // док. владения стороны B
 
   // --- Сторона B: ручной ввод (НАПП/MyID не покрывают) ---
   otherOwnerAddr: string;
@@ -90,6 +94,7 @@ interface EuroState {
   otherPolicyValidUntil: string; // YYYY-MM-DD
   damageDescB: string;
   objectionsB: string;
+  impactZoneB: string | null; // зона первого удара стороны B (код)
   otherSigned: boolean; // сторона B подписала по OTP
 
   // --- Оборот (стр.2) ---
@@ -164,10 +169,14 @@ const INITIAL = {
   medCheck: null as boolean | null,
   witnesses: '',
   officialRegistered: null as boolean | null,
+  officerBadgeNo: '',
   circumstancesA: Array(22).fill(false) as boolean[],
   circumstancesB: Array(22).fill(false) as boolean[],
   damageDescA: '',
   objectionsA: '',
+  impactZoneA: null as string | null,
+  ownershipDocA: '',
+  otherOwnershipDoc: '',
   otherOwnerAddr: '',
   otherDlSeria: '',
   otherDlNumber: '',
@@ -177,6 +186,7 @@ const INITIAL = {
   otherPolicyValidUntil: '',
   damageDescB: '',
   objectionsB: '',
+  impactZoneB: null as string | null,
   otherSigned: false,
   driverRole: null as 'owner' | 'other' | null,
   canMove: null as boolean | null,

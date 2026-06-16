@@ -7,7 +7,7 @@ import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { WizardFrame } from '../../../components/ui/WizardFrame';
 import { tokens } from '../../../theme/colors';
 import { EURO_CIRCUMSTANCES } from '../circumstances';
-import { FieldInput, SectionLabel, Segmented, YesNoToggle } from '../components/EuroFields';
+import { FieldInput, SectionLabel, Segmented, YesNoToggle, ZoneSelect } from '../components/EuroFields';
 import { useEuroStore, type SchemeType } from '../store';
 import type { EuroStackParamList } from '../../../navigation/types';
 
@@ -31,7 +31,7 @@ export function EuroStep3Screen() {
       total={5}
       eyebrow="Шаг 3 из 5 · Схема"
       primary="Далее"
-      primaryEnabled={!!schemeType}
+      primaryEnabled={!!schemeType && !!s.driverRole && s.canMove !== null}
       primaryAction={() => nav.navigate('EuroStep4')}
       onBack={() => nav.goBack()}
     >
@@ -103,13 +103,20 @@ export function EuroStep3Screen() {
         </View>
       </View>
 
+      {/* Зона первого удара */}
+      <View style={{ gap: 12, marginTop: 4 }}>
+        <SectionLabel>Зона первого удара</SectionLabel>
+        <ZoneSelect label="Ваше авто (А)" value={s.impactZoneA} onChange={(v) => patch({ impactZoneA: v })} />
+        <ZoneSelect label="Авто «В»" value={s.impactZoneB} onChange={(v) => patch({ impactZoneB: v })} />
+      </View>
+
       {/* Повреждения и возражения */}
       <View style={{ gap: 12, marginTop: 4 }}>
         <SectionLabel>Повреждения и возражения</SectionLabel>
-        <FieldInput label="Повреждения вашего авто (А)" value={s.damageDescA} onChangeText={(v) => patch({ damageDescA: v })} placeholder="Олд бампер, ўнг фара…" multiline />
-        <FieldInput label="Повреждения авто «В»" value={s.damageDescB} onChangeText={(v) => patch({ damageDescB: v })} placeholder="Орқа бампер…" multiline />
-        <FieldInput label="Возражения (А) — если есть" value={s.objectionsA} onChangeText={(v) => patch({ objectionsA: v })} placeholder="Эътирозлар…" />
-        <FieldInput label="Возражения (В) — если есть" value={s.objectionsB} onChangeText={(v) => patch({ objectionsB: v })} placeholder="Эътирозлар…" />
+        <FieldInput label="Повреждения вашего авто (А)" value={s.damageDescA} onChangeText={(v) => patch({ damageDescA: v })} placeholder="Олд бампер, ўнг фара…" multiline maxLength={1000} />
+        <FieldInput label="Повреждения авто «В»" value={s.damageDescB} onChangeText={(v) => patch({ damageDescB: v })} placeholder="Орқа бампер…" multiline maxLength={1000} />
+        <FieldInput label="Возражения (А) — если есть" value={s.objectionsA} onChangeText={(v) => patch({ objectionsA: v })} placeholder="Эътирозлар…" maxLength={1000} />
+        <FieldInput label="Возражения (В) — если есть" value={s.objectionsB} onChangeText={(v) => patch({ objectionsB: v })} placeholder="Эътирозлар…" maxLength={1000} />
       </View>
 
       {/* Оборот бланка */}
@@ -124,11 +131,20 @@ export function EuroStep3Screen() {
           ]}
           onChange={(v) => patch({ driverRole: v })}
         />
+        {s.driverRole === 'other' ? (
+          <FieldInput
+            label="Документ о праве владения (доверенность/договор)"
+            value={s.ownershipDocA}
+            onChangeText={(v) => patch({ ownershipDocA: v })}
+            placeholder="Серия/номер доверенности или договора"
+            maxLength={200}
+          />
+        ) : null}
         <YesNoToggle label="ТС может двигаться самостоятельно?" value={s.canMove} onChange={(v) => patch({ canMove: v })} />
         {s.canMove === false ? (
-          <FieldInput label="Где сейчас находится ТС" value={s.cannotMovePlace} onChangeText={(v) => patch({ cannotMovePlace: v })} placeholder="Адрес стоянки / эвакуатора" />
+          <FieldInput label="Где сейчас находится ТС" value={s.cannotMovePlace} onChangeText={(v) => patch({ cannotMovePlace: v })} placeholder="Адрес стоянки / эвакуатора" maxLength={300} />
         ) : null}
-        <FieldInput label="Замечания (Изоҳ)" value={s.remarks} onChangeText={(v) => patch({ remarks: v })} placeholder="Доп. замечания…" multiline />
+        <FieldInput label="Замечания (Изоҳ)" value={s.remarks} onChangeText={(v) => patch({ remarks: v })} placeholder="Доп. замечания…" multiline maxLength={2000} />
       </View>
     </WizardFrame>
   );
