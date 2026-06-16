@@ -78,6 +78,25 @@ kubectl -n sos24-dev get pods,svc,job
 kubectl -n sos24-dev logs job/sos24-api-migrate
 ```
 
+## Шаг 2.5 — MinIO (хранилище файлов Европротокола)
+> Self-hosted S3 для фото/видео/схем ДТП и PDF-извещений. Доступ только изнутри кластера
+> (ClusterIP `minio.sos24-dev.svc:9000`) — наружу не выставляем. Бакет (`MINIO_BUCKET`) создаётся
+> автоматически при старте API (`MinioService.ensureBucket`).
+
+В `secret.yaml` (из примера) уже есть **два** секрета: `sos24-api-secret` (с `MINIO_ACCESS_KEY/SECRET_KEY`)
+и `sos24-minio-secret` (root-креды сервера). **Они должны совпадать:**
+`MINIO_ACCESS_KEY = MINIO_ROOT_USER`, `MINIO_SECRET_KEY = MINIO_ROOT_PASSWORD` (пароль ≥ 8 символов).
+
+```bash
+kubectl apply -f deploy/k8s/secret.yaml      # содержит и sos24-minio-secret
+kubectl apply -f deploy/k8s/minio.yaml       # PVC (20Gi local-path) + Deployment + ClusterIP Service
+kubectl -n sos24-dev rollout status deploy/sos24-minio
+# проверка изнутри кластера:
+kubectl -n sos24-dev exec deploy/sos24-api -- wget -qO- http://minio:9000/minio/health/ready && echo OK
+```
+> PVC `local-path` привязывается к одной ноде → стратегия Deployment = `Recreate`.
+> Консоль MinIO (:9001) наружу не выставлена; при необходимости — `kubectl port-forward svc/minio 9001:9001`.
+
 ## Шаг 3 — внешний nginx (ВМ с белым IP)
 > **Развёрнуто 2026-06-11.** nginx-ВМ `10.10.38.30` (nginx-quic 1.30.2, HTTP/3+geoip2),
 > белый IP `146.120.18.70`, домены `api.sos24.uz`/`admin.sos24.uz` (SSL уже был).
@@ -113,5 +132,19 @@ open https://admin.sos24.uz                   # логин админки
 - **CORS** API сейчас `origin:true` (любой источник). При желании сузить до `https://admin.sos24.uz`.
 - **Seed** (`prisma db seed`) в прод НЕ запускаем — только миграции. Тестовых данных в проде нет.
 - **НАПП prod** (`erspapiv2.e-osgo.uz`) — нужен whitelist IP сервера у НАПП (см. STAGE1 S14).
-- **Обновление версии:** пересобрать образ с новым тегом → `kubectl -n sos24-dev set image deploy/sos24-api api=$REG/sos24-api:<tag>` (и admin). Миграции — повторно запустить Job.
+- **Обновление версии (rollout):**
+  ```bash
+  export REG=10.10.38.11:30500/sos24
+  docker build --platform linux/amd64 -f apps/api/Dockerfile -t $REG/sos24-api:latest .
+  docker push $REG/sos24-api:latest
+  # тег latest не меняет spec → принудительно перезапускаем под:
+  kubectl -n sos24-dev rollout restart deploy/sos24-api
+  kubectl -n sos24-dev rollout status  deploy/sos24-api
+  # миграции (Job нельзя apply'ить поверх — пересоздаём):
+  kubectl -n sos24-dev delete job sos24-api-migrate --ignore-not-found
+  sed "s#__REGISTRY__#$REG#g" deploy/k8s/api.yaml | kubectl apply -f -
+  kubectl -n sos24-dev logs job/sos24-api-migrate -f
+  ```
+  > Для воспроизводимости лучше тегировать образ версией (`:2026-06-16`) и `set image deploy/sos24-api api=$REG/sos24-api:<tag>`.
+- **PDF Европротокола:** образ API содержит системный Chromium (`/usr/bin/chromium`, env `PUPPETEER_EXECUTABLE_PATH`) — отдельная установка не нужна.
 - **Следующие шаги инфры** (`DEVOPS.md`): Harbor (registry+scan), ArgoCD (GitOps), Vault (секреты), Patroni (HA Postgres), мониторинг.

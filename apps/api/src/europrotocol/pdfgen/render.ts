@@ -130,8 +130,12 @@ let browserPromise: Promise<Browser> | null = null;
 
 function getBrowser(): Promise<Browser> {
   if (!browserPromise) {
+    // В проде (Docker) — системный Chromium из PUPPETEER_EXECUTABLE_PATH;
+    // локально — бандл Puppeteer (executablePath undefined → дефолт).
+    const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
     browserPromise = puppeteer.launch({
       headless: true,
+      executablePath,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
   }

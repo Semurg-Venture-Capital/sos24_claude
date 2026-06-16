@@ -1,0 +1,76 @@
+# SOS24 MinIO — self-hosted S3 для файлов Европротокола (фото/видео/схемы) и PDF.
+# Доступ ТОЛЬКО изнутри кластера (ClusterIP): API ходит на minio.sos24-dev.svc:9000.
+# Наружу не выставляем — presigned-URL клиентам не отдаём, всё проксирует API.
+#   kubectl apply -f deploy/k8s/minio.yaml
+# Сначала создать секрет с root-кредами:
+#   kubectl apply -f deploy/k8s/secret.yaml   (содержит sos24-minio-secret)
+# Бакет (MINIO_BUCKET) создаётся автоматически при старте API (MinioService.ensureBucket).
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sos24-minio-data
+  namespace: sos24-dev
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sos24-minio
+  namespace: sos24-dev
+spec:
+  replicas: 1
+  # Local-path PVC привязан к одной ноде → Recreate (не плодим Pod на другой ноде).
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: { app: sos24-minio }
+  template:
+    metadata:
+      labels: { app: sos24-minio }
+    spec:
+      containers:
+        - name: minio
+          image: minio/minio:latest
+          args: ["server", "/data", "--console-address", ":9001"]
+          envFrom:
+            - secretRef:
+                name: sos24-minio-secret
+          ports:
+            - { name: api, containerPort: 9000 }
+            - { name: console, containerPort: 9001 }
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            httpGet: { path: /minio/health/ready, port: 9000 }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet: { path: /minio/health/live, port: 9000 }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits: { cpu: "1", memory: "1Gi" }
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: sos24-minio-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: sos24-dev
+spec:
+  type: ClusterIP
+  selector: { app: sos24-minio }
+  ports:
+    - { name: api, port: 9000, targetPort: 9000 }
+    - { name: console, port: 9001, targetPort: 9001 }

@@ -7,6 +7,8 @@ FROM node:22-slim AS build
 RUN corepack enable && apt-get update \
  && apt-get install -y --no-install-recommends openssl ca-certificates \
  && rm -rf /var/lib/apt/lists/*
+# Не качаем бандл Chromium при install — в runtime ставим системный (см. ниже).
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 WORKDIR /repo
 COPY . .
 # install всего воркспейса (postinstall api → prisma generate)
@@ -23,11 +25,18 @@ RUN cd /app && ./node_modules/.bin/prisma generate --schema prisma/schema.prisma
 
 # ---------- runtime ----------
 FROM node:22-slim AS runtime
+# Chromium + шрифты (кириллица/латиница) — Puppeteer рендерит PDF Европротокола
+# системным браузером, а не скачанным бандлом.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && apt-get install -y --no-install-recommends \
+      openssl ca-certificates \
+      chromium \
+      fonts-liberation fonts-dejavu-core fonts-noto-core \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-ENV NODE_ENV=production PORT=3030
+ENV NODE_ENV=production PORT=3030 \
+    PUPPETEER_SKIP_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 COPY --from=build /app /app
 EXPOSE 3030
 # Миграции запускаем отдельным K8s Job (см. deploy/k8s/api.yaml):
