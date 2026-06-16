@@ -36,12 +36,22 @@ function inferContentType(uri: string, kind: FileKind): string {
 }
 
 /**
- * Заливает локальный файл (uri) напрямую в S3 по presigned POST-policy. Возвращает ключ объекта.
- * Требует поднятого s3.sos24.uz + MINIO_PUBLIC_ENDPOINT на бэкенде.
+ * Заливает локальный файл (uri) в MinIO. Сначала пробует безопасный presigned POST напрямую
+ * в S3 (s3.sos24.uz); если эндпоинт/хранилище ещё не подняты — откатывается на загрузку
+ * через наш API (/files/upload). Возвращает ключ объекта.
  */
 export async function uploadFileToS3(uri: string, kind: FileKind): Promise<UploadedMedia> {
   const contentType = inferContentType(uri, kind);
+  try {
+    return await uploadViaPresign(uri, kind, contentType);
+  } catch {
+    // Fallback: пока s3.sos24.uz / presign-upload не задеплоены — грузим через API.
+    return await uploadViaApi(uri, contentType);
+  }
+}
 
+// Прямая безопасная загрузка в S3 по presigned POST-policy.
+async function uploadViaPresign(uri: string, kind: FileKind, contentType: string): Promise<UploadedMedia> {
   // 1) Политика от нашего API (под JWT).
   const { data } = await api.post<PresignUploadResp>('/files/presign-upload', { kind, contentType });
 
@@ -57,6 +67,18 @@ export async function uploadFileToS3(uri: string, kind: FileKind): Promise<Uploa
     throw new Error(`S3 upload failed: ${res.status}`);
   }
   return { key: data.key, contentType };
+}
+
+// Загрузка через наш API (multipart → /files/upload). Совместимость, пока s3 не поднят.
+async function uploadViaApi(uri: string, contentType: string): Promise<UploadedMedia> {
+  const ext = (uri.split('?')[0].split('.').pop() || '').toLowerCase();
+  const name = `media.${ext || (contentType.startsWith('video/') ? 'mov' : 'jpg')}`;
+  const form = new FormData();
+  form.append('file', { uri, name, type: contentType } as unknown as Blob);
+  const { data } = await api.post<{ key: string; contentType: string }>('/files/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return { key: data.key, contentType: data.contentType ?? contentType };
 }
 
 /** Временная ссылка на скачивание объекта (presigned GET, TTL ~5 мин). */
