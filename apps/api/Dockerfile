@@ -10,13 +10,14 @@ RUN corepack enable && apt-get update \
 # Не качаем бандл Chromium при install — в runtime ставим системный (см. ниже).
 # Сетевые ретраи/таймауты — npm-реестр под эмуляцией бывает флаки.
 ENV PUPPETEER_SKIP_DOWNLOAD=true \
-    npm_config_fetch_timeout=300000 \
-    npm_config_fetch_retries=6 \
-    npm_config_fetch_retry_maxtimeout=120000
+    npm_config_fetch_timeout=1800000 \
+    npm_config_fetch_retries=8 \
+    npm_config_fetch_retry_maxtimeout=300000
 WORKDIR /repo
 COPY . .
 # Ставим ТОЛЬКО api + её workspace-зависимости (не тянем RN/Expo/Next всего монорепо).
-RUN pnpm install --frozen-lockfile --filter api...
+# --network-concurrency=2 — на медленном/флаки npm меньше параллельных загрузок = каждой больше полосы.
+RUN pnpm install --frozen-lockfile --filter api... --network-concurrency=2
 RUN pnpm --filter api exec prisma generate
 RUN pnpm --filter api run build
 # pruned prod-сборка только для api (включает prisma CLI + @prisma/client — они в deps)
