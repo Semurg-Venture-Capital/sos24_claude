@@ -1,6 +1,7 @@
 import { startMyIdSdk } from '@sos24/myid-sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
+import { uploadFileToS3 } from './files';
 import { createMyIdSession } from './myid';
 
 export type EuroStatus = 'SUBMITTED' | 'REVIEW' | 'NEED_INFO' | 'APPROVED' | 'REJECTED' | 'PAID';
@@ -140,32 +141,13 @@ export function participantFullName(p: EuroParticipant): string {
   return [p.surname, p.name, p.patronymic].filter(Boolean).join(' ') || p.pinfl;
 }
 
-// ── Загрузка медиа в MinIO (через API) ──
-export interface UploadedMedia {
-  key: string;
-  contentType: string;
-  size: number;
-}
+// ── Загрузка медиа в MinIO ──
+// Используем безопасную presigned-загрузку напрямую в S3 (s3.sos24.uz), см. api/files.ts.
+export type { UploadedMedia } from './files';
 
-// Заливает локальный файл (фото/видео) на бэкенд → MinIO. Возвращает ключ объекта.
-export async function uploadEuroMedia(uri: string, kind: 'image' | 'video'): Promise<UploadedMedia> {
-  const ext = (uri.split('.').pop() || '').toLowerCase();
-  const type =
-    kind === 'video'
-      ? ext === 'mp4'
-        ? 'video/mp4'
-        : 'video/quicktime'
-      : ext === 'png'
-        ? 'image/png'
-        : 'image/jpeg';
-  const name = `media.${ext || (kind === 'video' ? 'mov' : 'jpg')}`;
-  const form = new FormData();
-  // RN FormData принимает { uri, name, type } как файл.
-  form.append('file', { uri, name, type } as unknown as Blob);
-  const { data } = await api.post<UploadedMedia>('/files/upload', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return data;
+// Заливает локальный файл (фото/видео) → MinIO напрямую (presigned POST). Возвращает ключ объекта.
+export function uploadEuroMedia(uri: string, kind: 'image' | 'video') {
+  return uploadFileToS3(uri, kind);
 }
 
 // Подпись стороны «В» по OTP (на otherPhone).
