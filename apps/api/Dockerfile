@@ -8,11 +8,15 @@ RUN corepack enable && apt-get update \
  && apt-get install -y --no-install-recommends openssl ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 # Не качаем бандл Chromium при install — в runtime ставим системный (см. ниже).
-ENV PUPPETEER_SKIP_DOWNLOAD=true
+# Сетевые ретраи/таймауты — npm-реестр под эмуляцией бывает флаки.
+ENV PUPPETEER_SKIP_DOWNLOAD=true \
+    npm_config_fetch_timeout=300000 \
+    npm_config_fetch_retries=6 \
+    npm_config_fetch_retry_maxtimeout=120000
 WORKDIR /repo
 COPY . .
-# install всего воркспейса (postinstall api → prisma generate)
-RUN pnpm install --frozen-lockfile
+# Ставим ТОЛЬКО api + её workspace-зависимости (не тянем RN/Expo/Next всего монорепо).
+RUN pnpm install --frozen-lockfile --filter api...
 RUN pnpm --filter api exec prisma generate
 RUN pnpm --filter api run build
 # pruned prod-сборка только для api (включает prisma CLI + @prisma/client — они в deps)
