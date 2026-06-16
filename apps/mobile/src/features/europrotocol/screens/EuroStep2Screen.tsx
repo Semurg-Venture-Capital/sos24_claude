@@ -82,7 +82,7 @@ export function EuroStep2Screen() {
       s.setOtherVehicle(info);
     } catch (e) {
       s.setOtherVehicle(null);
-      Alert.alert('НАПП', (e as Error).message || 'ТС не найдено в реестре.');
+      Alert.alert('Авто', (e as Error).message || 'ТС не найдено в реестре.');
     } finally {
       setLookingUp(false);
     }
@@ -94,7 +94,7 @@ export function EuroStep2Screen() {
     try {
       const res = await validateOtherPolicy(s.otherPolicySeria.trim(), s.otherPolicyNumber.trim());
       s.setOtherPolicyValid(res.valid);
-      if (!res.valid) Alert.alert('Полис', res.message || 'Полис не найден в реестре НАПП.');
+      if (!res.valid) Alert.alert('Полис', res.message || 'Полис не найден в реестре.');
     } catch {
       s.setOtherPolicyValid(false);
       Alert.alert('Полис', 'Не удалось проверить полис.');
@@ -209,7 +209,7 @@ export function EuroStep2Screen() {
             placeholder="01 A 123 BB"
           />
           <ActionButton
-            label={s.otherVehicle ? 'Найти заново' : 'Найти в НАПП'}
+            label={s.otherVehicle ? 'Найти заново' : 'Найти авто'}
             loading={lookingUp}
             disabled={!canLookupVehicle}
             onPress={lookupOtherVehicle}
@@ -248,7 +248,7 @@ export function EuroStep2Screen() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <ActionButton
-              label="Проверить в НАПП"
+              label="Проверить полис"
               loading={checkingPolicy}
               disabled={!canCheckPolicy}
               onPress={checkPolicy}

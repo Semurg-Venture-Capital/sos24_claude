@@ -116,14 +116,14 @@ export function VehicleDetailScreen() {
       {
         onSuccess: (res) => {
           if (res.found) {
-            Alert.alert('Готово', 'Данные обновлены из госреестра НАПП.');
+            Alert.alert('Готово', 'Данные обновлены из госреестра.');
           } else {
-            Alert.alert('Не найдено', 'НАПП не вернул данные по этому техпаспорту. Проверьте серию и номер.');
+            Alert.alert('Не найдено', 'Реестр не вернул данные по этому техпаспорту. Проверьте серию и номер.');
           }
         },
         onError: (e: unknown) => {
           const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-          Alert.alert('Ошибка', msg || 'Не удалось обратиться к НАПП. Попробуйте позже.');
+          Alert.alert('Ошибка', msg || 'Не удалось обратиться к реестру. Попробуйте позже.');
         },
       },
     );
@@ -197,10 +197,10 @@ export function VehicleDetailScreen() {
           <InfoRow label="VIN" value={vehicle.vin} last />
         </Section>
 
-        {/* Техпаспорт (НАПП) */}
+        {/* Техпаспорт */}
         {hasNapp ? (
           <Section
-            title="Техпаспорт (НАПП)"
+            title="Техпаспорт"
             footer={
               <SyncFooter
                 syncedAt={vehicle.nappSyncedAt}
@@ -228,10 +228,10 @@ export function VehicleDetailScreen() {
             <InfoRow label="Отдел регистрации" value={vehicle.division} last />
           </Section>
         ) : (
-          <Section title="Техпаспорт (НАПП)">
+          <Section title="Техпаспорт">
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, lineHeight: 20 }}>
               Данные из госреестра не загружены. Укажите серию и номер техпаспорта — подтянем характеристики и владельца
-              из НАПП.
+              автоматически.
             </Text>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
               <Field label="Серия ТП" value={seria} onChange={setSeria} placeholder="AAF" flex={1} autoCapitalize="characters" />
@@ -242,15 +242,15 @@ export function VehicleDetailScreen() {
                 disabled={!seria.trim() || !number.trim() || syncNapp.isPending}
                 onPress={() => runSync({ techPassportSeria: seria.trim(), techPassportNumber: number.trim() })}
               >
-                {syncNapp.isPending ? 'Запрос в НАПП…' : 'Обновить из НАПП'}
+                {syncNapp.isPending ? 'Запрос…' : 'Обновить данные'}
               </RedButton>
             </View>
           </Section>
         )}
 
-        {/* Владелец (НАПП) */}
+        {/* Владелец */}
         {hasNapp && (vehicle.ownerName || vehicle.ownerInn || vehicle.ownerPinfl) && (
-          <Section title="Владелец (НАПП)">
+          <Section title="Владелец">
             <InfoRow label="ФИО / организация" value={vehicle.ownerName} />
             {vehicle.ownerInn ? <InfoRow label="ИНН" value={vehicle.ownerInn} last={!vehicle.ownerPinfl} /> : null}
             {vehicle.ownerPinfl ? <InfoRow label="ПИНФЛ" value={vehicle.ownerPinfl} last /> : null}
@@ -454,7 +454,7 @@ function SyncFooter({
             <RefreshIcon size={15} color={tokens.red} />
           )}
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red }}>
-            {loading ? 'Обновляем…' : 'Обновить из НАПП'}
+            {loading ? 'Обновляем…' : 'Обновить данные'}
           </Text>
         </View>
       </Pressable>

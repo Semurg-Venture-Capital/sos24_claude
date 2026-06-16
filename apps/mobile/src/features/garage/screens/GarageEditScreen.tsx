@@ -134,7 +134,7 @@ export function GarageEditScreen() {
       >
         <ScreenHeading
           title={isEdit ? 'Редактировать авто' : 'Добавить автомобиль'}
-          subtitle="Введите данные техпаспорта — остальное подтянется из НАПП"
+          subtitle="Введите данные техпаспорта — остальное подтянется автоматически"
         />
 
         {/* NAPP lookup: техпаспорт (серия + номер) + госномер */}
@@ -195,7 +195,7 @@ export function GarageEditScreen() {
                   paddingLeft: 4,
                 }}
               >
-                Данные найдены в НАПП и заполнены автоматически
+                Данные найдены и заполнены автоматически
               </Text>
             )}
             {lookupStatus === 'notFound' && (
@@ -208,7 +208,7 @@ export function GarageEditScreen() {
                   paddingLeft: 4,
                 }}
               >
-                Не нашли в НАПП — заполните данные вручную ниже
+                Не нашли авто — заполните данные вручную ниже
               </Text>
             )}
             <View style={{ flex: lookupStatus === 'idle' ? 1 : undefined }}>
