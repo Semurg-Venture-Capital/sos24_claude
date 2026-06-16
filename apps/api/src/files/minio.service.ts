@@ -11,18 +11,40 @@ import { randomUUID } from 'node:crypto';
 @Injectable()
 export class MinioService implements OnModuleInit {
   private readonly logger = new Logger(MinioService.name);
+  // Внутренний клиент — серверные операции (put/get/remove) через адрес в кластере.
   private readonly client: Client;
+  // Публичный клиент — генерация presigned-URL под внешний хост (s3.sos24.uz),
+  // чтобы подпись SigV4 совпадала с хостом, к которому реально ходит клиент.
+  private readonly publicClient: Client;
   readonly bucket: string;
 
   constructor(private readonly config: ConfigService) {
     this.bucket = this.config.get<string>('MINIO_BUCKET') ?? 'sos24';
+    const accessKey = this.config.get<string>('MINIO_ACCESS_KEY') ?? 'sos24';
+    const secretKey = this.config.get<string>('MINIO_SECRET_KEY') ?? 'sos24minio';
     this.client = new Client({
       endPoint: this.config.get<string>('MINIO_ENDPOINT') ?? 'localhost',
       port: Number(this.config.get<string>('MINIO_PORT') ?? 9000),
       useSSL: (this.config.get<string>('MINIO_USE_SSL') ?? 'false') === 'true',
-      accessKey: this.config.get<string>('MINIO_ACCESS_KEY') ?? 'sos24',
-      secretKey: this.config.get<string>('MINIO_SECRET_KEY') ?? 'sos24minio',
+      accessKey,
+      secretKey,
     });
+
+    // MINIO_PUBLIC_ENDPOINT, напр. "https://s3.sos24.uz". Если не задан —
+    // presigned-URL генерируются на внутренний адрес (ок для dev через API-прокси).
+    const pub = this.config.get<string>('MINIO_PUBLIC_ENDPOINT');
+    if (pub) {
+      const u = new URL(pub);
+      this.publicClient = new Client({
+        endPoint: u.hostname,
+        port: u.port ? Number(u.port) : u.protocol === 'https:' ? 443 : 80,
+        useSSL: u.protocol === 'https:',
+        accessKey,
+        secretKey,
+      });
+    } else {
+      this.publicClient = this.client;
+    }
   }
 
   async onModuleInit(): Promise<void> {
@@ -59,14 +81,34 @@ export class MinioService implements OnModuleInit {
     return Buffer.concat(chunks);
   }
 
-  /** Временная ссылка на скачивание (presigned GET). expiry в секундах (по умолч. 1 час). */
-  presignedGetUrl(key: string, expirySeconds = 3600): Promise<string> {
-    return this.client.presignedGetObject(this.bucket, key, expirySeconds);
+  /** Временная ссылка на скачивание (presigned GET) под публичным хостом. expiry в секундах. */
+  presignedGetUrl(key: string, expirySeconds = 300): Promise<string> {
+    return this.publicClient.presignedGetObject(this.bucket, key, expirySeconds);
   }
 
-  /** Временная ссылка на загрузку напрямую с клиента (presigned PUT). */
-  presignedPutUrl(key: string, expirySeconds = 3600): Promise<string> {
-    return this.client.presignedPutObject(this.bucket, key, expirySeconds);
+  /**
+   * Безопасная прямая загрузка с клиента: presigned POST-policy.
+   * Политику задаёт СЕРВЕР — клиент не может её обойти:
+   *   - конкретный объектный key (префикс выбираем сами),
+   *   - точный content-type,
+   *   - лимит размера [1, maxBytes],
+   *   - срок жизни expirySeconds.
+   * Возвращает { url, fields, key }: клиент делает multipart POST на url с fields + поле "file".
+   */
+  async presignedUpload(opts: {
+    key: string;
+    contentType: string;
+    maxBytes: number;
+    expirySeconds?: number;
+  }): Promise<{ url: string; fields: Record<string, string>; key: string }> {
+    const policy = this.publicClient.newPostPolicy();
+    policy.setBucket(this.bucket);
+    policy.setKey(opts.key);
+    policy.setExpires(new Date(Date.now() + (opts.expirySeconds ?? 600) * 1000));
+    policy.setContentType(opts.contentType);
+    policy.setContentLengthRange(1, opts.maxBytes);
+    const { postURL, formData } = await this.publicClient.presignedPostPolicy(policy);
+    return { url: postURL, fields: formData as Record<string, string>, key: opts.key };
   }
 
   async remove(key: string): Promise<void> {
