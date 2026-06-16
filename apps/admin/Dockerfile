@@ -5,6 +5,9 @@
 # ---------- build ----------
 FROM node:22-slim AS build
 RUN corepack enable
+# Воркспейс содержит puppeteer (apps/api) — его postinstall качает Chromium и падает в этом
+# образе (нет unzip). Админке Chromium не нужен → пропускаем загрузку.
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 WORKDIR /repo
 COPY . .
 RUN pnpm install --frozen-lockfile

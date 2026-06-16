@@ -22,10 +22,14 @@ export class MinioService implements OnModuleInit {
     this.bucket = this.config.get<string>('MINIO_BUCKET') ?? 'sos24';
     const accessKey = this.config.get<string>('MINIO_ACCESS_KEY') ?? 'sos24';
     const secretKey = this.config.get<string>('MINIO_SECRET_KEY') ?? 'sos24minio';
+    // region задаём явно → presigned-policy считается ЛОКАЛЬНО, без сетевого region-lookup
+    // к endpoint (иначе сервер пытается TLS-коннект к публичному s3 и падает на цепочке).
+    const region = this.config.get<string>('MINIO_REGION') ?? 'us-east-1';
     this.client = new Client({
       endPoint: this.config.get<string>('MINIO_ENDPOINT') ?? 'localhost',
       port: Number(this.config.get<string>('MINIO_PORT') ?? 9000),
       useSSL: (this.config.get<string>('MINIO_USE_SSL') ?? 'false') === 'true',
+      region,
       accessKey,
       secretKey,
     });
@@ -39,6 +43,7 @@ export class MinioService implements OnModuleInit {
         endPoint: u.hostname,
         port: u.port ? Number(u.port) : u.protocol === 'https:' ? 443 : 80,
         useSSL: u.protocol === 'https:',
+        region,
         accessKey,
         secretKey,
       });
