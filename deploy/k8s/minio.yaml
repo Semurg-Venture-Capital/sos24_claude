@@ -74,3 +74,19 @@ spec:
   ports:
     - { name: api, port: 9000, targetPort: 9000 }
     - { name: console, port: 9001, targetPort: 9001 }
+---
+# Публичный доступ к S3-API (для s3.sos24.uz через nginx-ВМ).
+# ТОЛЬКО порт 9000 (S3-API) — консоль 9001 наружу НЕ выставляем.
+# Безопасность обеспечивается приватным бакетом + presigned-URL (см. FilesModule):
+# без подписи/кредов запросы отклоняются. NodePort доступен только из сети кластера,
+# наружу проксирует nginx-ВМ (TLS).
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-s3
+  namespace: sos24-dev
+spec:
+  type: NodePort
+  selector: { app: sos24-minio }
+  ports:
+    - { name: api, port: 9000, targetPort: 9000, nodePort: 30900 }
