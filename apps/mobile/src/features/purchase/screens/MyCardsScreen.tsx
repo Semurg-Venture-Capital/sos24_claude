@@ -1,7 +1,17 @@
 import { useNavigation } from '@react-navigation/native';
 import { Glass } from '../../../components/ui/Glass';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useMe } from '../../../api/auth';
 import { useCards, useCreateCard, useDeleteCard } from '../../../api/cards';
@@ -168,7 +178,10 @@ export function MyCardsScreen() {
 
       {/* Add card modal */}
       <Modal visible={showAddModal} transparent animationType="slide" onRequestClose={() => setShowAddModal(false)}>
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}
+        >
           <View
             style={{
               backgroundColor: '#fff',
@@ -235,7 +248,7 @@ export function MyCardsScreen() {
               </Text>
             </Pressable>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </PhoneFrame>
   );

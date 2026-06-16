@@ -2,7 +2,17 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import { useCards, useCreateCard, useDeleteCard, useSetDefaultCard } from '../../../api/cards';
 import { usePaymentHistory } from '../../../api/payments';
 import type { CardBrandApi } from '../../../api/types';
@@ -331,7 +341,10 @@ export function FinanceScreen() {
 
       {/* Add card modal */}
       <Modal visible={showAddCard} transparent animationType="slide" onRequestClose={() => setShowAddCard(false)}>
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}
+        >
           <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40, gap: 16 }}>
             <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 22, letterSpacing: -0.11, color: tokens.ink }}>
               Добавить карту
@@ -370,12 +383,15 @@ export function FinanceScreen() {
               </Text>
             </Pressable>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Topup modal */}
       <Modal visible={showTopup} transparent animationType="slide" onRequestClose={() => setShowTopup(false)}>
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}
+        >
           <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40, gap: 16 }}>
             <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 22, letterSpacing: -0.11, color: tokens.ink }}>
               Пополнить кошелёк
@@ -401,7 +417,7 @@ export function FinanceScreen() {
               </Text>
             </Pressable>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </PhoneFrame>
   );

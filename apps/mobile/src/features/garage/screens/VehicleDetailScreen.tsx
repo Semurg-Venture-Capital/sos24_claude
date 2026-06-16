@@ -1,10 +1,13 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  InputAccessoryView,
+  Keyboard,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -161,6 +164,9 @@ export function VehicleDetailScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 220, gap: 16 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        automaticallyAdjustKeyboardInsets
       >
         {/* Hero */}
         <View style={{ alignItems: 'center', gap: 14, paddingTop: 4, paddingBottom: 6 }}>
@@ -480,6 +486,8 @@ function Field({
   autoCapitalize?: 'characters' | 'none';
 }) {
   const wrap: ViewStyle = { flex: flex ?? 1, gap: 6 };
+  const accId = useId();
+  const numericKb = Platform.OS === 'ios' && keyboardType === 'number-pad';
   return (
     <View style={wrap}>
       <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>{label}</Text>
@@ -490,6 +498,7 @@ function Field({
         placeholderTextColor={tokens.inkMuted}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
+        inputAccessoryViewID={numericKb ? accId : undefined}
         style={{
           height: 48,
           borderRadius: 14,
@@ -502,6 +511,25 @@ function Field({
           color: tokens.ink,
         }}
       />
+      {numericKb && (
+        <InputAccessoryView nativeID={accId}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              backgroundColor: '#f2f2f7',
+              borderTopWidth: 1,
+              borderTopColor: 'rgba(0,0,0,0.12)',
+              paddingHorizontal: 16,
+              paddingVertical: 9,
+            }}
+          >
+            <Pressable onPress={() => Keyboard.dismiss()} hitSlop={10}>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>Готово</Text>
+            </Pressable>
+          </View>
+        </InputAccessoryView>
+      )}
     </View>
   );
 }

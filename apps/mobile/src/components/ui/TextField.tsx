@@ -1,6 +1,10 @@
 import { Glass } from './Glass';
-import { forwardRef, type ReactNode } from 'react';
+import { forwardRef, useId, type ReactNode } from 'react';
 import {
+  InputAccessoryView,
+  Keyboard,
+  Platform,
+  Pressable,
   Text,
   TextInput as RNTextInput,
   View,
@@ -8,6 +12,9 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { tokens } from '../../theme/colors';
+
+// Числовые клавиатуры на iOS не имеют кнопки возврата → нужен аксессори «Готово».
+const NUMERIC_KB = ['number-pad', 'decimal-pad', 'numeric', 'phone-pad'];
 
 interface Props extends Omit<RNTextInputProps, 'style'> {
   label?: string;
@@ -30,6 +37,11 @@ export const TextField = forwardRef<RNTextInput, Props>(function TextField(
       ? 'rgba(20,20,20,0.32)'
       : tokens.hairline;
   const ringWidth = error || focused ? 1.5 : 1;
+
+  // Для числовых клавиатур на iOS вешаем панель «Готово» (иначе клавиатуру не закрыть).
+  const reactId = useId();
+  const accessoryId = `kbd-done-${reactId}`;
+  const numericKb = Platform.OS === 'ios' && NUMERIC_KB.includes(String(rest.keyboardType ?? ''));
 
   return (
     <View style={[{ gap: 6 }, containerStyle]}>
@@ -69,6 +81,7 @@ export const TextField = forwardRef<RNTextInput, Props>(function TextField(
             <RNTextInput
               ref={ref}
               {...rest}
+              inputAccessoryViewID={numericKb ? accessoryId : rest.inputAccessoryViewID}
               placeholderTextColor="rgba(20,20,20,0.4)"
               style={{
                 flex: 1,
@@ -94,6 +107,26 @@ export const TextField = forwardRef<RNTextInput, Props>(function TextField(
         >
           {hint}
         </Text>
+      )}
+      {numericKb && (
+        <InputAccessoryView nativeID={accessoryId}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              backgroundColor: '#f2f2f7',
+              borderTopWidth: 1,
+              borderTopColor: 'rgba(0,0,0,0.12)',
+              paddingHorizontal: 16,
+              paddingVertical: 9,
+            }}
+          >
+            <Pressable onPress={() => Keyboard.dismiss()} hitSlop={10}>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>Готово</Text>
+            </Pressable>
+          </View>
+        </InputAccessoryView>
       )}
     </View>
   );
