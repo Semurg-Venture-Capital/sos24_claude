@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { randomBytes } from 'node:crypto';
 import { EuroParticipant, EuroStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { MyidService, type MyIdUserData } from '../myid/myid.service';
@@ -39,6 +40,7 @@ export class EuroprotocolService {
     const created = await this.prisma.euroProtocol.create({
       data: {
         number,
+        publicToken: randomBytes(12).toString('base64url'),
         userId,
         vehicleId: dto.vehicleId ?? null,
         selfVerified: dto.selfVerified ?? false,
@@ -132,6 +134,31 @@ export class EuroprotocolService {
     const p = await this.prisma.euroProtocol.findFirst({ where: { id, userId }, include: EURO_INCLUDE });
     if (!p) throw new NotFoundException('Европротокол не найден');
     return p;
+  }
+
+  // ── Публичная проверка по QR-токену (без авторизации). Только неперсональные данные. ──
+  async findPublic(token: string) {
+    const p = await this.prisma.euroProtocol.findUnique({
+      where: { publicToken: token },
+      select: {
+        number: true,
+        incidentDate: true,
+        incidentTime: true,
+        place: true,
+        status: true,
+        signedAAt: true,
+        signedBAt: true,
+        createdAt: true,
+        otherGov: true,
+        user: { select: { name: true, surname: true } },
+        vehicle: { select: { plate: true, brand: true, model: true } },
+        participant: { select: { name: true, surname: true } },
+      },
+    });
+    if (!p) return null;
+    const bothSigned = !!p.signedAAt && !!p.signedBAt;
+    const valid = bothSigned && p.status !== 'REJECTED';
+    return { p, valid, bothSigned };
   }
 
   // ── Админ: список с фильтром по статусу + пагинация ──

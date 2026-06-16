@@ -1,10 +1,28 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { randomBytes } from 'node:crypto';
+import QRCode from 'qrcode';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../files/minio.service';
 import { CIRCUMSTANCES, renderEuroPdf, type EuroPartyData, type EuroPdfData } from './pdfgen/render';
 
 // Название нашей СК-заказчика (одна компания на старте). TODO: вынести в конфиг/справочник.
 const SELF_INSURER = 'SOS24 Sugʻurta';
+
+// Коды зон первого удара → подпись на бланке (узб.).
+const ZONE_LABEL: Record<string, string> = {
+  front: 'олд',
+  rear: 'орқа',
+  left: 'чап',
+  right: 'ўнг',
+  'front-left': 'олд-чап',
+  'front-right': 'олд-ўнг',
+  'rear-left': 'орқа-чап',
+  'rear-right': 'орқа-ўнг',
+};
+function zoneLabel(code?: string | null): string {
+  if (!code) return '';
+  return ZONE_LABEL[code] ?? code;
+}
 
 @Injectable()
 export class EuroprotocolPdfService {
@@ -31,6 +49,16 @@ export class EuroprotocolPdfService {
       include: { user: true, vehicle: true, participant: true },
     });
     if (!p) throw new NotFoundException('Европротокол не найден');
+
+    // Публичный токен для QR (создаём лениво, если ещё нет) + ссылка проверки.
+    let token = p.publicToken;
+    if (!token) {
+      token = randomBytes(12).toString('base64url');
+      await this.prisma.euroProtocol.update({ where: { id }, data: { publicToken: token } });
+    }
+    const base = process.env.PUBLIC_BASE_URL ?? 'https://api.sos24.uz';
+    const qrUrl = `${base}/p/${token}`;
+    const qrDataUrl = await QRCode.toDataURL(qrUrl, { margin: 1, width: 220 });
 
     // ВУ и полисы инициатора (сторона A)
     const dl = await this.prisma.document.findUnique({
@@ -82,6 +110,7 @@ export class EuroprotocolPdfService {
       kasko: kasko ? 'yes' : 'no',
       damageDesc: p.damageDescA || '',
       objections: p.objectionsA || '',
+      impactZone: zoneLabel(p.impactZoneA),
       signStamp: signStamp(p.signedAAt, 'MyID'),
     };
 
@@ -123,6 +152,7 @@ export class EuroprotocolPdfService {
       kasko: '',
       damageDesc: p.damageDescB || '',
       objections: p.objectionsB || '',
+      impactZone: zoneLabel(p.impactZoneB),
       signStamp: signStamp(p.signedBAt, 'OTP'),
     };
 
@@ -151,6 +181,8 @@ export class EuroprotocolPdfService {
       circumstances,
       counts: { a: countA ? String(countA) : '', b: countB ? String(countB) : '' },
       schemeImg,
+      qrUrl,
+      qrDataUrl,
       signA: signStamp(p.signedAAt, 'MyID'),
       signB: signStamp(p.signedBAt, 'OTP'),
       back: {

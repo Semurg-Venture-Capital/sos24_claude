@@ -559,6 +559,9 @@ model EuroProtocol {
   status    EuroStatus @default(SUBMITTED)
   adminNote String?    @map("admin_note")
 
+  // Публичный неугадываемый токен для QR-проверки подлинности (api.sos24.uz/p/<token>)
+  publicToken String? @unique @map("public_token")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

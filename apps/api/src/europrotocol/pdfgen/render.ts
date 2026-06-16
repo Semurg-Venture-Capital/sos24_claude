@@ -59,6 +59,7 @@ export interface EuroPartyData {
   damageDesc?: string;
   objections?: string;
   impactImg?: string;
+  impactZone?: string; // текстовая зона первого удара (если нет картинки)
   signImg?: string;
   signStamp?: string; // текстовый штамп подписи (OTP/MyID), если нет картинки
 }
@@ -86,6 +87,8 @@ export interface EuroPdfData {
   circumstances: Array<{ text: string; a: boolean; b: boolean }>;
   counts: { a: string; b: string };
   schemeImg?: string;
+  qrDataUrl?: string; // data-URI QR-кода (картинка)
+  qrUrl?: string; // текстовая ссылка проверки (api.sos24.uz/p/<token>)
   signA?: string;
   signB?: string;
   back: {

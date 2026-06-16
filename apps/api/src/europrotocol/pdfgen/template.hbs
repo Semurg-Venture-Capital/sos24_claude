@@ -323,10 +323,22 @@
     <div style="margin-top:2mm">Юқорида кўрсатилган асослардан биттаси мавжуд бўлмаган тақдирда, тузилган йўл-транспорт ходисаси тўғрисидаги хабарнома хақиқий эмас деб ҳисобланади.</div>
   </div>
 
-  <div class="p2foot">
-    <div class="h">Изоҳ.</div>
-    ЙТҲ – йўл-транспорт ходисаси<br />
-    Т/в – транспорт воситаси
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:3mm; gap:4mm">
+    <div class="p2foot" style="margin-top:0">
+      <div class="h">Изоҳ.</div>
+      ЙТҲ – йўл-транспорт ходисаси<br />
+      Т/в – транспорт воситаси
+    </div>
+    {{#if qrDataUrl}}
+    <div style="display:flex; align-items:center; gap:2.5mm; border:0.5pt solid #000; padding:1.5mm; border-radius:1mm">
+      <img src="{{qrDataUrl}}" style="width:17mm; height:17mm" />
+      <div style="font-size:6.6pt; line-height:1.25; max-width:46mm">
+        <div class="b">Ҳақиқийлигини текшириш</div>
+        <div>QR-кодни сканерланг ёки ҳавола бўйича ўтинг:</div>
+        <div style="font-size:6.2pt; word-break:break-all">{{qrUrl}}</div>
+      </div>
+    </div>
+    {{/if}}
   </div>
 </section>
 
