@@ -112,7 +112,8 @@ const withMyIdSdkFiles = (config) =>
   withDangerousMod(config, [
     'ios',
     (config) => {
-      const dir = path.join(config.modRequest.platformProjectRoot, 'mobile');
+      // Имя iOS-проекта берём динамически (может быть mobile / SOS24 и т.п.).
+      const dir = path.join(config.modRequest.platformProjectRoot, config.modRequest.projectName);
       fs.writeFileSync(path.join(dir, 'MyIdSdkModule.swift'), SWIFT_SOURCE, 'utf8');
       fs.writeFileSync(path.join(dir, 'MyIdSdkModule.m'), OBJC_SOURCE, 'utf8');
       return config;
@@ -123,9 +124,10 @@ const withMyIdSdkFiles = (config) =>
 const withMyIdSdkXcode = (config) =>
   withXcodeProject(config, (config) => {
     const project = config.modResults;
+    const projectName = config.modRequest.projectName;
 
-    // Find the main app group (named 'mobile')
-    const groupKey = project.findPBXGroupKey({ name: 'mobile' });
+    // Find the main app group (имя проекта: mobile / SOS24 и т.п.)
+    const groupKey = project.findPBXGroupKey({ name: projectName });
 
     const filesToAdd = [
       { name: 'MyIdSdkModule.swift', type: 'sourcecode.swift' },
@@ -133,7 +135,7 @@ const withMyIdSdkXcode = (config) =>
     ];
 
     for (const { name } of filesToAdd) {
-      const filePath = `mobile/${name}`;
+      const filePath = `${projectName}/${name}`;
       // Skip if already referenced in project
       const alreadyAdded = Object.values(project.hash.project.objects.PBXFileReference || {})
         .some((ref) => typeof ref === 'object' && ref.path === `"${name}"`);

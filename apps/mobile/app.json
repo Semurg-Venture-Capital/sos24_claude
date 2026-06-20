@@ -12,7 +12,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "uz.sos24.app",
+      "bundleIdentifier": "uz.sos24.client",
       "appleTeamId": "SRGDG34MV6",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "SOS24 использует вашу геопозицию для определения адреса при вызове аджастера.",
