@@ -9,6 +9,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { DriversModule } from './drivers/drivers.module';
 import { EuroprotocolModule } from './europrotocol/europrotocol.module';
 import { FilesModule } from './files/files.module';
+import { InsuranceModule } from './insurance/insurance.module';
 import { MyidModule } from './myid/myid.module';
 import { NappModule } from './napp/napp.module';
 import { PaymentsModule } from './payments/payments.module';
@@ -31,6 +32,7 @@ import { WalletModule } from './wallet/wallet.module';
     DriversModule,
     PromoModule,
     PoliciesModule,
+    InsuranceModule,
     CardsModule,
     WalletModule,
     PaymentsModule,

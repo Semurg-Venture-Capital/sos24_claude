@@ -1,8 +1,8 @@
 import { ProductType } from '@prisma/client';
 
-// Базовые цены по продуктам. Для health/home/finance — это и есть финальная
-// цена (фикс), для osago/kasko — базовая ставка, к ней применяются коэф-ты.
-export const BASE_PRICE: Record<ProductType, number> = {
+// Фолбэк-цены по типам для старых полисов без productId. Для актуального флоу
+// база берётся из продукта (baseRate) или тарифного плана (price).
+export const BASE_PRICE: Partial<Record<ProductType, number>> = {
   OSAGO: 320000,
   KASKO: 4200000,
   HEALTH: 1200000,
@@ -27,16 +27,23 @@ export interface PriceCalculation {
 
 export interface CalcInputs {
   type: ProductType;
+  // Явная база: baseRate продукта (для COEFFICIENT) или цена плана (для PLANS).
+  // Если не передана — фолбэк на BASE_PRICE[type] (старые полисы без productId).
+  base?: number;
+  // Режим расчёта продукта. Если не передан — выводим из типа (авто → COEFFICIENT).
+  pricingMode?: 'COEFFICIENT' | 'PLANS';
   periodMonths?: number;
   driverLimit?: 'LIMITED' | 'UNLIMITED';
   discountPct?: number; // 0..100 от промокода
 }
 
 export function calculatePrice(input: CalcInputs): PriceCalculation {
-  const isVehicleProduct = input.type === 'OSAGO' || input.type === 'KASKO';
-  const base = BASE_PRICE[input.type];
+  const isCoefficient = input.pricingMode
+    ? input.pricingMode === 'COEFFICIENT'
+    : input.type === 'OSAGO' || input.type === 'KASKO';
+  const base = input.base ?? BASE_PRICE[input.type] ?? 0;
 
-  if (!isVehicleProduct) {
+  if (!isCoefficient) {
     // Фикс-цена без коэф-тов
     const discount = Math.round((base * (input.discountPct ?? 0)) / 100);
     return {

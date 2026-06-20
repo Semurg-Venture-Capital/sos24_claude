@@ -14,6 +14,40 @@ export class PoliciesService {
   ) {}
 
   /**
+   * Резолвит выбранный продукт/план: проверяет доступность и возвращает базу
+   * расчёта (baseRate продукта или цена плана) + режим + id для привязки.
+   * Если productId не передан — пустой результат (фолбэк на цену по типу).
+   */
+  private async resolvePricing(dto: { productId?: string; planId?: string }): Promise<{
+    base?: number;
+    pricingMode?: 'COEFFICIENT' | 'PLANS';
+    companyId?: string;
+    productId?: string;
+    planId?: string;
+  }> {
+    if (!dto.productId) return {};
+    const product = await this.prisma.insuranceProduct.findUnique({
+      where: { id: dto.productId },
+      include: { plans: true, company: true },
+    });
+    if (!product || !product.active) throw new BadRequestException('Продукт недоступен');
+    if (!product.company.active) throw new BadRequestException('Страховая компания недоступна');
+
+    if (product.pricingMode === 'PLANS') {
+      if (!dto.planId) throw new BadRequestException('Не выбран тарифный план');
+      const plan = product.plans.find((p) => p.id === dto.planId && p.active);
+      if (!plan) throw new BadRequestException('Тарифный план недоступен');
+      return { base: plan.price, pricingMode: 'PLANS', companyId: product.companyId, productId: product.id, planId: plan.id };
+    }
+    return {
+      base: product.baseRate ?? undefined,
+      pricingMode: 'COEFFICIENT',
+      companyId: product.companyId,
+      productId: product.id,
+    };
+  }
+
+  /**
    * Расчёт цены полиса. Не сохраняет в БД, только возвращает breakdown.
    */
   async calculate(userId: string, dto: CalculatePolicyDto): Promise<PriceCalculation & { promo?: { code: string; discountPct: number } }> {
@@ -22,6 +56,8 @@ export class PoliciesService {
       const v = await this.prisma.vehicle.findFirst({ where: { id: dto.vehicleId, userId } });
       if (!v) throw new BadRequestException('Указанное авто не найдено у пользователя');
     }
+
+    const pricing = await this.resolvePricing(dto);
 
     let discountPct = 0;
     let promoInfo: { code: string; discountPct: number } | undefined;
@@ -33,6 +69,8 @@ export class PoliciesService {
 
     const price = calculatePrice({
       type: dto.type,
+      base: pricing.base,
+      pricingMode: pricing.pricingMode,
       periodMonths: dto.periodMonths,
       driverLimit: dto.driverLimit,
       discountPct,
@@ -66,6 +104,8 @@ export class PoliciesService {
       }
     }
 
+    const pricing = await this.resolvePricing(dto);
+
     // Цена
     let discountPct = 0;
     let promoCode: string | null = null;
@@ -76,6 +116,8 @@ export class PoliciesService {
     }
     const price = calculatePrice({
       type: dto.type,
+      base: pricing.base,
+      pricingMode: pricing.pricingMode,
       periodMonths: dto.periodMonths,
       driverLimit: dto.driverLimit,
       discountPct,
@@ -91,6 +133,9 @@ export class PoliciesService {
         userId,
         type: dto.type,
         status: PolicyStatus.DRAFT,
+        companyId: pricing.companyId ?? null,
+        productId: pricing.productId ?? null,
+        planId: pricing.planId ?? null,
         vehicleId: isVehicleProduct ? dto.vehicleId! : null,
         startDate,
         endDate,

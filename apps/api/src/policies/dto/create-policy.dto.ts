@@ -7,6 +7,16 @@ export class CreatePolicyDto {
   @IsEnum(ProductType)
   type!: ProductType;
 
+  @ApiPropertyOptional({ description: 'Продукт выбранной страховой компании' })
+  @IsOptional()
+  @IsString()
+  productId?: string;
+
+  @ApiPropertyOptional({ description: 'Тарифный план (для продуктов с планами)' })
+  @IsOptional()
+  @IsString()
+  planId?: string;
+
   @ApiPropertyOptional({ description: 'Обязателен для OSAGO/KASKO' })
   @IsOptional()
   @IsString()
