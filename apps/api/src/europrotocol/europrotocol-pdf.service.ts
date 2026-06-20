@@ -153,7 +153,7 @@ export class EuroprotocolPdfService {
       damageDesc: p.damageDescB || '',
       objections: p.objectionsB || '',
       impactZone: zoneLabel(p.impactZoneB),
-      signStamp: signStamp(p.signedBAt, 'OTP'),
+      signStamp: signStamp(p.signedBAt, 'MyID'),
     };
 
     // ── Обстоятельства (22 boolean на сторону) ──
@@ -184,7 +184,7 @@ export class EuroprotocolPdfService {
       qrUrl,
       qrDataUrl,
       signA: signStamp(p.signedAAt, 'MyID'),
-      signB: signStamp(p.signedBAt, 'OTP'),
+      signB: signStamp(p.signedBAt, 'MyID'),
       back: {
         circumstancesText: p.description || '',
         driverRole: (p.driverRole as 'owner' | 'other' | null) || '',
@@ -193,7 +193,7 @@ export class EuroprotocolPdfService {
         remarks: p.remarks || '',
         signRows: [
           { ...dateParts(p.signedAAt), signature: signStamp(p.signedAAt, 'MyID'), fio: userFio },
-          { ...dateParts(p.signedBAt), signature: signStamp(p.signedBAt, 'OTP'), fio: b.driverName },
+          { ...dateParts(p.signedBAt), signature: signStamp(p.signedBAt, 'MyID'), fio: b.driverName },
         ],
       },
     };

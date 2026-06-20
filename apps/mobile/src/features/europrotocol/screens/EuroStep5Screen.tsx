@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useVehicles } from '../../../api/vehicles';
+import { upsertDocument } from '../../../api/documents';
 import {
   participantFullName,
   uploadEuroMedia,
@@ -70,6 +71,21 @@ export function EuroStep5Screen() {
     try {
       setPhase('Загрузка медиа…');
       const photos = await uploadMedia();
+
+      // ВУ стороны A заполнено в шаге 2 (в профиле его не было) → сохраняем в профиль,
+      // чтобы оно попало в PDF извещения.
+      if (s.myDlSeria.trim() && s.myDlNumber.trim() && s.myDlIssue) {
+        try {
+          await upsertDocument('license', {
+            series: s.myDlSeria.trim(),
+            number: s.myDlNumber.trim(),
+            issuedAt: s.myDlIssue,
+            categories: s.myDlCategories.trim() || undefined,
+          });
+        } catch {
+          /* не блокируем отправку, если сохранить ВУ не удалось */
+        }
+      }
 
       setPhase('Отправка…');
       const res = await submitMutation.mutateAsync({

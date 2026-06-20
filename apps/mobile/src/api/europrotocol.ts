@@ -142,6 +142,7 @@ export interface ParticipantVehicle {
   techPassportNumber: string | null;
   bodyNumber: string | null;
   engineNumber: string | null;
+  vin: string | null;
 }
 export interface ParticipantPolicy {
   id: string;

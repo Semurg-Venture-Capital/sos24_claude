@@ -243,6 +243,7 @@ export class EuroprotocolService {
       techPassportNumber: string | null;
       bodyNumber: string | null;
       engineNumber: string | null;
+      vin: string | null;
     }>;
     policies: Array<{ id: string; policyNumber: string | null; vehicleId: string | null; status: string }>;
     contact: { phone: string | null; address: string | null } | null;
@@ -294,13 +295,14 @@ export class EuroprotocolService {
             techPassportNumber: true,
             bodyNumber: true,
             engineNumber: true,
+            vin: true,
           },
           orderBy: { createdAt: 'desc' },
         })
       : [];
     const policies = user
       ? await this.prisma.policy.findMany({
-          where: { userId: user.id, type: 'OSAGO', status: { notIn: ['CANCELLED', 'EXPIRED'] } },
+          where: { userId: user.id, type: 'OSAGO', status: 'ACTIVE' },
           select: { id: true, policyNumber: true, vehicleId: true, status: true },
           orderBy: { createdAt: 'desc' },
         })

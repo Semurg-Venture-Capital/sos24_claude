@@ -16,6 +16,7 @@ import {
 import { lookupVehicleByTechPassport, type TechPassportInfo } from '../../../api/vehicles';
 import { useVehicles } from '../../../api/vehicles';
 import { usePolicies } from '../../../api/policies';
+import { useDocuments } from '../../../api/documents';
 import { CarCard } from '../../../components/ui/CarCard';
 import { Glass } from '../../../components/ui/Glass';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
@@ -35,7 +36,12 @@ export function EuroStep2Screen() {
   const nav = useNavigation<Nav>();
   const { data: vehicles, isLoading } = useVehicles();
   const { data: myPolicies } = usePolicies();
+  const { data: myDocs } = useDocuments();
   const s = useEuroStore();
+
+  // Есть ли у стороны A водительское в профиле. Если нет — спросим в шаге 2.
+  const hasLicenseA = (myDocs ?? []).some((d) => d.kind === 'DRIVER_LICENSE');
+  const myDlOk = hasLicenseA || (s.myDlSeria.trim().length > 0 && s.myDlNumber.trim().length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(s.myDlIssue));
 
   // ОСАГО-полисы стороны A по выбранному авто (активные/в обработке).
   const myVehiclePolicies = (myPolicies ?? []).filter(
@@ -69,7 +75,8 @@ export function EuroStep2Screen() {
       modelName: `${v.brand ?? ''} ${v.model ?? ''}`.trim(),
       markName: v.brand ?? '',
       govNumber: v.plate ?? '',
-      bodyNumber: v.bodyNumber ?? '',
+      bodyNumber: v.bodyNumber ?? v.vin ?? '', // если кузов пуст — берём VIN
+      vin: v.vin ?? '',
       engineNumber: v.engineNumber ?? '',
       techPassportSeria: v.techPassportSeria ?? '',
       techPassportNumber: v.techPassportNumber ?? '',
@@ -78,12 +85,14 @@ export function EuroStep2Screen() {
     s.setOtherPolicyValid(null);
   };
 
-  // Выбор ОСАГО-полиса B из его профиля.
+  // Выбор ОСАГО-полиса B из его профиля. Номер может быть в разном формате — буквы → серия, цифры → номер.
   const selectBPolicy = (p: ParticipantPolicy) => {
     setBPolicyId(p.id);
-    const m = (p.policyNumber ?? '').trim().match(/^([A-Za-zА-Яа-я]{2,3})\s*-?\s*([0-9]{5,10})$/);
-    s.setOtherField('otherPolicySeria', m ? m[1].toUpperCase() : '');
-    s.setOtherField('otherPolicyNumber', m ? m[2] : (p.policyNumber ?? ''));
+    const raw = (p.policyNumber ?? '').trim();
+    const letters = (raw.match(/[A-Za-zА-Яа-я]+/) || [''])[0];
+    const digits = raw.replace(/\D/g, '');
+    s.setOtherField('otherPolicySeria', letters.toUpperCase());
+    s.setOtherField('otherPolicyNumber', digits || raw);
     s.setOtherPolicyValid(true);
   };
 
@@ -189,6 +198,7 @@ export function EuroStep2Screen() {
     s.selfVerified &&
     !!s.myVehicleId &&
     myPolicyOk && // ОСАГО стороны A обязателен
+    myDlOk && // ВУ стороны A (из профиля или заполнено здесь)
     !!s.participant &&
     !!s.otherVehicle &&
     s.otherPolicyValid === true && // полис стороны B проверен и валиден
@@ -282,6 +292,51 @@ export function EuroStep2Screen() {
               })}
             </View>
           )}
+        </>
+      ) : null}
+
+      {/* ВУ стороны A — только если в профиле нет водительского */}
+      {s.myVehicleId && !hasLicenseA ? (
+        <>
+          <Text style={subLabel}>Ваше водительское удостоверение</Text>
+          <Text style={hintText}>В профиле нет ВУ — заполните, оно попадёт в извещение и сохранится в профиль.</Text>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TextField
+              label="Серия"
+              value={s.myDlSeria}
+              onChangeText={(v) => s.patch({ myDlSeria: v.toUpperCase() })}
+              autoCapitalize="characters"
+              placeholder="AC"
+              maxLength={3}
+              containerStyle={{ flex: 1 }}
+            />
+            <TextField
+              label="Номер"
+              value={s.myDlNumber}
+              onChangeText={(v) => s.patch({ myDlNumber: v.replace(/\D/g, '') })}
+              keyboardType="number-pad"
+              placeholder="1234567"
+              maxLength={7}
+              containerStyle={{ flex: 1.6 }}
+            />
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TextField
+              label="Категории"
+              value={s.myDlCategories}
+              onChangeText={(v) => s.patch({ myDlCategories: v.toUpperCase() })}
+              autoCapitalize="characters"
+              placeholder="B, C"
+              maxLength={20}
+              containerStyle={{ flex: 1 }}
+            />
+            <DateField
+              label="Дата выдачи"
+              value={s.myDlIssue}
+              onChange={(v) => s.patch({ myDlIssue: v })}
+              containerStyle={{ flex: 1 }}
+            />
+          </View>
         </>
       ) : null}
        </>
