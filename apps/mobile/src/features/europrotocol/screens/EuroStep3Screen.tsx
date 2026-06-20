@@ -13,7 +13,7 @@ import type { EuroStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStep3'>;
 
-const SCHEMES: { key: SchemeType; label: string; Illu: () => React.ReactElement }[] = [
+const SCHEMES: { key: SchemeType; label: string; Illu: (p: { color: string }) => React.ReactElement }[] = [
   { key: 'rear', label: 'Наезд сзади', Illu: SchemeRear },
   { key: 'front', label: 'Лобовое', Illu: SchemeFront },
   { key: 'side', label: 'Боковое', Illu: SchemeSide },
@@ -38,13 +38,13 @@ export function EuroStep3Screen() {
       <ScreenHeading title="Схема столкновения" subtitle="Выберите подходящий шаблон и опишите, как произошло ДТП" />
 
       <View style={{ flexDirection: 'row', gap: 10 }}>
-        {SCHEMES.map((s) => (
+        {SCHEMES.map((it) => (
           <SchemeOption
-            key={s.key}
-            label={s.label}
-            selected={schemeType === s.key}
-            onPress={() => setScheme(s.key)}
-            illu={<s.Illu />}
+            key={it.key}
+            label={it.label}
+            selected={schemeType === it.key}
+            onPress={() => setScheme(it.key)}
+            Illu={it.Illu}
           />
         ))}
       </View>
@@ -140,9 +140,21 @@ export function EuroStep3Screen() {
             maxLength={200}
           />
         ) : null}
-        <YesNoToggle label="ТС может двигаться самостоятельно?" value={s.canMove} onChange={(v) => patch({ canMove: v })} />
+        <YesNoToggle
+          label="ТС может двигаться самостоятельно?"
+          value={s.canMove}
+          onChange={(v) =>
+            // При «Нет» местоположение ТС = адрес ДТП с шага 1 (GPS), отдельно не спрашиваем.
+            patch(v === false ? { canMove: v, cannotMovePlace: s.place } : { canMove: v, cannotMovePlace: '' })
+          }
+        />
         {s.canMove === false ? (
-          <FieldInput label="Где сейчас находится ТС" value={s.cannotMovePlace} onChangeText={(v) => patch({ cannotMovePlace: v })} placeholder="Адрес стоянки / эвакуатора" maxLength={300} />
+          <View style={{ gap: 6, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: tokens.hairline, backgroundColor: 'rgba(255,255,255,0.4)' }}>
+            <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>Местоположение ТС (с шага 1, GPS)</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, lineHeight: 19, color: tokens.inkDark }}>
+              {s.place || 'Адрес не определён на шаге 1'}
+            </Text>
+          </View>
         ) : null}
         <FieldInput label="Замечания (Изоҳ)" value={s.remarks} onChangeText={(v) => patch({ remarks: v })} placeholder="Доп. замечания…" multiline maxLength={2000} />
       </View>
@@ -182,8 +194,8 @@ function CircumstanceRow({
       }}
     >
       <Text style={{ width: 18, fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: tokens.inkSubtle }}>{index + 1}</Text>
-      <Text style={{ flex: 1, fontFamily: 'Manrope_500Medium', fontSize: 11.5, lineHeight: 15, color: tokens.inkDark }}>{text}</Text>
       <SideBox label="А" active={a} onPress={onToggleA} />
+      <Text style={{ flex: 1, fontFamily: 'Manrope_500Medium', fontSize: 11.5, lineHeight: 15, color: tokens.inkDark }}>{text}</Text>
       <SideBox label="В" active={b} onPress={onToggleB} />
     </View>
   );
@@ -213,12 +225,12 @@ function SchemeOption({
   label,
   selected,
   onPress,
-  illu,
+  Illu,
 }: {
   label: string;
   selected: boolean;
   onPress: () => void;
-  illu: React.ReactNode;
+  Illu: (p: { color: string }) => React.ReactElement;
 }) {
   return (
     <Pressable
@@ -235,7 +247,9 @@ function SchemeOption({
         opacity: pressed ? 0.8 : 1,
       })}
     >
-      <View style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}>{illu}</View>
+      <View style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}>
+        <Illu color={selected ? '#fff' : tokens.inkDark} />
+      </View>
       <Text
         style={{
           fontFamily: 'Manrope_500Medium',
@@ -250,28 +264,29 @@ function SchemeOption({
   );
 }
 
-// Мини-иллюстрации схем (currentColor наследуется от текста родителя — задаём явно).
-function SchemeRear() {
+// Мини-иллюстрации схем. Цвет контура передаётся снаружи (белый на выбранной тёмной
+// плашке, тёмный — на светлой). Красный акцент удара виден на обоих фонах.
+function SchemeRear({ color }: { color: string }) {
   return (
-    <Svg width={60} height={40} viewBox="0 0 60 40" fill="none" stroke={tokens.inkDark} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={60} height={40} viewBox="0 0 60 40" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <Rect x={6} y={14} width={22} height={14} rx={3} />
       <Rect x={32} y={14} width={22} height={14} rx={3} />
       <Path d="M30 18l-2 3 2 3" stroke={tokens.red} strokeWidth={2} />
     </Svg>
   );
 }
-function SchemeFront() {
+function SchemeFront({ color }: { color: string }) {
   return (
-    <Svg width={60} height={40} viewBox="0 0 60 40" fill="none" stroke={tokens.inkDark} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={60} height={40} viewBox="0 0 60 40" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <Rect x={6} y={14} width={22} height={14} rx={3} />
       <Rect x={32} y={14} width={22} height={14} rx={3} />
       <Path d="M28 21h4" stroke={tokens.red} strokeWidth={2.5} />
     </Svg>
   );
 }
-function SchemeSide() {
+function SchemeSide({ color }: { color: string }) {
   return (
-    <Svg width={40} height={44} viewBox="0 0 40 44" fill="none" stroke={tokens.inkDark} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={40} height={44} viewBox="0 0 40 44" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
       <Rect x={10} y={4} width={20} height={14} rx={3} />
       <Rect x={10} y={26} width={20} height={14} rx={3} />
       <Path d="M20 20v4" stroke={tokens.red} strokeWidth={2.5} />
