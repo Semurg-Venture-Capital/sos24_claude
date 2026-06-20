@@ -13,7 +13,6 @@ import {
 } from '../../../api/europrotocol';
 import { lookupVehicleByTechPassport } from '../../../api/vehicles';
 import { useVehicles } from '../../../api/vehicles';
-import { useMe } from '../../../api/auth';
 import { usePolicies } from '../../../api/policies';
 import { CarCard } from '../../../components/ui/CarCard';
 import { Glass } from '../../../components/ui/Glass';
@@ -33,7 +32,6 @@ type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStep2'>;
 export function EuroStep2Screen() {
   const nav = useNavigation<Nav>();
   const { data: vehicles, isLoading } = useVehicles();
-  const { data: me } = useMe();
   const { data: myPolicies } = usePolicies();
   const s = useEuroStore();
 
@@ -55,9 +53,10 @@ export function EuroStep2Screen() {
   const verifySelf = async () => {
     setVerifyingSelf(true);
     try {
-      // Сторона A — всегда владелец аккаунта: пробрасываем его ПИНФЛ в MyID (pre-fill),
-      // а stepUp на бэкенде сверяет, что распознанное лицо = владелец аккаунта.
-      const code = await runMyIdCode(me?.pinfl ?? undefined);
+      // Сторона A — всегда владелец аккаунта. MyID запускаем без pre-fill ПИНФЛ
+      // (MyID требует ещё и дату рождения вместе с ПИНФЛ), а stepUp на бэкенде
+      // сверяет, что распознанное лицо = владелец аккаунта.
+      const code = await runMyIdCode();
       const res = await stepUpMyId(code);
       if (res.ok) s.setSelfVerified(true);
       else Alert.alert('Не совпало', 'Личность не совпала с владельцем аккаунта. Сторона A должна подтверждаться владельцем телефона.');
@@ -155,6 +154,10 @@ export function EuroStep2Screen() {
         />
       )}
 
+      {!s.selfVerified ? (
+        <Text style={hintText}>Сначала подтвердите личность через MyID — затем появятся ваши авто и полисы.</Text>
+      ) : (
+       <>
       <Text style={subLabel}>Моё транспортное средство</Text>
       {isLoading ? (
         <ActivityIndicator color={tokens.red} style={{ marginVertical: 16 }} />
@@ -216,6 +219,8 @@ export function EuroStep2Screen() {
           )}
         </>
       ) : null}
+       </>
+      )}
 
       {/* ─────────── Сторона B ─────────── */}
       <View style={{ marginTop: 8 }}>
