@@ -9,15 +9,17 @@ RUN corepack enable && apt-get update \
  && rm -rf /var/lib/apt/lists/*
 # Не качаем бандл Chromium при install — в runtime ставим системный (см. ниже).
 # Сетевые ретраи/таймауты — npm-реестр под эмуляцией бывает флаки.
-ENV PUPPETEER_SKIP_DOWNLOAD=true \
-    npm_config_fetch_timeout=1800000 \
-    npm_config_fetch_retries=8 \
-    npm_config_fetch_retry_maxtimeout=300000
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 WORKDIR /repo
 COPY . .
-# Ставим ТОЛЬКО api + её workspace-зависимости (не тянем RN/Expo/Next всего монорепо).
-# --network-concurrency=2 — на медленном/флаки npm меньше параллельных загрузок = каждой больше полосы.
-RUN pnpm install --frozen-lockfile --filter api... --network-concurrency=2
+# Ставим ТОЛЬКО api + её зависимости ИЗ ЛОКАЛЬНОГО pnpm-store (bind-mount build-context
+# `pnpmstore`), офлайн — npm-реестр под эмуляцией бывает недоступен/флаки.
+# Сборка: docker buildx build --build-context pnpmstore="$(dirname "$(pnpm store path)")" ...
+# (контекст = РОДИТЕЛЬ стора, внутри лежит vNN). rw — pnpm пишет метаданные эфемерно (в источник не пишет).
+# package-import-method=copy — хардлинки через границу ФС нельзя.
+RUN --mount=type=bind,from=pnpmstore,target=/pnpm-store,rw \
+    pnpm install --frozen-lockfile --filter api... --offline \
+      --store-dir /pnpm-store --package-import-method=copy
 RUN pnpm --filter api exec prisma generate
 RUN pnpm --filter api run build
 # pruned prod-сборка только для api (включает prisma CLI + @prisma/client — они в deps)

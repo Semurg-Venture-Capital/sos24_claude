@@ -48,14 +48,22 @@ PostgreSQL — уже поднят DevOps в кластере (postgresql.sos24-
 ```bash
 # registry DevOps (insecure, без авторизации)
 export REG=10.10.38.11:30500/sos24
-docker build -f apps/api/Dockerfile   -t $REG/sos24-api:latest .
-docker build -f apps/admin/Dockerfile -t $REG/sos24-admin:latest \
+
+# API ставит зависимости ОФЛАЙН из локального pnpm-store (npm-реестр под эмуляцией флаки).
+# Обязательно передать build-context `pnpmstore` = РОДИТЕЛЬ стора (внутри лежит vNN).
+# Используем обычный `docker build` (НЕ `buildx build` — он без --load не кладёт образ в стор,
+# и docker push отправит старый локальный :latest).
+docker build --platform linux/amd64 \
+  --build-context pnpmstore="$(dirname "$(pnpm store path)")" \
+  -f apps/api/Dockerfile -t $REG/sos24-api:latest .
+
+docker build --platform linux/amd64 -f apps/admin/Dockerfile -t $REG/sos24-admin:latest \
        --build-arg NEXT_PUBLIC_API_URL=https://api.sos24.uz .
 docker push $REG/sos24-api:latest
 docker push $REG/sos24-admin:latest
 ```
-> Образы — `linux/amd64` (если собираешь на Apple Silicon, добавь `--platform linux/amd64`).
-> Узлы кластера (containerd) должны знать про insecure-registry `10.10.38.11:30500` — это настройка DevOps.
+> Образы — `linux/amd64`. Узлы кластера (containerd) знают про insecure-registry `10.10.38.11:30500`.
+> ⚠️ Если npm-реестр доступен и стабилен — можно вернуть онлайн-install, но офлайн надёжнее.
 
 ## Шаг 2 — секреты и манифесты
 > Registry insecure и без авторизации → imagePullSecret НЕ нужен.
@@ -135,7 +143,8 @@ open https://admin.sos24.uz                   # логин админки
 - **Обновление версии (rollout):**
   ```bash
   export REG=10.10.38.11:30500/sos24
-  docker build --platform linux/amd64 -f apps/api/Dockerfile -t $REG/sos24-api:latest .
+  docker build --platform linux/amd64 --build-context pnpmstore="$(dirname "$(pnpm store path)")" \
+    -f apps/api/Dockerfile -t $REG/sos24-api:latest .
   docker push $REG/sos24-api:latest
   # тег latest не меняет spec → принудительно перезапускаем под:
   kubectl -n sos24-dev rollout restart deploy/sos24-api
