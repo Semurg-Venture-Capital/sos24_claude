@@ -154,6 +154,8 @@ export interface VerifyParticipantResult {
   registered: boolean; // B есть у нас в системе
   vehicles: ParticipantVehicle[];
   policies: ParticipantPolicy[]; // действующие ОСАГО участника B
+  contact: { phone: string | null; address: string | null } | null;
+  driverLicense: { seria: string; number: string; categories: string | null; issuedAt: string | null } | null;
 }
 
 export async function verifyParticipant(code: string): Promise<VerifyParticipantResult> {

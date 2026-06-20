@@ -245,6 +245,8 @@ export class EuroprotocolService {
       engineNumber: string | null;
     }>;
     policies: Array<{ id: string; policyNumber: string | null; vehicleId: string | null; status: string }>;
+    contact: { phone: string | null; address: string | null } | null;
+    driverLicense: { seria: string; number: string; categories: string | null; issuedAt: Date | null } | null;
   }> {
     const d = await this.myid.fetchProfileByCode(code);
     const { seria, number } = splitPassport(d.passportData);
@@ -274,8 +276,11 @@ export class EuroprotocolService {
     const { myidRaw, ...safe } = participant;
     void myidRaw;
 
-    // Зарегистрирован ли B у нас (по ПИНФЛ) → его авто + действующие ОСАГО-полисы.
-    const user = await this.prisma.user.findFirst({ where: { pinfl: d.pinfl }, select: { id: true } });
+    // Зарегистрирован ли B у нас (по ПИНФЛ) → его авто + действующие ОСАГО + контакты + ВУ.
+    const user = await this.prisma.user.findFirst({
+      where: { pinfl: d.pinfl },
+      select: { id: true, phone: true, address: true },
+    });
     const vehicles = user
       ? await this.prisma.vehicle.findMany({
           where: { userId: user.id },
@@ -301,7 +306,21 @@ export class EuroprotocolService {
         })
       : [];
 
-    return { participant: safe, registered: !!user, vehicles, policies };
+    const dl = user
+      ? await this.prisma.document.findUnique({
+          where: { userId_kind: { userId: user.id, kind: 'DRIVER_LICENSE' } },
+          select: { series: true, number: true, categories: true, issuedAt: true },
+        })
+      : null;
+
+    return {
+      participant: safe,
+      registered: !!user,
+      vehicles,
+      policies,
+      contact: user ? { phone: user.phone, address: user.address ?? safe.address } : null,
+      driverLicense: dl ? { seria: dl.series, number: dl.number, categories: dl.categories, issuedAt: dl.issuedAt } : null,
+    };
   }
 
   /**

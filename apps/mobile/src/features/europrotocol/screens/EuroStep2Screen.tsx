@@ -121,6 +121,21 @@ export function EuroStep2Screen() {
       setBPolicies(res.policies);
       setBVehicleId(null);
       setBPolicyId(null);
+
+      // B найден в системе → автозаполняем все доступные данные европротокола.
+      if (res.registered) {
+        if (res.contact?.phone) s.setOtherField('otherPhone', res.contact.phone);
+        if (res.contact?.address) s.patch({ otherOwnerAddr: res.contact.address });
+        if (res.driverLicense) {
+          s.patch({
+            otherDlSeria: res.driverLicense.seria ?? '',
+            otherDlNumber: res.driverLicense.number ?? '',
+            otherDlCategories: res.driverLicense.categories ?? '',
+            otherDlIssue: res.driverLicense.issuedAt ? res.driverLicense.issuedAt.slice(0, 10) : '',
+          });
+        }
+        s.setOtherField('otherInsurer', 'SOS24 Sugʻurta');
+      }
     } catch (e) {
       Alert.alert('MyID', (e as Error).message || 'Не удалось верифицировать участника.');
     } finally {
