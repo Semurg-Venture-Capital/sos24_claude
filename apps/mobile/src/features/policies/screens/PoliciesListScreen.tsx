@@ -17,9 +17,10 @@ import { PolicyListCardCompact } from '../../../components/ui/PolicyListCardComp
 import { Segmented } from '../../../components/ui/Segmented';
 import { StatPill } from '../../../components/ui/StatPill';
 import { tokens } from '../../../theme/colors';
-import type { PoliciesStackParamList } from '../../../navigation/types';
+import type { MainStackParamList, PoliciesStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<PoliciesStackParamList, 'PoliciesList'>;
+type RootNav = NativeStackNavigationProp<MainStackParamList>;
 
 const TYPE_LABELS: Record<ProductType, string> = {
   OSAGO: 'ОСАГО',
@@ -60,6 +61,11 @@ export function PoliciesListScreen() {
   const [tab, setTab] = useState(0);
 
   const { data: allPolicies, isLoading, refetch } = usePolicies();
+
+  // Оформление нового полиса — вход в флоу покупки (Purchase живёт на MainStack).
+  const openPurchase = () => {
+    nav.getParent<RootNav>()?.navigate('Purchase', { screen: 'CompanySelect' });
+  };
 
   // Refetch каждый раз при входе на экран — чтобы после оплаты сразу видеть новый полис
   useFocusEffect(
@@ -245,12 +251,20 @@ export function PoliciesListScreen() {
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 28, letterSpacing: -0.28, color: tokens.ink }}>
             Мои полисы
           </Text>
-          <IconButton>
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={tokens.inkDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-              <Circle cx={11} cy={11} r={7} />
-              <Path d="M21 21l-4.5-4.5" />
-            </Svg>
-          </IconButton>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <IconButton>
+              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={tokens.inkDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                <Circle cx={11} cy={11} r={7} />
+                <Path d="M21 21l-4.5-4.5" />
+              </Svg>
+            </IconButton>
+            {/* Оформить новый полис */}
+            <IconButton onPress={openPurchase}>
+              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={tokens.inkDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <Path d="M12 5v14M5 12h14" />
+              </Svg>
+            </IconButton>
+          </View>
         </Animated.View>
 
         {/* Fade-overlay снизу: контент мягко исчезает над таб-баром. */}
