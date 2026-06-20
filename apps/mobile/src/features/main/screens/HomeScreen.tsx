@@ -16,8 +16,9 @@ import {
   QuickIconPartners,
   QuickIconPolicy,
 } from '../../../components/icons/QuickActionIcons';
-import { SunIcon } from '../../../components/icons/SunIcon';
 import { TabIconUser } from '../../../components/icons/TabIcons';
+import { WeatherIcon } from '../../../components/icons/WeatherIcons';
+import { useWeather } from '../../../api/weather';
 import { ActionTile } from '../../../components/ui/ActionTile';
 import { AddPolicyTile } from '../../../components/ui/AddPolicyTile';
 import { AdjusterActiveBanner } from '../../../components/ui/AdjusterActiveBanner';
@@ -75,6 +76,7 @@ export function HomeScreen() {
   const nav = useNavigation<TabNav>();
   const insets = useSafeAreaInsets();
   const { data: me } = useMe();
+  const { data: weather } = useWeather();
   const { data: policies } = usePolicies('ACTIVE');
   const { data: partners = [] } = usePartners();
   const { data: activeRequest } = useActiveAdjusterRequest();
@@ -165,10 +167,17 @@ export function HomeScreen() {
             </View>
             <GlassPill style={{ height: 34, paddingHorizontal: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <SunIcon size={14} />
-                <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkDark }}>
-                  +22° Ташкент
-                </Text>
+                {weather ? (
+                  <>
+                    <WeatherIcon code={weather.code} isDay={weather.isDay} size={15} color={tokens.inkDark} />
+                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkDark }}>
+                      {weather.tempC > 0 ? '+' : ''}
+                      {weather.tempC}° {weather.city}
+                    </Text>
+                  </>
+                ) : (
+                  <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>Погода…</Text>
+                )}
               </View>
             </GlassPill>
           </View>
