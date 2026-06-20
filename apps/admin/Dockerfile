@@ -12,12 +12,12 @@ WORKDIR /repo
 COPY . .
 # Офлайн-install из локального pnpm-store (npm-реестр под эмуляцией флаки).
 # Сборка: docker build --build-context pnpmstore="$(dirname "$(pnpm store path)")" ...
-# prefer-offline: всё из стора, недостающие linux-x64 нативные бинари (lightningcss/swc/sharp)
-# дотягиваются с npm (их немного → проходит и на флаки-сети). Стор macOS не содержит linux-бинарей.
+# Полный offline: стор содержит и linux-x64 нативные бинари (предварительно добавлены
+# `pnpm store add @next/swc-linux-x64-gnu lightningcss-linux-x64-gnu @img/sharp-* @tailwindcss/oxide-linux-x64-gnu`).
+# Docker-egress к npm бывает подвисает (VPN) → не зависим от сети при сборке.
 RUN --mount=type=bind,from=pnpmstore,target=/pnpm-store,rw \
-    pnpm install --frozen-lockfile --filter admin... --prefer-offline \
-      --store-dir /pnpm-store --package-import-method=copy \
-      --config.fetch-timeout=600000 --config.fetch-retries=10
+    pnpm install --frozen-lockfile --filter admin... --offline \
+      --store-dir /pnpm-store --package-import-method=copy
 # NEXT_PUBLIC_* инлайнятся в бандл на этапе сборки → API-URL должен быть тут
 ARG NEXT_PUBLIC_API_URL=https://api.sos24.uz
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
