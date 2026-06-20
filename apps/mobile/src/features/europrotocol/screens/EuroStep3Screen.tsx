@@ -113,10 +113,10 @@ export function EuroStep3Screen() {
       {/* Повреждения и возражения */}
       <View style={{ gap: 12, marginTop: 4 }}>
         <SectionLabel>Повреждения и возражения</SectionLabel>
-        <FieldInput label="Повреждения вашего авто (А)" value={s.damageDescA} onChangeText={(v) => patch({ damageDescA: v })} placeholder="Олд бампер, ўнг фара…" multiline maxLength={1000} />
-        <FieldInput label="Повреждения авто «В»" value={s.damageDescB} onChangeText={(v) => patch({ damageDescB: v })} placeholder="Орқа бампер…" multiline maxLength={1000} />
-        <FieldInput label="Возражения (А) — если есть" value={s.objectionsA} onChangeText={(v) => patch({ objectionsA: v })} placeholder="Эътирозлар…" maxLength={1000} />
-        <FieldInput label="Возражения (В) — если есть" value={s.objectionsB} onChangeText={(v) => patch({ objectionsB: v })} placeholder="Эътирозлар…" maxLength={1000} />
+        <FieldInput label="Повреждения вашего авто (А)" value={s.damageDescA} onChangeText={(v) => patch({ damageDescA: v })} placeholder="Передний бампер, правая фара…" multiline maxLength={1000} />
+        <FieldInput label="Повреждения авто «В»" value={s.damageDescB} onChangeText={(v) => patch({ damageDescB: v })} placeholder="Задний бампер, левая дверь…" multiline maxLength={1000} />
+        <FieldInput label="Возражения (А) — если есть" value={s.objectionsA} onChangeText={(v) => patch({ objectionsA: v })} placeholder="Возражения, если есть…" maxLength={1000} />
+        <FieldInput label="Возражения (В) — если есть" value={s.objectionsB} onChangeText={(v) => patch({ objectionsB: v })} placeholder="Возражения, если есть…" maxLength={1000} />
       </View>
 
       {/* Оборот бланка */}
