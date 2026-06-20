@@ -131,9 +131,13 @@ export function EuroStep2Screen() {
       setBVehicleId(null);
       setBPolicyId(null);
 
+      // Адрес из MyID участника подставляем для ЛЮБОГО B (симметрично стороне A).
+      if (res.participant?.address) s.patch({ otherOwnerAddr: res.participant.address });
+
       // B найден в системе → автозаполняем все доступные данные европротокола.
       if (res.registered) {
         if (res.contact?.phone) s.setOtherField('otherPhone', res.contact.phone);
+        // адрес из профиля приоритетнее адреса из MyID
         if (res.contact?.address) s.patch({ otherOwnerAddr: res.contact.address });
         if (res.driverLicense) {
           s.patch({
