@@ -10,6 +10,7 @@ import { useCollapsingHeader } from '../../../lib/useCollapsingHeader';
 import type { Policy } from '../../../api/policies';
 import { usePolicies } from '../../../api/policies';
 import type { ProductType } from '../../../api/types';
+import { FAB } from '../../../components/ui/FAB';
 import { IconButton } from '../../../components/ui/IconButton';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { PolicyListCard } from '../../../components/ui/PolicyListCard';
@@ -251,20 +252,12 @@ export function PoliciesListScreen() {
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 28, letterSpacing: -0.28, color: tokens.ink }}>
             Мои полисы
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <IconButton>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={tokens.inkDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                <Circle cx={11} cy={11} r={7} />
-                <Path d="M21 21l-4.5-4.5" />
-              </Svg>
-            </IconButton>
-            {/* Оформить новый полис */}
-            <IconButton onPress={openPurchase}>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={tokens.inkDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <Path d="M12 5v14M5 12h14" />
-              </Svg>
-            </IconButton>
-          </View>
+          <IconButton>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={tokens.inkDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <Circle cx={11} cy={11} r={7} />
+              <Path d="M21 21l-4.5-4.5" />
+            </Svg>
+          </IconButton>
         </Animated.View>
 
         {/* Fade-overlay снизу: контент мягко исчезает над таб-баром. */}
@@ -273,6 +266,9 @@ export function PoliciesListScreen() {
           colors={['rgba(228,228,228,0)', tokens.pageBg]}
           style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 110 }}
         />
+
+        {/* Плавающая «+» — оформить новый полис (как в Гараже). */}
+        <FAB onPress={openPurchase} bottom={110} />
       </View>
     </PhoneFrame>
   );
