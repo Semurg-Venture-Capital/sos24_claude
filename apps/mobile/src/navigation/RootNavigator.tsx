@@ -20,8 +20,13 @@ export function RootNavigator() {
   // Тап по push-уведомлению (фон/закрытое и cold start) → отметить прочитанным + deeplink.
   useEffect(() => {
     const handle = (resp: Notifications.NotificationResponse | null) => {
-      const data = resp?.notification.request.content.data as Record<string, unknown> | undefined;
-      if (!data) return;
+      if (!resp) return;
+      const req = resp.notification.request;
+      // iOS: кастомные поля бывают в content.data и/или в trigger.payload (сырой APNs).
+      const fromContent = (req.content?.data ?? {}) as Record<string, unknown>;
+      const fromTrigger = ((req.trigger as { payload?: Record<string, unknown> } | null)?.payload ?? {}) as Record<string, unknown>;
+      const data = { ...fromTrigger, ...fromContent };
+      if (!data.screen && !data.id) return;
       const nid = data.notificationId as string | undefined;
       if (nid) void markNotificationRead(nid).catch(() => undefined);
       navigateFromNotification(data);

@@ -41,9 +41,16 @@ function tryNavigate(data: Record<string, unknown>): boolean {
   }
 }
 
-export function navigateFromNotification(data?: Record<string, unknown> | null): void {
+export function navigateFromNotification(data?: Record<string, unknown> | null, attempt = 0): void {
   if (!data) return;
-  if (!tryNavigate(data)) pending = data;
+  if (tryNavigate(data)) {
+    pending = null;
+    return;
+  }
+  // Навигатор/нужный экран ещё не готов (cold start, экран логина) — само-повтор
+  // до ~12с, чтобы не зависеть от гонки с flush. Плюс кладём в pending как запас.
+  pending = data;
+  if (attempt < 48) setTimeout(() => navigateFromNotification(data, attempt + 1), 250);
 }
 
 // Применить отложенный deeplink — вызывается, когда смонтирован основной навигатор.
