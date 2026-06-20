@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMe } from '../../../api/auth';
@@ -19,6 +19,8 @@ import {
 import { TabIconUser } from '../../../components/icons/TabIcons';
 import { WeatherIcon } from '../../../components/icons/WeatherIcons';
 import { useWeather } from '../../../api/weather';
+import { useUnreadCount } from '../../../api/notifications';
+import { configurePushHandler, registerPushToken } from '../../../lib/push';
 import { ActionTile } from '../../../components/ui/ActionTile';
 import { AddPolicyTile } from '../../../components/ui/AddPolicyTile';
 import { AdjusterActiveBanner } from '../../../components/ui/AdjusterActiveBanner';
@@ -77,6 +79,13 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { data: me } = useMe();
   const { data: weather, isFetching: weatherFetching, refetch: refetchWeather } = useWeather();
+  const { data: unreadCount } = useUnreadCount();
+
+  // Инициализация push: обработчик показа + регистрация токена устройства.
+  useEffect(() => {
+    configurePushHandler();
+    void registerPushToken();
+  }, []);
   const { data: policies } = usePolicies('ACTIVE');
   const { data: partners = [] } = usePartners();
   const { data: activeRequest } = useActiveAdjusterRequest();
@@ -85,6 +94,9 @@ export function HomeScreen() {
 
   // Переход в профиль (вкладка Profile).
   const openProfile = () => nav.navigate('Profile');
+
+  // Экран уведомлений (живёт на MainStack).
+  const openNotifications = () => nav.getParent<RootNav>()?.navigate('Notifications');
 
   // Purchase и Adjuster стеки живут на уровне MainStack (sibling к Tabs).
   // Вход в покупку — экран выбора страховой компании.
@@ -309,7 +321,7 @@ export function HomeScreen() {
               </GlassPill>
             }
             trailing={
-              <IconButton badge>
+              <IconButton badge={(unreadCount ?? 0) > 0} onPress={openNotifications}>
                 <IconBell color={tokens.inkDark} />
               </IconButton>
             }

@@ -7,6 +7,7 @@ import { AdjusterNavigator } from './AdjusterNavigator';
 import { EuroNavigator } from './EuroNavigator';
 import { GarageNavigator } from './GarageNavigator';
 import { HomeScreen } from '../features/main/screens/HomeScreen';
+import { NotificationsScreen } from '../features/notifications/screens/NotificationsScreen';
 import { PoliciesNavigator } from './PoliciesNavigator';
 import { ProfileNavigator } from './ProfileNavigator';
 import { PurchaseNavigator } from './PurchaseNavigator';
@@ -150,6 +151,7 @@ export function MainNavigator() {
       {/* Европротокол — обычные push-страницы (НЕ модалка): иначе нативный MyID SDK
           не может презентовать свой экран поверх модального стека (зависает спиннер). */}
       <Stack.Screen name="EuroProtocol" component={EuroNavigator} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }

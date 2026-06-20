@@ -78,6 +78,7 @@ export type EuroStackParamList = {
 // Корневой стек, оборачивающий tab-нав и модальные потоки.
 export type MainStackParamList = {
   Tabs: undefined;
+  Notifications: undefined;
   Purchase:
     | undefined
     | {
