@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View, type KeyboardTypeOptions, type ViewStyle } from 'react-native';
-import { TextField } from '../../../components/ui/TextField';
+import { Modal, Platform, Pressable, Text, TextInput, View, type KeyboardTypeOptions, type ViewStyle } from 'react-native';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { tokens } from '../../../theme/colors';
 
 // Подпись секции (как в EuroStep3).
@@ -73,13 +73,20 @@ export function FieldInput({
   );
 }
 
-// Поле даты с маской ДД.ММ.ГГГГ (на общем Glass-TextField). Хранит ISO (YYYY-MM-DD),
-// пусто если дата неполная/невалидна. Подходит для рядов рядом с другими TextField.
+// Поле даты с НАТИВНЫМ выбором (iOS — спиннер в модалке, Android — системный диалог).
+// Хранит ISO (YYYY-MM-DD).
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+function toISO(d: Date): string {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
 export function DateField({
   label,
   value,
   onChange,
-  placeholder = 'ДД.ММ.ГГГГ',
+  placeholder = 'Выберите дату',
   containerStyle,
 }: {
   label?: string;
@@ -88,35 +95,60 @@ export function DateField({
   placeholder?: string;
   containerStyle?: ViewStyle;
 }) {
-  const seed = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value.slice(8, 10) + value.slice(5, 7) + value.slice(0, 4) : '';
-  const [digits, setDigits] = useState(seed);
-  const dd = digits.slice(0, 2);
-  const mm = digits.slice(2, 4);
-  const yyyy = digits.slice(4, 8);
-  const formatted = [dd, mm, yyyy].filter((x) => x.length).join('.');
-  const complete = digits.length === 8;
-  const valid = complete && +dd >= 1 && +dd <= 31 && +mm >= 1 && +mm <= 12 && +yyyy >= 1950 && +yyyy <= 2100;
+  const [open, setOpen] = useState(false);
+  const valid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const dateVal = valid ? new Date(`${value}T00:00:00`) : new Date(2000, 0, 1);
+  const display = valid ? `${value.slice(8, 10)}.${value.slice(5, 7)}.${value.slice(0, 4)}` : '';
 
-  const handle = (t: string) => {
-    const d = t.replace(/\D/g, '').slice(0, 8);
-    setDigits(d);
-    const _dd = d.slice(0, 2), _mm = d.slice(2, 4), _yy = d.slice(4, 8);
-    const ok = d.length === 8 && +_dd >= 1 && +_dd <= 31 && +_mm >= 1 && +_mm <= 12 && +_yy >= 1950 && +_yy <= 2100;
-    onChange(ok ? `${_yy}-${_mm}-${_dd}` : '');
+  const onNative = (event: DateTimePickerEvent, d?: Date) => {
+    if (Platform.OS === 'android') {
+      setOpen(false);
+      if (event.type === 'set' && d) onChange(toISO(d));
+    } else if (d) {
+      onChange(toISO(d)); // iOS-спиннер обновляет вживую
+    }
   };
 
   return (
-    <TextField
-      label={label}
-      value={formatted}
-      onChangeText={handle}
-      placeholder={placeholder}
-      keyboardType="number-pad"
-      maxLength={10}
-      error={complete && !valid}
-      hint={complete && !valid ? 'Некорректная дата' : undefined}
-      containerStyle={containerStyle}
-    />
+    <View style={[{ gap: 6 }, containerStyle]}>
+      {label ? (
+        <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12.5, color: tokens.inkMuted, paddingLeft: 2 }}>{label}</Text>
+      ) : null}
+      <Pressable
+        onPress={() => setOpen(true)}
+        style={{
+          minHeight: 46,
+          paddingHorizontal: 14,
+          justifyContent: 'center',
+          borderRadius: 14,
+          borderWidth: 1,
+          borderColor: tokens.hairline,
+          backgroundColor: 'rgba(255,255,255,0.6)',
+        }}
+      >
+        <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 15, color: display ? tokens.inkDark : 'rgba(20,20,20,0.35)' }}>
+          {display || placeholder}
+        </Text>
+      </Pressable>
+
+      {Platform.OS === 'ios' ? (
+        <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
+          <Pressable style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={() => setOpen(false)}>
+            <Pressable style={{ backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 12 }}>
+              <DateTimePicker value={dateVal} mode="date" display="spinner" locale="ru-RU" onChange={onNative} />
+              <Pressable
+                onPress={() => setOpen(false)}
+                style={{ alignSelf: 'flex-end', paddingHorizontal: 18, paddingVertical: 10 }}
+              >
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>Готово</Text>
+              </Pressable>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      ) : open ? (
+        <DateTimePicker value={dateVal} mode="date" display="default" onChange={onNative} />
+      ) : null}
+    </View>
   );
 }
 

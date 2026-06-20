@@ -41,7 +41,8 @@
           "locationWhenInUsePermission": "SOS24 использует вашу геопозицию для определения адреса при вызове аджастера."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "@react-native-community/datetimepicker"
     ]
   }
 }
