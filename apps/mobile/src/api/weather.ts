@@ -6,6 +6,14 @@ import * as Location from 'expo-location';
 
 const TASHKENT = { latitude: 41.3111, longitude: 69.2797, city: 'Ташкент' };
 
+// Промис с таймаутом — чтобы геолокация не «висела» бесконечно.
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ]);
+}
+
 export interface Weather {
   tempC: number; // округлённая температура, °C
   code: number; // WMO weather code
@@ -55,8 +63,15 @@ async function resolveLocation(): Promise<{ latitude: number; longitude: number;
     }
     if (!granted) return TASHKENT;
 
-    const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-    const { latitude, longitude } = pos.coords;
+    // getCurrentPositionAsync может «висеть» — ограничиваем по времени, фолбэк на
+    // последнюю известную позицию, иначе Ташкент.
+    const pos = await withTimeout(
+      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+      6000,
+    ).catch(() => null);
+    const coords = pos?.coords ?? (await Location.getLastKnownPositionAsync())?.coords;
+    if (!coords) return TASHKENT;
+    const { latitude, longitude } = coords;
     let city = TASHKENT.city;
     try {
       const [p] = await Location.reverseGeocodeAsync({ latitude, longitude });

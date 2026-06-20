@@ -3,7 +3,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMe } from '../../../api/auth';
 import { useActiveAdjusterRequest } from '../../../api/adjuster';
@@ -76,7 +76,7 @@ export function HomeScreen() {
   const nav = useNavigation<TabNav>();
   const insets = useSafeAreaInsets();
   const { data: me } = useMe();
-  const { data: weather } = useWeather();
+  const { data: weather, isFetching: weatherFetching, refetch: refetchWeather } = useWeather();
   const { data: policies } = usePolicies('ACTIVE');
   const { data: partners = [] } = usePartners();
   const { data: activeRequest } = useActiveAdjusterRequest();
@@ -165,21 +165,25 @@ export function HomeScreen() {
                 {displayName}
               </Text>
             </View>
-            <GlassPill style={{ height: 34, paddingHorizontal: 12 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                {weather ? (
-                  <>
-                    <WeatherIcon code={weather.code} isDay={weather.isDay} size={15} color={tokens.inkDark} />
-                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkDark }}>
-                      {weather.tempC > 0 ? '+' : ''}
-                      {weather.tempC}° {weather.city}
-                    </Text>
-                  </>
-                ) : (
-                  <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>Погода…</Text>
-                )}
-              </View>
-            </GlassPill>
+            <Pressable onPress={() => refetchWeather()}>
+              <GlassPill style={{ height: 34, paddingHorizontal: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  {weather ? (
+                    <>
+                      <WeatherIcon code={weather.code} isDay={weather.isDay} size={15} color={tokens.inkDark} />
+                      <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkDark }}>
+                        {weather.tempC > 0 ? '+' : ''}
+                        {weather.tempC}° {weather.city}
+                      </Text>
+                    </>
+                  ) : weatherFetching ? (
+                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>Погода…</Text>
+                  ) : (
+                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>Обновить погоду</Text>
+                  )}
+                </View>
+              </GlassPill>
+            </Pressable>
           </View>
 
           {/* Active adjuster request banner */}
