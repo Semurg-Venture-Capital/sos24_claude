@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { AdjusterStatus, IncidentType, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 export interface CreateAdjusterRequestDto {
   incidentType: IncidentType;
@@ -71,9 +72,20 @@ async function enrichItems(prisma: PrismaService, items: any[]) {
   });
 }
 
+// Текст уведомления по новому статусу выезда. NEW (создание) — без уведомления.
+const ADJUSTER_NOTIF: Partial<Record<AdjusterStatus, { title: string; body: string }>> = {
+  ACCEPTED: { title: 'Заявка принята', body: 'Аварийный комиссар назначен на ваш вызов' },
+  EN_ROUTE: { title: 'Комиссар выехал', body: 'Аварийный комиссар уже в пути к месту ДТП' },
+  COMPLETED: { title: 'Выезд завершён', body: 'Аварийный комиссар завершил оформление' },
+  CANCELLED: { title: 'Заявка отменена', body: 'Ваш вызов аварийного комиссара отменён' },
+};
+
 @Injectable()
 export class AdjusterService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async create(userId: string, dto: CreateAdjusterRequestDto) {
     return this.prisma.adjusterRequest.create({
@@ -138,6 +150,17 @@ export class AdjusterService {
       },
       include: { user: { select: { id: true, name: true, surname: true, phone: true } } },
     });
+
+    // Уведомление владельцу заявки о смене статуса выезда.
+    const notif = ADJUSTER_NOTIF[dto.status];
+    if (notif) {
+      await this.notifications.send(updated.userId, {
+        type: 'CLAIM_STATUS',
+        title: notif.title,
+        body: notif.body,
+        data: { screen: 'AdjusterStatus', id: updated.id },
+      });
+    }
 
     const [enriched] = await enrichItems(this.prisma, [updated]);
     return enriched;

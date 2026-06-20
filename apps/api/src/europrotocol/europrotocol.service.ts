@@ -4,6 +4,7 @@ import { EuroParticipant, EuroStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { MyidService, type MyIdUserData } from '../myid/myid.service';
 import { NappService } from '../napp/napp.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import type { SubmitEuroDto } from './dto/submit-euro.dto';
 
 // include для детального ответа (участник + авто инициатора).
@@ -11,6 +12,15 @@ const EURO_INCLUDE = {
   participant: true,
   vehicle: { select: { id: true, plate: true, brand: true, model: true, year: true } },
 } satisfies Prisma.EuroProtocolInclude;
+
+// Уведомление инициатору по новому статусу извещения. SUBMITTED — без уведомления.
+const EURO_NOTIF: Partial<Record<EuroStatus, { title: string; body: string }>> = {
+  REVIEW: { title: 'Извещение на рассмотрении', body: 'Ваш европротокол принят в работу' },
+  NEED_INFO: { title: 'Требуется информация', body: 'По европротоколу нужны дополнительные данные' },
+  APPROVED: { title: 'Европротокол одобрен', body: 'Извещение о ДТП одобрено' },
+  REJECTED: { title: 'Европротокол отклонён', body: 'Извещение о ДТП отклонено' },
+  PAID: { title: 'Выплата произведена', body: 'По европротоколу произведена выплата' },
+};
 
 @Injectable()
 export class EuroprotocolService {
@@ -20,6 +30,7 @@ export class EuroprotocolService {
     private readonly prisma: PrismaService,
     private readonly myid: MyidService,
     private readonly napp: NappService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   // ── Отправка европротокола (сбор данных визарда) ──
@@ -221,11 +232,23 @@ export class EuroprotocolService {
   // ── Админ: смена статуса + примечание ──
   async updateStatus(id: string, status: EuroStatus, adminNote?: string) {
     await this.adminFindOne(id);
-    return this.prisma.euroProtocol.update({
+    const updated = await this.prisma.euroProtocol.update({
       where: { id },
       data: { status, ...(adminNote !== undefined ? { adminNote } : {}) },
       include: { ...EURO_INCLUDE, user: { select: { name: true, surname: true, phone: true } } },
     });
+
+    // Уведомление инициатору о смене статуса извещения (кроме исходного SUBMITTED).
+    const notif = EURO_NOTIF[status];
+    if (notif) {
+      await this.notifications.send(updated.userId, {
+        type: 'EUROPROTOCOL_STATUS',
+        title: notif.title,
+        body: adminNote?.trim() ? `${notif.body} · ${adminNote.trim()}` : notif.body,
+        data: { screen: 'EuroDetail', id: updated.id },
+      });
+    }
+    return updated;
   }
 
   /**

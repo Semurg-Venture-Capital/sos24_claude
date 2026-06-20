@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Payment, PaymentMethod, PaymentStatus } from '@prisma/client';
 import { CardsService } from '../cards/cards.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PoliciesService } from '../policies/policies.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -23,6 +24,7 @@ export class PaymentsService {
     private readonly wallet: WalletService,
     private readonly policies: PoliciesService,
     private readonly cards: CardsService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async payForPolicy(userId: string, dto: PayPolicyDto): Promise<Payment & { policy?: unknown }> {
@@ -259,10 +261,17 @@ export class PaymentsService {
       where: { id: policyId },
       data: { status: 'DRAFT' },
     });
-    return this.prisma.payment.update({
+    const failed = await this.prisma.payment.update({
       where: { id: paymentId },
       data: { status: PaymentStatus.FAILED, error },
     });
+    await this.notifications.send(failed.userId, {
+      type: 'SYSTEM',
+      title: 'Оплата не прошла',
+      body: error,
+      data: { screen: 'PolicyDetail', id: policyId },
+    });
+    return failed;
   }
 }
 
