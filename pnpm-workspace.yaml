@@ -9,6 +9,7 @@ allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true # Prisma — postinstall скачивает query-engine
   '@scarf/scarf': false # телеметрия, не нужна
+  msgpackr-extract: false # опциональный нативный ускоритель msgpackr (bullmq) — работает и без него
   prisma: true # Prisma CLI
   protobufjs: false # транзитивная зависимость firebase-admin — build-скрипт не нужен
   puppeteer: true # Puppeteer — postinstall скачивает Chromium (генерация PDF Европротокола)

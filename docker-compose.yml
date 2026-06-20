@@ -17,6 +17,20 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: sos24-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - sos24-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   minio:
     image: minio/minio:latest
     container_name: sos24-minio
@@ -39,3 +53,4 @@ services:
 volumes:
   sos24-db-data:
   sos24-minio-data:
+  sos24-redis-data:

@@ -1,7 +1,7 @@
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { registerDevice } from '../api/notifications';
+import { registerDevice, unregisterDevice } from '../api/notifications';
 
 // Показ уведомлений когда приложение на переднем плане.
 export function configurePushHandler(): void {
@@ -41,5 +41,19 @@ export async function registerPushToken(): Promise<void> {
     }
   } catch {
     // Нет Firebase-конфига / прав / симулятор — пропускаем; список уведомлений работает.
+  }
+}
+
+// Снятие токена при логауте — чтобы на устройство не шли push прошлого аккаунта.
+// Вызывать ДО сброса JWT (запрос требует авторизации). Best-effort.
+export async function unregisterPushToken(): Promise<void> {
+  try {
+    if (!Device.isDevice) return;
+    const token = await Notifications.getDevicePushTokenAsync();
+    if (typeof token.data === 'string' && token.data.length > 0) {
+      await unregisterDevice(token.data);
+    }
+  } catch {
+    /* нет токена/прав — пропускаем */
   }
 }

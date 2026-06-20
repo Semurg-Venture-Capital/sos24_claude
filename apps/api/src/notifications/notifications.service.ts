@@ -1,7 +1,10 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { DevicePlatform, NotificationType, Prisma } from '@prisma/client';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { PushService } from './push.service';
+import { PUSH_QUEUE, type PushJobData } from './push.processor';
 
 export interface SendNotificationInput {
   type?: NotificationType;
@@ -17,6 +20,7 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly push: PushService,
+    @InjectQueue(PUSH_QUEUE) private readonly pushQueue: Queue<PushJobData>,
   ) {}
 
   // ── Уведомления (in-app) ──
@@ -76,20 +80,32 @@ export class NotificationsService {
       },
     });
 
+    // Push кладём в очередь (BullMQ) — ретраи/backoff, вне критического пути.
+    // Уведомление уже в БД, поэтому даже если очередь недоступна — история не теряется.
+    const payload = {
+      title: input.title,
+      body: input.body,
+      data: { ...(input.data ?? {}), notificationId: notif.id },
+    };
     try {
-      const tokens = await this.prisma.deviceToken.findMany({ where: { userId } });
-      if (tokens.length) {
-        const { invalidTokens } = await this.push.send(
-          tokens.map((t) => ({ token: t.token, platform: t.platform })),
-          { title: input.title, body: input.body, data: { ...(input.data ?? {}), notificationId: notif.id } },
-        );
-        if (invalidTokens.length) {
-          await this.prisma.deviceToken.deleteMany({ where: { token: { in: invalidTokens } } });
-        }
-      }
+      await this.pushQueue.add('send', { userId, payload });
     } catch (e) {
-      // push не должен ломать бизнес-операцию — уведомление уже в БД.
-      this.logger.error(`push для ${userId}: ${(e as Error).message}`);
+      // Очередь/Redis недоступны → фолбэк на прямую отправку (best-effort).
+      this.logger.warn(`очередь push недоступна, fallback inline: ${(e as Error).message}`);
+      try {
+        const tokens = await this.prisma.deviceToken.findMany({ where: { userId } });
+        if (tokens.length) {
+          const { invalidTokens } = await this.push.send(
+            tokens.map((t) => ({ token: t.token, platform: t.platform })),
+            payload,
+          );
+          if (invalidTokens.length) {
+            await this.prisma.deviceToken.deleteMany({ where: { token: { in: invalidTokens } } });
+          }
+        }
+      } catch (err) {
+        this.logger.error(`push для ${userId}: ${(err as Error).message}`);
+      }
     }
 
     return notif;

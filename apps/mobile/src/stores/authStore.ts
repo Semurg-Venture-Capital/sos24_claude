@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from '../lib/secure';
 import { storage, storageKeys } from '../lib/storage';
+import { unregisterPushToken } from '../lib/push';
 
 export type AuthStatus = 'loading' | 'unauthenticated' | 'needs_verification' | 'authenticated';
 
@@ -75,6 +76,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   setAccessToken: (token) => set({ accessToken: token }),
 
   signOut: async () => {
+    // Снять push-токен текущего аккаунта (до сброса JWT — запрос требует авторизации).
+    await unregisterPushToken().catch(() => undefined);
     await clearTokens();
     storage.remove(storageKeys.userId);
     storage.remove(storageKeys.verificationStatus);

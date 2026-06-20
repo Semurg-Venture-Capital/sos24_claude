@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { BullModule } from '@nestjs/bullmq';
 import { AdminModule } from './admin/admin.module';
 import { AdjusterModule } from './adjuster/adjuster.module';
 import { AuthModule } from './auth/auth.module';
@@ -24,6 +25,18 @@ import { WalletModule } from './wallet/wallet.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: { url: config.get<string>('REDIS_URL') ?? 'redis://localhost:6379' },
+        defaultJobOptions: {
+          attempts: 5,
+          backoff: { type: 'exponential', delay: 5000 },
+          removeOnComplete: 1000,
+          removeOnFail: 5000, // держим упавшие задачи (разбор/DLQ)
+        },
+      }),
+    }),
     PrismaModule,
     FilesModule,
     NotificationsModule,
