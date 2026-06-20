@@ -33,6 +33,10 @@ export async function getUnreadCount() {
   const { data } = await api.get<{ count: number }>('/me/notifications/unread-count');
   return data.count;
 }
+// Plain-функция отметки прочитанным (для обработчика push-тапа вне React-дерева).
+export async function markNotificationRead(id: string) {
+  await api.patch(`/me/notifications/${id}/read`);
+}
 export async function registerDevice(token: string, platform: 'IOS' | 'ANDROID') {
   await api.post('/me/devices', { token, platform });
 }

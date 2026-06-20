@@ -19,6 +19,7 @@ import {
   ChevronDown,
   FileWarning,
   Building2,
+  Bell,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NAPP_TOOLS, NAPP_GROUPS } from '@/lib/nappTools';
@@ -31,6 +32,7 @@ const NAV = [
   { href: '/vehicles', label: 'Автомобили', icon: Car },
   { href: '/adjuster', label: 'Аджастер', icon: Siren },
   { href: '/europrotocols', label: 'Европротоколы', icon: FileWarning },
+  { href: '/notifications', label: 'Уведомления', icon: Bell },
   { href: '/myid-test', label: 'MyID данные', icon: Fingerprint },
 ];
 

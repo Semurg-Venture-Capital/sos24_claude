@@ -52,6 +52,32 @@ export class NotificationsService {
     return { ok: true };
   }
 
+  // ── Рассылка всем (админ) ──
+  async broadcast(input: { type?: NotificationType; title: string; body: string; data?: Record<string, string> }) {
+    const users = await this.prisma.user.findMany({ select: { id: true } });
+    if (!users.length) return { recipients: 0 };
+
+    // In-app: пишем всем (источник истины).
+    await this.prisma.notification.createMany({
+      data: users.map((u) => ({
+        userId: u.id,
+        type: input.type ?? 'SYSTEM',
+        title: input.title,
+        body: input.body,
+        data: (input.data ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      })),
+    });
+
+    // Push кладём в очередь по каждому пользователю (processor пропустит тех, у кого нет токенов).
+    const payload = { title: input.title, body: input.body, data: input.data ?? {} };
+    try {
+      await this.pushQueue.addBulk(users.map((u) => ({ name: 'send', data: { userId: u.id, payload } })));
+    } catch (e) {
+      this.logger.warn(`broadcast: очередь push недоступна: ${(e as Error).message}`);
+    }
+    return { recipients: users.length };
+  }
+
   // ── Push-токены устройств ──
   async registerToken(userId: string, token: string, platform: DevicePlatform) {
     // token уникален: если был привязан к другому пользователю — переназначаем.

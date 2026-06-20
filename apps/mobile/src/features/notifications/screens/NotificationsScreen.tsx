@@ -13,6 +13,7 @@ import {
 import { BackButton } from '../../../components/ui/BackButton';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { tokens } from '../../../theme/colors';
+import { navigateFromNotification } from '../../../navigation/navigationRef';
 import type { MainStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<MainStackParamList, 'Notifications'>;
@@ -49,7 +50,7 @@ export function NotificationsScreen() {
 
   const onPress = (n: AppNotification) => {
     if (!n.readAt) markRead.mutate(n.id);
-    // deep link можно расширить позже (n.data.screen / id)
+    navigateFromNotification(n.data);
   };
   const onLongPress = (n: AppNotification) => {
     Alert.alert('Уведомление', n.title, [
