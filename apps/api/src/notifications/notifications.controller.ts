@@ -44,6 +44,20 @@ export class NotificationsController {
     return this.notifications.remove(user.sub, id);
   }
 
+  // ── DEV: отправить тестовое уведомление себе (только вне прода) ──
+  @Post('notifications/test')
+  @ApiOperation({ summary: 'DEV: отправить себе тестовое уведомление (in-app + push).' })
+  async test(@CurrentUser() user: JwtPayload) {
+    if (process.env.NODE_ENV === 'production') return { ok: false, reason: 'disabled in production' };
+    await this.notifications.send(user.sub, {
+      type: 'SYSTEM',
+      title: 'Тестовое уведомление',
+      body: 'Если вы видите этот баннер — push работает 🎉',
+      data: { screen: 'Notifications' },
+    });
+    return { ok: true };
+  }
+
   // ── Push-токены устройств ──
   @Post('devices')
   @ApiOperation({ summary: 'Зарегистрировать push-токен устройства.' })
