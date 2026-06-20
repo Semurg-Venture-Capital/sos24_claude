@@ -234,9 +234,16 @@ export class EuroprotocolService {
    */
   async stepUp(userId: string, code: string): Promise<{ ok: boolean; pinfl: string }> {
     const profile = await this.myid.fetchProfileByCode(code);
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { pinfl: true } });
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { pinfl: true, address: true } });
     const ok = !!user?.pinfl && user.pinfl === profile.pinfl;
-    if (!ok) this.logger.warn(`step-up mismatch: account=${user?.pinfl} myid=${profile.pinfl}`);
+    if (!ok) {
+      this.logger.warn(`step-up mismatch: account=${user?.pinfl} myid=${profile.pinfl}`);
+      return { ok, pinfl: profile.pinfl };
+    }
+    // Адрес стороны A пуст → сохраняем из MyID (не перезаписываем существующий).
+    if (!user?.address && profile.permanentAddress) {
+      await this.prisma.user.update({ where: { id: userId }, data: { address: profile.permanentAddress } });
+    }
     return { ok, pinfl: profile.pinfl };
   }
 
