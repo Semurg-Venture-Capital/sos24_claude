@@ -61,8 +61,15 @@ export class CarImageService {
       this.logger.warn(`imagin ${res.status} для ${make} ${model}`);
       return null;
     }
+    // imagin при ошибке/недоступной модели отдаёт картинку-заглушку («авто под чехлом»)
+    // с заголовком x-imaginstudio-error (напр. "Customer account is disabled" для
+    // отключённого ключа). В этом случае рендер НЕ используем — пусть будет фолбэк.
+    const imaginError = res.headers.get('x-imaginstudio-error');
+    if (imaginError) {
+      this.logger.warn(`imagin не отдал рендер (${make} ${model}): ${imaginError}`);
+      return null;
+    }
     const buf = Buffer.from(await res.arrayBuffer());
-    // imagin на «не найдено» отдаёт крошечную заглушку — отсекаем по размеру.
     if (buf.length < 2000) return null;
     return buf;
   }
