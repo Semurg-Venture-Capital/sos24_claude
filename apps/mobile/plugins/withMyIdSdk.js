@@ -113,9 +113,16 @@ const withMyIdSdkFiles = (config) =>
     'ios',
     (config) => {
       // Имя iOS-проекта берём динамически (может быть mobile / SOS24 и т.п.).
-      const dir = path.join(config.modRequest.platformProjectRoot, config.modRequest.projectName);
+      const projectName = config.modRequest.projectName;
+      const dir = path.join(config.modRequest.platformProjectRoot, projectName);
       fs.writeFileSync(path.join(dir, 'MyIdSdkModule.swift'), SWIFT_SOURCE, 'utf8');
       fs.writeFileSync(path.join(dir, 'MyIdSdkModule.m'), OBJC_SOURCE, 'utf8');
+      // Bridging header должен импортировать React — иначе Swift не видит RCTPromise*Block.
+      const bridgePath = path.join(dir, `${projectName}-Bridging-Header.h`);
+      let bh = fs.existsSync(bridgePath) ? fs.readFileSync(bridgePath, 'utf8') : '';
+      if (!bh.includes('React/RCTBridgeModule.h')) {
+        fs.writeFileSync(bridgePath, `${bh}\n#import <React/RCTBridgeModule.h>\n`, 'utf8');
+      }
       return config;
     },
   ]);
