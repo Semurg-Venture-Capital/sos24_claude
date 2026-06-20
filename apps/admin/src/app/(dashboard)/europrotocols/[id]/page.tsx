@@ -24,6 +24,26 @@ function yn(v?: boolean | null): string {
   return v === true ? 'Да' : v === false ? 'Нет' : '—';
 }
 
+const ZONE: Record<string, string> = {
+  front: 'Перёд', rear: 'Зад', left: 'Левый бок', right: 'Правый бок',
+  'front-left': 'Перёд-лево', 'front-right': 'Перёд-право', 'rear-left': 'Зад-лево', 'rear-right': 'Зад-право',
+};
+function zone(code?: string | null): string {
+  return code ? ZONE[code] ?? code : '—';
+}
+function dlText(seria?: string | null, number?: string | null, categories?: string | null, issuedAt?: string | null): string {
+  if (!seria && !number) return '—';
+  return (
+    `${seria ?? ''} ${number ?? ''}`.trim() +
+    (categories ? ` · кат. ${categories}` : '') +
+    (issuedAt ? ` · от ${formatDate(issuedAt)}` : '')
+  );
+}
+function policyText(seria?: string | null, number?: string | null, valid?: boolean | null, until?: string | null): string {
+  if (!seria && !number) return '—';
+  return `${seria ?? ''} ${number ?? ''}`.trim() + (valid ? ' ✓' : '') + (until ? ` · до ${formatDate(until)}` : '');
+}
+
 export default function EuroprotocolDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -119,63 +139,40 @@ export default function EuroprotocolDetailPage() {
               </Section>
 
               {/* Сторона A */}
+              {/* Стороны A и B — одинаковая структура полей */}
               <Section title="Сторона A · Заявитель" accent="#3670d4">
                 <Field label="ФИО" value={euroFullName(p.user)} />
+                <Field label="ПИНФЛ" value={p.user?.pinfl} />
                 <Field label="Телефон" value={p.user?.phone} />
-                <Field
-                  label="Авто"
-                  value={p.vehicle ? `${p.vehicle.brand} ${p.vehicle.model} · ${p.vehicle.plate}` : '—'}
-                />
-                <Field label="MyID" value={p.selfVerified ? 'Подтверждён' : 'Нет'} />
-                <Field label="Подпись A (MyID)" value={p.signedAAt ? `Подписано ${formatDate(p.signedAAt)}` : 'Нет'} />
-                <Field label="Зона удара" value={p.impactZoneA} />
+                <Field label="Адрес" value={p.user?.address} />
+                <Field label="Авто" value={p.vehicle ? `${p.vehicle.brand} ${p.vehicle.model}` : '—'} />
+                <Field label="Госномер" value={p.vehicle?.plate} />
+                <Field label="Вод. удостоверение" value={dlText(p.aDriverLicense?.series, p.aDriverLicense?.number, p.aDriverLicense?.categories, p.aDriverLicense?.issuedAt)} />
+                <Field label="Страховщик" value={p.aOsago ? 'SOS24 Sugʻurta' : '—'} />
+                <Field label="Полис ОСАГО" value={policyText(null, p.aOsago?.policyNumber, p.aOsago?.status === 'ACTIVE', p.aOsago?.endDate)} />
+                <Field label="Зона удара" value={zone(p.impactZoneA)} />
                 <Field label="Повреждения" value={p.damageDescA} />
                 <Field label="Возражения" value={p.objectionsA} />
                 <Field label="Док. о праве владения" value={p.ownershipDocA} />
+                <Field label="Подпись (MyID)" value={p.signedAAt ? `Подписано ${formatDate(p.signedAAt)}` : p.selfVerified ? 'Подтверждён' : 'Нет'} />
               </Section>
 
-              {/* Сторона B */}
+              {/* Сторона B — та же структура */}
               <Section title="Сторона B · Второй участник" accent="#e61428">
-                <Field
-                  label="Участник"
-                  value={p.participant ? euroFullName(p.participant) : '—'}
-                />
+                <Field label="ФИО" value={p.participant ? euroFullName(p.participant) : '—'} />
                 <Field label="ПИНФЛ" value={p.participant?.pinfl} />
-                <Field label="Адрес" value={p.otherOwnerAddr} />
                 <Field label="Телефон" value={p.otherPhone} />
+                <Field label="Адрес" value={p.otherOwnerAddr} />
+                <Field label="Авто" value={otherVehicle?.modelName ? [otherVehicle.modelName, otherVehicle.issueYear].filter(Boolean).join(' · ') : '—'} />
                 <Field label="Госномер" value={p.otherGov} />
-                <Field
-                  label="Авто"
-                  value={
-                    otherVehicle?.modelName
-                      ? [otherVehicle.modelName, otherVehicle.issueYear, otherVehicle.vehicleColor].filter(Boolean).join(' · ')
-                      : '—'
-                  }
-                />
-                <Field
-                  label="Вод. удостоверение"
-                  value={
-                    p.otherDlSeria || p.otherDlNumber
-                      ? `${p.otherDlSeria ?? ''} ${p.otherDlNumber ?? ''}`.trim() +
-                        (p.otherDlCategories ? ` · кат. ${p.otherDlCategories}` : '') +
-                        (p.otherDlIssue ? ` · от ${formatDate(p.otherDlIssue)}` : '')
-                      : '—'
-                  }
-                />
+                <Field label="Вод. удостоверение" value={dlText(p.otherDlSeria, p.otherDlNumber, p.otherDlCategories, p.otherDlIssue)} />
                 <Field label="Страховщик" value={p.otherInsurer} />
-                <Field
-                  label="Полис ОСАГО"
-                  value={
-                    p.otherPolicySeria && p.otherPolicyNumber
-                      ? `${p.otherPolicySeria} ${p.otherPolicyNumber}${p.otherPolicyValid ? ' ✓ проверен' : ''}` +
-                        (p.otherPolicyValidUntil ? ` · до ${formatDate(p.otherPolicyValidUntil)}` : '')
-                      : '—'
-                  }
-                />
-                <Field label="Подпись B (MyID)" value={p.signedBAt ? `Подписано ${formatDate(p.signedBAt)}` : 'Нет'} />
-                <Field label="Зона удара" value={p.impactZoneB} />
+                <Field label="Полис ОСАГО" value={policyText(p.otherPolicySeria, p.otherPolicyNumber, p.otherPolicyValid, p.otherPolicyValidUntil)} />
+                <Field label="Зона удара" value={zone(p.impactZoneB)} />
                 <Field label="Повреждения" value={p.damageDescB} />
                 <Field label="Возражения" value={p.objectionsB} />
+                <Field label="Док. о праве владения" value={p.otherOwnershipDoc} />
+                <Field label="Подпись (MyID)" value={p.signedBAt ? `Подписано ${formatDate(p.signedBAt)}` : 'Нет'} />
               </Section>
             </div>
 

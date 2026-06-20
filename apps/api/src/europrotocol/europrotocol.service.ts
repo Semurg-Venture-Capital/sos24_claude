@@ -183,10 +183,26 @@ export class EuroprotocolService {
   async adminFindOne(id: string) {
     const p = await this.prisma.euroProtocol.findUnique({
       where: { id },
-      include: { ...EURO_INCLUDE, user: { select: { name: true, surname: true, phone: true } } },
+      include: {
+        ...EURO_INCLUDE,
+        user: { select: { name: true, surname: true, patronymic: true, phone: true, pinfl: true, address: true } },
+      },
     });
     if (!p) throw new NotFoundException('Европротокол не найден');
-    return p;
+    // Данные стороны A (как в PDF): ВУ из документов + ОСАГО по выбранному авто —
+    // чтобы админка показывала блоки A и B симметрично.
+    const aDriverLicense = await this.prisma.document.findUnique({
+      where: { userId_kind: { userId: p.userId, kind: 'DRIVER_LICENSE' } },
+      select: { series: true, number: true, categories: true, issuedAt: true },
+    });
+    const aOsago = p.vehicleId
+      ? await this.prisma.policy.findFirst({
+          where: { userId: p.userId, vehicleId: p.vehicleId, type: 'OSAGO' },
+          orderBy: { createdAt: 'desc' },
+          select: { policyNumber: true, status: true, endDate: true },
+        })
+      : null;
+    return { ...p, aDriverLicense, aOsago };
   }
 
   // ── Админ: KPI ──
