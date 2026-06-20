@@ -90,7 +90,8 @@ export async function fetchWeather(): Promise<Weather> {
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}` +
     `&current=temperature_2m,weather_code,is_day&timezone=auto`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  // AbortSignal.timeout не реализован в Hermes — используем свой таймаут.
+  const res = await withTimeout(fetch(url), 8000);
   if (!res.ok) throw new Error(`weather ${res.status}`);
   const data = (await res.json()) as {
     current?: { temperature_2m?: number; weather_code?: number; is_day?: number };
