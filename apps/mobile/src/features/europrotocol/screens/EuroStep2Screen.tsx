@@ -134,7 +134,7 @@ export function EuroStep2Screen() {
             otherDlIssue: res.driverLicense.issuedAt ? res.driverLicense.issuedAt.slice(0, 10) : '',
           });
         }
-        s.setOtherField('otherInsurer', 'SOS24 Sugʻurta');
+        s.patch({ otherInsurer: 'SOS24 Sugʻurta' });
       }
     } catch (e) {
       Alert.alert('MyID', (e as Error).message || 'Не удалось верифицировать участника.');
