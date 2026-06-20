@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import { getFocusedRouteNameFromRoute, type RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { AdjusterNavigator } from './AdjusterNavigator';
 import { EuroNavigator } from './EuroNavigator';
@@ -12,6 +13,7 @@ import { PoliciesNavigator } from './PoliciesNavigator';
 import { ProfileNavigator } from './ProfileNavigator';
 import { PurchaseNavigator } from './PurchaseNavigator';
 import { FloatingTabBar } from '../components/ui/FloatingTabBar';
+import { flushPendingDeeplink } from './navigationRef';
 import { tokens } from '../theme/colors';
 import type { MainStackParamList, MainTabParamList } from './types';
 
@@ -127,6 +129,12 @@ const Stack = createNativeStackNavigator<MainStackParamList>();
 // MainNavigator оборачивает нативные табы в Stack, чтобы поверх можно было
 // показывать модальные потоки (покупка полиса и т.п.) поверх tab-бара.
 export function MainNavigator() {
+  // Применить отложенный deeplink из push-тапа, когда навигатор смонтирован.
+  useEffect(() => {
+    const t = setTimeout(flushPendingDeeplink, 400);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <Stack.Navigator
       screenOptions={{
