@@ -6,7 +6,7 @@ import { markNotificationRead } from '../api/notifications';
 import { AuthNavigator } from './AuthNavigator';
 import { MainNavigator } from './MainNavigator';
 import { MyIdNavigator } from './MyIdNavigator';
-import { navigationRef, navigateFromNotification } from './navigationRef';
+import { navigationRef, navigateFromNotification, flushPendingDeeplink } from './navigationRef';
 import { SplashScreen } from '../features/auth/screens/SplashScreen';
 
 export function RootNavigator() {
@@ -34,7 +34,7 @@ export function RootNavigator() {
   }, []);
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} onReady={flushPendingDeeplink}>
       {status === 'loading' && <SplashScreen />}
       {status === 'unauthenticated' && <AuthNavigator />}
       {status === 'needs_verification' && <MyIdNavigator />}
