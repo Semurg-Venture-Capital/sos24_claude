@@ -4,11 +4,13 @@ packages:
 
 # Разрешённые postinstall-build скрипты (pnpm 11+ требует явного разрешения)
 allowBuilds:
+  '@firebase/util': false # firebase-admin (push FCM) — build-скрипт не нужен
   '@nestjs/core': true # NestJS — основной фреймворк бэкенда
   '@prisma/client': true
   '@prisma/engines': true # Prisma — postinstall скачивает query-engine
   '@scarf/scarf': false # телеметрия, не нужна
   prisma: true # Prisma CLI
+  protobufjs: false # транзитивная зависимость firebase-admin — build-скрипт не нужен
   puppeteer: true # Puppeteer — postinstall скачивает Chromium (генерация PDF Европротокола)
   sharp: true # обработка изображений в Next.js
   unrs-resolver: true # резолвер модулей для сборщиков (Rspack/Rsbuild)

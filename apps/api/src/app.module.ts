@@ -12,6 +12,7 @@ import { FilesModule } from './files/files.module';
 import { InsuranceModule } from './insurance/insurance.module';
 import { MyidModule } from './myid/myid.module';
 import { NappModule } from './napp/napp.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PoliciesModule } from './policies/policies.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -25,6 +26,7 @@ import { WalletModule } from './wallet/wallet.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     FilesModule,
+    NotificationsModule,
     AuthModule,
     UsersModule,
     VehiclesModule,

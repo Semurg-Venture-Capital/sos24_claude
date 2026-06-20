@@ -116,6 +116,22 @@ enum AdjusterStatus {
   CANCELLED
 }
 
+enum DevicePlatform {
+  IOS
+  ANDROID
+}
+
+// Тип уведомления — определяет иконку/цвет на клиенте и раздел для перехода.
+enum NotificationType {
+  POLICY_ACTIVATED
+  POLICY_EXPIRING
+  CLAIM_STATUS
+  EUROPROTOCOL_STATUS
+  SUPPORT_REPLY
+  PROMO
+  SYSTEM
+}
+
 model User {
   id                 String             @id @default(cuid())
   phone              String             @unique
@@ -151,6 +167,8 @@ model User {
   adjusterRequests AdjusterRequest[] @relation("RequestOwner")
   assignedRequests AdjusterRequest[] @relation("AssignedAdjuster")
   euroProtocols    EuroProtocol[]
+  notifications    Notification[]
+  deviceTokens     DeviceToken[]
 
   @@map("users")
 }
@@ -670,4 +688,39 @@ model EuroProtocol {
   @@index([userId])
   @@index([status, createdAt])
   @@map("euro_protocols")
+}
+
+// Уведомление пользователя (in-app история + источник push).
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      NotificationType @default(SYSTEM)
+  title     String
+  body      String
+  // Полезная нагрузка для перехода: { screen, params } (deep link в приложении).
+  data      Json?
+
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+// Push-токен устройства (нативный: APNs для iOS, FCM для Android).
+model DeviceToken {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token      String         @unique
+  platform   DevicePlatform
+  lastSeenAt DateTime       @default(now())
+  createdAt  DateTime       @default(now())
+
+  @@index([userId])
+  @@map("device_tokens")
 }

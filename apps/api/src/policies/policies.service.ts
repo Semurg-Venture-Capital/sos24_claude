@@ -2,15 +2,28 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Policy, PolicyStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { PromoService } from '../promo/promo.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CalculatePolicyDto } from './dto/calculate-policy.dto';
 import { CreatePolicyDto } from './dto/create-policy.dto';
 import { calculatePrice, type PriceCalculation } from './pricing';
+
+const TYPE_LABEL: Record<string, string> = {
+  OSAGO: 'ОСАГО',
+  KASKO: 'КАСКО',
+  HEALTH: 'Медицинский полис',
+  HOME: 'Полис на имущество',
+  FINANCE: 'Финансовый полис',
+  LIFE: 'Полис страхования жизни',
+  TRAVEL: 'Туристический полис',
+  OTHER: 'Страховой полис',
+};
 
 @Injectable()
 export class PoliciesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly promo: PromoService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   /**
@@ -185,7 +198,7 @@ export class PoliciesService {
     const policyNumber = generatePolicyNumber(policy.type);
     const qrPayload = `sos24://policy/${policyId}`;
 
-    return this.prisma.policy.update({
+    const updated = await this.prisma.policy.update({
       where: { id: policyId },
       data: {
         status: PolicyStatus.ACTIVE,
@@ -193,7 +206,20 @@ export class PoliciesService {
         policyNumber,
         qrPayload,
       },
+      include: { vehicle: true },
     });
+
+    // Уведомление о выпуске полиса (in-app + push).
+    const label = TYPE_LABEL[updated.type] ?? 'Полис';
+    const forVehicle = updated.vehicle ? ` для ${updated.vehicle.brand} ${updated.vehicle.model}` : '';
+    await this.notifications.send(updated.userId, {
+      type: 'POLICY_ACTIVATED',
+      title: `${label} оформлен`,
+      body: `${label}${forVehicle} активирован${updated.policyNumber ? ` · ${updated.policyNumber}` : ''}`,
+      data: { screen: 'PolicyDetail', id: updated.id },
+    });
+
+    return updated;
   }
 }
 
