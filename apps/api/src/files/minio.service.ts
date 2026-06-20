@@ -78,6 +78,16 @@ export class MinioService implements OnModuleInit {
     return objectKey;
   }
 
+  /** Есть ли объект в бакете (для кэш-проверок). */
+  async exists(key: string): Promise<boolean> {
+    try {
+      await this.client.statObject(this.bucket, key);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /** Скачать объект в Buffer. */
   async get(key: string): Promise<Buffer> {
     const stream = await this.client.getObject(this.bucket, key);

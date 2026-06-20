@@ -1,5 +1,19 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
@@ -22,9 +36,9 @@ export class VehiclesController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Деталь авто по id.' })
+  @ApiOperation({ summary: 'Деталь авто по id (с imageUrl).' })
   findOne(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
-    return this.vehicles.findOne(user.sub, id);
+    return this.vehicles.findOneWithImage(user.sub, id);
   }
 
   @Post()
@@ -51,6 +65,29 @@ export class VehiclesController {
     @Body() dto: SyncNappDto,
   ) {
     return this.vehicles.syncNapp(user.sub, id, dto);
+  }
+
+  @Post(':id/photo')
+  @ApiOperation({ summary: 'Загрузить фото авто (multipart, поле "file").' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } } })
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 8 * 1024 * 1024 } }))
+  uploadPhoto(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('Файл не передан (поле "file")');
+    if (!/^image\/(png|jpe?g|webp|heic)$/i.test(file.mimetype)) {
+      throw new BadRequestException('Только изображения (PNG, JPG, WEBP, HEIC)');
+    }
+    return this.vehicles.setPhoto(user.sub, id, file.buffer, file.mimetype);
+  }
+
+  @Delete(':id/photo')
+  @ApiOperation({ summary: 'Удалить фото авто (вернётся к рендеру).' })
+  removePhoto(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.vehicles.removePhoto(user.sub, id);
   }
 
   @Delete(':id')

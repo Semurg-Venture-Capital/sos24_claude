@@ -191,6 +191,9 @@ model Vehicle {
   vin    String?
   color  String?
 
+  // Фото авто, загруженное пользователем (ключ в MinIO). Приоритетнее рендера imagin.
+  photoKey String?
+
   // --- Данные из НАПП (e-osgo.uz /provider/osago/vehicle). Промо-поля для админки/полисов. ---
   techPassportSeria  String? // серия техпаспорта (AAF)
   techPassportNumber String? // номер техпаспорта (2949568)

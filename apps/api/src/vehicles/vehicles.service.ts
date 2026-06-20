@@ -1,9 +1,14 @@
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma, Vehicle } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { MinioService } from '../files/minio.service';
 import { NappService, TechPassportInfo } from '../napp/napp.service';
+import { CarImageService } from './car-image.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
+
+// Авто + изображение: imageUrl = фото юзера (если есть) иначе рендер imagin.
+export type VehicleWithImage = Vehicle & { photoUrl: string | null; imageUrl: string | null };
 
 @Injectable()
 export class VehiclesService {
@@ -12,19 +17,66 @@ export class VehiclesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly napp: NappService,
+    private readonly minio: MinioService,
+    private readonly carImage: CarImageService,
   ) {}
 
-  async list(userId: string): Promise<Vehicle[]> {
-    return this.prisma.vehicle.findMany({
+  // Добавляет к авто presigned-фото пользователя и итоговый imageUrl
+  // (фото юзера приоритетнее рендера; рендер тянем только если фото нет).
+  private async withImage(v: Vehicle): Promise<VehicleWithImage> {
+    const photoUrl = v.photoKey
+      ? await this.minio.presignedGetUrl(v.photoKey, 3600).catch(() => null)
+      : null;
+    const renderUrl = photoUrl ? null : await this.carImage.getRenderUrl(v.brand, v.model, v.year, v.color);
+    return { ...v, photoUrl, imageUrl: photoUrl ?? renderUrl };
+  }
+
+  async list(userId: string): Promise<VehicleWithImage[]> {
+    const vehicles = await this.prisma.vehicle.findMany({
       where: { userId },
       orderBy: { createdAt: 'asc' },
     });
+    return Promise.all(vehicles.map((v) => this.withImage(v)));
   }
 
   async findOne(userId: string, id: string): Promise<Vehicle> {
     const v = await this.prisma.vehicle.findFirst({ where: { id, userId } });
     if (!v) throw new NotFoundException('Vehicle not found');
     return v;
+  }
+
+  // findOne с изображением — для детальной карточки.
+  async findOneWithImage(userId: string, id: string): Promise<VehicleWithImage> {
+    return this.withImage(await this.findOne(userId, id));
+  }
+
+  // Загрузка фото авто пользователем: кладём в MinIO, удаляем старое, ставим photoKey.
+  async setPhoto(userId: string, id: string, buffer: Buffer, contentType: string): Promise<VehicleWithImage> {
+    const v = await this.findOne(userId, id);
+    const key = await this.minio.put(buffer, contentType, undefined, 'vehicles/photo');
+    if (v.photoKey) {
+      try {
+        await this.minio.remove(v.photoKey);
+      } catch {
+        /* старый файл мог отсутствовать */
+      }
+    }
+    const updated = await this.prisma.vehicle.update({ where: { id }, data: { photoKey: key } });
+    return this.withImage(updated);
+  }
+
+  // Удаление фото авто (вернётся к рендеру imagin).
+  async removePhoto(userId: string, id: string): Promise<VehicleWithImage> {
+    const v = await this.findOne(userId, id);
+    if (v.photoKey) {
+      try {
+        await this.minio.remove(v.photoKey);
+      } catch {
+        /* ignore */
+      }
+    }
+    const updated = await this.prisma.vehicle.update({ where: { id }, data: { photoKey: null } });
+    return this.withImage(updated);
   }
 
   async create(userId: string, dto: CreateVehicleDto): Promise<Vehicle> {
