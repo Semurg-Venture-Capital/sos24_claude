@@ -127,7 +127,7 @@ export default function EuroprotocolDetailPage() {
                   value={p.vehicle ? `${p.vehicle.brand} ${p.vehicle.model} · ${p.vehicle.plate}` : '—'}
                 />
                 <Field label="MyID" value={p.selfVerified ? 'Подтверждён' : 'Нет'} />
-                <Field label="Подпись A" value={p.signedAAt ? `Подписано ${formatDate(p.signedAAt)}` : 'Нет'} />
+                <Field label="Подпись A (MyID)" value={p.signedAAt ? `Подписано ${formatDate(p.signedAAt)}` : 'Нет'} />
                 <Field label="Зона удара" value={p.impactZoneA} />
                 <Field label="Повреждения" value={p.damageDescA} />
                 <Field label="Возражения" value={p.objectionsA} />
@@ -172,7 +172,7 @@ export default function EuroprotocolDetailPage() {
                       : '—'
                   }
                 />
-                <Field label="Подпись B (OTP)" value={p.signedBAt ? `Подписано ${formatDate(p.signedBAt)}` : 'Нет'} />
+                <Field label="Подпись B (MyID)" value={p.signedBAt ? `Подписано ${formatDate(p.signedBAt)}` : 'Нет'} />
                 <Field label="Зона удара" value={p.impactZoneB} />
                 <Field label="Повреждения" value={p.damageDescB} />
                 <Field label="Возражения" value={p.objectionsB} />

@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useVehicles } from '../../../api/vehicles';
+import { usePolicies } from '../../../api/policies';
 import { upsertDocument } from '../../../api/documents';
 import {
   participantFullName,
@@ -31,11 +32,13 @@ export function EuroStep5Screen() {
   const nav = useNavigation<Nav>();
   const s = useEuroStore();
   const { data: vehicles } = useVehicles();
+  const { data: myPolicies } = usePolicies();
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState('');
 
   const myVehicle = vehicles?.find((v) => v.id === s.myVehicleId);
+  const myPolicy = myPolicies?.find((p) => p.id === s.myPolicyId);
   const photosCount = REQUIRED_PHOTOS.filter((k) => s.photos[k]).length;
   const circCount = s.circumstancesA.filter(Boolean).length + s.circumstancesB.filter(Boolean).length;
   const submitMutation = useSubmitEuroProtocol();
@@ -179,6 +182,8 @@ export function EuroStep5Screen() {
         rows={[
           { label: 'Авто', value: myVehicle ? `${myVehicle.brand} ${myVehicle.model}` : '—' },
           { label: 'Госномер', value: myVehicle?.plate ?? '—' },
+          { label: 'ОСАГО', value: myPolicy ? `${myPolicy.policyNumber ?? myPolicy.id.slice(0, 8)}` : '—' },
+          { label: 'ВУ', value: s.myDlNumber ? `${s.myDlSeria} ${s.myDlNumber}`.trim() : 'из профиля' },
           { label: 'MyID', value: s.selfVerified ? 'Подтверждён' : 'Нет' },
         ]}
       />
@@ -192,10 +197,16 @@ export function EuroStep5Screen() {
           {
             label: 'Полис',
             value:
-              s.otherPolicySeria && s.otherPolicyNumber
-                ? `${s.otherPolicySeria} ${s.otherPolicyNumber}${s.otherPolicyValid ? ' ✓' : ''}`
+              s.otherPolicySeria || s.otherPolicyNumber
+                ? `${s.otherPolicySeria} ${s.otherPolicyNumber}`.trim() + (s.otherPolicyValid ? ' ✓' : '')
                 : '—',
           },
+          { label: 'Телефон', value: s.otherPhone || '—' },
+          {
+            label: 'ВУ',
+            value: s.otherDlSeria || s.otherDlNumber ? `${s.otherDlSeria} ${s.otherDlNumber}`.trim() : '—',
+          },
+          { label: 'Подпись', value: s.participant ? 'MyID ✓' : '—' },
         ]}
       />
 

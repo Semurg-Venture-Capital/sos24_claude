@@ -1,9 +1,10 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { WebView } from 'react-native-webview';
 import Svg, { Path } from 'react-native-svg';
 import {
   EURO_STATUS_LABEL,
@@ -45,8 +46,9 @@ export function EuroDetailScreen() {
   const { id } = useRoute<R>().params;
   const { data: p, isLoading } = useEuroProtocol(id);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfUri, setPdfUri] = useState<string | null>(null); // открыт превью-просмотр PDF
 
-  // Скачивает PDF извещения (с Bearer-токеном) во временный файл и открывает «Поделиться».
+  // Скачивает PDF (с Bearer-токеном) и открывает превью (quick view); поделиться — из превью.
   const openPdf = async () => {
     setPdfBusy(true);
     try {
@@ -56,13 +58,17 @@ export function EuroDetailScreen() {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       if (dl.status !== 200) throw new Error(String(dl.status));
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(dl.uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
-      }
+      setPdfUri(dl.uri);
     } catch {
       Alert.alert('PDF', 'Не удалось получить PDF. Попробуйте позже.');
     } finally {
       setPdfBusy(false);
+    }
+  };
+
+  const sharePdf = async () => {
+    if (pdfUri && (await Sharing.isAvailableAsync())) {
+      await Sharing.shareAsync(pdfUri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
     }
   };
 
@@ -170,14 +176,42 @@ export function EuroDetailScreen() {
             {
               label: 'Полис',
               value:
-                p.otherPolicySeria && p.otherPolicyNumber
-                  ? `${p.otherPolicySeria} ${p.otherPolicyNumber}${p.otherPolicyValid ? ' ✓' : ''}`
+                p.otherPolicySeria || p.otherPolicyNumber
+                  ? `${p.otherPolicySeria ?? ''} ${p.otherPolicyNumber ?? ''}`.trim() + (p.otherPolicyValid ? ' ✓' : '')
                   : '—',
             },
+            { label: 'Подпись', value: p.participant ? 'MyID ✓' : '—' },
           ]}
         />
         {p.description ? <SummaryBlock eyebrow="Описание" rows={[{ label: '', value: p.description }]} /> : null}
       </ScrollView>
+
+      {/* Превью PDF (quick view) + кнопка «Поделиться» */}
+      <Modal visible={!!pdfUri} animationType="slide" onRequestClose={() => setPdfUri(null)}>
+        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingTop: 56,
+              paddingHorizontal: 16,
+              paddingBottom: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: tokens.hairline,
+            }}
+          >
+            <Pressable onPress={() => setPdfUri(null)} hitSlop={8}>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.inkDark }}>Закрыть</Text>
+            </Pressable>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: tokens.ink }}>PDF извещения</Text>
+            <Pressable onPress={sharePdf} hitSlop={8}>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>Поделиться</Text>
+            </Pressable>
+          </View>
+          {pdfUri ? <WebView source={{ uri: pdfUri }} style={{ flex: 1 }} originWhitelist={['*']} /> : null}
+        </View>
+      </Modal>
     </PhoneFrame>
   );
 }
