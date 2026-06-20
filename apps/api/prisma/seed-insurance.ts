@@ -4,7 +4,7 @@ import { PrismaClient, ProductType } from '@prisma/client';
 // с контентом, перенесённым из старой статики мобайла. Идемпотентно (upsert).
 // Возвращает карту тип → { companyId, productId } для привязки демо-полисов.
 
-interface SeedProduct {
+export interface SeedProduct {
   type: ProductType;
   slug: string;
   name: string;
@@ -21,7 +21,7 @@ interface SeedProduct {
   plans?: { name: string; price: number; coverageAmount?: number; features?: string[] }[];
 }
 
-const PRODUCTS: SeedProduct[] = [
+export const PRODUCTS: SeedProduct[] = [
   {
     type: 'OSAGO',
     slug: 'osago',
