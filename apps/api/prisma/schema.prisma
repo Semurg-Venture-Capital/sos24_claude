@@ -31,6 +31,17 @@ enum ProductType {
   HEALTH
   HOME
   FINANCE
+  LIFE
+  TRAVEL
+  OTHER
+}
+
+// Как считается цена продукта:
+//  COEFFICIENT — авто (ОСАГО/КАСКО): baseRate × коэффициенты (период/территория/стаж/лимит)
+//  PLANS       — фикс-планы с ценой (здоровье/имущество/жизнь/путешествия/прочее)
+enum PricingMode {
+  COEFFICIENT
+  PLANS
 }
 
 enum PolicyStatus {
@@ -92,9 +103,9 @@ enum PartnerType {
 }
 
 enum IncidentType {
-  ACCIDENT  // ДТП
-  DAMAGE    // Повреждение
-  THEFT     // Угон
+  ACCIDENT // ДТП
+  DAMAGE // Повреждение
+  THEFT // Угон
 }
 
 enum AdjusterStatus {
@@ -118,93 +129,93 @@ model User {
   role               UserRole           @default(USER)
 
   // Дополнительные поля из MyID (заполняются при верификации)
-  nameEn      String?   // first_name_en (латиница)
-  surnameEn   String?   // last_name_en (латиница)
-  gender      String?   // 'M' | 'F'
-  birthPlace  String?   // место рождения
-  nationality String?   // национальность (например 'UZB')
-  citizenship String?   // гражданство
-  address     String?   // постоянный адрес прописки
-  myidRaw     Json?     // полный сырой ответ MyID API (аудит + будущие поля)
+  nameEn      String? // first_name_en (латиница)
+  surnameEn   String? // last_name_en (латиница)
+  gender      String? // 'M' | 'F'
+  birthPlace  String? // место рождения
+  nationality String? // национальность (например 'UZB')
+  citizenship String? // гражданство
+  address     String? // постоянный адрес прописки
+  myidRaw     Json? // полный сырой ответ MyID API (аудит + будущие поля)
 
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  vehicles          Vehicle[]
-  documents         Document[]
-  drivers           Driver[]
-  policies          Policy[]
-  cards             Card[]
-  wallet            Wallet?
-  payments          Payment[]
-  adjusterRequests  AdjusterRequest[]  @relation("RequestOwner")
-  assignedRequests  AdjusterRequest[]  @relation("AssignedAdjuster")
-  euroProtocols     EuroProtocol[]
+  vehicles         Vehicle[]
+  documents        Document[]
+  drivers          Driver[]
+  policies         Policy[]
+  cards            Card[]
+  wallet           Wallet?
+  payments         Payment[]
+  adjusterRequests AdjusterRequest[] @relation("RequestOwner")
+  assignedRequests AdjusterRequest[] @relation("AssignedAdjuster")
+  euroProtocols    EuroProtocol[]
 
   @@map("users")
 }
 
 model Document {
-  id         String         @id @default(cuid())
-  userId     String
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   kind       DocumentKind
   series     String
   number     String
   issuedAt   DateTime       @db.Date
   issuedBy   String?
-  pinfl      String?        // только для PASSPORT (14 цифр)
-  expiresAt  DateTime?      @db.Date  // только для DRIVER_LICENSE
-  categories String?        // только для DRIVER_LICENSE (CSV: "B,C")
+  pinfl      String? // только для PASSPORT (14 цифр)
+  expiresAt  DateTime?      @db.Date // только для DRIVER_LICENSE
+  categories String? // только для DRIVER_LICENSE (CSV: "B,C")
   status     DocumentStatus @default(PENDING)
 
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, kind])
   @@map("documents")
 }
 
 model Vehicle {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  plate     String
-  brand     String
-  model     String
-  year      Int
-  engine    String?  // "1.5 л"
-  power     String?  // "105 л.с."
-  vin       String?
-  color     String?
+  plate  String
+  brand  String
+  model  String
+  year   Int
+  engine String? // "1.5 л"
+  power  String? // "105 л.с."
+  vin    String?
+  color  String?
 
   // --- Данные из НАПП (e-osgo.uz /provider/osago/vehicle). Промо-поля для админки/полисов. ---
-  techPassportSeria   String?   // серия техпаспорта (AAF)
-  techPassportNumber  String?   // номер техпаспорта (2949568)
-  techPassportDate    DateTime? // дата выдачи техпаспорта
-  vehicleTypeId       Int?      // тип ТС (ref vehicle-types-osago: 1=легковой и т.д.)
-  bodyNumber          String?   // номер кузова / VIN из НАПП
-  engineNumber        String?   // номер двигателя
-  fuelType            String?   // код типа топлива (отдельного справочника НАПП нет)
-  seats               Int?      // мест сидячих
-  stands              Int?      // мест стоячих
-  fullWeight          String?   // полная масса, кг
-  emptyWeight         String?   // снаряжённая масса, кг
-  division            String?   // отдел регистрации ТС
-  pVehicleId          String?   // id ТС в гос. реестре
-  ownerName           String?   // ФИО / название владельца
-  ownerInn            String?   // ИНН (если владелец — юрлицо)
-  ownerPinfl          String?   // ПИНФЛ (если владелец — физлицо)
-  nappRaw             Json?     // полный ответ НАПП по ТС (TechPassportInfo)
-  nappOrgRaw          Json?     // карточка организации-владельца (/provider/inn), если юрлицо
-  nappSyncedAt        DateTime? // когда последний раз подтянули из НАПП
+  techPassportSeria  String? // серия техпаспорта (AAF)
+  techPassportNumber String? // номер техпаспорта (2949568)
+  techPassportDate   DateTime? // дата выдачи техпаспорта
+  vehicleTypeId      Int? // тип ТС (ref vehicle-types-osago: 1=легковой и т.д.)
+  bodyNumber         String? // номер кузова / VIN из НАПП
+  engineNumber       String? // номер двигателя
+  fuelType           String? // код типа топлива (отдельного справочника НАПП нет)
+  seats              Int? // мест сидячих
+  stands             Int? // мест стоячих
+  fullWeight         String? // полная масса, кг
+  emptyWeight        String? // снаряжённая масса, кг
+  division           String? // отдел регистрации ТС
+  pVehicleId         String? // id ТС в гос. реестре
+  ownerName          String? // ФИО / название владельца
+  ownerInn           String? // ИНН (если владелец — юрлицо)
+  ownerPinfl         String? // ПИНФЛ (если владелец — физлицо)
+  nappRaw            Json? // полный ответ НАПП по ТС (TechPassportInfo)
+  nappOrgRaw         Json? // карточка организации-владельца (/provider/inn), если юрлицо
+  nappSyncedAt       DateTime? // когда последний раз подтянули из НАПП
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  policies  Policy[]
+  policies      Policy[]
   euroProtocols EuroProtocol[]
 
   @@unique([userId, plate])
@@ -217,18 +228,18 @@ model Vehicle {
 // обязательно равен User: можно записать чужого водителя по его ФИО + ВУ,
 // без аккаунта в системе.
 model Driver {
-  id          String   @id @default(cuid())
-  userId      String   // владелец списка (тот кто оформляет полис)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String // владелец списка (тот кто оформляет полис)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  name        String   // полное ФИО
-  licenseSeries String?
-  licenseNumber String?
-  experienceYears Int   @default(0)
-  birthDate   DateTime? @db.Date
+  name            String // полное ФИО
+  licenseSeries   String?
+  licenseNumber   String?
+  experienceYears Int       @default(0)
+  birthDate       DateTime? @db.Date
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   policyDrivers PolicyDriver[]
 
@@ -237,47 +248,135 @@ model Driver {
 }
 
 model Policy {
-  id            String       @id @default(cuid())
-  userId        String
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type          ProductType
-  status        PolicyStatus @default(DRAFT)
+  type   ProductType
+  status PolicyStatus @default(DRAFT)
+
+  // Страховая компания / продукт / тарифный план (nullable — обратная совместимость
+  // со старыми полисами, оформленными до появления каталога компаний).
+  companyId String?
+  company   InsuranceCompany? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  productId String?
+  product   InsuranceProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  planId    String?
+  plan      ProductPlan?      @relation(fields: [planId], references: [id], onDelete: SetNull)
 
   // Авто — только для OSAGO/KASKO
-  vehicleId     String?
-  vehicle       Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  vehicleId String?
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
 
   // Период действия
-  startDate     DateTime     @db.Date
-  endDate       DateTime     @db.Date
-  periodMonths  Int          // 3, 6, 12 (для ОСАГО/КАСКО) или 12 для остальных
+  startDate    DateTime @db.Date
+  endDate      DateTime @db.Date
+  periodMonths Int // 3, 6, 12 (для ОСАГО/КАСКО) или 12 для остальных
 
   // Ограничения водителей (только OSAGO)
-  driverLimit   DriverLimit  @default(LIMITED)
+  driverLimit DriverLimit @default(LIMITED)
 
   // Цена
-  basePrice     Int          // в сумах
-  discount      Int          @default(0)
-  totalPrice    Int          // basePrice - discount
-  promoCode     String?
+  basePrice  Int // в сумах
+  discount   Int     @default(0)
+  totalPrice Int // basePrice - discount
+  promoCode  String?
 
   // Структура коэффициентов / расчёта — JSON для гибкости.
   // Для ОСАГО: { periodK, territoryK, experienceK, limitK }, для health/home — null.
-  coefficients  Json?
+  coefficients Json?
 
   // Заполняется при ACTIVE
-  policyNumber  String?      @unique
-  qrPayload     String?
+  policyNumber String? @unique
+  qrPayload    String?
 
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  activatedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  activatedAt DateTime?
 
-  drivers       PolicyDriver[]
+  drivers PolicyDriver[]
 
   @@index([userId, status])
+  @@index([companyId])
+  @@index([productId])
   @@map("policies")
+}
+
+// Страховая компания (страховщик). SOS24 — платформа-агрегатор, а не страховщик;
+// полисы выдают эти компании. Управляется из админки.
+model InsuranceCompany {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  logoKey     String? // ключ файла-логотипа в MinIO
+  description String?
+  active      Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  products InsuranceProduct[]
+  policies Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("insurance_companies")
+}
+
+// Страховой продукт конкретной компании (ОСАГО, КАСКО, здоровье, имущество и т.д.).
+// Контент карточки (covers/exceptions/steps/faqs) хранится в content (Json), редактируется в админке.
+model InsuranceProduct {
+  id        String           @id @default(cuid())
+  companyId String
+  company   InsuranceCompany @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  type             ProductType
+  name             String
+  slug             String
+  shortDescription String?
+  longDescription  String?
+
+  pricingMode PricingMode @default(PLANS)
+  baseRate    Int? // для COEFFICIENT (ОСАГО/КАСКО) — базовая ставка в сумах
+
+  // { covers:[{title,body}], exceptions:[string], steps:[{title,body}], faqs:[{question,answer}] }
+  content Json?
+
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  plans    ProductPlan[]
+  policies Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, slug])
+  @@index([companyId, active])
+  @@map("insurance_products")
+}
+
+// Тарифный план продукта (Базовый / Стандарт / Премиум) с фикс-ценой и покрытием.
+// Используется при pricingMode = PLANS.
+model ProductPlan {
+  id        String           @id @default(cuid())
+  productId String
+  product   InsuranceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  name           String
+  price          Int // цена в сумах
+  coverageAmount Int? // страховая сумма (покрытие), сум
+  features       Json? // string[] — что входит
+
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  policies Policy[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId, active])
+  @@map("product_plans")
 }
 
 // M:N связь полиса и водителей.
@@ -292,37 +391,37 @@ model PolicyDriver {
 }
 
 model Promo {
-  id           String   @id @default(cuid())
-  code         String   @unique
-  discountPct  Int      // 0..100
-  validFrom    DateTime?
-  validUntil   DateTime?
-  maxUses      Int?     // null = безлимит
-  usesCount    Int      @default(0)
-  isActive     Boolean  @default(true)
+  id          String    @id @default(cuid())
+  code        String    @unique
+  discountPct Int // 0..100
+  validFrom   DateTime?
+  validUntil  DateTime?
+  maxUses     Int? // null = безлимит
+  usesCount   Int       @default(0)
+  isActive    Boolean   @default(true)
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("promos")
 }
 
 model Card {
-  id        String    @id @default(cuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   brand     CardBrand
-  last4     String    // 4 цифры
-  expiry    String    // "MM/YY"
-  token     String    // mock-токен от платёжки (в реале — Uzcard tokenization)
+  last4     String // 4 цифры
+  expiry    String // "MM/YY"
+  token     String // mock-токен от платёжки (в реале — Uzcard tokenization)
   isDefault Boolean   @default(false)
   balance   Int       @default(5000000) // mock-баланс карты в сумах
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  payments  Payment[]
+  payments Payment[]
 
   @@unique([userId, token])
   @@index([userId])
@@ -330,11 +429,11 @@ model Card {
 }
 
 model Wallet {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  balance   Int      @default(0) // в сумах
+  balance Int @default(0) // в сумах
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -345,35 +444,35 @@ model Wallet {
 }
 
 model WalletTransaction {
-  id          String       @id @default(cuid())
-  walletId    String
-  wallet      Wallet       @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
 
   type        WalletTxType
-  amount      Int          // положительное для TOPUP/REFUND/BONUS, отрицательное для PAYMENT
+  amount      Int // положительное для TOPUP/REFUND/BONUS, отрицательное для PAYMENT
   description String?
-  paymentId   String?      // связь с Payment если это списание за полис
+  paymentId   String? // связь с Payment если это списание за полис
 
-  createdAt   DateTime     @default(now())
+  createdAt DateTime @default(now())
 
   @@index([walletId, createdAt])
   @@map("wallet_transactions")
 }
 
 model Partner {
-  id        String      @id @default(cuid())
-  name      String
-  type      PartnerType
-  address   String
-  phone     String?
-  rating    Float       @default(0)
-  isOpen    Boolean     @default(true)
-  city      String      @default("Ташкент")
-  lat       Float?
-  lng       Float?
+  id      String      @id @default(cuid())
+  name    String
+  type    PartnerType
+  address String
+  phone   String?
+  rating  Float       @default(0)
+  isOpen  Boolean     @default(true)
+  city    String      @default("Ташкент")
+  lat     Float?
+  lng     Float?
 
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([type])
   @@index([city])
@@ -381,23 +480,23 @@ model Partner {
 }
 
 model Payment {
-  id        String         @id @default(cuid())
-  userId    String
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  policyId  String
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policyId String
   // Не делаем relation на Policy здесь чтобы избежать циклов в seed/удалении;
   // policyId хранится как FK-like reference.
 
-  amount    Int
-  method    PaymentMethod
-  cardId    String?
-  card      Card?          @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  amount Int
+  method PaymentMethod
+  cardId String?
+  card   Card?         @relation(fields: [cardId], references: [id], onDelete: SetNull)
 
-  status    PaymentStatus  @default(PENDING)
-  error     String?        // текст ошибки если FAILED
+  status PaymentStatus @default(PENDING)
+  error  String? // текст ошибки если FAILED
 
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   paidAt    DateTime?
 
   @@index([userId, status])
@@ -406,11 +505,11 @@ model Payment {
 }
 
 model AdjusterRequest {
-  id           String         @id @default(cuid())
-  userId       String
-  user         User           @relation("RequestOwner", fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("RequestOwner", fields: [userId], references: [id], onDelete: Cascade)
 
-  policyId     String?        // связанный полис (необязательно)
+  policyId     String? // связанный полис (необязательно)
   incidentType IncidentType
   address      String
   lat          Float?
@@ -420,15 +519,15 @@ model AdjusterRequest {
   status       AdjusterStatus @default(NEW)
 
   // Назначенный аджастер — системный пользователь с ролью ADJUSTER
-  assignedAdjusterId String?  @map("assigned_adjuster_id")
-  assignedAdjuster   User?    @relation("AssignedAdjuster", fields: [assignedAdjusterId], references: [id], onDelete: SetNull)
+  assignedAdjusterId String? @map("assigned_adjuster_id")
+  assignedAdjuster   User?   @relation("AssignedAdjuster", fields: [assignedAdjusterId], references: [id], onDelete: SetNull)
 
   // Одноразовый аджастер (без аккаунта в системе)
-  adjusterName  String?  @map("adjuster_name")
-  adjusterPhone String?  @map("adjuster_phone")
+  adjusterName  String? @map("adjuster_name")
+  adjusterPhone String? @map("adjuster_phone")
 
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([status, createdAt])
@@ -441,45 +540,45 @@ model AdjusterRequest {
 // Авто и полис участника привязаны к конкретному ДТП, а не к личности,
 // поэтому здесь хранится только MyID-профиль.
 model EuroParticipant {
-  id         String    @id @default(cuid())
-  pinfl      String    @unique
+  id    String @id @default(cuid())
+  pinfl String @unique
 
   // MyID-профиль
-  name       String?
-  surname    String?
-  patronymic String?
-  nameEn     String?   @map("name_en")
-  surnameEn  String?   @map("surname_en")
-  birthDate  DateTime? @map("birth_date")
-  birthPlace String?   @map("birth_place")
-  gender     String?
+  name        String?
+  surname     String?
+  patronymic  String?
+  nameEn      String?   @map("name_en")
+  surnameEn   String?   @map("surname_en")
+  birthDate   DateTime? @map("birth_date")
+  birthPlace  String?   @map("birth_place")
+  gender      String?
   nationality String?
   citizenship String?
-  address    String?
+  address     String?
 
   // Паспорт
   passportSeria  String? @map("passport_seria")
   passportNumber String? @map("passport_number")
 
-  myidRaw    Json?     @map("myid_raw")
-  verifiedAt DateTime  @default(now()) @map("verified_at")
+  myidRaw    Json?    @map("myid_raw")
+  verifiedAt DateTime @default(now()) @map("verified_at")
 
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  protocols  EuroProtocol[]
+  protocols EuroProtocol[]
 
   @@map("euro_participants")
 }
 
 // Статус европротокола (флоу урегулирования/выплаты).
 enum EuroStatus {
-  SUBMITTED  // подано
-  REVIEW     // на рассмотрении
-  NEED_INFO  // требуется информация
-  APPROVED   // одобрено
-  REJECTED   // отклонено
-  PAID       // выплачено
+  SUBMITTED // подано
+  REVIEW // на рассмотрении
+  NEED_INFO // требуется информация
+  APPROVED // одобрено
+  REJECTED // отклонено
+  PAID // выплачено
 }
 
 // Оформленный европротокол — собранные данные ДТП (без PDF пока).
@@ -515,13 +614,13 @@ model EuroProtocol {
   schemeType     String? @map("scheme_type")
   schemeImageKey String? @map("scheme_image_key") // ключ нарисованной/загруженной схемы в MinIO
   description    String? // = оборот «1. ЙТҲ ҳолати» (обстоятельства своими словами)
-  photos         Json?   // массив ключей MinIO + метаданные
+  photos         Json? // массив ключей MinIO + метаданные
 
   // --- Общая часть бланка (пп. 4–6) ---
-  medCheck           Boolean? @map("med_check")            // 4. медосвидетельствование пройдено
-  witnesses          String?                               // 5. свидетели (ФИО, адрес)
-  officialRegistered Boolean? @map("official_registered")  // 6. оформлено сотрудником ИИО/ДЙҲХ
-  officerBadgeNo     String?  @map("officer_badge_no")      // 6. № нагрудного знака
+  medCheck           Boolean? @map("med_check") // 4. медосвидетельствование пройдено
+  witnesses          String? // 5. свидетели (ФИО, адрес)
+  officialRegistered Boolean? @map("official_registered") // 6. оформлено сотрудником ИИО/ДЙҲХ
+  officerBadgeNo     String?  @map("officer_badge_no") // 6. № нагрудного знака
 
   // --- Обстоятельства ДТП: 22 чекбокса на каждую сторону (массив boolean[22]) ---
   circumstancesA Json? @map("circumstances_a")
@@ -529,9 +628,9 @@ model EuroProtocol {
 
   // --- Сторона A: доп. поля бланка ---
   ownershipDocA String? @map("ownership_doc_a") // документ о праве владения (если водитель ≠ владелец)
-  damageDescA   String? @map("damage_desc_a")   // 12. описание повреждений
-  objectionsA   String? @map("objections_a")    // 13. возражения
-  impactZoneA   String? @map("impact_zone_a")    // 11. зона первого удара (код зоны)
+  damageDescA   String? @map("damage_desc_a") // 12. описание повреждений
+  objectionsA   String? @map("objections_a") // 13. возражения
+  impactZoneA   String? @map("impact_zone_a") // 11. зона первого удара (код зоны)
 
   // --- Сторона B: ручной ввод (НАПП/MyID не покрывают) ---
   otherOwnerAddr        String?   @map("other_owner_addr")
@@ -547,10 +646,10 @@ model EuroProtocol {
   impactZoneB           String?   @map("impact_zone_b")
 
   // --- Оборот (стр. 2) ---
-  driverRole      String?  @map("driver_role")       // 'owner' | 'other'
-  canMove         Boolean? @map("can_move")          // ТС может двигаться самостоятельно
+  driverRole      String?  @map("driver_role") // 'owner' | 'other'
+  canMove         Boolean? @map("can_move") // ТС может двигаться самостоятельно
   cannotMovePlace String?  @map("cannot_move_place") // место стоянки, если не может
-  remarks         String?                            // 4. Изоҳ (доп. замечания)
+  remarks         String? // 4. Изоҳ (доп. замечания)
 
   // --- Подписи (OTP/MyID — храним факт + время, рендерим штамп) ---
   signedAAt DateTime? @map("signed_a_at") // сторона A (инициатор, MyID step-up)

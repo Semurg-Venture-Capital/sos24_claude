@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { seedInsurance } from './seed-insurance';
 
 const prisma = new PrismaClient();
 
@@ -31,6 +32,10 @@ async function main() {
   });
 
   console.log(`User: ${user.id}`);
+
+  // Каталог: компания + продукты + планы. Возвращает карту тип → ids для привязки полисов.
+  console.log('Seeding insurance catalog …');
+  const catalog = await seedInsurance(prisma);
 
   const vehicles = [
     {
@@ -166,6 +171,8 @@ async function main() {
         userId: user.id,
         type: 'KASKO',
         status: 'ACTIVE',
+        companyId: catalog.get('KASKO')?.companyId,
+        productId: catalog.get('KASKO')?.productId,
         vehicleId: vehicleCobalt.id,
         startDate: startK,
         endDate: endK,
@@ -192,6 +199,8 @@ async function main() {
         userId: user.id,
         type: 'OSAGO',
         status: 'ACTIVE',
+        companyId: catalog.get('OSAGO')?.companyId,
+        productId: catalog.get('OSAGO')?.productId,
         vehicleId: vehicleSonata.id,
         startDate: startO,
         endDate: endO,
