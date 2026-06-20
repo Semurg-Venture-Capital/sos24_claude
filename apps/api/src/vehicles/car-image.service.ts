@@ -61,14 +61,10 @@ export class CarImageService {
       this.logger.warn(`imagin ${res.status} для ${make} ${model}`);
       return null;
     }
-    // imagin при ошибке/недоступной модели отдаёт картинку-заглушку («авто под чехлом»)
-    // с заголовком x-imaginstudio-error (напр. "Customer account is disabled" для
-    // отключённого ключа). В этом случае рендер НЕ используем — пусть будет фолбэк.
-    const imaginError = res.headers.get('x-imaginstudio-error');
-    if (imaginError) {
-      this.logger.warn(`imagin не отдал рендер (${make} ${model}): ${imaginError}`);
-      return null;
-    }
+    // Примечание: на demo-ключе imagin отдаёт картинку-заглушку («авто под чехлом»)
+    // с заголовком x-imaginstudio-error. По просьбе показываем её как изображение
+    // карточки (выглядит лучше плоского фолбэка). С боевым ключом тут будут реальные
+    // рендеры моделей. Заглушку-«не найдено» отсекаем только по размеру.
     const buf = Buffer.from(await res.arrayBuffer());
     if (buf.length < 2000) return null;
     return buf;
