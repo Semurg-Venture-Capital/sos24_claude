@@ -10,8 +10,10 @@ import {
   validateOtherPolicy,
   verifyParticipant,
   type EuroParticipant,
+  type ParticipantPolicy,
+  type ParticipantVehicle,
 } from '../../../api/europrotocol';
-import { lookupVehicleByTechPassport } from '../../../api/vehicles';
+import { lookupVehicleByTechPassport, type TechPassportInfo } from '../../../api/vehicles';
 import { useVehicles } from '../../../api/vehicles';
 import { usePolicies } from '../../../api/policies';
 import { CarCard } from '../../../components/ui/CarCard';
@@ -45,6 +47,46 @@ export function EuroStep2Screen() {
   const [lookingUp, setLookingUp] = useState(false);
   const [checkingPolicy, setCheckingPolicy] = useState(false);
 
+  // Данные участника B, если он зарегистрирован у нас (по ПИНФЛ из MyID).
+  const [bRegistered, setBRegistered] = useState(false);
+  const [bVehicles, setBVehicles] = useState<ParticipantVehicle[]>([]);
+  const [bPolicies, setBPolicies] = useState<ParticipantPolicy[]>([]);
+  const [bVehicleId, setBVehicleId] = useState<string | null>(null); // выбранное авто B из системы
+  const [bPolicyId, setBPolicyId] = useState<string | null>(null);
+  const [vehMsg, setVehMsg] = useState<string | null>(null); // статус-сообщение поиска авто
+  const [polMsg, setPolMsg] = useState<string | null>(null); // статус-сообщение проверки полиса
+
+  const bVehiclePolicies = bPolicies.filter((p) => p.vehicleId === bVehicleId);
+
+  // Выбор авто B из его профиля → заполняем поля европротокола.
+  const selectBVehicle = (v: ParticipantVehicle) => {
+    setBVehicleId(v.id);
+    setBPolicyId(null);
+    s.setOtherField('otherGov', v.plate ?? '');
+    s.setOtherField('otherTpSeria', v.techPassportSeria ?? '');
+    s.setOtherField('otherTpNumber', v.techPassportNumber ?? '');
+    s.setOtherVehicle({
+      modelName: `${v.brand ?? ''} ${v.model ?? ''}`.trim(),
+      markName: v.brand ?? '',
+      govNumber: v.plate ?? '',
+      bodyNumber: v.bodyNumber ?? '',
+      engineNumber: v.engineNumber ?? '',
+      techPassportSeria: v.techPassportSeria ?? '',
+      techPassportNumber: v.techPassportNumber ?? '',
+      issueYear: v.year ? String(v.year) : '',
+    } as unknown as TechPassportInfo);
+    s.setOtherPolicyValid(null);
+  };
+
+  // Выбор ОСАГО-полиса B из его профиля.
+  const selectBPolicy = (p: ParticipantPolicy) => {
+    setBPolicyId(p.id);
+    const m = (p.policyNumber ?? '').trim().match(/^([A-Za-zА-Яа-я]{2,3})\s*-?\s*([0-9]{5,10})$/);
+    s.setOtherField('otherPolicySeria', m ? m[1].toUpperCase() : '');
+    s.setOtherField('otherPolicyNumber', m ? m[2] : (p.policyNumber ?? ''));
+    s.setOtherPolicyValid(true);
+  };
+
   useEffect(() => {
     if (!s.myVehicleId && vehicles && vehicles.length > 0) s.setMyVehicle(vehicles[0].id);
   }, [s, vehicles]);
@@ -72,8 +114,13 @@ export function EuroStep2Screen() {
     setVerifyingOther(true);
     try {
       const code = await runMyIdCode();
-      const p = await verifyParticipant(code);
-      s.setParticipant(p);
+      const res = await verifyParticipant(code);
+      s.setParticipant(res.participant);
+      setBRegistered(res.registered);
+      setBVehicles(res.vehicles);
+      setBPolicies(res.policies);
+      setBVehicleId(null);
+      setBPolicyId(null);
     } catch (e) {
       Alert.alert('MyID', (e as Error).message || 'Не удалось верифицировать участника.');
     } finally {
@@ -84,6 +131,7 @@ export function EuroStep2Screen() {
   // ── НАПП: авто второго участника по техпаспорту ──
   const lookupOtherVehicle = async () => {
     setLookingUp(true);
+    setVehMsg('Ищем авто в госреестре…');
     try {
       const info = await lookupVehicleByTechPassport({
         techPassportSeria: s.otherTpSeria.trim(),
@@ -91,9 +139,10 @@ export function EuroStep2Screen() {
         govNumber: s.otherGov.replace(/\s+/g, '').toUpperCase(),
       });
       s.setOtherVehicle(info);
+      setVehMsg('✓ Авто найдено и заполнено.');
     } catch (e) {
       s.setOtherVehicle(null);
-      Alert.alert('Авто', (e as Error).message || 'ТС не найдено в реестре.');
+      setVehMsg((e as Error).message || 'Авто не найдено в реестре. Проверьте серию/номер техпаспорта и госномер.');
     } finally {
       setLookingUp(false);
     }
@@ -102,13 +151,14 @@ export function EuroStep2Screen() {
   // ── НАПП: валидация полиса второго участника ──
   const checkPolicy = async () => {
     setCheckingPolicy(true);
+    setPolMsg('Проверяем полис в реестре…');
     try {
       const res = await validateOtherPolicy(s.otherPolicySeria.trim(), s.otherPolicyNumber.trim());
       s.setOtherPolicyValid(res.valid);
-      if (!res.valid) Alert.alert('Полис', res.message || 'Полис не найден в реестре.');
+      setPolMsg(res.valid ? '✓ Полис действителен.' : res.message || 'Полис не найден в реестре. Проверьте серию и номер.');
     } catch {
       s.setOtherPolicyValid(false);
-      Alert.alert('Полис', 'Не удалось проверить полис.');
+      setPolMsg('Не удалось проверить полис. Попробуйте ещё раз.');
     } finally {
       setCheckingPolicy(false);
     }
@@ -244,86 +294,173 @@ export function EuroStep2Screen() {
       {/* Авто и полис второго участника — только после верификации */}
       {s.participant && (
         <>
-          <Text style={subLabel}>Авто второго участника (по техпаспорту)</Text>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <TextField
-              label="Серия ТП"
-              value={s.otherTpSeria}
-              onChangeText={(v) => s.setOtherField('otherTpSeria', v.toUpperCase())}
-              autoCapitalize="characters"
-              placeholder="AAF"
-              maxLength={3}
-              containerStyle={{ flex: 1 }}
-            />
-            <TextField
-              label="Номер ТП"
-              value={s.otherTpNumber}
-              onChangeText={(v) => s.setOtherField('otherTpNumber', v.replace(/\D/g, ''))}
-              keyboardType="number-pad"
-              placeholder="2949568"
-              maxLength={8}
-              containerStyle={{ flex: 1.4 }}
-            />
-          </View>
-          <TextField
-            label="Госномер"
-            value={s.otherGov}
-            onChangeText={(v) => s.setOtherField('otherGov', v.toUpperCase())}
-            autoCapitalize="characters"
-            placeholder="01 A 123 BB"
-            maxLength={12}
-          />
-          <ActionButton
-            label={s.otherVehicle ? 'Найти заново' : 'Найти авто'}
-            loading={lookingUp}
-            disabled={!canLookupVehicle}
-            onPress={lookupOtherVehicle}
-          />
-          {s.otherVehicle && (
-            <VerifiedCard
-              title={s.otherVehicle.modelName || 'ТС найдено'}
-              subtitle={`${s.otherVehicle.govNumber} · ${s.otherVehicle.issueYear} · ${s.otherVehicle.vehicleColor || ''}`.trim()}
-            />
+          {bRegistered && bVehicles.length > 0 ? (
+            <>
+              <Text style={subLabel}>Авто второго участника (из его профиля)</Text>
+              <Text style={hintText}>Участник найден в системе — выберите его авто.</Text>
+              <View style={{ gap: 8 }}>
+                {bVehicles.map((v) => {
+                  const active = bVehicleId === v.id;
+                  return (
+                    <Pressable
+                      key={v.id}
+                      onPress={() => selectBVehicle(v)}
+                      style={{
+                        padding: 14,
+                        borderRadius: 14,
+                        backgroundColor: active ? tokens.inkDark : 'rgba(255,255,255,0.6)',
+                        borderWidth: 1,
+                        borderColor: active ? tokens.inkDark : tokens.hairline,
+                      }}
+                    >
+                      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: active ? '#fff' : tokens.inkDark }}>
+                        {`${v.brand ?? ''} ${v.model ?? ''}`.trim() || 'ТС'}{v.year ? `, ${v.year}` : ''}
+                      </Text>
+                      <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: active ? 'rgba(255,255,255,0.7)' : tokens.inkMuted, marginTop: 2 }}>
+                        {v.plate ?? '—'}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={subLabel}>Авто второго участника (по техпаспорту)</Text>
+              {bRegistered ? (
+                <Text style={hintText}>У участника нет авто в системе — введите данные техпаспорта.</Text>
+              ) : (
+                <Text style={hintText}>Участника нет в системе — найдём авто по техпаспорту в госреестре.</Text>
+              )}
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TextField
+                  label="Серия ТП"
+                  value={s.otherTpSeria}
+                  onChangeText={(v) => s.setOtherField('otherTpSeria', v.toUpperCase())}
+                  autoCapitalize="characters"
+                  placeholder="AAF"
+                  maxLength={3}
+                  containerStyle={{ flex: 1 }}
+                />
+                <TextField
+                  label="Номер ТП"
+                  value={s.otherTpNumber}
+                  onChangeText={(v) => s.setOtherField('otherTpNumber', v.replace(/\D/g, ''))}
+                  keyboardType="number-pad"
+                  placeholder="2949568"
+                  maxLength={8}
+                  containerStyle={{ flex: 1.4 }}
+                />
+              </View>
+              <TextField
+                label="Госномер"
+                value={s.otherGov}
+                onChangeText={(v) => s.setOtherField('otherGov', v.toUpperCase())}
+                autoCapitalize="characters"
+                placeholder="01 A 123 BB"
+                maxLength={12}
+              />
+              <ActionButton
+                label={s.otherVehicle ? 'Найти заново' : 'Найти авто'}
+                loading={lookingUp}
+                disabled={!canLookupVehicle}
+                onPress={lookupOtherVehicle}
+              />
+              {vehMsg ? (
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: vehMsg.startsWith('✓') ? tokens.green : tokens.inkMuted, paddingLeft: 2 }}>
+                  {vehMsg}
+                </Text>
+              ) : null}
+              {s.otherVehicle && (
+                <VerifiedCard
+                  title={s.otherVehicle.modelName || 'ТС найдено'}
+                  subtitle={`${s.otherVehicle.govNumber} · ${s.otherVehicle.issueYear} · ${s.otherVehicle.vehicleColor || ''}`.trim()}
+                />
+              )}
+            </>
           )}
 
-          <Text style={subLabel}>Полис ОСАГО второго участника</Text>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <TextField
-              label="Серия"
-              value={s.otherPolicySeria}
-              onChangeText={(v) => {
-                s.setOtherField('otherPolicySeria', v.toUpperCase());
-                s.setOtherPolicyValid(null);
-              }}
-              autoCapitalize="characters"
-              placeholder="OSG"
-              maxLength={3}
-              containerStyle={{ flex: 1 }}
-            />
-            <TextField
-              label="Номер"
-              value={s.otherPolicyNumber}
-              onChangeText={(v) => {
-                s.setOtherField('otherPolicyNumber', v.replace(/\D/g, ''));
-                s.setOtherPolicyValid(null);
-              }}
-              keyboardType="number-pad"
-              placeholder="1234567"
-              maxLength={10}
-              containerStyle={{ flex: 1.6 }}
-            />
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <ActionButton
-              label="Проверить полис"
-              loading={checkingPolicy}
-              disabled={!canCheckPolicy}
-              onPress={checkPolicy}
-              style={{ flex: 1 }}
-            />
-            {s.otherPolicyValid === true && <Tag tone="green">проверен</Tag>}
-            {s.otherPolicyValid === false && <Tag tone="red">не найден</Tag>}
-          </View>
+          {bRegistered && bVehicleId && bVehiclePolicies.length > 0 ? (
+            <>
+              <Text style={subLabel}>Полис ОСАГО второго участника (из его профиля)</Text>
+              <View style={{ gap: 8 }}>
+                {bVehiclePolicies.map((p) => {
+                  const active = bPolicyId === p.id;
+                  return (
+                    <Pressable
+                      key={p.id}
+                      onPress={() => selectBPolicy(p)}
+                      style={{
+                        padding: 14,
+                        borderRadius: 14,
+                        backgroundColor: active ? tokens.inkDark : 'rgba(255,255,255,0.6)',
+                        borderWidth: 1,
+                        borderColor: active ? tokens.inkDark : tokens.hairline,
+                      }}
+                    >
+                      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: active ? '#fff' : tokens.inkDark }}>
+                        ОСАГО {p.policyNumber ?? p.id.slice(0, 8)}
+                      </Text>
+                      <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: active ? 'rgba(255,255,255,0.7)' : tokens.inkMuted, marginTop: 2 }}>
+                        статус: {p.status}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={subLabel}>Полис ОСАГО второго участника</Text>
+              {bRegistered && bVehicleId ? (
+                <Text style={hintText}>По этому авто нет действующего ОСАГО в системе — введите данные полиса.</Text>
+              ) : null}
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TextField
+                  label="Серия"
+                  value={s.otherPolicySeria}
+                  onChangeText={(v) => {
+                    s.setOtherField('otherPolicySeria', v.toUpperCase());
+                    s.setOtherPolicyValid(null);
+                    setPolMsg(null);
+                  }}
+                  autoCapitalize="characters"
+                  placeholder="OSG"
+                  maxLength={3}
+                  containerStyle={{ flex: 1 }}
+                />
+                <TextField
+                  label="Номер"
+                  value={s.otherPolicyNumber}
+                  onChangeText={(v) => {
+                    s.setOtherField('otherPolicyNumber', v.replace(/\D/g, ''));
+                    s.setOtherPolicyValid(null);
+                    setPolMsg(null);
+                  }}
+                  keyboardType="number-pad"
+                  placeholder="1234567"
+                  maxLength={10}
+                  containerStyle={{ flex: 1.6 }}
+                />
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <ActionButton
+                  label="Проверить полис"
+                  loading={checkingPolicy}
+                  disabled={!canCheckPolicy}
+                  onPress={checkPolicy}
+                  style={{ flex: 1 }}
+                />
+                {s.otherPolicyValid === true && <Tag tone="green">проверен</Tag>}
+                {s.otherPolicyValid === false && <Tag tone="red">не найден</Tag>}
+              </View>
+              {polMsg ? (
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: polMsg.startsWith('✓') ? tokens.green : tokens.inkMuted, paddingLeft: 2 }}>
+                  {polMsg}
+                </Text>
+              ) : null}
+            </>
+          )}
 
           <TextField
             label="Телефон второго участника"

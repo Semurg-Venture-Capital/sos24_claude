@@ -131,8 +131,33 @@ export async function stepUpMyId(code: string): Promise<StepUpResult> {
 }
 
 // Верификация второго участника → EuroParticipant (find-or-create по ПИНФЛ).
-export async function verifyParticipant(code: string): Promise<EuroParticipant> {
-  const { data } = await api.post<EuroParticipant>('/europrotocol/participant/verify', { code });
+// Авто участника B (если он зарегистрирован у нас).
+export interface ParticipantVehicle {
+  id: string;
+  plate: string | null;
+  brand: string | null;
+  model: string | null;
+  year: number | null;
+  techPassportSeria: string | null;
+  techPassportNumber: string | null;
+  bodyNumber: string | null;
+  engineNumber: string | null;
+}
+export interface ParticipantPolicy {
+  id: string;
+  policyNumber: string | null;
+  vehicleId: string | null;
+  status: string;
+}
+export interface VerifyParticipantResult {
+  participant: EuroParticipant;
+  registered: boolean; // B есть у нас в системе
+  vehicles: ParticipantVehicle[];
+  policies: ParticipantPolicy[]; // действующие ОСАГО участника B
+}
+
+export async function verifyParticipant(code: string): Promise<VerifyParticipantResult> {
+  const { data } = await api.post<VerifyParticipantResult>('/europrotocol/participant/verify', { code });
   return data;
 }
 

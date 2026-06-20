@@ -226,9 +226,26 @@ export class EuroprotocolService {
 
   /**
    * Верификация второго участника: MyID-профиль → find-or-create EuroParticipant
-   * по ПИНФЛ. Возвращает запись участника (без сырого myidRaw).
+   * по ПИНФЛ. Прохождение MyID = подпись/согласие участника B.
+   * Дополнительно: если B зарегистрирован у нас (по ПИНФЛ) — возвращаем его авто и
+   * действующие ОСАГО-полисы, чтобы выбрать из них (как у стороны A).
    */
-  async verifyParticipant(code: string): Promise<Omit<EuroParticipant, 'myidRaw'>> {
+  async verifyParticipant(code: string): Promise<{
+    participant: Omit<EuroParticipant, 'myidRaw'>;
+    registered: boolean;
+    vehicles: Array<{
+      id: string;
+      plate: string | null;
+      brand: string | null;
+      model: string | null;
+      year: number | null;
+      techPassportSeria: string | null;
+      techPassportNumber: string | null;
+      bodyNumber: string | null;
+      engineNumber: string | null;
+    }>;
+    policies: Array<{ id: string; policyNumber: string | null; vehicleId: string | null; status: string }>;
+  }> {
     const d = await this.myid.fetchProfileByCode(code);
     const { seria, number } = splitPassport(d.passportData);
 
@@ -254,10 +271,37 @@ export class EuroprotocolService {
       create: { pinfl: d.pinfl, ...data },
       update: data,
     });
-
     const { myidRaw, ...safe } = participant;
     void myidRaw;
-    return safe;
+
+    // Зарегистрирован ли B у нас (по ПИНФЛ) → его авто + действующие ОСАГО-полисы.
+    const user = await this.prisma.user.findFirst({ where: { pinfl: d.pinfl }, select: { id: true } });
+    const vehicles = user
+      ? await this.prisma.vehicle.findMany({
+          where: { userId: user.id },
+          select: {
+            id: true,
+            plate: true,
+            brand: true,
+            model: true,
+            year: true,
+            techPassportSeria: true,
+            techPassportNumber: true,
+            bodyNumber: true,
+            engineNumber: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+      : [];
+    const policies = user
+      ? await this.prisma.policy.findMany({
+          where: { userId: user.id, type: 'OSAGO', status: { notIn: ['CANCELLED', 'EXPIRED'] } },
+          select: { id: true, policyNumber: true, vehicleId: true, status: true },
+          orderBy: { createdAt: 'desc' },
+        })
+      : [];
+
+    return { participant: safe, registered: !!user, vehicles, policies };
   }
 
   /**
