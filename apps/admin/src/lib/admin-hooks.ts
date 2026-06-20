@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './api';
+import type {
+  InsuranceCompany,
+  InsuranceProduct,
+  CompanyInput,
+  ProductInput,
+  PlanInput,
+} from './insurance';
 
 export function useStats() {
   return useQuery({
@@ -135,5 +142,128 @@ export function useUpdateEuroStatus() {
     mutationFn: ({ id, status, adminNote }: { id: string; status: string; adminNote?: string }) =>
       api.patch(`/admin/europrotocols/${id}`, { status, adminNote }).then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'euro'] }),
+  });
+}
+
+// ── Страховые компании / продукты / тарифы ──
+const INS_KEY = ['admin', 'insurance'] as const;
+
+export function useInsuranceCompanies() {
+  return useQuery({
+    queryKey: [...INS_KEY, 'companies'],
+    queryFn: () => api.get('/admin/insurance/companies').then((r) => r.data as InsuranceCompany[]),
+  });
+}
+
+export function useCreateCompany() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CompanyInput) =>
+      api.post('/admin/insurance/companies', body).then((r) => r.data as InsuranceCompany),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...INS_KEY, 'companies'] }),
+  });
+}
+
+export function useUpdateCompany() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: Partial<CompanyInput> & { id: string }) =>
+      api.patch(`/admin/insurance/companies/${id}`, body).then((r) => r.data as InsuranceCompany),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...INS_KEY, 'companies'] }),
+  });
+}
+
+export function useDeleteCompany() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/insurance/companies/${id}`).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...INS_KEY, 'companies'] }),
+  });
+}
+
+export function useUploadCompanyLogo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      return api
+        .post(`/admin/insurance/companies/${id}/logo`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+        .then((r) => r.data as { logoKey: string; logoUrl: string });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...INS_KEY, 'companies'] }),
+  });
+}
+
+export function useCompanyProducts(companyId: string | null) {
+  return useQuery({
+    queryKey: [...INS_KEY, 'companies', companyId, 'products'],
+    queryFn: () =>
+      api
+        .get(`/admin/insurance/companies/${companyId}/products`)
+        .then((r) => r.data as InsuranceProduct[]),
+    enabled: !!companyId,
+  });
+}
+
+export function useProduct(id: string | null) {
+  return useQuery({
+    queryKey: [...INS_KEY, 'products', id],
+    queryFn: () => api.get(`/admin/insurance/products/${id}`).then((r) => r.data as InsuranceProduct),
+    enabled: !!id,
+  });
+}
+
+export function useCreateProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: ProductInput) =>
+      api.post('/admin/insurance/products', body).then((r) => r.data as InsuranceProduct),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...INS_KEY] }),
+  });
+}
+
+export function useUpdateProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: Partial<ProductInput> & { id: string }) =>
+      api.patch(`/admin/insurance/products/${id}`, body).then((r) => r.data as InsuranceProduct),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...INS_KEY] }),
+  });
+}
+
+export function useDeleteProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/insurance/products/${id}`).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...INS_KEY] }),
+  });
+}
+
+export function useCreatePlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: PlanInput & { productId: string }) =>
+      api.post('/admin/insurance/plans', body).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...INS_KEY] }),
+  });
+}
+
+export function useUpdatePlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: Partial<PlanInput> & { id: string }) =>
+      api.patch(`/admin/insurance/plans/${id}`, body).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...INS_KEY] }),
+  });
+}
+
+export function useDeletePlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/insurance/plans/${id}`).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...INS_KEY] }),
   });
 }

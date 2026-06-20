@@ -18,6 +18,7 @@ import {
   Radar,
   ChevronDown,
   FileWarning,
+  Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NAPP_TOOLS, NAPP_GROUPS } from '@/lib/nappTools';
@@ -26,6 +27,7 @@ const NAV = [
   { href: '/dashboard', label: 'Дашборд', icon: LayoutDashboard },
   { href: '/users', label: 'Пользователи', icon: Users },
   { href: '/policies', label: 'Полисы', icon: ShieldCheck },
+  { href: '/insurance', label: 'Страховые компании', icon: Building2 },
   { href: '/vehicles', label: 'Автомобили', icon: Car },
   { href: '/adjuster', label: 'Аджастер', icon: Siren },
   { href: '/europrotocols', label: 'Европротоколы', icon: FileWarning },
