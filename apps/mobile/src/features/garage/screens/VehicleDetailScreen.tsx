@@ -5,6 +5,7 @@ import { useId, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   InputAccessoryView,
   Keyboard,
   Platform,
@@ -16,7 +17,14 @@ import {
   type ViewStyle,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useDeleteVehicle, useSyncVehicleNapp, useVehicle, useVehicleTypeLabel } from '../../../api/vehicles';
+import {
+  useDeleteVehicle,
+  useRemoveVehiclePhoto,
+  useSyncVehicleNapp,
+  useUploadVehiclePhoto,
+  useVehicle,
+  useVehicleTypeLabel,
+} from '../../../api/vehicles';
 import { usePolicies } from '../../../api/policies';
 import type { ProductType, PolicyStatus } from '../../../api/types';
 import { BackButton } from '../../../components/ui/BackButton';
@@ -83,10 +91,47 @@ export function VehicleDetailScreen() {
   const vehicleTypeLabel = useVehicleTypeLabel();
   const syncNapp = useSyncVehicleNapp();
   const deleteVehicle = useDeleteVehicle();
+  const uploadPhoto = useUploadVehiclePhoto();
+  const removePhoto = useRemoveVehiclePhoto();
+  const [photoBusy, setPhotoBusy] = useState(false);
 
   // Поля для дозагрузки из НАПП, когда техпаспорт ещё не сохранён.
   const [seria, setSeria] = useState('');
   const [number, setNumber] = useState('');
+
+  // Выбор фото из галереи/камеры → загрузка на бэкенд.
+  const pickPhoto = async (fromCamera: boolean) => {
+    try {
+      const ImagePicker = await import('expo-image-picker');
+      const perm = fromCamera
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Доступ', 'Нужно разрешение на камеру/галерею.');
+        return;
+      }
+      const res = fromCamera
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
+      if (res.canceled || !res.assets?.[0]) return;
+      const a = res.assets[0];
+      setPhotoBusy(true);
+      await uploadPhoto.mutateAsync({ id, asset: { uri: a.uri, mimeType: a.mimeType, fileName: a.fileName ?? undefined } });
+    } catch (e) {
+      Alert.alert('Фото', (e as Error).message || 'Не удалось загрузить фото.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  const onPhotoPress = () => {
+    Alert.alert('Фото авто', undefined, [
+      { text: 'Сделать фото', onPress: () => pickPhoto(true) },
+      { text: 'Выбрать из галереи', onPress: () => pickPhoto(false) },
+      ...(vehicle?.photoKey ? [{ text: 'Удалить фото', style: 'destructive' as const, onPress: () => { setPhotoBusy(true); removePhoto.mutateAsync(id).finally(() => setPhotoBusy(false)); } }] : []),
+      { text: 'Отмена', style: 'cancel' as const },
+    ]);
+  };
 
   if (isLoading) {
     return (
@@ -168,20 +213,40 @@ export function VehicleDetailScreen() {
         keyboardDismissMode="on-drag"
         automaticallyAdjustKeyboardInsets
       >
-        {/* Hero */}
-        <View style={{ alignItems: 'center', gap: 14, paddingTop: 4, paddingBottom: 6 }}>
-          <View
+        {/* Hero — фото/рендер авто + кнопка изменения фото */}
+        <View style={{ gap: 14, paddingTop: 4, paddingBottom: 6 }}>
+          <Pressable
+            onPress={onPhotoPress}
+            disabled={photoBusy}
             style={{
-              width: 88,
-              height: 88,
-              borderRadius: 26,
+              height: 200,
+              borderRadius: 28,
+              overflow: 'hidden',
               backgroundColor: 'rgba(20,20,20,0.05)',
               alignItems: 'center',
               justifyContent: 'center',
+              borderWidth: 1,
+              borderColor: tokens.hairline,
             }}
           >
-            <IconCarSimple size={48} color={tokens.inkDark} />
-          </View>
+            {vehicle.imageUrl ? (
+              <Image source={{ uri: vehicle.imageUrl }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+            ) : (
+              <IconCarSimple size={72} color={tokens.inkMuted} />
+            )}
+            {photoBusy ? (
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.5)' }}>
+                <ActivityIndicator color={tokens.red} />
+              </View>
+            ) : (
+              <View style={{ position: 'absolute', right: 12, bottom: 12, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(20,20,20,0.78)', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999 }}>
+                <IconPencil size={14} color="#fff" />
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: '#fff' }}>
+                  {vehicle.photoKey ? 'Изменить фото' : 'Добавить фото'}
+                </Text>
+              </View>
+            )}
+          </Pressable>
           <View style={{ alignItems: 'center', gap: 6 }}>
             <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 30, letterSpacing: -0.3, color: tokens.ink }}>
               {vehicle.plate}

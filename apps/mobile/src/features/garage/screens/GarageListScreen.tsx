@@ -3,11 +3,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Glass } from '../../../components/ui/Glass';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Animated, Pressable, RefreshControl, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Image, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useCollapsingHeader } from '../../../lib/useCollapsingHeader';
-import { useVehicles } from '../../../api/vehicles';
+import { useVehicles, type Vehicle } from '../../../api/vehicles';
 import { IconCarSimple } from '../../../components/icons/LineIcons';
 import { FAB } from '../../../components/ui/FAB';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
@@ -22,6 +22,54 @@ function Chevron() {
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
       <Path d="M9 6l6 6-6 6" stroke={tokens.inkMuted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
+  );
+}
+
+// Мягкая подложка под изображение по цвету авто (для контраста рендера/фолбэка).
+function tintFromColor(color: string | null): string {
+  const c = (color ?? '').toLowerCase();
+  if (/бел|white/.test(c)) return 'rgba(20,20,20,0.05)';
+  if (/чёрн|черн|black|граф/.test(c)) return 'rgba(20,20,20,0.10)';
+  if (/син|голуб|blue/.test(c)) return 'rgba(40,90,180,0.10)';
+  if (/красн|red/.test(c)) return 'rgba(230,20,40,0.08)';
+  if (/зел|green/.test(c)) return 'rgba(30,140,80,0.10)';
+  return 'rgba(20,20,20,0.05)';
+}
+
+// Крупная карточка авто: изображение (фото юзера/рендер) сверху + номер/модель снизу.
+function VehicleCard({ v, onPress }: { v: Vehicle; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({ borderRadius: 28, overflow: 'hidden', opacity: pressed ? 0.85 : 1 })}
+    >
+      <Glass
+        intensity={20}
+        tint="light"
+        style={{ backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: tokens.hairline }}
+      >
+        {/* Изображение / фолбэк */}
+        <View style={{ height: 168, backgroundColor: tintFromColor(v.color), alignItems: 'center', justifyContent: 'center' }}>
+          {v.imageUrl ? (
+            <Image source={{ uri: v.imageUrl }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+          ) : (
+            <IconCarSimple size={72} color={tokens.inkMuted} />
+          )}
+        </View>
+        {/* Инфо */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 18, paddingHorizontal: 20 }}>
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, letterSpacing: -0.1, color: tokens.ink }}>
+              {v.plate}
+            </Text>
+            <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
+              {v.brand} {v.model} · {v.year}
+            </Text>
+          </View>
+          <Chevron />
+        </View>
+      </Glass>
+    </Pressable>
   );
 }
 
@@ -145,55 +193,7 @@ export function GarageListScreen() {
             }
           >
             {vehicles?.map((v) => (
-              <Pressable
-                key={v.id}
-                onPress={() => nav.navigate('VehicleDetail', { id: v.id })}
-                style={({ pressed }) => ({ borderRadius: 28, overflow: 'hidden', opacity: pressed ? 0.7 : 1 })}
-              >
-                <Glass
-                  intensity={20}
-                  tint="light"
-                  style={{
-                    backgroundColor: 'rgba(255,255,255,0.55)',
-                    padding: 18,
-                    paddingHorizontal: 20,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 14,
-                    borderWidth: 1,
-                    borderColor: tokens.hairline,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 16,
-                      backgroundColor: 'rgba(20,20,20,0.05)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <IconCarSimple size={32} color={tokens.inkDark} />
-                  </View>
-                  <View style={{ flex: 1, gap: 4 }}>
-                    <Text
-                      style={{
-                        fontFamily: 'NeueMontreal-Medium',
-                        fontSize: 18,
-                        letterSpacing: -0.09,
-                        color: tokens.ink,
-                      }}
-                    >
-                      {v.plate}
-                    </Text>
-                    <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
-                      {v.brand} {v.model} · {v.year}
-                    </Text>
-                  </View>
-                  <Chevron />
-                </Glass>
-              </Pressable>
+              <VehicleCard key={v.id} v={v} onPress={() => nav.navigate('VehicleDetail', { id: v.id })} />
             ))}
           </Animated.ScrollView>
           <FAB onPress={() => nav.navigate('GarageEdit', {})} bottom={110} />

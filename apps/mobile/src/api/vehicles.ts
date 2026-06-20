@@ -13,6 +13,12 @@ export interface Vehicle {
   vin: string | null;
   color: string | null;
 
+  // Изображение авто: photoUrl — фото пользователя (если загружено),
+  // imageUrl — итоговое (фото юзера → рендер imagin → null). Приходят с бэка.
+  photoKey?: string | null;
+  photoUrl?: string | null;
+  imageUrl?: string | null;
+
   // --- Данные из НАПП (госреестр). Заполняются при создании/синхронизации авто. ---
   techPassportSeria: string | null;
   techPassportNumber: string | null;
@@ -139,6 +145,23 @@ export async function deleteVehicle(id: string) {
   await api.delete(`/me/vehicles/${id}`);
 }
 
+// Загрузка фото авто (multipart). asset — из expo-image-picker.
+export async function uploadVehiclePhoto(id: string, asset: { uri: string; mimeType?: string; fileName?: string }) {
+  const type = asset.mimeType ?? 'image/jpeg';
+  const name = asset.fileName ?? `car.${type.split('/')[1] ?? 'jpg'}`;
+  const form = new FormData();
+  // RN FormData принимает { uri, name, type } как файл.
+  form.append('file', { uri: asset.uri, name, type } as unknown as Blob);
+  const { data } = await api.post<Vehicle>(`/me/vehicles/${id}/photo`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+export async function removeVehiclePhoto(id: string) {
+  const { data } = await api.delete<Vehicle>(`/me/vehicles/${id}/photo`);
+  return data;
+}
+
 // Серия+номер ТП опциональны — если не переданы, бэкенд берёт сохранённые у авто.
 export interface SyncNappInput {
   techPassportSeria?: string;
@@ -201,6 +224,29 @@ export function useDeleteVehicle() {
   return useMutation({
     mutationFn: deleteVehicle,
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.list }),
+  });
+}
+
+export function useUploadVehiclePhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, asset }: { id: string; asset: { uri: string; mimeType?: string; fileName?: string } }) =>
+      uploadVehiclePhoto(id, asset),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: KEYS.list });
+      qc.invalidateQueries({ queryKey: KEYS.one(vars.id) });
+    },
+  });
+}
+
+export function useRemoveVehiclePhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => removeVehiclePhoto(id),
+    onSuccess: (_, id) => {
+      qc.invalidateQueries({ queryKey: KEYS.list });
+      qc.invalidateQueries({ queryKey: KEYS.one(id) });
+    },
   });
 }
 
