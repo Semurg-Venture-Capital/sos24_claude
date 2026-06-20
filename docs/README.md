@@ -17,6 +17,7 @@ docs/
 ├── DEVELOPMENT.md         — инженерный процесс, команды, конвенции
 ├── ANDROID.md             — анализ готовности Android: блокеры, план, окружение сборки
 ├── DEVOPS.md              — K8s инфраструктура для DevOps (RKE2, Harbor, ArgoCD, Vault)
+├── PUSH_SETUP.md          — как получить и подключить ключи push (FCM + APNs)
 ├── QUESTIONS.md           — открытые вопросы к клиенту
 ├── DESIGN_SYSTEM.md       — дизайн-токены и компоненты
 ├── EUROPROTOCOL.md        — исследование Европротокола (условия УЗ, варианты MVP/Full)
