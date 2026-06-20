@@ -3,7 +3,8 @@ import { CalcDriversScreen } from '../features/purchase/screens/CalcDriversScree
 import { CalcPeriodScreen } from '../features/purchase/screens/CalcPeriodScreen';
 import { CalcResultScreen } from '../features/purchase/screens/CalcResultScreen';
 import { CalcVehicleScreen } from '../features/purchase/screens/CalcVehicleScreen';
-import { CatalogScreen } from '../features/purchase/screens/CatalogScreen';
+import { CompanySelectScreen } from '../features/purchase/screens/CompanySelectScreen';
+import { CompanyProductsScreen } from '../features/purchase/screens/CompanyProductsScreen';
 import { CheckoutScreen } from '../features/purchase/screens/CheckoutScreen';
 import { GarageEditScreen } from '../features/garage/screens/GarageEditScreen';
 import { MyCardsScreen } from '../features/purchase/screens/MyCardsScreen';
@@ -22,7 +23,8 @@ export function PurchaseNavigator() {
         contentStyle: { backgroundColor: 'rgb(228,228,228)' },
       }}
     >
-      <Stack.Screen name="Catalog" component={CatalogScreen} />
+      <Stack.Screen name="CompanySelect" component={CompanySelectScreen} />
+      <Stack.Screen name="CompanyProducts" component={CompanyProductsScreen} />
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
       <Stack.Screen name="CalcVehicle" component={CalcVehicleScreen} />
       <Stack.Screen name="CalcDrivers" component={CalcDriversScreen} />

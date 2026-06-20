@@ -134,15 +134,10 @@ export function MainNavigator() {
       }}
     >
       <Stack.Screen name="Tabs" component={MainTabs} />
-      <Stack.Screen
-        name="Purchase"
-        component={PurchaseNavigator}
-        options={
-          Platform.OS === 'web'
-            ? {}
-            : { presentation: 'modal', animation: 'slide_from_bottom' }
-        }
-      />
+      {/* Покупка полиса — обычные push-страницы (НЕ модалка): экран идёт как
+          полноценная страница, чтобы поток компания → продукт → оформление
+          читался как навигация, а не выезжающее снизу окно. */}
+      <Stack.Screen name="Purchase" component={PurchaseNavigator} />
       <Stack.Screen
         name="Adjuster"
         component={AdjusterNavigator}

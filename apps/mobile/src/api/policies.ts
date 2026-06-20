@@ -35,6 +35,8 @@ export interface Policy {
 
 export interface CalculatePolicyInput {
   type: ProductType;
+  productId?: string;
+  planId?: string;
   vehicleId?: string;
   periodMonths?: 3 | 6 | 12;
   driverLimit?: DriverLimit;

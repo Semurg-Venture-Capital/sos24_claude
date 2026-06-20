@@ -39,8 +39,10 @@ export type GarageStackParamList = {
 export type ProductType = 'osago' | 'kasko' | 'health' | 'home' | 'finance';
 
 export type PurchaseStackParamList = {
-  Catalog: undefined;
-  ProductDetail: { type: ProductType };
+  // Новый флоу: выбор компании → её продукты → карточка продукта
+  CompanySelect: undefined;
+  CompanyProducts: { companyId: string; companyName: string };
+  ProductDetail: { productId: string };
   CalcVehicle: undefined;
   CalcDrivers: undefined;
   CalcPeriod: undefined;

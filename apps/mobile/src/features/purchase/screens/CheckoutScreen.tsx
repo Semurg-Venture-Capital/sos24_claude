@@ -95,6 +95,8 @@ export function CheckoutScreen() {
     try {
       const policy = await createPolicy.mutateAsync({
         type: TYPE_TO_API[state.productType],
+        productId: state.productId ?? undefined,
+        planId: state.planId ?? undefined,
         vehicleId: isVehicleProduct ? state.carId ?? undefined : undefined,
         periodMonths: isVehicleProduct ? state.periodMonths : 12,
         driverLimit: state.driverLimit === 'limited' ? 'LIMITED' : 'UNLIMITED',

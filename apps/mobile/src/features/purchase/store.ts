@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { PRODUCTS, type ProductType } from './productData';
+import type { ProductType } from './productData';
+import type { PricingMode } from '../../api/insurance';
 
 // Состояние калькулятора покупки. Хранит выбор между шагами 1-4.
 // Сбрасывается при старте новой покупки (resetForProduct).
@@ -36,6 +37,13 @@ export const MOCK_DRIVERS: MockDriver[] = [
 
 interface PurchaseState {
   productType: ProductType | null;
+  // Выбор из каталога: компания / продукт / тарифный план
+  companyId: string | null;
+  productId: string | null;
+  pricingMode: PricingMode | null;
+  productBaseRate: number | null; // для COEFFICIENT (авто)
+  planId: string | null;
+  planPrice: number | null; // для PLANS — цена выбранного тарифа
   // Step 1: vehicle (id из /me/vehicles)
   carId: string | null;
   // Step 2: drivers (ids из /me/drivers)
@@ -52,7 +60,15 @@ interface PurchaseState {
   // Создан draft-полис после Checkout (для Payment и Success)
   draftPolicyId: string | null;
 
-  resetForProduct: (type: ProductType) => void;
+  // Старт покупки конкретного продукта компании (из каталога).
+  startProduct: (args: {
+    companyId: string;
+    productId: string;
+    productType: ProductType;
+    pricingMode: PricingMode;
+    baseRate: number | null;
+  }) => void;
+  setPlan: (planId: string, price: number) => void;
   setCar: (id: string) => void;
   setDriverLimit: (limit: DriverLimit) => void;
   toggleDriver: (id: string) => void;
@@ -75,6 +91,12 @@ function shiftMonths(dateISO: string, months: number): string {
 
 export const usePurchaseStore = create<PurchaseState>((set, get) => ({
   productType: null,
+  companyId: null,
+  productId: null,
+  pricingMode: null,
+  productBaseRate: null,
+  planId: null,
+  planPrice: null,
   carId: null,
   driverLimit: 'limited',
   driverIds: [],
@@ -85,10 +107,16 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
   promoCode: null,
   draftPolicyId: null,
 
-  resetForProduct: (type) => {
+  startProduct: ({ companyId, productId, productType, pricingMode, baseRate }) => {
     const start = todayISO();
     set({
-      productType: type,
+      productType,
+      companyId,
+      productId,
+      pricingMode,
+      productBaseRate: baseRate,
+      planId: null,
+      planPrice: null,
       carId: null,
       driverLimit: 'limited',
       driverIds: [],
@@ -100,6 +128,8 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
       draftPolicyId: null,
     });
   },
+
+  setPlan: (planId, price) => set({ planId, planPrice: price }),
 
   setCar: (id) => set({ carId: id }),
 
@@ -127,27 +157,28 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
   setDraftPolicyId: (id) => set({ draftPolicyId: id }),
 }));
 
-// Рендер цены — простая мок-функция, чтобы шаг 4 показывал что-то осмысленное.
-// Для не-авто продуктов (health/home/finance) — фикс-цена из PRODUCTS.fixedPrice,
-// без коэффициентов.
+// Рендер цены для шагов расчёта/checkout. Финальную цену авторитетно считает бэкенд
+// при создании полиса; здесь — превью.
+//  PLANS  → фикс-цена выбранного тарифа (state.planPrice).
+//  COEFFICIENT (авто) → база продукта (state.productBaseRate) × коэффициенты.
 export function calculatePrice(state: PurchaseState): {
   base: number;
   total: number;
   coefficients: Array<{ label: string; value: string }>;
 } {
   if (!state.productType) return { base: 0, total: 0, coefficients: [] };
-  const product = PRODUCTS[state.productType];
 
-  if (product.fixedPrice !== undefined) {
+  if (state.pricingMode === 'PLANS') {
+    const price = state.planPrice ?? 0;
     return {
-      base: product.fixedPrice,
-      total: product.fixedPrice,
-      coefficients: [{ label: 'Стоимость полиса', value: product.fixedPrice.toLocaleString('ru-RU') }],
+      base: price,
+      total: price,
+      coefficients: [{ label: 'Стоимость полиса (тариф)', value: price.toLocaleString('ru-RU') }],
     };
   }
 
   const isOsago = state.productType === 'osago';
-  const base = isOsago ? 320000 : 4200000;
+  const base = state.productBaseRate ?? (isOsago ? 320000 : 4200000);
 
   // Простые мок-коэффициенты по периоду
   const periodMultiplier = state.periodMonths === 12 ? 1 : state.periodMonths === 6 ? 0.55 : 0.32;

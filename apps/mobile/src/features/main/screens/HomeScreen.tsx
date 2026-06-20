@@ -80,9 +80,10 @@ export function HomeScreen() {
   const [menuPolicy, setMenuPolicy] = useState<Policy | null>(null);
 
   // Purchase и Adjuster стеки живут на уровне MainStack (sibling к Tabs).
+  // Вход в покупку — экран выбора страховой компании.
   const openCatalog = () => {
     const root = nav.getParent<RootNav>();
-    if (root) root.navigate('Purchase', { screen: 'Catalog' });
+    if (root) root.navigate('Purchase', { screen: 'CompanySelect' });
   };
 
   const openAdjuster = () => {
@@ -93,11 +94,6 @@ export function HomeScreen() {
     } else {
       root.navigate('Adjuster');
     }
-  };
-
-  const openProduct = (type: 'osago' | 'kasko') => {
-    const root = nav.getParent<RootNav>();
-    if (root) root.navigate('Purchase', { screen: 'ProductDetail', params: { type } });
   };
 
   const openEuro = () => {

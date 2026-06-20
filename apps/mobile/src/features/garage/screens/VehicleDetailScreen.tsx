@@ -36,7 +36,7 @@ type R = RouteProp<GarageStackParamList, 'VehicleDetail'>;
 // (живёт на MainStack) всплывает вверх по дереву навигаторов автоматически.
 type ParentNav = NativeStackNavigationProp<{
   Policies: { screen: 'PolicyDetail'; params: { id: string } };
-  Purchase: { screen: 'Catalog' };
+  Purchase: { screen: 'CompanySelect' };
 }>;
 
 const POLICY_TYPE_LABEL: Record<ProductType, string> = {
@@ -148,7 +148,7 @@ export function VehicleDetailScreen() {
   };
 
   const openPurchase = () => {
-    nav.getParent<ParentNav>()?.navigate('Purchase', { screen: 'Catalog' });
+    nav.getParent<ParentNav>()?.navigate('Purchase', { screen: 'CompanySelect' });
   };
 
   const openPolicy = (policyId: string) => {
