@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
@@ -9,7 +10,6 @@ import { useActiveAdjusterRequest } from '../../../api/adjuster';
 import { usePartners } from '../../../api/partners';
 import { usePolicies, type Policy } from '../../../api/policies';
 import { IconBell } from '../../../components/icons/IconBell';
-import { IconBurger } from '../../../components/icons/IconBurger';
 import {
   QuickIconAdjuster,
   QuickIconEuroProtocol,
@@ -17,6 +17,7 @@ import {
   QuickIconPolicy,
 } from '../../../components/icons/QuickActionIcons';
 import { SunIcon } from '../../../components/icons/SunIcon';
+import { TabIconUser } from '../../../components/icons/TabIcons';
 import { ActionTile } from '../../../components/ui/ActionTile';
 import { AddPolicyTile } from '../../../components/ui/AddPolicyTile';
 import { AdjusterActiveBanner } from '../../../components/ui/AdjusterActiveBanner';
@@ -33,9 +34,10 @@ import { SosBanner } from '../../../components/ui/SosBanner';
 import { SosLogo } from '../../../components/ui/SosLogo';
 import { TopBar } from '../../../components/ui/TopBar';
 import { tokens } from '../../../theme/colors';
-import type { MainStackParamList } from '../../../navigation/types';
+import type { MainStackParamList, MainTabParamList } from '../../../navigation/types';
 
 type RootNav = NativeStackNavigationProp<MainStackParamList>;
+type TabNav = BottomTabNavigationProp<MainTabParamList>;
 
 const PARTNER_TYPE_LABEL: Record<string, string> = {
   STO: 'СТО', CLINIC: 'Клиника', TOWING: 'Эвакуатор',
@@ -70,7 +72,7 @@ function formatExpiry(iso: string): string {
 // Эталон: SOS24/screens.jsx → ScreenHomeV2.
 export function HomeScreen() {
   const greeting = greetingByHour(new Date().getHours());
-  const nav = useNavigation();
+  const nav = useNavigation<TabNav>();
   const insets = useSafeAreaInsets();
   const { data: me } = useMe();
   const { data: policies } = usePolicies('ACTIVE');
@@ -78,6 +80,9 @@ export function HomeScreen() {
   const { data: activeRequest } = useActiveAdjusterRequest();
   const displayName = me?.name ?? 'Гость';
   const [menuPolicy, setMenuPolicy] = useState<Policy | null>(null);
+
+  // Переход в профиль (вкладка Profile).
+  const openProfile = () => nav.navigate('Profile');
 
   // Purchase и Adjuster стеки живут на уровне MainStack (sibling к Tabs).
   // Вход в покупку — экран выбора страховой компании.
@@ -281,8 +286,8 @@ export function HomeScreen() {
         <View style={{ position: 'absolute', top: insets.top, left: 0, right: 0, paddingTop: 8, paddingBottom: 8 }}>
           <TopBar
             leading={
-              <IconButton>
-                <IconBurger color={tokens.inkDark} />
+              <IconButton onPress={openProfile}>
+                <TabIconUser color={tokens.inkDark} size={20} />
               </IconButton>
             }
             center={
