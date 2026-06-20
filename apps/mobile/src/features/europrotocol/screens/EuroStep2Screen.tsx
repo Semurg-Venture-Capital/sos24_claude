@@ -13,6 +13,8 @@ import {
 } from '../../../api/europrotocol';
 import { lookupVehicleByTechPassport } from '../../../api/vehicles';
 import { useVehicles } from '../../../api/vehicles';
+import { useMe } from '../../../api/auth';
+import { usePolicies } from '../../../api/policies';
 import { CarCard } from '../../../components/ui/CarCard';
 import { Glass } from '../../../components/ui/Glass';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
@@ -31,7 +33,14 @@ type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStep2'>;
 export function EuroStep2Screen() {
   const nav = useNavigation<Nav>();
   const { data: vehicles, isLoading } = useVehicles();
+  const { data: me } = useMe();
+  const { data: myPolicies } = usePolicies();
   const s = useEuroStore();
+
+  // ОСАГО-полисы стороны A по выбранному авто (активные/в обработке).
+  const myVehiclePolicies = (myPolicies ?? []).filter(
+    (p) => p.type === 'OSAGO' && p.vehicleId === s.myVehicleId && p.status !== 'CANCELLED' && p.status !== 'EXPIRED',
+  );
 
   const [verifyingSelf, setVerifyingSelf] = useState(false);
   const [verifyingOther, setVerifyingOther] = useState(false);
@@ -46,10 +55,12 @@ export function EuroStep2Screen() {
   const verifySelf = async () => {
     setVerifyingSelf(true);
     try {
-      const code = await runMyIdCode();
+      // Сторона A — всегда владелец аккаунта: пробрасываем его ПИНФЛ в MyID (pre-fill),
+      // а stepUp на бэкенде сверяет, что распознанное лицо = владелец аккаунта.
+      const code = await runMyIdCode(me?.pinfl ?? undefined);
       const res = await stepUpMyId(code);
       if (res.ok) s.setSelfVerified(true);
-      else Alert.alert('Не совпало', 'Лицо не соответствует владельцу аккаунта.');
+      else Alert.alert('Не совпало', 'Личность не совпала с владельцем аккаунта. Сторона A должна подтверждаться владельцем телефона.');
     } catch (e) {
       Alert.alert('MyID', (e as Error).message || 'Не удалось пройти верификацию.');
     } finally {
@@ -108,12 +119,15 @@ export function EuroStep2Screen() {
   const canCheckPolicy = s.otherPolicySeria.trim() && s.otherPolicyNumber.trim();
   // Узбекский номер: +998 + 9 цифр (пробелы игнорируем).
   const phoneOk = /^\+?998\d{9}$/.test(s.otherPhone.replace(/\s+/g, ''));
+  // Полис ОСАГО стороны A выбран и принадлежит выбранному авто.
+  const myPolicyOk = myVehiclePolicies.some((p) => p.id === s.myPolicyId);
   const canNext =
     s.selfVerified &&
     !!s.myVehicleId &&
+    myPolicyOk && // ОСАГО стороны A обязателен
     !!s.participant &&
     !!s.otherVehicle &&
-    s.otherPolicyValid === true && // полис должен быть проверен и валиден
+    s.otherPolicyValid === true && // полис стороны B проверен и валиден
     phoneOk;
 
   return (
@@ -162,6 +176,46 @@ export function EuroStep2Screen() {
           ))}
         </View>
       )}
+
+      {/* Полис ОСАГО стороны A по выбранному авто */}
+      {s.myVehicleId ? (
+        <>
+          <Text style={subLabel}>Полис ОСАГО по этому авто</Text>
+          {!myPolicies ? (
+            <Text style={hintText}>Загружаем полисы…</Text>
+          ) : myVehiclePolicies.length === 0 ? (
+            <Text style={hintText}>
+              Действующий ОСАГО по выбранному авто не найден. Оформите ОСАГО или выберите другое авто — без полиса европротокол оформить нельзя.
+            </Text>
+          ) : (
+            <View style={{ gap: 8 }}>
+              {myVehiclePolicies.map((p) => {
+                const active = p.id === s.myPolicyId;
+                return (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => s.patch({ myPolicyId: p.id })}
+                    style={{
+                      padding: 14,
+                      borderRadius: 14,
+                      backgroundColor: active ? tokens.inkDark : 'rgba(255,255,255,0.6)',
+                      borderWidth: 1,
+                      borderColor: active ? tokens.inkDark : tokens.hairline,
+                    }}
+                  >
+                    <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: active ? '#fff' : tokens.inkDark }}>
+                      ОСАГО {p.policyNumber ?? p.id.slice(0, 8)}
+                    </Text>
+                    <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: active ? 'rgba(255,255,255,0.7)' : tokens.inkMuted, marginTop: 2 }}>
+                      статус: {p.status}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+        </>
+      ) : null}
 
       {/* ─────────── Сторона B ─────────── */}
       <View style={{ marginTop: 8 }}>

@@ -47,6 +47,7 @@ interface EuroState {
   // Сторона A — инициатор
   selfVerified: boolean; // прошёл шаг-ап MyID (присутствие подтверждено)
   myVehicleId?: string; // выбранное авто из гаража
+  myPolicyId?: string; // выбранный ОСАГО-полис стороны A (по выбранному авто)
 
   // Сторона B — второй участник (MyID + НАПП)
   participant: EuroParticipant | null; // личность из MyID
@@ -153,6 +154,7 @@ const INITIAL = {
   vehicleCount: '2',
   selfVerified: false,
   myVehicleId: undefined as string | undefined,
+  myPolicyId: undefined as string | undefined,
   participant: null as EuroParticipant | null,
   otherTpSeria: '',
   otherTpNumber: '',

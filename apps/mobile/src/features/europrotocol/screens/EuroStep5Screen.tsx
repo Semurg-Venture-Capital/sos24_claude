@@ -5,14 +5,12 @@ import { Alert, Pressable, Text, View } from 'react-native';
 import { useVehicles } from '../../../api/vehicles';
 import {
   participantFullName,
-  signOtherParty,
   uploadEuroMedia,
   useSubmitEuroProtocol,
 } from '../../../api/europrotocol';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { SummaryBlock } from '../../../components/ui/SummaryBlock';
-import { TextField } from '../../../components/ui/TextField';
 import { WizardFrame } from '../../../components/ui/WizardFrame';
 import { tokens } from '../../../theme/colors';
 import { REQUIRED_PHOTOS, useEuroStore, type PhotoKey } from '../store';
@@ -33,7 +31,6 @@ export function EuroStep5Screen() {
   const s = useEuroStore();
   const { data: vehicles } = useVehicles();
   const [confirmed, setConfirmed] = useState(false);
-  const [otpB, setOtpB] = useState('');
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState('');
 
@@ -125,15 +122,8 @@ export function EuroStep5Screen() {
         remarks: s.remarks || undefined,
       });
 
-      // Подпись стороны «В» по OTP (если введён код)
-      if (otpB.trim() && s.otherPhone) {
-        setPhase('Подпись стороны В…');
-        try {
-          await signOtherParty(res.id, otpB.trim());
-        } catch {
-          /* подпись необязательна для отправки — оператор увидит статус */
-        }
-      }
+      // Подпись стороны «В» фиксируется автоматически на бэкенде по факту прохождения MyID
+      // вторым участником (signedBAt при submit). Отдельный OTP-шаг не нужен.
 
       s.setSubmittedNumber(res.number);
       nav.navigate('EuroSuccess');
@@ -198,22 +188,14 @@ export function EuroStep5Screen() {
       ) : null}
 
       {/* Подпись стороны «В» по OTP */}
-      {s.otherPhone ? (
-        <View style={{ gap: 8 }}>
+      {s.participant ? (
+        <View style={{ gap: 6 }}>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.07 }}>
             Подпись второго участника
           </Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 16 }}>
-            Код отправлен на {s.otherPhone}. Попросите второго участника продиктовать код для подписи.
+            ✓ Подтверждено через MyID — это считается подписью и согласием второго участника.
           </Text>
-          <TextField
-            label="Код из SMS (необязательно)"
-            value={otpB}
-            onChangeText={(v) => setOtpB(v.replace(/\D/g, ''))}
-            keyboardType="number-pad"
-            placeholder="••••"
-            maxLength={6}
-          />
         </View>
       ) : null}
 

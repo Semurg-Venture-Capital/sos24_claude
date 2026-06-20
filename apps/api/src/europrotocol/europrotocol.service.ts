@@ -98,6 +98,8 @@ export class EuroprotocolService {
 
         // Подпись A — инициатор подтверждён через MyID step-up при submit
         signedAAt: dto.selfVerified ? new Date() : null,
+        // Подпись B — прохождение MyID вторым участником = его подпись/согласие.
+        signedBAt: participantId ? new Date() : null,
       },
       select: { id: true, number: true },
     });
