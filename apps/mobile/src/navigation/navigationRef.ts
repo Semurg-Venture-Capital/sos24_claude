@@ -7,26 +7,27 @@ export const navigationRef = createNavigationContainerRef();
 // не готов или экран неизвестен — уводим в список «Уведомления».
 export function navigateFromNotification(data?: Record<string, unknown> | null): void {
   if (!navigationRef.isReady()) return;
-  // Вложенная навигация — типизация ref'а строгая, используем свободную сигнатуру.
-  const go = navigationRef.navigate as unknown as (name: string, params?: object) => void;
+  // Звать navigate как МЕТОД объекта (иначе теряется this и вызов падает).
+  // Типизация ref'а строгая для вложенной навигации — используем свободную сигнатуру.
+  const ref = navigationRef as unknown as { navigate: (name: string, params?: object) => void };
   const screen = data?.screen as string | undefined;
   const id = data?.id as string | undefined;
   try {
     switch (screen) {
       case 'PolicyDetail':
-        if (id) go('Tabs', { screen: 'Policies', params: { screen: 'PolicyDetail', params: { id } } });
+        if (id) ref.navigate('Tabs', { screen: 'Policies', params: { screen: 'PolicyDetail', params: { id } } });
         break;
       case 'AdjusterStatus':
-        if (id) go('Adjuster', { screen: 'AdjusterStatus', params: { requestId: id } });
+        if (id) ref.navigate('Adjuster', { screen: 'AdjusterStatus', params: { requestId: id } });
         break;
       case 'EuroDetail':
-        if (id) go('EuroProtocol', { screen: 'EuroDetail', params: { id } });
+        if (id) ref.navigate('EuroProtocol', { screen: 'EuroDetail', params: { id } });
         break;
       case 'Notifications':
       default:
-        go('Notifications');
+        ref.navigate('Notifications');
     }
   } catch {
-    go('Notifications');
+    ref.navigate('Notifications');
   }
 }
