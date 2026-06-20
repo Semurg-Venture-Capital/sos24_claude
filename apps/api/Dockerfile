@@ -22,8 +22,18 @@ RUN --mount=type=bind,from=pnpmstore,target=/pnpm-store,rw \
       --store-dir /pnpm-store --package-import-method=copy
 RUN pnpm --filter api exec prisma generate
 RUN pnpm --filter api run build
-# pruned prod-сборка только для api (включает prisma CLI + @prisma/client — они в deps)
-RUN pnpm --filter api deploy --prod --legacy --ignore-scripts /app
+# pruned prod-сборка только для api (включает prisma CLI + @prisma/client — они в deps).
+# deploy --legacy переоткрывает зависимости и тянет метаданные из npm (офлайн тут не
+# работает). npm-реестр под эмуляцией флаки → терпеливые таймауты + ретраи.
+ENV npm_config_fetch_retries=6 \
+    npm_config_fetch_retry_mintimeout=20000 \
+    npm_config_fetch_retry_maxtimeout=180000 \
+    npm_config_fetch_timeout=600000
+RUN for i in 1 2 3 4 5 6; do \
+      pnpm --filter api deploy --prod --legacy --ignore-scripts /app && break; \
+      echo ">>> deploy attempt $i failed, retry in 15s"; sleep 15; \
+    done; \
+    test -d /app/node_modules
 # собранный код + схема
 RUN cp -r apps/api/dist /app/dist \
  && cp -r apps/api/prisma /app/prisma
