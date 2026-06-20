@@ -53,7 +53,7 @@ export default function EuroprotocolDetailPage() {
     <>
       <Header title="Европротокол" subtitle={p?.number ?? '—'} />
 
-      <div className="p-6 space-y-5 max-w-6xl">
+      <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16 space-y-5 max-w-6xl">
         {/* Назад + статус + PDF */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <Link href="/europrotocols" className="text-sm text-[#9a9a9a] hover:text-[#151515]">

@@ -10,7 +10,11 @@ RUN corepack enable
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 WORKDIR /repo
 COPY . .
-RUN pnpm install --frozen-lockfile
+# Офлайн-install из локального pnpm-store (npm-реестр под эмуляцией флаки).
+# Сборка: docker build --build-context pnpmstore="$(dirname "$(pnpm store path)")" ...
+RUN --mount=type=bind,from=pnpmstore,target=/pnpm-store,rw \
+    pnpm install --frozen-lockfile --filter admin... --offline \
+      --store-dir /pnpm-store --package-import-method=copy
 # NEXT_PUBLIC_* инлайнятся в бандл на этапе сборки → API-URL должен быть тут
 ARG NEXT_PUBLIC_API_URL=https://api.sos24.uz
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL

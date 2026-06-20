@@ -30,7 +30,7 @@ export default function EuroprotocolsPage() {
     <>
       <Header title="Европротоколы" subtitle="Оформленные извещения о ДТП" />
 
-      <div className="p-6 space-y-5">
+      <div className="flex-1 min-h-0 overflow-y-auto p-6 pb-16 space-y-5">
         {/* KPI */}
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
           <Kpi label="Подано" value={stats?.submitted} active={status === 'SUBMITTED'} onClick={() => setStatus('SUBMITTED')} />
