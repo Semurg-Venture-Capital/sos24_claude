@@ -2,11 +2,31 @@
 
 > Журнал реальных работ Этапа 1. Что сделано, что отложено, где остановились, как продолжить.
 >
-> **Последнее обновление:** 2026-06-20 (Европротокол: визард шаг 2–3 доработан, MyID-подпись B, s3.sos24.uz, прод-обновление, dev-client на телефон)
+> **Последнее обновление:** 2026-06-20 (вечер) — каталог страховых компаний, картинки авто, погода, модуль уведомлений (push), ПРОД задеплоен, готово к TestFlight
 
 ---
 
 ## Где остановились
+
+> **Статус 2026-06-20 (вечер) — большой блок фич + ПРОД-деплой. Готово к заливке TestFlight.** Ветка `main`.
+>
+> **Каталог страховых компаний (маркетплейс).** SOS24 — платформа-агрегатор, полисы выдают компании. Prisma: `InsuranceCompany`, `InsuranceProduct` (контент Json, `pricingMode` COEFFICIENT|PLANS, `baseRate`), `ProductPlan` (цена/покрытие/features); `Policy` += companyId/productId/planId. Бэк `apps/api/src/insurance` (публичные GET + admin CRUD + загрузка логотипа в MinIO). Админка: раздел `/insurance` (компании + продукты с тарифами, редактор контента). Мобайл: новый флоу **Компания → Продукты → Деталь → оформление** (`features/purchase`, экраны CompanySelect/CompanyProducts; ProductDetail тянет из API + выбор тарифа). Расчёт цены: база из `baseRate` (COEFFICIENT) или цены плана (PLANS). Покупка больше **не модалка** — обычные push-страницы. Карточки продуктов — дизайнерские (ProductCard, КАСКО тёмная). Кнопка «+» оформления в Гараже и Полисах — плавающая FAB.
+>
+> **Картинки авто в Гараже.** Крупные карточки с изображением. Рендеры через **imagin.studio** с кэшем в MinIO (`apps/api/src/vehicles/car-image.service.ts`, env `IMAGIN_CUSTOMER_KEY`). ⚠️ Публичный demo-ключ imagin **отключён** → отдаёт заглушку «авто под красным чехлом»; пользователю она ок как временная. Для реальных рендеров нужен **платный лицензионный ключ imagin** (TODO). Приоритет картинки: фото юзера (`Vehicle.photoKey`, загрузка expo-image-picker → `/me/vehicles/:id/photo`) → рендер → иконка-фолбэк. Деталь авто: hero с фото + «Добавить/Изменить фото».
+>
+> **Погода на главной.** `apps/mobile/src/api/weather.ts` — **Open-Meteo** (без ключа, бесплатно) + геолокация (фолбэк Ташкент) + reverse-geocode города; иконки `WeatherIcons`. Тап по виджету = обновить. ⚠️ `AbortSignal.timeout` НЕ работает в Hermes — использовать свой `withTimeout`.
+>
+> **Профиль/навигация:** иконка-бургер на главной → кнопка профиля (вкладка Profile).
+>
+> **Модуль уведомлений (push) — полностью.** Модели `Notification` (in-app история) + `DeviceToken`. `NotificationsModule` (@Global). Отправка: `NotificationsService.send()` пишет в БД + кладёт job в **BullMQ-очередь `push`** (Redis; attempts:5, backoff, DLQ) → `PushProcessor` шлёт прямой **FCM** (firebase-admin) / **APNs** (@parse/node-apn .p8); чистка мёртвых токенов; фолбэк inline. Триггеры: полис оформлен/истекает (крон 09:00 BullMQ), аджастер смена статуса, европротокол смена статуса, ошибка оплаты. Админ-рассылка всем: `/notifications` в админке (`POST /admin/notifications/broadcast`). Мобайл: `expo-notifications`+`expo-device`, регистрация токена, бейдж колокольчика, экран M11.1 (`features/notifications`), **тап → прочитано + deeplink** (`navigationRef`, само-повтор до ~12с от гонки cold start; данные из content.data И trigger.payload). Dev-тест: `POST /me/notifications/test`. Документация — `docs/PUSH_SETUP.md`. Связано: память [[project-push-notifications]].
+>
+> **⚠️ APNs ключи (правило):** dev-сборка (aps-environment=development) → Sandbox-ключ `BQPM29GUB8` + `APNS_PRODUCTION=false`; прод/TestFlight (aps-environment=production) → Production-ключ `M59GZ76982` + `APNS_PRODUCTION=true`. Несовпадение → `BadEnvironmentKeyInToken`.
+>
+> **ПРОД задеплоен (2026-06-20).** Образы API+admin пересобраны (офлайн amd64) и выкачены в `sos24-dev`. Secret обновлён: `REDIS_URL` (redis-master в кластере, с паролем), прод-`APNS_*` (ключ M59GZ76982, PRODUCTION=true). Миграции применены (insurance/vehicle_photo/notifications; разрулен конфликт `public_token` через `migrate resolve --applied`). В логах прод-API: BullMQ init, APNs инициализирован, планировщик. `api.sos24.uz`/`admin.sos24.uz` живы. ⚠️ Dockerfile: шаг `pnpm deploy` теперь с ретраями (флаки npm под эмуляцией). Каталог страховых засеян в прод (компания заказчика + 5 продуктов) через port-forward + `prisma/seed-prod-catalog.ts`. Вход в прод-админку: `+998993286330`/`6330`.
+>
+> **TestFlight — готово к архиву.** Локальный `ios/`: `aps-environment=production`, `CFBundleVersion=4`, bundle `uz.sos24.client`, Team `SRGDG34MV6`, новая иконка. Пользователь архивирует в Xcode сам (НЕ запускать `expo prebuild` — сбросит entitlement/build). Release → `api.sos24.uz`, JS вшит.
+>
+> **Открытые хвосты:** реальный SMS-OTP (Playmobile; сейчас 6330); платный ключ imagin; Android FCM (`google-services.json` + service-account); прод-каталог — контент/логотип компании дозаполнить в админке.
 
 > **Статус 2026-06-20 — Европротокол: визард шага 2–3 доведён, подпись стороны B = MyID, отдельная страница-детали в админке, PDF quick-view, s3.sos24.uz, dev-client на телефоне.** Ветка `main`.
 >
