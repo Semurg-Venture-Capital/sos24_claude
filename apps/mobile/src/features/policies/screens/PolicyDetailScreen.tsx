@@ -112,7 +112,7 @@ export function PolicyDetailScreen() {
 
   const menuItems = [
     { label: 'Скачать PDF', icon: <PdfIcon />, onPress: () => Alert.alert('Скоро', 'Скачивание электронного полиса') },
-    { label: 'Продлить', icon: <RenewIcon />, onPress: () => nav.navigate('PolicyQrFullscreen', { id: policy.id }) },
+    { label: 'Продлить', icon: <RenewIcon />, onPress: () => (nav as any).navigate('PolicyQrFullscreen', { id: policy.id }) },
     { label: 'Заявить убыток', icon: <ClaimIcon />, onPress: () => Alert.alert('Скоро', 'Оформление страхового случая'), destructive: true },
   ];
 
@@ -237,7 +237,7 @@ export function PolicyDetailScreen() {
               )}
             </View>
             <Pressable
-              onPress={() => nav.navigate('PolicyQrFullscreen', { id: policy.id })}
+              onPress={() => (nav as any).navigate('PolicyQrFullscreen', { id: policy.id })}
               style={({ pressed }) => ({
                 paddingVertical: 10,
                 paddingHorizontal: 14,

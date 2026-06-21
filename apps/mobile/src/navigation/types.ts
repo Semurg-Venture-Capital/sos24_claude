@@ -20,7 +20,6 @@ export type MainTabParamList = {
 export type PoliciesStackParamList = {
   PoliciesList: undefined;
   PolicyDetail: { id: string };
-  PolicyQrFullscreen: { id: string };
 };
 
 export type ProfileStackParamList = {
@@ -96,6 +95,8 @@ export type PartnersStackParamList = {
 export type MainStackParamList = {
   Tabs: undefined;
   Notifications: undefined;
+  PolicyQrFullscreen: { id: string }; // QR полиса на весь экран — корневой модал
+
   Purchase:
     | undefined
     | {

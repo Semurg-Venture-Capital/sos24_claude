@@ -152,9 +152,9 @@ export function HomeScreen() {
     if (root) root.navigate('EuroProtocol');
   };
 
-  // nav здесь — Tab navigator, поэтому navigate('Policies', {screen}) работает напрямую.
+  // QR полиса — корневой модал (на уровне MainStack), не внутри вкладки «Полисы».
   const openQr = (id: string) => {
-    (nav as any).navigate('Policies', { screen: 'PolicyQrFullscreen', params: { id } });
+    nav.getParent<RootNav>()?.navigate('PolicyQrFullscreen', { id });
   };
 
   const openPolicyDetail = (id: string) => {

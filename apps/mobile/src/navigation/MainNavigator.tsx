@@ -9,6 +9,7 @@ import { EuroNavigator } from './EuroNavigator';
 import { GarageNavigator } from './GarageNavigator';
 import { HomeScreen } from '../features/main/screens/HomeScreen';
 import { NotificationsScreen } from '../features/notifications/screens/NotificationsScreen';
+import { PolicyQrFullscreenScreen } from '../features/policies/screens/PolicyQrFullscreenScreen';
 import { PoliciesNavigator } from './PoliciesNavigator';
 import { ProfileNavigator } from './ProfileNavigator';
 import { PurchaseNavigator } from './PurchaseNavigator';
@@ -164,6 +165,13 @@ export function MainNavigator() {
       <Stack.Screen name="Support" component={SupportNavigator} />
       <Stack.Screen name="Partners" component={PartnersNavigator} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
+      <Stack.Screen
+        name="PolicyQrFullscreen"
+        component={PolicyQrFullscreenScreen}
+        options={
+          Platform.OS === 'web' ? {} : { presentation: 'fullScreenModal', animation: 'fade' }
+        }
+      />
     </Stack.Navigator>
   );
 }

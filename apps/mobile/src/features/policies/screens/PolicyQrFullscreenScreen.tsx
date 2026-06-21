@@ -8,10 +8,10 @@ import { usePolicy } from '../../../api/policies';
 import type { ProductType } from '../../../api/types';
 import { SosLogo } from '../../../components/ui/SosLogo';
 import { PolicyQR } from '../../../components/ui/PolicyQR';
-import type { PoliciesStackParamList } from '../../../navigation/types';
+import type { MainStackParamList } from '../../../navigation/types';
 
-type Nav = NativeStackNavigationProp<PoliciesStackParamList, 'PolicyQrFullscreen'>;
-type R = RouteProp<PoliciesStackParamList, 'PolicyQrFullscreen'>;
+type Nav = NativeStackNavigationProp<MainStackParamList, 'PolicyQrFullscreen'>;
+type R = RouteProp<MainStackParamList, 'PolicyQrFullscreen'>;
 
 const TYPE_LABELS: Record<ProductType, string> = {
   OSAGO: 'ОСАГО',
