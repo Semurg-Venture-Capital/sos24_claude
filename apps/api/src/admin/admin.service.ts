@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NappReferenceService } from '../napp/napp-reference.service';
+import type { CreateUserDto, UpdateUserDto } from './dto/user-management.dto';
 
 @Injectable()
 export class AdminService {
@@ -96,9 +98,9 @@ export class AdminService {
     };
   }
 
-  async getUsers(page: number, limit: number, search?: string, verified?: string) {
+  async getUsers(page: number, limit: number, search?: string, verified?: string, role?: string) {
     const skip = (page - 1) * limit;
-    const where = {
+    const where: Prisma.UserWhereInput = {
       ...(search
         ? {
             OR: [
@@ -113,6 +115,7 @@ export class AdminService {
         : verified === 'false'
           ? { verificationStatus: 'NOT_VERIFIED' as const }
           : {}),
+      ...(role && role in UserRole ? { role: role as UserRole } : {}),
     };
 
     const [total, users] = await Promise.all([
@@ -137,6 +140,55 @@ export class AdminService {
     ]);
 
     return { total, page, limit, users };
+  }
+
+  private readonly USER_SELECT = {
+    id: true,
+    phone: true,
+    name: true,
+    surname: true,
+    patronymic: true,
+    verificationStatus: true,
+    role: true,
+    createdAt: true,
+    _count: { select: { policies: true } },
+  } as const;
+
+  // Создание пользователя (оператор поддержки, аджастер, админ и т.д.).
+  async createUser(dto: CreateUserDto) {
+    const exists = await this.prisma.user.findUnique({ where: { phone: dto.phone }, select: { id: true } });
+    if (exists) throw new BadRequestException('Пользователь с таким телефоном уже существует');
+    return this.prisma.user.create({
+      data: {
+        phone: dto.phone,
+        role: dto.role,
+        name: dto.name?.trim() || null,
+        surname: dto.surname?.trim() || null,
+        patronymic: dto.patronymic?.trim() || null,
+      },
+      select: this.USER_SELECT,
+    });
+  }
+
+  // Изменение пользователя (роль, ФИО, телефон).
+  async updateUser(id: string, dto: UpdateUserDto) {
+    const user = await this.prisma.user.findUnique({ where: { id }, select: { id: true } });
+    if (!user) throw new NotFoundException('Пользователь не найден');
+    if (dto.phone) {
+      const other = await this.prisma.user.findUnique({ where: { phone: dto.phone }, select: { id: true } });
+      if (other && other.id !== id) throw new BadRequestException('Телефон занят другим пользователем');
+    }
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
+        ...(dto.role !== undefined ? { role: dto.role } : {}),
+        ...(dto.name !== undefined ? { name: dto.name.trim() || null } : {}),
+        ...(dto.surname !== undefined ? { surname: dto.surname.trim() || null } : {}),
+        ...(dto.patronymic !== undefined ? { patronymic: dto.patronymic.trim() || null } : {}),
+      },
+      select: this.USER_SELECT,
+    });
   }
 
   async getPolicies(page: number, limit: number, search?: string, type?: string, status?: string) {

@@ -94,12 +94,20 @@ enum UserRole {
   USER
   ADMIN
   ADJUSTER
+  SUPPORT
 }
 
 enum PartnerType {
   STO
   CLINIC
   TOWING
+}
+
+enum PartnerBookingStatus {
+  PENDING // создана, ждёт подтверждения партнёра
+  CONFIRMED // подтверждена
+  CANCELLED // отменена
+  COMPLETED // выполнена (можно оставить отзыв)
 }
 
 enum IncidentType {
@@ -128,7 +136,38 @@ enum NotificationType {
   CLAIM_STATUS
   EUROPROTOCOL_STATUS
   SUPPORT_REPLY
+  PARTNER_BOOKING
   PROMO
+  SYSTEM
+}
+
+// ── Поддержка (чат) ──
+// Тикетная модель: пользователь создаёт обращения, оператор отвечает.
+enum SupportTicketStatus {
+  OPEN // открыто, ждёт ответа оператора / в переписке
+  PENDING // оператор ждёт ответа пользователя
+  CLOSED // обращение закрыто
+}
+
+enum SupportCategory {
+  POLICY // полисы
+  PAYMENT // оплата
+  ACCIDENT // ДТП / страховой случай
+  ACCOUNT // аккаунт
+  OTHER // другое
+}
+
+enum SupportSenderRole {
+  USER
+  SUPPORT
+  SYSTEM
+}
+
+enum SupportMessageType {
+  TEXT
+  IMAGE
+  FILE
+  AUDIO
   SYSTEM
 }
 
@@ -169,6 +208,11 @@ model User {
   euroProtocols    EuroProtocol[]
   notifications    Notification[]
   deviceTokens     DeviceToken[]
+  supportTickets   SupportTicket[]   @relation("TicketOwner")
+  assignedTickets  SupportTicket[]   @relation("TicketAgent")
+  supportMessages  SupportMessage[]
+  partnerReviews   PartnerReview[]
+  partnerBookings  PartnerBooking[]
 
   @@map("users")
 }
@@ -309,7 +353,8 @@ model Policy {
 
   // Заполняется при ACTIVE
   policyNumber String? @unique
-  qrPayload    String?
+  qrPayload    String? // URL публичной проверки (в QR)
+  publicToken  String? @unique @map("public_token") // токен для /v/<token>
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -480,24 +525,118 @@ model WalletTransaction {
   @@map("wallet_transactions")
 }
 
+// Категория партнёров (управляется в админке): СТО, клиника, эвакуатор, автомойка…
+model PartnerCategory {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  icon      String? // имя иконки/emoji для чипа
+  color     String?
+  sortOrder Int       @default(0)
+  active    Boolean   @default(true)
+  partners  Partner[]
+  createdAt DateTime  @default(now())
+
+  @@map("partner_categories")
+}
+
 model Partner {
-  id      String      @id @default(cuid())
+  id      String       @id @default(cuid())
   name    String
-  type    PartnerType
+  type    PartnerType? // legacy; основная категоризация — categoryId
   address String
   phone   String?
-  rating  Float       @default(0)
-  isOpen  Boolean     @default(true)
-  city    String      @default("Ташкент")
+  rating  Float        @default(0)
+  isOpen  Boolean      @default(true) // ручной override; фактическое «открыто» считается из workingHours
+  city    String       @default("Ташкент")
   lat     Float?
   lng     Float?
+
+  categoryId  String?
+  category    PartnerCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  description String?          @db.Text
+  logoKey     String? // лого в MinIO
+  coverKey    String? // баннер в MinIO
+  email       String?
+  website     String?
+  workingHours Json? // { mon: {open:"09:00", close:"18:00"} | null, ... }
+  reviewCount Int     @default(0)
+  active      Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  services PartnerService[]
+  reviews  PartnerReview[]
+  bookings PartnerBooking[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([type])
   @@index([city])
+  @@index([categoryId])
   @@map("partners")
+}
+
+// Услуга партнёра с ценой (цена опциональна).
+model PartnerService {
+  id          String  @id @default(cuid())
+  partnerId   String
+  partner     Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  priceFrom   Int? // сум
+  priceTo     Int?
+  durationMin Int? // длительность для расчёта слотов
+  active      Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  bookings  PartnerBooking[] @relation("BookingServices")
+  createdAt DateTime         @default(now())
+
+  @@index([partnerId])
+  @@map("partner_services")
+}
+
+// Отзыв (создаётся только после завершённой записи).
+model PartnerReview {
+  id        String  @id @default(cuid())
+  partnerId String
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  bookingId String?         @unique
+  booking   PartnerBooking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  rating    Int // 1..5
+  text      String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([partnerId, createdAt])
+  @@map("partner_reviews")
+}
+
+// Запись на услугу.
+model PartnerBooking {
+  id        String  @id @default(cuid())
+  partnerId String
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  services    PartnerService[]     @relation("BookingServices")
+  policyId    String? // опциональная привязка к полису
+  scheduledAt DateTime
+  status      PartnerBookingStatus @default(PENDING)
+  comment     String?
+
+  review    PartnerReview?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([partnerId, scheduledAt])
+  @@index([userId, createdAt])
+  @@map("partner_bookings")
 }
 
 model Payment {
@@ -723,4 +862,63 @@ model DeviceToken {
 
   @@index([userId])
   @@map("device_tokens")
+}
+
+// Обращение в поддержку (тикет). На пользователя может быть несколько.
+model SupportTicket {
+  id      String          @id @default(cuid())
+  userId  String
+  user    User            @relation("TicketOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  subject  String
+  category SupportCategory     @default(OTHER)
+  status   SupportTicketStatus @default(OPEN)
+
+  // Назначенный оператор (SUPPORT/ADMIN). Назначается при первом ответе / claim.
+  agentId String?
+  agent   User?   @relation("TicketAgent", fields: [agentId], references: [id], onDelete: SetNull)
+
+  // Денормализация для быстрого списка без N+1.
+  lastMessageAt      DateTime @default(now())
+  lastMessagePreview String?
+  unreadForUser      Int      @default(0)
+  unreadForAgent     Int      @default(0)
+
+  messages  SupportMessage[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  closedAt  DateTime?
+
+  @@index([userId, lastMessageAt])
+  @@index([status, lastMessageAt])
+  @@index([agentId, lastMessageAt])
+  @@map("support_tickets")
+}
+
+// Сообщение в тикете.
+model SupportMessage {
+  id       String        @id @default(cuid())
+  ticketId String
+  ticket   SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  // Автор: для SYSTEM-сообщений senderId = null.
+  senderId   String?
+  sender     User?             @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  senderRole SupportSenderRole
+
+  type SupportMessageType @default(TEXT)
+  body String?            @db.Text
+
+  // Вложение (presigned-загрузка в MinIO).
+  attachmentKey  String?
+  attachmentName String?
+  attachmentMime String?
+  attachmentSize Int?
+  audioDuration  Int? // секунды, для AUDIO
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([ticketId, createdAt])
+  @@map("support_messages")
 }

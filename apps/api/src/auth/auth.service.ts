@@ -50,7 +50,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid OTP code');
     }
     const user = await this.prisma.user.findUnique({ where: { phone } });
-    if (!user || user.role !== 'ADMIN') {
+    // В админку допускаются ADMIN и операторы поддержки (SUPPORT).
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPPORT')) {
       throw new UnauthorizedException('Not an admin account');
     }
     const tokens = await this.issueTokens(user.id, user.phone, user.role);

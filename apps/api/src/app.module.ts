@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { FaviconController } from './common/favicon.controller';
 import { BullModule } from '@nestjs/bullmq';
 import { AdminModule } from './admin/admin.module';
 import { AdjusterModule } from './adjuster/adjuster.module';
@@ -18,6 +19,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { PoliciesModule } from './policies/policies.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { PromoModule } from './promo/promo.module';
+import { SupportModule } from './support/support.module';
 import { UsersModule } from './users/users.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { WalletModule } from './wallet/wallet.module';
@@ -57,6 +59,8 @@ import { WalletModule } from './wallet/wallet.module';
     AdjusterModule,
     PartnersModule,
     EuroprotocolModule,
+    SupportModule,
   ],
+  controllers: [FaviconController],
 })
 export class AppModule {}

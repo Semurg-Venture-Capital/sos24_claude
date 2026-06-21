@@ -1,8 +1,9 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from './admin.guard';
 import { AdminService } from './admin.service';
+import { CreateUserDto, UpdateUserDto } from './dto/user-management.dto';
 
 @ApiTags('admin')
 @ApiBearerAuth()
@@ -24,8 +25,21 @@ export class AdminController {
     @Query('limit') limit = '20',
     @Query('search') search?: string,
     @Query('verified') verified?: string,
+    @Query('role') role?: string,
   ) {
-    return this.adminService.getUsers(+page, +limit, search, verified);
+    return this.adminService.getUsers(+page, +limit, search, verified, role);
+  }
+
+  @Post('users')
+  @ApiOperation({ summary: 'Создать пользователя (оператор поддержки, аджастер, админ).' })
+  createUser(@Body() dto: CreateUserDto) {
+    return this.adminService.createUser(dto);
+  }
+
+  @Patch('users/:id')
+  @ApiOperation({ summary: 'Изменить пользователя (роль, ФИО, телефон).' })
+  updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    return this.adminService.updateUser(id, dto);
   }
 
   @Get('users/myid-verified')

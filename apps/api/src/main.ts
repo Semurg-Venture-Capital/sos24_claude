@@ -2,11 +2,17 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { RedisIoAdapter } from './support/redis-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({ origin: true, credentials: true });
+
+  // Socket.IO с Redis-адаптером (мультиреплика). Без Redis — in-memory fallback.
+  const redisAdapter = new RedisIoAdapter(app);
+  await redisAdapter.connect(process.env.REDIS_URL ?? 'redis://localhost:6379');
+  app.useWebSocketAdapter(redisAdapter);
 
   app.useGlobalPipes(
     new ValidationPipe({

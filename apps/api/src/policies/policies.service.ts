@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Policy, PolicyStatus, Prisma } from '@prisma/client';
+import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { PromoService } from '../promo/promo.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -170,11 +171,12 @@ export class PoliciesService {
   }
 
   async list(userId: string, status?: PolicyStatus): Promise<Policy[]> {
-    return this.prisma.policy.findMany({
+    const policies = await this.prisma.policy.findMany({
       where: { userId, ...(status ? { status } : {}) },
       include: { vehicle: true, drivers: { include: { driver: true } } },
       orderBy: { createdAt: 'desc' },
     });
+    return Promise.all(policies.map((p) => this.ensurePublicLink(p)));
   }
 
   async findOne(userId: string, id: string): Promise<Policy> {
@@ -183,7 +185,47 @@ export class PoliciesService {
       include: { vehicle: true, drivers: { include: { driver: true } } },
     });
     if (!p) throw new NotFoundException('Policy not found');
-    return p;
+    return this.ensurePublicLink(p);
+  }
+
+  // Публичная ссылка проверки полиса (в QR). Для прода — api.sos24.uz.
+  private verifyUrl(token: string): string {
+    const base = process.env.PUBLIC_BASE_URL ?? 'https://api.sos24.uz';
+    return `${base}/v/${token}`;
+  }
+
+  // Лениво создаёт publicToken + qrPayload (URL) для активных полисов,
+  // включая оформленные до появления страницы проверки.
+  private async ensurePublicLink<T extends Policy>(policy: T): Promise<T> {
+    if (policy.status !== 'ACTIVE') return policy;
+    const token = policy.publicToken ?? randomBytes(12).toString('base64url');
+    const qrPayload = this.verifyUrl(token);
+    if (policy.publicToken === token && policy.qrPayload === qrPayload) return policy;
+    const updated = await this.prisma.policy.update({
+      where: { id: policy.id },
+      data: { publicToken: token, qrPayload },
+    });
+    return { ...policy, publicToken: updated.publicToken, qrPayload: updated.qrPayload };
+  }
+
+  // Публичная проверка по токену (для страницы /v/<token>, без авторизации).
+  async findPublic(token: string) {
+    const p = await this.prisma.policy.findUnique({
+      where: { publicToken: token },
+      include: {
+        vehicle: true,
+        user: { select: { name: true, surname: true } },
+        company: { select: { name: true } },
+        product: { select: { name: true } },
+      },
+    });
+    if (!p) return null;
+    const today = new Date();
+    const start = new Date(p.startDate);
+    const end = new Date(p.endDate);
+    end.setUTCHours(23, 59, 59, 999);
+    const valid = p.status === 'ACTIVE' && today >= start && today <= end;
+    return { policy: p, valid };
   }
 
   /**
@@ -196,7 +238,8 @@ export class PoliciesService {
     if (policy.status === 'ACTIVE') return policy;
 
     const policyNumber = generatePolicyNumber(policy.type);
-    const qrPayload = `sos24://policy/${policyId}`;
+    const publicToken = policy.publicToken ?? randomBytes(12).toString('base64url');
+    const qrPayload = this.verifyUrl(publicToken);
 
     const updated = await this.prisma.policy.update({
       where: { id: policyId },
@@ -204,6 +247,7 @@ export class PoliciesService {
         status: PolicyStatus.ACTIVE,
         activatedAt: new Date(),
         policyNumber,
+        publicToken,
         qrPayload,
       },
       include: { vehicle: true },

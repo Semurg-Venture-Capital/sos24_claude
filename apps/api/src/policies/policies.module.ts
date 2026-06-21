@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { PromoModule } from '../promo/promo.module';
 import { PoliciesController } from './policies.controller';
+import { PolicyPublicController } from './policy-public.controller';
 import { PoliciesService } from './policies.service';
 import {
   POLICY_MAINT_QUEUE,
@@ -11,7 +12,7 @@ import {
 
 @Module({
   imports: [PromoModule, BullModule.registerQueue({ name: POLICY_MAINT_QUEUE })],
-  controllers: [PoliciesController],
+  controllers: [PoliciesController, PolicyPublicController],
   providers: [PoliciesService, PolicyMaintenanceProcessor, PolicyMaintenanceScheduler],
   exports: [PoliciesService],
 })
