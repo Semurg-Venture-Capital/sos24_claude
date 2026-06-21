@@ -13,6 +13,7 @@ function dispatch(data: Record<string, unknown>): void {
   const ref = navigationRef as unknown as { navigate: (name: string, params?: object) => void };
   const screen = data.screen as string | undefined;
   const id = data.id as string | undefined;
+  const ticketId = (data.ticketId ?? data.id) as string | undefined;
   switch (screen) {
     case 'PolicyDetail':
       if (id) ref.navigate('Tabs', { screen: 'Policies', params: { screen: 'PolicyDetail', params: { id } } });
@@ -22,6 +23,13 @@ function dispatch(data: Record<string, unknown>): void {
       break;
     case 'EuroDetail':
       if (id) ref.navigate('EuroProtocol', { screen: 'EuroDetail', params: { id } });
+      break;
+    case 'SupportChat':
+      if (ticketId) ref.navigate('Support', { screen: 'SupportChat', params: { ticketId } });
+      else ref.navigate('Support', { screen: 'SupportTickets' });
+      break;
+    case 'PartnerBookings':
+      ref.navigate('Partners', { screen: 'MyBookings' });
       break;
     case 'Notifications':
     default:

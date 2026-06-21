@@ -75,6 +75,23 @@ export type EuroStackParamList = {
   EuroDetail: { id: string }; // M10.2 — деталь + трекер статуса
 };
 
+// Поддержка (M13) — hub + список обращений + чат.
+export type SupportStackParamList = {
+  SupportHub: undefined; // M13.1 — экран поддержки (hero, звонок, FAQ)
+  SupportTickets: undefined; // список моих обращений
+  SupportNewTicket: undefined; // создание обращения (тема + категория + первое сообщение)
+  SupportChat: { ticketId: string; subject?: string }; // M13.2 — чат по обращению
+};
+
+// Партнёры (M16) — каталог, деталь, запись, мои записи.
+export type PartnersStackParamList = {
+  PartnersCatalog: undefined; // M16.1 — каталог (список/карта)
+  PartnerDetail: { id: string }; // M16.2 — карточка партнёра
+  PartnerBooking: { partnerId: string; partnerName: string }; // M16.3 — запись
+  PartnerBookingSuccess: { partnerName: string; scheduledAt: string };
+  MyBookings: undefined; // мои записи
+};
+
 // Корневой стек, оборачивающий tab-нав и модальные потоки.
 export type MainStackParamList = {
   Tabs: undefined;
@@ -96,5 +113,17 @@ export type MainStackParamList = {
     | {
         screen: keyof EuroStackParamList;
         params?: EuroStackParamList[keyof EuroStackParamList];
+      };
+  Support:
+    | undefined
+    | {
+        screen: keyof SupportStackParamList;
+        params?: SupportStackParamList[keyof SupportStackParamList];
+      };
+  Partners:
+    | undefined
+    | {
+        screen: keyof PartnersStackParamList;
+        params?: PartnersStackParamList[keyof PartnersStackParamList];
       };
 };

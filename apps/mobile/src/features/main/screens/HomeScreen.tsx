@@ -3,11 +3,12 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMe } from '../../../api/auth';
 import { useActiveAdjusterRequest } from '../../../api/adjuster';
-import { usePartners } from '../../../api/partners';
+import { useNearbyPartners } from '../../../api/partners';
 import { usePolicies, type Policy } from '../../../api/policies';
 import { IconBell } from '../../../components/icons/IconBell';
 import {
@@ -87,8 +88,34 @@ export function HomeScreen() {
     void registerPushToken();
   }, []);
   const { data: policies } = usePolicies('ACTIVE');
-  const { data: partners = [] } = usePartners();
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const Location = await import('expo-location');
+        const perm = await Location.getForegroundPermissionsAsync();
+        if (!perm.granted) return;
+        const pos = await Location.getLastKnownPositionAsync();
+        if (pos) setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      } catch {
+        /* без локации просто не показываем «рядом» */
+      }
+    })();
+  }, []);
+  const { data: partners = [] } = useNearbyPartners(coords?.lat, coords?.lng, 8);
   const { data: activeRequest } = useActiveAdjusterRequest();
+
+  // Pull-to-refresh: обновляем все активные запросы экрана из бэка.
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([queryClient.refetchQueries({ type: 'active' }), refetchWeather()]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
   const displayName = me?.name ?? 'Гость';
   const [menuPolicy, setMenuPolicy] = useState<Policy | null>(null);
 
@@ -97,6 +124,11 @@ export function HomeScreen() {
 
   // Экран уведомлений (живёт на MainStack).
   const openNotifications = () => nav.getParent<RootNav>()?.navigate('Notifications');
+
+  // Партнёры (M16) — каталог; деталь конкретного партнёра.
+  const openPartners = () => nav.getParent<RootNav>()?.navigate('Partners');
+  const openPartner = (id: string) =>
+    nav.getParent<RootNav>()?.navigate('Partners', { screen: 'PartnerDetail', params: { id } });
 
   // Purchase и Adjuster стеки живут на уровне MainStack (sibling к Tabs).
   // Вход в покупку — экран выбора страховой компании.
@@ -151,6 +183,15 @@ export function HomeScreen() {
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 120, gap: 18 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={tokens.red}
+              colors={[tokens.red]}
+              progressViewOffset={insets.top + 8}
+            />
+          }
         >
           {/* Greeting + weather */}
           <View
@@ -234,7 +275,7 @@ export function HomeScreen() {
             </HScroll>
           </View>
 
-          {/* SOS banner */}
+          {/* SOS banner — экстренная помощь (отдельный модуль, в разработке) */}
           <View style={{ paddingHorizontal: 24 }}>
             <SosBanner />
           </View>
@@ -263,28 +304,32 @@ export function HomeScreen() {
                 />
               </View>
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <ActionTile icon={<QuickIconPartners />} label="Партнёры" />
+                <ActionTile icon={<QuickIconPartners />} label="Партнёры" onPress={openPartners} />
                 <ActionTile icon={<QuickIconEuroProtocol />} label="Европротокол" onPress={openEuro} />
               </View>
             </View>
           </View>
 
           {/* Partners */}
-          <View style={{ gap: 12 }}>
-            <SectionRow title="Партнёры рядом" linkLabel="Все" />
-            <HScroll>
-              {partners.map((p) => (
-                <PartnerCard
-                  key={p.id}
-                  name={p.name}
-                  type={PARTNER_TYPE_LABEL[p.type] ?? p.type}
-                  rating={p.rating.toFixed(1)}
-                  distance={p.address}
-                  open={p.isOpen}
-                />
-              ))}
-            </HScroll>
-          </View>
+          {partners.length > 0 && (
+            <View style={{ gap: 12 }}>
+              <SectionRow title="Партнёры рядом" linkLabel="Все" onLinkPress={openPartners} />
+              <HScroll>
+                {partners.map((p) => (
+                  <Pressable key={p.id} onPress={() => openPartner(p.id)}>
+                    <PartnerCard
+                      name={p.name}
+                      type={p.category?.name ?? PARTNER_TYPE_LABEL.STO}
+                      rating={p.rating.toFixed(1)}
+                      distance={p.distanceKm != null ? `${p.distanceKm} км` : p.city}
+                      open={p.openNow ?? undefined}
+                      logoUrl={p.logoUrl}
+                    />
+                  </Pressable>
+                ))}
+              </HScroll>
+            </View>
+          )}
 
           {/* Promo */}
           <View style={{ gap: 12 }}>

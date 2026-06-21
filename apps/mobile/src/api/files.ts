@@ -41,12 +41,25 @@ function inferContentType(uri: string, kind: FileKind): string {
  * через наш API (/files/upload). Возвращает ключ объекта.
  */
 export async function uploadFileToS3(uri: string, kind: FileKind): Promise<UploadedMedia> {
-  const contentType = inferContentType(uri, kind);
+  // Картинки приводим к JPEG: iPhone снимает в HEIC, который не показывают
+  // браузеры (админка) и Android. JPEG понимают везде.
+  let finalUri = uri;
+  let contentType = inferContentType(uri, kind);
+  if (kind === 'image') {
+    try {
+      const IM = await import('expo-image-manipulator');
+      const out = await IM.manipulateAsync(uri, [], { compress: 0.8, format: IM.SaveFormat.JPEG });
+      finalUri = out.uri;
+      contentType = 'image/jpeg';
+    } catch {
+      // Если модуль недоступен (старый билд) — грузим как есть.
+    }
+  }
   try {
-    return await uploadViaPresign(uri, kind, contentType);
+    return await uploadViaPresign(finalUri, kind, contentType);
   } catch {
     // Fallback: пока s3.sos24.uz / presign-upload не задеплоены — грузим через API.
-    return await uploadViaApi(uri, contentType);
+    return await uploadViaApi(finalUri, contentType);
   }
 }
 

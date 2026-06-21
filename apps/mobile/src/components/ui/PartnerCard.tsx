@@ -1,5 +1,5 @@
 import { GlassView } from 'expo-glass-effect';
-import { Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 import { StarIcon } from '../icons/StarIcon';
 import { tokens } from '../../theme/colors';
 
@@ -9,9 +9,10 @@ interface Props {
   rating: string;
   distance: string;
   open?: boolean;
+  logoUrl?: string | null;
 }
 
-export function PartnerCard({ name, type, rating, distance, open }: Props) {
+export function PartnerCard({ name, type, rating, distance, open, logoUrl }: Props) {
   return (
     <View style={{ width: 168 }}>
       <GlassView
@@ -23,7 +24,7 @@ export function PartnerCard({ name, type, rating, distance, open }: Props) {
           gap: 8,
         }}
       >
-        {/* Logo placeholder block */}
+        {/* Logo / placeholder block */}
         <View
           style={{
             height: 80,
@@ -31,11 +32,14 @@ export function PartnerCard({ name, type, rating, distance, open }: Props) {
             backgroundColor: '#d8d8d8',
             alignItems: 'center',
             justifyContent: 'center',
+            overflow: 'hidden',
           }}
         >
-          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.inkSubtle }}>
-            {name[0]}
-          </Text>
+          {logoUrl ? (
+            <Image source={{ uri: logoUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+          ) : (
+            <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.inkSubtle }}>{name[0]}</Text>
+          )}
         </View>
         <View style={{ gap: 4 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>

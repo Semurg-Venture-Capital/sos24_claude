@@ -12,6 +12,8 @@ import { NotificationsScreen } from '../features/notifications/screens/Notificat
 import { PoliciesNavigator } from './PoliciesNavigator';
 import { ProfileNavigator } from './ProfileNavigator';
 import { PurchaseNavigator } from './PurchaseNavigator';
+import { SupportNavigator } from './SupportNavigator';
+import { PartnersNavigator } from './PartnersNavigator';
 import { FloatingTabBar } from '../components/ui/FloatingTabBar';
 import { flushPendingDeeplink } from './navigationRef';
 import { tokens } from '../theme/colors';
@@ -159,6 +161,8 @@ export function MainNavigator() {
       {/* Европротокол — обычные push-страницы (НЕ модалка): иначе нативный MyID SDK
           не может презентовать свой экран поверх модального стека (зависает спиннер). */}
       <Stack.Screen name="EuroProtocol" component={EuroNavigator} />
+      <Stack.Screen name="Support" component={SupportNavigator} />
+      <Stack.Screen name="Partners" component={PartnersNavigator} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
     </Stack.Navigator>
   );

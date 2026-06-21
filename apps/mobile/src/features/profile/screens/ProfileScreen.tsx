@@ -8,7 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCollapsingHeader } from '../../../lib/useCollapsingHeader';
 import { useMe } from '../../../api/auth';
 import { useDocuments } from '../../../api/documents';
-import { IconChat, IconFile, IconInfo, IconLanguage, IconLicense, IconLogout, IconPalette, IconPassport, IconPencil, IconQuestion, IconWallet } from '../../../components/icons/LineIcons';
+import Constants from 'expo-constants';
+import { IconChat, IconFile, IconLanguage, IconLicense, IconLogout, IconPalette, IconPassport, IconPencil, IconQuestion, IconWallet } from '../../../components/icons/LineIcons';
 import { Avatar } from '../../../components/ui/Avatar';
 import { ListRow } from '../../../components/ui/ListRow';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
@@ -19,9 +20,10 @@ import { useWallet } from '../../../api/wallet';
 import { useAuthStore } from '../../../stores/authStore';
 import { tokens } from '../../../theme/colors';
 import { MOCK_USER, getLocaleLabel, getThemeLabel } from '../mockProfile';
-import type { ProfileStackParamList } from '../../../navigation/types';
+import type { MainStackParamList, ProfileStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<ProfileStackParamList, 'ProfileMain'>;
+type RootNav = NativeStackNavigationProp<MainStackParamList>;
 
 function statusFromApi(s: 'PENDING' | 'VERIFIED' | 'REJECTED' | undefined): 'pending' | 'verified' | 'rejected' {
   if (s === 'VERIFIED') return 'verified';
@@ -41,6 +43,13 @@ function formatPhone(phone: string): string {
 export function ProfileScreen() {
   const nav = useNavigation<Nav>();
   const signOut = useAuthStore((s) => s.signOut);
+  // Отдел поддержки (M13) живёт на MainStack — открываем через родительский навигатор.
+  const openSupport = () => nav.getParent<RootNav>()?.navigate('Support');
+
+  // Версия приложения + git hash сборки (подставляется в app.config.js из git).
+  const appVersion = Constants.expoConfig?.version ?? '—';
+  const gitHash = (Constants.expoConfig?.extra as { gitHash?: string } | undefined)?.gitHash;
+  const appVersionLabel = gitHash ? `Версия ${appVersion} (${gitHash})` : `Версия ${appVersion}`;
   const [notifications, setNotifications] = useState(MOCK_USER.notificationsEnabled);
   const { data: me } = useMe();
   const { data: documents } = useDocuments();
@@ -188,9 +197,8 @@ export function ProfileScreen() {
         </Section>
 
         <Section title="Помощь">
-          <ListRow icon={<IconChat />} title="Поддержка" onPress={() => {}} />
-          <ListRow icon={<IconQuestion />} title="Частые вопросы" onPress={() => {}} />
-          <ListRow icon={<IconInfo />} title="О приложении" value="0.1.0" onPress={() => {}} />
+          <ListRow icon={<IconChat />} title="Поддержка" onPress={openSupport} />
+          <ListRow icon={<IconQuestion />} title="Частые вопросы" onPress={openSupport} />
           <ListRow icon={<IconFile />} title="Оферта и политика" onPress={() => {}} />
         </Section>
 
@@ -203,6 +211,18 @@ export function ProfileScreen() {
             onPress={() => void signOut()}
           />
         </View>
+
+        <Text
+          style={{
+            textAlign: 'center',
+            marginTop: 20,
+            fontFamily: 'Manrope_400Regular',
+            fontSize: 12,
+            color: tokens.inkMuted,
+          }}
+        >
+          {appVersionLabel}
+        </Text>
         </Animated.ScrollView>
 
         {/* Fade-overlay сверху: контент мягко исчезает за status bar / DI. */}
