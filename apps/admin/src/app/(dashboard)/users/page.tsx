@@ -3,21 +3,43 @@
 import { useState } from 'react';
 import { useUsers } from '@/lib/admin-hooks';
 import { Header } from '@/components/layout/Header';
-import { Search, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Plus, Pencil } from 'lucide-react';
 import { formatDate, formatPhone } from '@/lib/utils';
+import { UserFormModal, ROLE_OPTIONS, type EditUser } from './UserFormModal';
+
+const ROLE_LABEL: Record<string, string> = {
+  USER: 'Пользователь',
+  ADMIN: 'Администратор',
+  ADJUSTER: 'Аджастер',
+  SUPPORT: 'Поддержка',
+};
+const ROLE_STYLE: Record<string, string> = {
+  USER: 'bg-[rgba(20,20,40,0.06)] text-[#5f5e5e]',
+  ADMIN: 'bg-[rgba(230,20,40,0.1)] text-[#e61428]',
+  ADJUSTER: 'bg-[rgba(86,140,255,0.12)] text-[#3670d4]',
+  SUPPORT: 'bg-[rgba(52,211,153,0.12)] text-[#0a9466]',
+};
 
 export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [verified, setVerified] = useState('');
+  const [role, setRole] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editUser, setEditUser] = useState<EditUser | null>(null);
 
-  const { data, isLoading } = useUsers(page, 20, search, verified);
+  const { data, isLoading } = useUsers(page, 20, search, verified, role);
   const total: number = data?.total ?? 0;
   const users: any[] = data?.users ?? [];
   const totalPages = Math.ceil(total / 20);
 
   const applySearch = () => { setSearch(searchInput); setPage(1); };
+  const openCreate = () => { setEditUser(null); setModalOpen(true); };
+  const openEdit = (u: any) => {
+    setEditUser({ id: u.id, phone: u.phone, role: u.role, name: u.name, surname: u.surname, patronymic: u.patronymic });
+    setModalOpen(true);
+  };
 
   return (
     <div className="flex flex-col flex-1 overflow-auto">
@@ -37,6 +59,17 @@ export default function UsersPage() {
           </div>
 
           <select
+            value={role}
+            onChange={(e) => { setRole(e.target.value); setPage(1); }}
+            className="h-9 px-3 bg-white border border-[rgba(20,20,40,0.1)] rounded-xl text-sm text-[#5f5e5e] outline-none"
+          >
+            <option value="">Все роли</option>
+            {ROLE_OPTIONS.map((r) => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
+
+          <select
             value={verified}
             onChange={(e) => { setVerified(e.target.value); setPage(1); }}
             className="h-9 px-3 bg-white border border-[rgba(20,20,40,0.1)] rounded-xl text-sm text-[#5f5e5e] outline-none"
@@ -46,8 +79,11 @@ export default function UsersPage() {
             <option value="false">Не верифицированные</option>
           </select>
 
-          <button className="ml-auto h-9 px-3 bg-white border border-[rgba(20,20,40,0.1)] rounded-xl text-sm text-[#5f5e5e] flex items-center gap-2 hover:bg-[#f8f8f8] transition-colors">
-            <Download size={14} /> Экспорт
+          <button
+            onClick={openCreate}
+            className="ml-auto h-9 px-3.5 bg-[#e61428] text-white rounded-xl text-sm flex items-center gap-2 hover:bg-[#c01020] transition-colors"
+          >
+            <Plus size={15} /> Создать пользователя
           </button>
         </div>
 
@@ -55,7 +91,7 @@ export default function UsersPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[rgba(20,20,40,0.06)]">
-                {['Пользователь', 'Телефон', 'Верификация', 'Полисов', 'Роль', 'Зарегистрирован'].map((h) => (
+                {['Пользователь', 'Телефон', 'Верификация', 'Полисов', 'Роль', 'Зарегистрирован', ''].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-[#9a9a9a] uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -64,7 +100,7 @@ export default function UsersPage() {
               {isLoading ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i}>
-                    {Array.from({ length: 6 }).map((__, j) => (
+                    {Array.from({ length: 7 }).map((__, j) => (
                       <td key={j} className="px-5 py-3.5">
                         <div className="h-4 bg-[#f0f0f2] rounded animate-pulse" />
                       </td>
@@ -73,7 +109,7 @@ export default function UsersPage() {
                 ))
               ) : users.map((u) => {
                 const fullName = [u.surname, u.name, u.patronymic].filter(Boolean).join(' ');
-                const verified = u.verificationStatus === 'MYID_VERIFIED';
+                const verifiedFlag = u.verificationStatus === 'MYID_VERIFIED';
                 return (
                   <tr key={u.id} className="hover:bg-[#fafafa] transition-colors">
                     <td className="px-5 py-3.5">
@@ -89,18 +125,26 @@ export default function UsersPage() {
                     </td>
                     <td className="px-5 py-3.5 text-sm text-[#5f5e5e]">{formatPhone(u.phone)}</td>
                     <td className="px-5 py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${verified ? 'bg-[rgba(52,211,153,0.1)] text-[#0a9466]' : 'bg-[rgba(20,20,40,0.06)] text-[#9a9a9a]'}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${verified ? 'bg-[#34d399]' : 'bg-[#c0c0c0]'}`} />
-                        {verified ? 'MyID верифицирован' : 'Не верифицирован'}
+                      <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium ${verifiedFlag ? 'bg-[rgba(52,211,153,0.1)] text-[#0a9466]' : 'bg-[rgba(20,20,40,0.06)] text-[#9a9a9a]'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${verifiedFlag ? 'bg-[#34d399]' : 'bg-[#c0c0c0]'}`} />
+                        {verifiedFlag ? 'MyID верифицирован' : 'Не верифицирован'}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-sm font-semibold text-[#151515]">{u._count?.policies ?? 0}</td>
                     <td className="px-5 py-3.5">
-                      {u.role === 'ADMIN' && (
-                        <span className="inline-block text-[10px] px-2 py-0.5 rounded-full font-semibold bg-[rgba(230,20,40,0.1)] text-[#e61428]">ADMIN</span>
-                      )}
+                      <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-semibold ${ROLE_STYLE[u.role] ?? ROLE_STYLE.USER}`}>
+                        {ROLE_LABEL[u.role] ?? u.role}
+                      </span>
                     </td>
                     <td className="px-5 py-3.5 text-sm text-[#9a9a9a]">{formatDate(u.createdAt)}</td>
+                    <td className="px-5 py-3.5 text-right">
+                      <button
+                        onClick={() => openEdit(u)}
+                        className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs text-[#5f5e5e] hover:bg-[#f0f0f2] transition-colors"
+                      >
+                        <Pencil size={13} /> Изменить
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
@@ -123,6 +167,8 @@ export default function UsersPage() {
           )}
         </div>
       </main>
+
+      <UserFormModal open={modalOpen} onClose={() => setModalOpen(false)} user={editUser} />
     </div>
   );
 }

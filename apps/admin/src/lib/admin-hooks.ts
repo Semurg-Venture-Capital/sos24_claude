@@ -15,13 +15,40 @@ export function useStats() {
   });
 }
 
-export function useUsers(page = 1, limit = 20, search = '', verified = '') {
+export function useUsers(page = 1, limit = 20, search = '', verified = '', role = '') {
   return useQuery({
-    queryKey: ['admin', 'users', page, search, verified],
+    queryKey: ['admin', 'users', page, search, verified, role],
     queryFn: () =>
       api
-        .get('/admin/users', { params: { page, limit, search: search || undefined, verified: verified || undefined } })
+        .get('/admin/users', {
+          params: { page, limit, search: search || undefined, verified: verified || undefined, role: role || undefined },
+        })
         .then((r) => r.data),
+  });
+}
+
+export interface UserInput {
+  phone?: string;
+  role?: string;
+  name?: string;
+  surname?: string;
+  patronymic?: string;
+}
+
+export function useCreateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UserInput) => api.post('/admin/users', input).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  });
+}
+
+export function useUpdateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: UserInput }) =>
+      api.patch(`/admin/users/${id}`, input).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
   });
 }
 

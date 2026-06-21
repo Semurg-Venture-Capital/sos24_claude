@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { SosMark } from '@/components/SosMark';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,12 +33,14 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const { data } = await api.post<{ accessToken: string; role: string }>('/auth/admin/login', { phone, code: otp });
-      if (data.role !== 'ADMIN') {
-        setError('Этот аккаунт не имеет прав администратора.');
+      if (data.role !== 'ADMIN' && data.role !== 'SUPPORT') {
+        setError('Этот аккаунт не имеет доступа к панели.');
         return;
       }
       localStorage.setItem('sos24_admin_token', data.accessToken);
-      router.push('/dashboard');
+      localStorage.setItem('sos24_admin_role', data.role);
+      // Операторы поддержки попадают сразу в чаты.
+      router.push(data.role === 'SUPPORT' ? '/support' : '/dashboard');
     } catch (err: any) {
       const msg = err?.response?.data?.message;
       setError(msg === 'Not an admin account' ? 'Аккаунт не является администратором.' : 'Неверный код.');
@@ -50,9 +53,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#f0f0f2] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2.5 mb-8 justify-center">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm" style={{ background: '#e61428' }}>
-            S
-          </div>
+          <SosMark size={30} />
           <span className="text-xl font-semibold text-[#151515] tracking-tight">SOS24 Admin</span>
         </div>
 

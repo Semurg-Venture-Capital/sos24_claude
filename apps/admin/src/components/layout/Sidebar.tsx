@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
@@ -20,9 +20,11 @@ import {
   FileWarning,
   Building2,
   Bell,
+  MessageCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NAPP_TOOLS, NAPP_GROUPS } from '@/lib/nappTools';
+import { SosMark } from '@/components/SosMark';
 
 const NAV = [
   { href: '/dashboard', label: 'Дашборд', icon: LayoutDashboard },
@@ -32,13 +34,14 @@ const NAV = [
   { href: '/vehicles', label: 'Автомобили', icon: Car },
   { href: '/adjuster', label: 'Аджастер', icon: Siren },
   { href: '/europrotocols', label: 'Европротоколы', icon: FileWarning },
+  { href: '/support', label: 'Поддержка', icon: MessageCircle },
+  { href: '/partners', label: 'Партнёры', icon: Handshake },
   { href: '/notifications', label: 'Уведомления', icon: Bell },
   { href: '/myid-test', label: 'MyID данные', icon: Fingerprint },
 ];
 
 const NAV_DISABLED = [
   { href: '/claims', label: 'Убытки', icon: FileText },
-  { href: '/partners', label: 'Партнёры', icon: Handshake },
   { href: '/reports', label: 'Отчёты', icon: BarChart3 },
 ];
 
@@ -49,22 +52,25 @@ export function Sidebar() {
   const [nappOpen, setNappOpen] = useState(onNapp);
   const activeTool = sp.get('tool');
 
+  // Операторы поддержки видят только раздел «Поддержка».
+  const [role, setRole] = useState<string | null>(null);
+  useEffect(() => {
+    setRole(localStorage.getItem('sos24_admin_role'));
+  }, []);
+  const isSupportOnly = role === 'SUPPORT';
+  const nav = isSupportOnly ? NAV.filter((n) => n.href === '/support') : NAV;
+
   return (
     <aside className="w-60 shrink-0 flex flex-col h-full bg-[#111111] text-white">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 h-14 border-b border-white/[0.07]">
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0"
-          style={{ background: '#e61428' }}
-        >
-          S
-        </div>
+        <SosMark size={22} />
         <span className="font-semibold text-sm tracking-tight">SOS24 Admin</span>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {nav.map(({ href, label, icon: Icon }) => {
           const active = path === href || (href !== '/dashboard' && path.startsWith(href));
           return (
             <Link
@@ -83,6 +89,8 @@ export function Sidebar() {
         })}
 
         {/* ── Отдел NAPP (раскрывающийся блок с подменю) ── */}
+        {!isSupportOnly && (
+        <>
         <div className="mt-3 pt-3 border-t border-white/[0.07]">
           <button
             onClick={() => setNappOpen((v) => !v)}
@@ -136,6 +144,8 @@ export function Sidebar() {
             </span>
           ))}
         </div>
+        </>
+        )}
       </nav>
 
       {/* Bottom */}
