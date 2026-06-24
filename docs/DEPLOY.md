@@ -135,6 +135,45 @@ open https://admin.sos24.uz                   # логин админки
 
 ---
 
+## Шаг 6 — B2B-кабинет партнёров `partner.sos24.uz` (добавлен 2026-06-24)
+> 3-е веб-приложение (`apps/partner`, Next.js standalone, порт 3036, NodePort 30040). Образ собирается
+> так же, как admin (офлайн pnpm-store + `--build-arg NEXT_PUBLIC_API_URL`). DNS A-запись
+> `partner.sos24.uz → 146.120.18.70` должна существовать ДО выпуска SSL.
+
+```bash
+export REG=10.10.38.11:30500/sos24
+# 1) образ
+docker build --platform linux/amd64 --build-context pnpmstore="$(dirname "$(pnpm store path)")" \
+  -f apps/partner/Dockerfile -t $REG/sos24-partner:latest \
+  --build-arg NEXT_PUBLIC_API_URL=https://api.sos24.uz .
+docker push $REG/sos24-partner:latest
+# 2) k8s
+sed "s#__REGISTRY__#$REG#g" deploy/k8s/partner.yaml | kubectl apply -f -
+kubectl -n sos24-dev rollout status deploy/sos24-partner
+```
+
+**nginx + SSL (на ВМ `sos24-nginx`, certbot НЕ установлен — используется acme.sh у root, Google CA):**
+```bash
+# upstream sos24_partner (NodePort 30040) уже в deploy/nginx/live/sos24-upstreams.conf
+scp deploy/nginx/live/sos24-upstreams.conf sos24-nginx:/tmp/
+ssh sos24-nginx 'sudo cp /tmp/sos24-upstreams.conf /etc/nginx/conf.d/'
+# 1) временный :80-vhost (только acme-challenge + redirect) — иначе nginx -t падает на отсутствующем cert
+#    (default.conf НЕ обслуживает /.well-known/acme-challenge для чужого host)
+# 2) выпуск (webroot /var/www/_acme-challenge, ec-256):
+ssh sos24-nginx 'sudo /root/.acme.sh/acme.sh --issue -d partner.sos24.uz -w /var/www/_acme-challenge \
+  --server https://dv.acme-v02.api.pki.goog/directory --keylength ec-256'
+# 3) install-cert (кладёт в /etc/nginx/ssl/partner.sos24.uz/ + ставит авто-renew с reloadcmd):
+ssh sos24-nginx 'sudo /root/.acme.sh/acme.sh --install-cert -d partner.sos24.uz --ecc \
+  --fullchain-file /etc/nginx/ssl/partner.sos24.uz/fullchain.pem \
+  --key-file /etc/nginx/ssl/partner.sos24.uz/key.pem \
+  --reloadcmd "nginx -t && systemctl reload nginx"'
+# 4) полный vhost (:80+:443):
+scp deploy/nginx/live/partner.sos24.uz.conf sos24-nginx:/tmp/
+ssh sos24-nginx 'sudo cp /tmp/partner.sos24.uz.conf /etc/nginx/conf.d/ && sudo nginx -t && sudo systemctl reload nginx'
+```
+> Партнёрских аккаунтов в проде нет — создаются в админке: Пользователи → роль **Партнёр** → привязать к
+> страховой компании ИЛИ точке-партнёру (1:1). Партнёр логинится на partner.sos24.uz тем же OTP-флоу.
+
 ## Заметки
 - **HTTPS обязателен** для мобильного приложения (iOS ATS не пускает http к не-localhost).
 - **CORS** API сейчас `origin:true` (любой источник). При желании сузить до `https://admin.sos24.uz`.
