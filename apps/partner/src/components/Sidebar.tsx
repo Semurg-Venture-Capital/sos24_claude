@@ -1,0 +1,95 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  LayoutDashboard,
+  Building2,
+  Package,
+  Store,
+  Wrench,
+  CalendarClock,
+  Star,
+  LogOut,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { SosMark } from '@/components/SosMark';
+import type { CabinetKind } from '@/lib/cabinet';
+
+const INSURER_NAV = [
+  { href: '/dashboard', label: 'Обзор', icon: LayoutDashboard },
+  { href: '/company', label: 'Компания', icon: Building2 },
+  { href: '/products', label: 'Продукты и тарифы', icon: Package },
+];
+
+const SERVICE_NAV = [
+  { href: '/dashboard', label: 'Обзор', icon: LayoutDashboard },
+  { href: '/profile', label: 'Профиль точки', icon: Store },
+  { href: '/services', label: 'Услуги', icon: Wrench },
+  { href: '/bookings', label: 'Записи', icon: CalendarClock },
+  { href: '/reviews', label: 'Отзывы', icon: Star },
+];
+
+export function Sidebar({ kind, entityName }: { kind: CabinetKind; entityName?: string }) {
+  const path = usePathname();
+  const nav = kind === 'INSURER' ? INSURER_NAV : SERVICE_NAV;
+
+  return (
+    <aside className="w-60 shrink-0 flex flex-col h-full bg-[#111111] text-white">
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 px-5 h-14 border-b border-white/[0.07]">
+        <SosMark size={22} />
+        <div className="flex flex-col leading-tight">
+          <span className="font-semibold text-sm tracking-tight">SOS24 Partner</span>
+          <span className="text-[10px] text-white/40 uppercase tracking-widest">
+            {kind === 'INSURER' ? 'Страховая' : 'Сервис-партнёр'}
+          </span>
+        </div>
+      </div>
+
+      {entityName && (
+        <div className="px-5 py-3 border-b border-white/[0.07]">
+          <p className="text-[11px] text-white/35 uppercase tracking-wider mb-0.5">Кабинет</p>
+          <p className="text-sm text-white/85 font-medium truncate">{entityName}</p>
+        </div>
+      )}
+
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto">
+        {nav.map(({ href, label, icon: Icon }) => {
+          const active = path === href || (href !== '/dashboard' && path.startsWith(href));
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors',
+                active ? 'bg-[rgba(230,20,40,0.15)] text-white' : 'text-white/50 hover:text-white/80 hover:bg-white/[0.05]',
+              )}
+            >
+              <Icon size={16} className={cn('shrink-0', active ? 'text-[#e61428]' : 'text-white/40')} />
+              <span>{label}</span>
+              {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#e61428]" />}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Bottom */}
+      <div className="px-3 pb-4 flex flex-col gap-0.5 border-t border-white/[0.07] pt-3">
+        <button
+          onClick={() => {
+            localStorage.removeItem('sos24_partner_token');
+            localStorage.removeItem('sos24_partner_role');
+            localStorage.removeItem('sos24_partner_kind');
+            window.location.href = '/login';
+          }}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/40 hover:text-[#ff6b6b] hover:bg-[rgba(230,20,40,0.08)] transition-colors w-full text-left"
+        >
+          <LogOut size={16} />
+          Выйти
+        </button>
+      </div>
+    </aside>
+  );
+}
