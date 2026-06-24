@@ -33,6 +33,14 @@ export class AuthController {
     return { ...tokens, role };
   }
 
+  @Post('partner/login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Логин в B2B-кабинет (partner.sos24.uz). Телефон + OTP, роль PARTNER.' })
+  async partnerLogin(@Body() dto: VerifyOtpDto) {
+    const { tokens, role, kind } = await this.authService.partnerLogin(dto.phone, dto.code);
+    return { ...tokens, role, kind };
+  }
+
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Обновить пару токенов по refresh-токену.' })

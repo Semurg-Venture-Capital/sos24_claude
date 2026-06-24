@@ -58,6 +58,31 @@ export class AuthService {
     return { tokens, role: user.role };
   }
 
+  // Логин в B2B-кабинет partner.sos24.uz. Пускаем только роль PARTNER.
+  // Тип кабинета (страховая / сервис-партнёр) определяется тем, какой сущностью владеет пользователь.
+  async partnerLogin(
+    phone: string,
+    code: string,
+  ): Promise<{ tokens: TokenPair; role: string; kind: 'INSURER' | 'SERVICE' | null }> {
+    if (code !== DEV_OTP_CODE) {
+      throw new UnauthorizedException('Invalid OTP code');
+    }
+    const user = await this.prisma.user.findUnique({
+      where: { phone },
+      include: { ownedCompany: { select: { id: true } }, ownedPartner: { select: { id: true } } },
+    });
+    if (!user || user.role !== 'PARTNER') {
+      throw new UnauthorizedException('Not a partner account');
+    }
+    const kind = user.ownedCompany ? 'INSURER' : user.ownedPartner ? 'SERVICE' : null;
+    if (!kind) {
+      // Аккаунт с ролью PARTNER, но не привязан ни к компании, ни к точке — кабинет пуст.
+      throw new UnauthorizedException('Partner account is not linked to a company or partner location');
+    }
+    const tokens = await this.issueTokens(user.id, user.phone, user.role);
+    return { tokens, role: user.role, kind };
+  }
+
   async refresh(refreshToken: string): Promise<TokenPair> {
     let payload: { sub: string; phone: string };
     try {

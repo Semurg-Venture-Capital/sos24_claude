@@ -95,6 +95,7 @@ enum UserRole {
   ADMIN
   ADJUSTER
   SUPPORT
+  PARTNER // владелец B2B-кабинета (страховая компания ИЛИ сервис-партнёр), вход через partner.sos24.uz
 }
 
 enum PartnerType {
@@ -213,6 +214,10 @@ model User {
   supportMessages  SupportMessage[]
   partnerReviews   PartnerReview[]
   partnerBookings  PartnerBooking[]
+
+  // B2B-кабинет (роль PARTNER): пользователь владеет РОВНО одной сущностью — компанией ИЛИ точкой.
+  ownedCompany InsuranceCompany? @relation("CompanyOwner")
+  ownedPartner Partner?          @relation("PartnerOwner")
 
   @@map("users")
 }
@@ -378,6 +383,10 @@ model InsuranceCompany {
   description String?
   active      Boolean @default(true)
   sortOrder   Int     @default(0)
+
+  // Владелец B2B-кабинета (роль PARTNER). 1:1 — у компании максимум один логин-владелец.
+  ownerId String? @unique @map("owner_id")
+  owner   User?   @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
   products InsuranceProduct[]
   policies Policy[]
@@ -563,6 +572,10 @@ model Partner {
   reviewCount Int     @default(0)
   active      Boolean @default(true)
   sortOrder   Int     @default(0)
+
+  // Владелец B2B-кабинета (роль PARTNER). 1:1 — у точки максимум один логин-владелец.
+  ownerId String? @unique @map("owner_id")
+  owner   User?   @relation("PartnerOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
   services PartnerService[]
   reviews  PartnerReview[]

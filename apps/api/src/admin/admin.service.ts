@@ -151,6 +151,9 @@ export class AdminService {
     verificationStatus: true,
     role: true,
     createdAt: true,
+    // Привязка B2B-кабинета (роль PARTNER): какой компанией/точкой владеет пользователь.
+    ownedCompany: { select: { id: true, name: true } },
+    ownedPartner: { select: { id: true, name: true } },
     _count: { select: { policies: true } },
   } as const;
 
@@ -158,7 +161,7 @@ export class AdminService {
   async createUser(dto: CreateUserDto) {
     const exists = await this.prisma.user.findUnique({ where: { phone: dto.phone }, select: { id: true } });
     if (exists) throw new BadRequestException('Пользователь с таким телефоном уже существует');
-    return this.prisma.user.create({
+    const created = await this.prisma.user.create({
       data: {
         phone: dto.phone,
         role: dto.role,
@@ -166,8 +169,10 @@ export class AdminService {
         surname: dto.surname?.trim() || null,
         patronymic: dto.patronymic?.trim() || null,
       },
-      select: this.USER_SELECT,
+      select: { id: true },
     });
+    await this.applyPartnerLink(created.id, dto.role, dto.linkCompanyId, dto.linkPartnerId);
+    return this.prisma.user.findUnique({ where: { id: created.id }, select: this.USER_SELECT });
   }
 
   // Изменение пользователя (роль, ФИО, телефон).
@@ -178,7 +183,7 @@ export class AdminService {
       const other = await this.prisma.user.findUnique({ where: { phone: dto.phone }, select: { id: true } });
       if (other && other.id !== id) throw new BadRequestException('Телефон занят другим пользователем');
     }
-    return this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id },
       data: {
         ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
@@ -187,8 +192,63 @@ export class AdminService {
         ...(dto.surname !== undefined ? { surname: dto.surname.trim() || null } : {}),
         ...(dto.patronymic !== undefined ? { patronymic: dto.patronymic.trim() || null } : {}),
       },
-      select: this.USER_SELECT,
     });
+    // Привязку к компании/точке трогаем, только если в DTO явно что-то передано
+    // (linkCompanyId / linkPartnerId; пустая строка = отвязать).
+    const effectiveRole = dto.role ?? (await this.prisma.user.findUnique({ where: { id }, select: { role: true } }))!.role;
+    if (dto.linkCompanyId !== undefined || dto.linkPartnerId !== undefined) {
+      await this.applyPartnerLink(id, effectiveRole, dto.linkCompanyId, dto.linkPartnerId);
+    } else if (dto.role !== undefined && dto.role !== 'PARTNER') {
+      // Сняли роль PARTNER — отвязываем любые сущности.
+      await this.clearOwnership(id);
+    }
+    return this.prisma.user.findUnique({ where: { id }, select: this.USER_SELECT });
+  }
+
+  // Снять любое владение этого пользователя (1:1 — у юзера максимум одна сущность).
+  private async clearOwnership(userId: string) {
+    await this.prisma.$transaction([
+      this.prisma.insuranceCompany.updateMany({ where: { ownerId: userId }, data: { ownerId: null } }),
+      this.prisma.partner.updateMany({ where: { ownerId: userId }, data: { ownerId: null } }),
+    ]);
+  }
+
+  // Привязать PARTNER-пользователя РОВНО к одной сущности (компании ИЛИ точке).
+  // Пустая строка/null в обоих полях — отвязать. Для не-PARTNER ролей привязка запрещена.
+  private async applyPartnerLink(
+    userId: string,
+    role: UserRole,
+    linkCompanyId?: string,
+    linkPartnerId?: string,
+  ) {
+    const companyId = linkCompanyId?.trim() || null;
+    const partnerId = linkPartnerId?.trim() || null;
+
+    if (role !== 'PARTNER') {
+      if (companyId || partnerId) {
+        throw new BadRequestException('Привязка к компании/точке доступна только для роли PARTNER');
+      }
+      await this.clearOwnership(userId);
+      return;
+    }
+    if (companyId && partnerId) {
+      throw new BadRequestException('Можно привязать либо к компании, либо к точке — не к обоим');
+    }
+
+    // Сначала снимаем прежнее владение этого пользователя, затем ставим новое.
+    await this.clearOwnership(userId);
+
+    if (companyId) {
+      const c = await this.prisma.insuranceCompany.findUnique({ where: { id: companyId }, select: { ownerId: true } });
+      if (!c) throw new BadRequestException('Страховая компания не найдена');
+      if (c.ownerId && c.ownerId !== userId) throw new BadRequestException('У компании уже есть привязанный пользователь');
+      await this.prisma.insuranceCompany.update({ where: { id: companyId }, data: { ownerId: userId } });
+    } else if (partnerId) {
+      const p = await this.prisma.partner.findUnique({ where: { id: partnerId }, select: { ownerId: true } });
+      if (!p) throw new BadRequestException('Точка-партнёр не найдена');
+      if (p.ownerId && p.ownerId !== userId) throw new BadRequestException('У точки уже есть привязанный пользователь');
+      await this.prisma.partner.update({ where: { id: partnerId }, data: { ownerId: userId } });
+    }
   }
 
   async getPolicies(page: number, limit: number, search?: string, type?: string, status?: string) {

@@ -6,6 +6,7 @@ import { AdminModule } from './admin/admin.module';
 import { AdjusterModule } from './adjuster/adjuster.module';
 import { AuthModule } from './auth/auth.module';
 import { PartnersModule } from './partners/partners.module';
+import { PartnerPortalModule } from './partner-portal/partner-portal.module';
 import { CardsModule } from './cards/cards.module';
 import { DocumentsModule } from './documents/documents.module';
 import { DriversModule } from './drivers/drivers.module';
@@ -58,6 +59,7 @@ import { WalletModule } from './wallet/wallet.module';
     AdminModule,
     AdjusterModule,
     PartnersModule,
+    PartnerPortalModule,
     EuroprotocolModule,
     SupportModule,
   ],

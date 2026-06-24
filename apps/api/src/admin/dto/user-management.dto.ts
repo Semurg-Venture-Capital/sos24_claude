@@ -31,6 +31,16 @@ export class CreateUserDto {
   @IsString()
   @MaxLength(100)
   patronymic?: string;
+
+  @ApiPropertyOptional({ description: 'Только для role=PARTNER: привязать к страховой компании (id)' })
+  @IsOptional()
+  @IsString()
+  linkCompanyId?: string;
+
+  @ApiPropertyOptional({ description: 'Только для role=PARTNER: привязать к точке-партнёру (id)' })
+  @IsOptional()
+  @IsString()
+  linkPartnerId?: string;
 }
 
 export class UpdateUserDto {
@@ -62,4 +72,14 @@ export class UpdateUserDto {
   @IsString()
   @MaxLength(100)
   patronymic?: string;
+
+  @ApiPropertyOptional({ description: 'Только для role=PARTNER: привязать к страховой компании (id, "" — отвязать)' })
+  @IsOptional()
+  @IsString()
+  linkCompanyId?: string;
+
+  @ApiPropertyOptional({ description: 'Только для role=PARTNER: привязать к точке-партнёру (id, "" — отвязать)' })
+  @IsOptional()
+  @IsString()
+  linkPartnerId?: string;
 }
