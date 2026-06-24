@@ -1,14 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { X } from 'lucide-react';
-import { useCreateUser, useUpdateUser, type UserInput } from '@/lib/admin-hooks';
+import { useCreateUser, useUpdateUser, useInsuranceCompanies, type UserInput } from '@/lib/admin-hooks';
+import { partnersApi } from '@/lib/partners';
 
 export const ROLE_OPTIONS = [
   { value: 'USER', label: 'Пользователь' },
   { value: 'SUPPORT', label: 'Поддержка' },
   { value: 'ADJUSTER', label: 'Аджастер' },
   { value: 'ADMIN', label: 'Администратор' },
+  { value: 'PARTNER', label: 'Партнёр (B2B-кабинет)' },
 ];
 
 export interface EditUser {
@@ -18,6 +21,8 @@ export interface EditUser {
   name?: string | null;
   surname?: string | null;
   patronymic?: string | null;
+  ownedCompany?: { id: string; name: string } | null;
+  ownedPartner?: { id: string; name: string } | null;
 }
 
 export function UserFormModal({ open, onClose, user }: { open: boolean; onClose: () => void; user: EditUser | null }) {
@@ -26,6 +31,18 @@ export function UserFormModal({ open, onClose, user }: { open: boolean; onClose:
   const update = useUpdateUser();
   const [form, setForm] = useState<UserInput>({ phone: '+998', role: 'SUPPORT', name: '', surname: '', patronymic: '' });
   const [error, setError] = useState('');
+  // Привязка кабинета: тип сущности + выбранный id (только для role=PARTNER).
+  const [linkType, setLinkType] = useState<'company' | 'partner'>('company');
+  const [linkId, setLinkId] = useState('');
+
+  // Списки для привязки тянем только когда работаем с партнёром.
+  const isPartner = form.role === 'PARTNER';
+  const { data: companies } = useInsuranceCompanies();
+  const { data: partners } = useQuery({
+    queryKey: ['admin', 'partners', 'all-for-link'],
+    queryFn: () => partnersApi.list(),
+    enabled: isPartner,
+  });
 
   useEffect(() => {
     if (open) {
@@ -41,6 +58,17 @@ export function UserFormModal({ open, onClose, user }: { open: boolean; onClose:
             }
           : { phone: '+998', role: 'SUPPORT', name: '', surname: '', patronymic: '' },
       );
+      // Предзаполняем привязку из текущего владения.
+      if (user?.ownedPartner) {
+        setLinkType('partner');
+        setLinkId(user.ownedPartner.id);
+      } else if (user?.ownedCompany) {
+        setLinkType('company');
+        setLinkId(user.ownedCompany.id);
+      } else {
+        setLinkType('company');
+        setLinkId('');
+      }
     }
   }, [open, user]);
 
@@ -56,11 +84,19 @@ export function UserFormModal({ open, onClose, user }: { open: boolean; onClose:
       setError('Телефон в формате +998XXXXXXXXX');
       return;
     }
+    // Для партнёра собираем привязку; "" в нужном поле = отвязать.
+    const payload: UserInput = { ...form };
+    if (isPartner) {
+      payload.linkCompanyId = linkType === 'company' ? linkId : '';
+      payload.linkPartnerId = linkType === 'partner' ? linkId : '';
+    } else if (isEdit) {
+      // Сняли роль PARTNER — бэкенд сам отвяжет; ничего не передаём.
+    }
     try {
       if (isEdit && user) {
-        await update.mutateAsync({ id: user.id, input: form });
+        await update.mutateAsync({ id: user.id, input: payload });
       } else {
-        await create.mutateAsync(form);
+        await create.mutateAsync(payload);
       }
       onClose();
     } catch (e: unknown) {
@@ -102,6 +138,35 @@ export function UserFormModal({ open, onClose, user }: { open: boolean; onClose:
               ))}
             </select>
           </Field>
+
+          {isPartner && (
+            <div className="flex flex-col gap-3 p-3 rounded-xl bg-[rgba(230,20,40,0.04)] border border-[rgba(230,20,40,0.12)]">
+              <p className="text-xs font-medium text-[#5f5e5e]">Привязка кабинета</p>
+              <div className="flex gap-1 bg-white p-1 rounded-lg w-full">
+                {([['company', 'Страховая компания'], ['partner', 'Точка-партнёр']] as const).map(([v, label]) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => { setLinkType(v); setLinkId(''); }}
+                    className={`flex-1 h-8 rounded-md text-xs transition-colors ${linkType === v ? 'bg-[#e61428] text-white' : 'text-[#5f5e5e] hover:bg-[#f0f0f2]'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <select
+                value={linkId}
+                onChange={(e) => setLinkId(e.target.value)}
+                className="w-full h-10 px-3 rounded-xl bg-white border border-[rgba(20,20,40,0.1)] text-sm outline-none focus:ring-2 ring-[#e61428]/20"
+              >
+                <option value="">— не привязывать —</option>
+                {linkType === 'company'
+                  ? (companies ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)
+                  : (partners ?? []).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <p className="text-[11px] text-[#9a9a9a]">Партнёр входит на partner.sos24.uz и управляет только привязанной {linkType === 'company' ? 'компанией' : 'точкой'}.</p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Имя">

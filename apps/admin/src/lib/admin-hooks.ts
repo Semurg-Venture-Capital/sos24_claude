@@ -33,6 +33,9 @@ export interface UserInput {
   name?: string;
   surname?: string;
   patronymic?: string;
+  // Привязка B2B-кабинета (только для role=PARTNER). "" — отвязать.
+  linkCompanyId?: string;
+  linkPartnerId?: string;
 }
 
 export function useCreateUser() {

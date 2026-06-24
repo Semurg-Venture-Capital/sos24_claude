@@ -12,12 +12,14 @@ const ROLE_LABEL: Record<string, string> = {
   ADMIN: 'Администратор',
   ADJUSTER: 'Аджастер',
   SUPPORT: 'Поддержка',
+  PARTNER: 'Партнёр',
 };
 const ROLE_STYLE: Record<string, string> = {
   USER: 'bg-[rgba(20,20,40,0.06)] text-[#5f5e5e]',
   ADMIN: 'bg-[rgba(230,20,40,0.1)] text-[#e61428]',
   ADJUSTER: 'bg-[rgba(86,140,255,0.12)] text-[#3670d4]',
   SUPPORT: 'bg-[rgba(52,211,153,0.12)] text-[#0a9466]',
+  PARTNER: 'bg-[rgba(245,200,80,0.2)] text-[#9a7400]',
 };
 
 export default function UsersPage() {
@@ -37,7 +39,7 @@ export default function UsersPage() {
   const applySearch = () => { setSearch(searchInput); setPage(1); };
   const openCreate = () => { setEditUser(null); setModalOpen(true); };
   const openEdit = (u: any) => {
-    setEditUser({ id: u.id, phone: u.phone, role: u.role, name: u.name, surname: u.surname, patronymic: u.patronymic });
+    setEditUser({ id: u.id, phone: u.phone, role: u.role, name: u.name, surname: u.surname, patronymic: u.patronymic, ownedCompany: u.ownedCompany, ownedPartner: u.ownedPartner });
     setModalOpen(true);
   };
 
