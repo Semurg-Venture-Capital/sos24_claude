@@ -39,7 +39,7 @@ export default function UsersPage() {
   const applySearch = () => { setSearch(searchInput); setPage(1); };
   const openCreate = () => { setEditUser(null); setModalOpen(true); };
   const openEdit = (u: any) => {
-    setEditUser({ id: u.id, phone: u.phone, role: u.role, name: u.name, surname: u.surname, patronymic: u.patronymic, ownedCompany: u.ownedCompany, ownedPartner: u.ownedPartner });
+    setEditUser({ id: u.id, phone: u.phone, role: u.role, name: u.name, surname: u.surname, patronymic: u.patronymic, ownedCompany: u.ownedCompany, ownedPartner: u.ownedPartner, sipExtension: u.sipExtension });
     setModalOpen(true);
   };
 

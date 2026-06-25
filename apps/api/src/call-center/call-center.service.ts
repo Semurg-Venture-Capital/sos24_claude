@@ -47,36 +47,60 @@ export class CallCenterService implements OnModuleInit {
 
   // Пауза/снятие паузы оператора в очереди. dev: общий тестовый extension;
   // прод: extension оператора по operatorId.
-  async setOperatorPaused(_operatorId: string, paused: boolean) {
-    const ext = this.config.get<string>('ASTERISK_TEST_SIP_EXT');
+  async setOperatorPaused(operatorId: string, paused: boolean) {
+    const ext = await this.operatorExt(operatorId);
     const queue = this.config.get<string>('ASTERISK_QUEUE') || undefined;
     if (!ext) throw new BadRequestException('Extension оператора не настроен');
     // FreePBX регистрирует члена очереди как Local/<ext>@from-queue/n (не PJSIP/<ext>).
-    const iface = this.config.get<string>('ASTERISK_OPERATOR_IFACE') || `Local/${ext}@from-queue/n`;
+    const iface = `Local/${ext}@from-queue/n`;
     await this.ami.queuePause(iface, paused, queue);
     return { iface, paused };
   }
 
   // SIP-креды для браузерного софтфона оператора (WebRTC через WSS).
-  // ⚠️ dev: один тестовый extension (1114) из env. Прод: эфемерные креды на оператора.
-  sipCredentials(operatorId: string) {
+  // Персональный extension оператора (User.sipExtension/sipSecret), заданный админом.
+  // Фолбэк на общий тестовый extension из env (ASTERISK_TEST_SIP_*) — для dev/демо.
+  async sipCredentials(operatorId: string) {
     const wsServer = this.config.get<string>('ASTERISK_WSS_URL');
     const domain = this.config.get<string>('ASTERISK_SIP_DOMAIN');
-    const ext = this.config.get<string>('ASTERISK_TEST_SIP_EXT');
-    const password = this.config.get<string>('ASTERISK_TEST_SIP_SECRET');
-    if (!wsServer || !domain || !ext || !password) {
-      return { configured: false as const };
+    if (!wsServer || !domain) return { configured: false as const };
+
+    const op = await this.prisma.user.findUnique({
+      where: { id: operatorId },
+      select: { sipExtension: true, sipSecret: true, name: true, surname: true },
+    });
+    let ext = op?.sipExtension || undefined;
+    let password = op?.sipSecret || undefined;
+    let personal = true;
+    if (!ext || !password) {
+      // фолбэк: общий тестовый extension (dev)
+      ext = this.config.get<string>('ASTERISK_TEST_SIP_EXT') || undefined;
+      password = this.config.get<string>('ASTERISK_TEST_SIP_SECRET') || undefined;
+      personal = false;
     }
+    if (!ext || !password) return { configured: false as const, reason: 'no_extension' as const };
+
+    const name = [op?.surname, op?.name].filter(Boolean).join(' ') || `Оператор ${ext}`;
     return {
       configured: true as const,
+      personal,
       wsServer,
       domain,
       ext,
       password,
       uri: `sip:${ext}@${domain}`,
-      displayName: `Оператор ${ext}`,
+      displayName: name,
       operatorId,
     };
+  }
+
+  // Персональный extension оператора (или общий тестовый из env).
+  private async operatorExt(operatorId: string): Promise<string | null> {
+    const op = await this.prisma.user.findUnique({
+      where: { id: operatorId },
+      select: { sipExtension: true },
+    });
+    return op?.sipExtension || this.config.get<string>('ASTERISK_TEST_SIP_EXT') || null;
   }
 
   onModuleInit() {

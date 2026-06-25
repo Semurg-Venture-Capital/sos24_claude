@@ -36,6 +36,9 @@ export interface UserInput {
   // Привязка B2B-кабинета (только для role=PARTNER). "" — отвязать.
   linkCompanyId?: string;
   linkPartnerId?: string;
+  // Колл-центр: персональный SIP-extension оператора (для SUPPORT/ADMIN).
+  sipExtension?: string;
+  sipSecret?: string;
 }
 
 export function useCreateUser() {

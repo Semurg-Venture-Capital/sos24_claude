@@ -23,6 +23,7 @@ export interface EditUser {
   patronymic?: string | null;
   ownedCompany?: { id: string; name: string } | null;
   ownedPartner?: { id: string; name: string } | null;
+  sipExtension?: string | null;
 }
 
 export function UserFormModal({ open, onClose, user }: { open: boolean; onClose: () => void; user: EditUser | null }) {
@@ -55,8 +56,10 @@ export function UserFormModal({ open, onClose, user }: { open: boolean; onClose:
               name: user.name ?? '',
               surname: user.surname ?? '',
               patronymic: user.patronymic ?? '',
+              sipExtension: user.sipExtension ?? '',
+              sipSecret: '', // секрет не приходит с сервера; пусто = не менять
             }
-          : { phone: '+998', role: 'SUPPORT', name: '', surname: '', patronymic: '' },
+          : { phone: '+998', role: 'SUPPORT', name: '', surname: '', patronymic: '', sipExtension: '', sipSecret: '' },
       );
       // Предзаполняем привязку из текущего владения.
       if (user?.ownedPartner) {
@@ -92,6 +95,8 @@ export function UserFormModal({ open, onClose, user }: { open: boolean; onClose:
     } else if (isEdit) {
       // Сняли роль PARTNER — бэкенд сам отвяжет; ничего не передаём.
     }
+    // Пустой sipSecret = «не менять» (не стираем существующий секрет оператора).
+    if (!payload.sipSecret) delete payload.sipSecret;
     try {
       if (isEdit && user) {
         await update.mutateAsync({ id: user.id, input: payload });
@@ -180,6 +185,21 @@ export function UserFormModal({ open, onClose, user }: { open: boolean; onClose:
           <Field label="Отчество">
             <input value={form.patronymic} onChange={(e) => set('patronymic', e.target.value)} className="w-full h-10 px-3 rounded-xl bg-[#f5f5f7] text-sm outline-none focus:ring-2 ring-[#e61428]/20" />
           </Field>
+
+          {(form.role === 'SUPPORT' || form.role === 'ADMIN') && (
+            <div className="flex flex-col gap-3 p-3 rounded-xl bg-[rgba(86,140,255,0.05)] border border-[rgba(86,140,255,0.15)]">
+              <p className="text-xs font-medium text-[#5f5e5e]">Колл-центр: персональный SIP-extension оператора</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="SIP extension">
+                  <input value={form.sipExtension ?? ''} onChange={(e) => set('sipExtension', e.target.value)} placeholder="напр. 103" className="w-full h-10 px-3 rounded-xl bg-white border border-[rgba(20,20,40,0.1)] text-sm outline-none focus:ring-2 ring-[#e61428]/20" />
+                </Field>
+                <Field label="SIP secret">
+                  <input value={form.sipSecret ?? ''} onChange={(e) => set('sipSecret', e.target.value)} placeholder={isEdit ? 'без изменений' : 'секрет extension'} className="w-full h-10 px-3 rounded-xl bg-white border border-[rgba(20,20,40,0.1)] text-sm outline-none focus:ring-2 ring-[#e61428]/20" />
+                </Field>
+              </div>
+              <p className="text-[11px] text-[#9a9a9a]">Заведи WebRTC-extension в FreePBX и впиши сюда номер + секрет. Оператор получит свой телефон в панели «Колл-центр».</p>
+            </div>
+          )}
 
           {error && <p className="text-xs text-[#e61428]">{error}</p>}
         </div>

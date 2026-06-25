@@ -151,6 +151,7 @@ export class AdminService {
     verificationStatus: true,
     role: true,
     createdAt: true,
+    sipExtension: true, // секрет (sipSecret) не отдаём
     // Привязка B2B-кабинета (роль PARTNER): какой компанией/точкой владеет пользователь.
     ownedCompany: { select: { id: true, name: true } },
     ownedPartner: { select: { id: true, name: true } },
@@ -168,6 +169,8 @@ export class AdminService {
         name: dto.name?.trim() || null,
         surname: dto.surname?.trim() || null,
         patronymic: dto.patronymic?.trim() || null,
+        sipExtension: dto.sipExtension?.trim() || null,
+        sipSecret: dto.sipSecret?.trim() || null,
       },
       select: { id: true },
     });
@@ -191,6 +194,8 @@ export class AdminService {
         ...(dto.name !== undefined ? { name: dto.name.trim() || null } : {}),
         ...(dto.surname !== undefined ? { surname: dto.surname.trim() || null } : {}),
         ...(dto.patronymic !== undefined ? { patronymic: dto.patronymic.trim() || null } : {}),
+        ...(dto.sipExtension !== undefined ? { sipExtension: dto.sipExtension.trim() || null } : {}),
+        ...(dto.sipSecret !== undefined ? { sipSecret: dto.sipSecret.trim() || null } : {}),
       },
     });
     // Привязку к компании/точке трогаем, только если в DTO явно что-то передано

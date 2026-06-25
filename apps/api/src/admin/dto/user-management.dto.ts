@@ -41,6 +41,18 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   linkPartnerId?: string;
+
+  @ApiPropertyOptional({ description: 'Колл-центр: персональный SIP-extension оператора (FreePBX)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  sipExtension?: string;
+
+  @ApiPropertyOptional({ description: 'Колл-центр: секрет SIP-extension оператора' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  sipSecret?: string;
 }
 
 export class UpdateUserDto {
@@ -82,4 +94,16 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   linkPartnerId?: string;
+
+  @ApiPropertyOptional({ description: 'Колл-центр: персональный SIP-extension оператора (FreePBX)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  sipExtension?: string;
+
+  @ApiPropertyOptional({ description: 'Колл-центр: секрет SIP-extension оператора' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  sipSecret?: string;
 }

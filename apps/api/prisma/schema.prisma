@@ -184,6 +184,11 @@ model User {
   verificationStatus VerificationStatus @default(NOT_VERIFIED)
   role               UserRole           @default(USER)
 
+  // Колл-центр: персональный WebRTC-extension оператора (FreePBX) + секрет.
+  // Заполняет админ при заведении оператора; бэкенд отдаёт их только этому оператору.
+  sipExtension String? @map("sip_extension")
+  sipSecret    String? @map("sip_secret")
+
   // Дополнительные поля из MyID (заполняются при верификации)
   nameEn      String? // first_name_en (латиница)
   surnameEn   String? // last_name_en (латиница)
