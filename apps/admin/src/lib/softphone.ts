@@ -119,8 +119,17 @@ export class Softphone {
 
   async answer() {
     if (!this.invitation) return;
+    // Если на машине нет микрофона (напр. Mac mini) — отвечаем в режиме «только приём»
+    // (recvonly): слышим собеседника, но не передаём. Иначе getUserMedia падает NotFoundError.
+    let audio = true;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      audio = devices.some((d) => d.kind === 'audioinput');
+    } catch {
+      audio = true;
+    }
     await this.invitation.accept({
-      sessionDescriptionHandlerOptions: { constraints: { audio: true, video: false } },
+      sessionDescriptionHandlerOptions: { constraints: { audio, video: false } },
     });
   }
 

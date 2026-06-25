@@ -28,6 +28,12 @@
 Медиа-соединение оператор↔клиент и запись делает **нативная FreePBX-очередь (ACD + MixMonitor)** — это уже есть в FreePBX. Наш бэкенд только **наблюдает** события через ARI с `subscribeAll=true` (ведёт журнал `Call`, screen-pop, метаданные записи). Проверено: при `subscribeAll=true` ARI WS отдаёт события и обычных, не-Stasis каналов (`ChannelCreated/StateChange/Dial/Destroyed/HangupRequest/Bridge*`). Stasis оставляем для in-app (Фаза 2). Это сильно меньше кода и надёжнее (используем штатные ACD/запись FreePBX, GUI-управление очередью).
 ⚠️ Следствие: обработчик событий в `CallCenterService` нужно расширить с StasisStart на FreePBX-нативный жизненный цикл звонка (ChannelCreated→Dial→Up→BridgeEnter→Hangup).
 
+**Софтфон оператора проверен (2026-06-25).** SIP.js в админке (`/call-center`, `SoftphoneBar`) регистрируется на WebRTC-extension по WSS и **принимает звонок со звуком** — проверено живьём. Выводы:
+- **WSS-сертификат**: на 8089 валидный Let's Encrypt на FQDN `sip.semurginsurance.uz` → подключаться надо по FQDN, не по IP (иначе name mismatch). FQDN резолвится в `10.10.10.30`; на dev-Mac добавлен `/etc/hosts` (WG-DNS не резолвит). Env: `ASTERISK_WSS_URL=wss://sip.semurginsurance.uz:8089/ws`.
+- **Выделенный extension оператора** обязателен: общий номер (1114) принадлежал другому сервису и перехватывал звонки. Завели **102** (WebRTC включён копированием webrtc-полей из рабочего 1114 в FreePBX-БД + `fwconsole reload`). В проде — свой extension на каждого оператора.
+- **RTP-медиа идёт через WG напрямую — TURN/coturn для приёма НЕ нужен.** (для двустороннего звука оператору нужен микрофон; на Mac mini его нет → софтфон авто-отвечает recvonly).
+- Тест-контексты на сервере: `[sos24-cc-test]` (Stasis), `[sos24-cc-playtest]` (Answer+Playback+MOH) в `extensions_custom.conf` — удалить при финализации.
+
 ## 3. Целевая архитектура
 
 ```
