@@ -7,6 +7,7 @@ import { AdjusterModule } from './adjuster/adjuster.module';
 import { AuthModule } from './auth/auth.module';
 import { PartnersModule } from './partners/partners.module';
 import { PartnerPortalModule } from './partner-portal/partner-portal.module';
+import { CallCenterModule } from './call-center/call-center.module';
 import { CardsModule } from './cards/cards.module';
 import { DocumentsModule } from './documents/documents.module';
 import { DriversModule } from './drivers/drivers.module';
@@ -62,6 +63,7 @@ import { WalletModule } from './wallet/wallet.module';
     PartnerPortalModule,
     EuroprotocolModule,
     SupportModule,
+    CallCenterModule,
   ],
   controllers: [FaviconController],
 })
