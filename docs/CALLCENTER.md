@@ -117,6 +117,8 @@
 
 5. **getUserMedia `NotFoundError: Requested device not found` при приёме.** Причина: на машине нет микрофона (Mac mini). Лечение: софтфон авто-отвечает в режиме **recvonly** (слышим, не передаём) — `answer()` проверяет `enumerateDevices`. Для двустороннего звука — гарнитура/микрофон.
 
+5b. **На ПРОДЕ микрофон не работает: `Permissions policy violation: microphone is not allowed` / `NotAllowedError` (звонок звонит, но при «Принять» уходит 480).** Причина: nginx-vhost `admin.sos24.uz` ставил `Permissions-Policy: ... microphone=() ...` → политика блокирует микрофон всему документу (в dev/localhost этого заголовка нет — потому там работало). Лечение: в `deploy/nginx/live/admin.sos24.uz.conf` → `microphone=(self)`, scp на ВМ + `nginx -t && systemctl reload nginx`. Проверка: `curl -sI https://admin.sos24.uz/login | grep -i permissions-policy` → `microphone=(self)`.
+
 6. **`Invalid session state Establishing` при приёме.** Причина: двойной вызов `accept()` (повторный клик, пока шла проверка микрофона). Лечение: в `softphone.answer()` guard — принимаем только из `Initial` и не дважды (уже сделано).
 
 7. **Из пода/ноды кластера Asterisk недоступен (8088/5038 timeout), но ping идёт.** Причина: маршрут есть (DevOps), но **FreePBX-firewall** дропает TCP (сеть кластера не в zone-trusted; ICMP пропускает). Лечение: правило в `/etc/firewall-4.rules` (см. #4 п. firewall), `chmod 600` root:root, применить (`iptables -I INPUT 1 ...` + переживает `fwconsole firewall restart`).
