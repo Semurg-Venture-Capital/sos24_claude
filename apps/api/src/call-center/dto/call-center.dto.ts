@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
+
+export class PauseDto {
+  @ApiProperty({ description: 'true — оператор на перерыве (звонки не идут)' })
+  @IsBoolean()
+  paused!: boolean;
+}
 
 export class AttachTicketDto {
   @ApiPropertyOptional({ description: 'ID заявки (null/пусто — отвязать)' })

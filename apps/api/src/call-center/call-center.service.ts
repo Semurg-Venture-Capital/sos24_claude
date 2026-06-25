@@ -5,6 +5,7 @@ import { MinioService } from '../files/minio.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Client as MinioClient } from 'minio';
 import { AriService, type AriChannel, type AriEvent } from './ari.service';
+import { AmiService } from './ami.service';
 import { CallCenterGateway } from './call-center.gateway';
 
 // Префикс ключа записей разговоров в MinIO. Аплоадер на Asterisk кладёт файлы сюда же.
@@ -24,9 +25,35 @@ export class CallCenterService implements OnModuleInit {
     private readonly prisma: PrismaService,
     private readonly minio: MinioService,
     private readonly ari: AriService,
+    private readonly ami: AmiService,
     private readonly gateway: CallCenterGateway,
     private readonly config: ConfigService,
   ) {}
+
+  // ── Очередь (ACD) через AMI ──
+
+  async queueStatus() {
+    const queue = this.config.get<string>('ASTERISK_QUEUE');
+    if (!queue || !this.ami.isConnected()) {
+      return { enabled: this.ami.isEnabled(), connected: this.ami.isConnected(), waiting: 0, available: 0, loggedIn: 0 };
+    }
+    try {
+      const s = await this.ami.queueSummary(queue);
+      return { enabled: true, connected: true, ...s };
+    } catch {
+      return { enabled: true, connected: this.ami.isConnected(), waiting: 0, available: 0, loggedIn: 0 };
+    }
+  }
+
+  // Пауза/снятие паузы оператора в очереди. dev: общий тестовый extension;
+  // прод: extension оператора по operatorId.
+  async setOperatorPaused(_operatorId: string, paused: boolean) {
+    const ext = this.config.get<string>('ASTERISK_TEST_SIP_EXT');
+    const queue = this.config.get<string>('ASTERISK_QUEUE') || undefined;
+    if (!ext) throw new BadRequestException('Extension оператора не настроен');
+    await this.ami.queuePause(`PJSIP/${ext}`, paused, queue);
+    return { ext, paused };
+  }
 
   // SIP-креды для браузерного софтфона оператора (WebRTC через WSS).
   // ⚠️ dev: один тестовый extension (1114) из env. Прод: эфемерные креды на оператора.

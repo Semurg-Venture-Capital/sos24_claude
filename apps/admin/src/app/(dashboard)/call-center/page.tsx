@@ -7,6 +7,7 @@ import { Header } from '@/components/layout/Header';
 import {
   useCalls,
   useCallHealth,
+  useQueueStatus,
   callsSocket,
   callcenterApi,
   type Call,
@@ -106,6 +107,18 @@ export default function CallCenterPage() {
 
   const [ticketCall, setTicketCall] = useState<Call | null>(null);
 
+  const { data: queue } = useQueueStatus();
+  const [paused, setPaused] = useState(false);
+  const togglePause = async () => {
+    const p = !paused;
+    setPaused(p);
+    try {
+      await callcenterApi.operatorPause(p);
+    } catch {
+      setPaused(!p); // откат при ошибке
+    }
+  };
+
   const list: Call[] = calls ?? [];
 
   return (
@@ -135,6 +148,22 @@ export default function CallCenterPage() {
             <span className={`w-1.5 h-1.5 rounded-full ${health?.connected ? 'bg-[#34d399]' : 'bg-[#e61428]'}`} />
             {health?.connected ? 'АТС онлайн' : 'АТС офлайн'}
           </span>
+          {/* Очередь: ожидающие */}
+          {queue?.enabled && (
+            <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium bg-[#f0f0f2] text-[#5f5e5e]">
+              В очереди: <b className={queue.waiting > 0 ? 'text-[#e61428]' : 'text-[#151515]'}>{queue.waiting}</b>
+            </span>
+          )}
+
+          {/* Статус оператора: доступен / перерыв */}
+          <button
+            onClick={togglePause}
+            className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-colors ${paused ? 'bg-[rgba(245,200,80,0.2)] text-[#9a7400] hover:bg-[rgba(245,200,80,0.3)]' : 'bg-[rgba(52,211,153,0.15)] text-[#0a9466] hover:bg-[rgba(52,211,153,0.25)]'}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${paused ? 'bg-[#f5c850]' : 'bg-[#34d399]'}`} />
+            {paused ? 'Перерыв' : 'Доступен'}
+          </button>
+
           {!audioOn && (
             <button
               onClick={enableAudio}

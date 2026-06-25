@@ -65,7 +65,19 @@ export const callcenterApi = {
   createTicket: (id: string, body: { category?: string; subject?: string; note?: string }) =>
     api.post(`/admin/call-center/calls/${id}/ticket`, body).then((r) => r.data as { id: string }),
   sipCredentials: () => api.get('/admin/call-center/sip-credentials').then((r) => r.data),
+  queueStatus: () =>
+    api.get('/admin/call-center/queue').then((r) => r.data as { enabled: boolean; connected: boolean; waiting: number; available: number; loggedIn: number }),
+  operatorPause: (paused: boolean) =>
+    api.post('/admin/call-center/operator/pause', { paused }).then((r) => r.data),
 };
+
+export function useQueueStatus() {
+  return useQuery({
+    queryKey: ['cc', 'queue'],
+    queryFn: callcenterApi.queueStatus,
+    refetchInterval: 10_000,
+  });
+}
 
 export function useCallHealth() {
   return useQuery({

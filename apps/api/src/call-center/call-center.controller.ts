@@ -4,7 +4,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SupportGuard } from '../support/support.guard';
-import { AttachTicketDto, CreateCallTicketDto } from './dto/call-center.dto';
+import { AttachTicketDto, CreateCallTicketDto, PauseDto } from './dto/call-center.dto';
 import { CallCenterService } from './call-center.service';
 
 // Рабочее место оператора колл-центра в админке. Доступ: SUPPORT или ADMIN.
@@ -25,6 +25,18 @@ export class CallCenterController {
   @ApiOperation({ summary: 'SIP-креды для браузерного софтфона оператора (WebRTC/WSS).' })
   sipCredentials(@CurrentUser() user: JwtPayload) {
     return this.service.sipCredentials(user.sub);
+  }
+
+  @Get('queue')
+  @ApiOperation({ summary: 'Статус очереди: ожидающие/доступные операторы (AMI).' })
+  queue() {
+    return this.service.queueStatus();
+  }
+
+  @Post('operator/pause')
+  @ApiOperation({ summary: 'Поставить оператора на перерыв / снять (пауза в очереди).' })
+  pause(@CurrentUser() user: JwtPayload, @Body() dto: PauseDto) {
+    return this.service.setOperatorPaused(user.sub, dto.paused);
   }
 
   @Get('calls')
