@@ -103,6 +103,7 @@
 - AMI: есть FreePBX-юзер в `manager.conf` + `web_api_user` в `manager_custom.conf`; свой AMI-юзер при необходимости — через `manager_custom.conf`.
 - **Транк/номер (снято 2026-06-25):** DID **`2050855`**, транк PJSIP зарегистрирован на upstream **`sip:10.10.0.3:5060`** (Registered) — провайдерский/корпоративный шлюз, не прямой PSTN. Лимит каналов в FreePBX не задан (`0 of inf`) → реальный потолок = ёмкость `10.10.0.3` (уточнить у телеком, Q14.3). Входящий маршрут `2050855` → ext `1114`. Внутренние extension: `1000`, `100001`, `1114`; есть тест-WebRTC `testws`.
 - Доступ: SSH по ключу `~/.ssh/sos24_nodes` работает (root@10.10.10.30).
+- **Backend-пайплайн проверен на живом Asterisk (2026-06-25):** модуль `apps/api/src/call-center` (AriService+CallCenterService+Gateway+Controller, модель `Call`) в dev подключается к ARI (`health → connected:true`). Тестовый звонок через ARI `originate` в Stasis → создалась запись `Call` (INBOUND_EXTERNAL, MISSED), **screen-pop сработал** (CallerID → матч `User.phone`). Тестовый dialplan-контекст **`[sos24-cc-test]`** в `extensions_custom.conf` (изолированный, не связан с боевым транком; самозавершается Wait(5)+Hangup) — удалить, когда будет реальный inbound-маршрут. Каналы после теста не зависают. Бэкапы `extensions_custom.conf.bak.<ts>` на сервере.
 
 ## 9. Безопасность
 
