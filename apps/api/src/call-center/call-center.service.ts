@@ -55,20 +55,27 @@ export class CallCenterService implements OnModuleInit {
   }
 
   // ── Роутинг ARI-событий ──
+  // Два источника: (1) Stasis (in-app/тесты — канал заведён в наше приложение),
+  // (2) FreePBX-нативный звонок (subscribeAll отдаёт ChannelCreated и пр. для обычных каналов).
   private async handleEvent(e: AriEvent) {
+    const ch = e.channel;
     switch (e.type) {
       case 'StasisStart':
-        if (e.channel) await this.onCallStart(e.channel);
+        if (ch) await this.registerInbound(ch, this.direction(ch));
+        break;
+      case 'ChannelCreated':
+        // Нативный входящий с нашего транка (по префиксу имени канала).
+        if (ch && this.isInboundTrunk(ch)) await this.registerInbound(ch, 'INBOUND_EXTERNAL');
         break;
       case 'ChannelStateChange':
-        if (e.channel?.state === 'Up') await this.onAnswered(e.channel);
+        if (ch?.state === 'Up') await this.onAnswered(ch);
         break;
       case 'StasisEnd':
       case 'ChannelDestroyed':
-        if (e.channel) await this.onCallEnd(e.channel);
+        if (ch) await this.onCallEnd(ch);
         break;
       default:
-        break; // прочие события (subscribeAll) пока игнорируем
+        break; // прочие события (subscribeAll) игнорируем
     }
   }
 
@@ -78,24 +85,32 @@ export class CallCenterService implements OnModuleInit {
     return appUser ? 'INBOUND_APP' : 'INBOUND_EXTERNAL';
   }
 
-  private async onCallStart(ch: AriChannel) {
+  // Канал входящего внешнего звонка = имя начинается с префикса транка (напр. PJSIP/2050855).
+  private isInboundTrunk(ch: AriChannel): boolean {
+    const prefix = this.config.get<string>('ASTERISK_TRUNK_PREFIX');
+    return !!prefix && !!ch.name && ch.name.startsWith(prefix);
+  }
+
+  // Регистрирует входящий звонок в журнале + screen-pop операторам (идемпотентно по channelId).
+  private async registerInbound(ch: AriChannel, direction: 'INBOUND_APP' | 'INBOUND_EXTERNAL') {
     const number = ch.caller?.number || undefined;
     const appUserId = ch.channelvars?.SOS24_USER_ID || undefined;
     const userId = appUserId ?? (number ? await this.matchUserByPhone(number) : null);
 
+    const existing = await this.prisma.call.findUnique({ where: { channelId: ch.id }, select: { id: true } });
     const call = await this.prisma.call.upsert({
       where: { channelId: ch.id },
       create: {
         channelId: ch.id,
-        direction: this.direction(ch),
+        direction,
         status: 'RINGING',
         externalNumber: number ?? null,
         userId: userId ?? null,
       },
       update: { externalNumber: number ?? undefined, userId: userId ?? undefined },
     });
+    if (existing) return; // уже зарегистрирован — не дублируем screen-pop
 
-    // Screen pop: данные звонящего операторам.
     const screen = userId ? await this.screenPop(userId) : null;
     this.gateway.emitIncoming({
       callId: call.id,
