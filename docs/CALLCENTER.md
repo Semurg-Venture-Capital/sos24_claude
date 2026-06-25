@@ -120,6 +120,7 @@
 6. **`Invalid session state Establishing` при приёме.** Причина: двойной вызов `accept()` (повторный клик, пока шла проверка микрофона). Лечение: в `softphone.answer()` guard — принимаем только из `Initial` и не дважды (уже сделано).
 
 7. **Из пода/ноды кластера Asterisk недоступен (8088/5038 timeout), но ping идёт.** Причина: маршрут есть (DevOps), но **FreePBX-firewall** дропает TCP (сеть кластера не в zone-trusted; ICMP пропускает). Лечение: правило в `/etc/firewall-4.rules` (см. #4 п. firewall), `chmod 600` root:root, применить (`iptables -I INPUT 1 ...` + переживает `fwconsole firewall restart`).
+   ⚠️ **Продолжение (важно):** после firewall TCP-handshake начал проходить, но **данные всё равно не шли** (HTTP→RST, AMI-баннер не приходит). Причина — **асимметричная маршрутизация**: кластер→Asterisk через шлюз `10.10.38.254`, а обратно Asterisk→кластер через `wg0`/`172.28.140.6`. Диагностика: из пода `node` HTTP GET к `/ari/asterisk/info` = TIMEOUT/ECONNRESET, AMI-баннер не приходит (хотя TCP `nc -z` = OPEN — handshake это малый пакет). Фикс — **у DevOps**: свести оба направления через один путь (OPNsense WireGuard, pf держит state). После фикса Asterisk видит кластер как **`172.28.140.1`** (NAT), а он уже в `zone-trusted` → правило `firewall-4.rules` для `10.10.38.0/24` становится **избыточным**. Проверка: из прод-пода AMI-баннер «Asterisk Call Manager» приходит, ARI GET = 401.
 
 8. **Запись не появляется/«Прослушать» нет.** Проверить: запись включена на маршруте; `MIXMONITOR_FILENAME` читается (бэкенд пишет `recordingKey` при ответе); cron-аплоадер работает — `/var/log/sos24-rec.log`, конфиг `/root/.sos24_rec_s3.conf`. Частая ошибка: **InvalidAccessKeyId** — ключ MinIO должен быть `sos24` (= MINIO_ACCESS_KEY), не вся yaml-строка.
 
@@ -146,7 +147,8 @@
 
 ## 9. Осталось / открытые вопросы
 
-- Прод-деплой колл-центра (Asterisk-сторона готова; нужен билд+миграции+rollout — см. `docs/DEPLOY.md`).
+- ✅ **Прод задеплоен и подключён (2026-06-25):** образы api+admin, миграции `call_center`/`operator_sip`, секрет дополнен `ASTERISK_*`/`REC_S3_*` (прод ARI_APP=`sos24-callcenter`, dev=`sos24-callcenter-dev`); прод-бэкенд подключён к ARI+AMI, очередь читается. Связность кластер↔Asterisk DevOps решил (OPNsense WG, см. болевую точку #7).
+- Завести **реальных операторов**: WebRTC-extension в FreePBX + `sipExtension`/`secret` в админке. Операторы — в офисной сети (Asterisk наружу не выводим).
 - Атрибуция оператора на звонке (`operatorId` — кто принял).
 - Fail-over очереди = Hangup → позже voicemail/announcement (24/7).
 - Истинно эфемерные SIP-креды (сейчас персональные статические из БД) — потребует realtime-PJSIP-auth; пока не делаем.
