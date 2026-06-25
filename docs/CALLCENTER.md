@@ -134,6 +134,8 @@
 
 12. **`fwconsole restart` виснет («cannot be run during shutdown»).** Грейсфул-стоп залип. Лечение: `pkill -9 -x asterisk` (+ `pkill -9 -f safe_asterisk`), убедиться `pgrep -x asterisk` пуст, затем `fwconsole start`, ждать готовности (`asterisk -rx "core show version"`).
 
+13. **WebRTC-агент в ОЧЕРЕДИ: `setRemoteDescription ... SDP without DTLS fingerprint`** (звонок звонит, при «Принять» уходит 480; offer от Asterisk = `m=audio ... RTP/AVP` с BUNDLE/rtcp-mux, но без `a=fingerprint`/`SAVPF`). Причина: при маршруте **через очередь** (`Local/102@from-queue/n`) медиа транка (RTP/ulaw) проходит к webrtc-ноге без DTLS. Прямой звонок на `PJSIP/102` DTLS отдаёт корректно (проверено — работает). **Текущее решение:** прод-маршрут входящего = **прямой → 102** (`incoming.destination='from-did-direct,102,1'`), очередь временно в обход. ⚠️ **Для мультиоператорной очереди нужен отдельный фикс** webrtc+queue (вероятно — агент как прямой PJSIP-член, не Local; или media-настройки бриджа). Для одного оператора прямой маршрут полностью рабочий (звук в обе стороны подтверждён на проде).
+
 ---
 
 ## 8. Как сменить SIP-провайдера / номер
@@ -150,6 +152,8 @@
 ## 9. Осталось / открытые вопросы
 
 - ✅ **Прод задеплоен и подключён (2026-06-25):** образы api+admin, миграции `call_center`/`operator_sip`, секрет дополнен `ASTERISK_*`/`REC_S3_*` (прод ARI_APP=`sos24-callcenter`, dev=`sos24-callcenter-dev`); прод-бэкенд подключён к ARI+AMI, очередь читается. Связность кластер↔Asterisk DevOps решил (OPNsense WG, см. болевую точку #7).
+- ✅ **Прод-софтфон рабочий (2026-06-25):** реальный звонок звонит в панели `admin.sos24.uz`, приём + **двусторонний звук** подтверждены. Маршрут входящего = **прямой → 102** (очередь в обход из-за webrtc+queue DTLS, см. болевую точку #13). Микрофон разрешён в nginx (#5b).
+- **Фикс webrtc+queue (для мультиоператора):** вернуть ACD-очередь, решив потерю DTLS (болевая точка #13).
 - Завести **реальных операторов**: WebRTC-extension в FreePBX + `sipExtension`/`secret` в админке. Операторы — в офисной сети (Asterisk наружу не выводим).
 - Атрибуция оператора на звонке (`operatorId` — кто принял).
 - Fail-over очереди = Hangup → позже voicemail/announcement (24/7).
