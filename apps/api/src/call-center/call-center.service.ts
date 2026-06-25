@@ -51,8 +51,10 @@ export class CallCenterService implements OnModuleInit {
     const ext = this.config.get<string>('ASTERISK_TEST_SIP_EXT');
     const queue = this.config.get<string>('ASTERISK_QUEUE') || undefined;
     if (!ext) throw new BadRequestException('Extension оператора не настроен');
-    await this.ami.queuePause(`PJSIP/${ext}`, paused, queue);
-    return { ext, paused };
+    // FreePBX регистрирует члена очереди как Local/<ext>@from-queue/n (не PJSIP/<ext>).
+    const iface = this.config.get<string>('ASTERISK_OPERATOR_IFACE') || `Local/${ext}@from-queue/n`;
+    await this.ami.queuePause(iface, paused, queue);
+    return { iface, paused };
   }
 
   // SIP-креды для браузерного софтфона оператора (WebRTC через WSS).
