@@ -17,6 +17,8 @@ import {
 import { ensureAudioUnlocked, playPing, requestNotifyPermission, showDesktopNotification } from '@/lib/agentAlerts';
 import { formatPhone } from '@/lib/utils';
 import { SoftphoneBar } from './SoftphoneBar';
+import { CallTicketModal } from './CallTicketModal';
+import { FileSignature } from 'lucide-react';
 
 const DIR_LABEL: Record<string, string> = {
   INBOUND_EXTERNAL: 'Внешний',
@@ -101,6 +103,8 @@ export default function CallCenterPage() {
       setPlayingId(null);
     }
   };
+
+  const [ticketCall, setTicketCall] = useState<Call | null>(null);
 
   const list: Call[] = calls ?? [];
 
@@ -197,7 +201,7 @@ export default function CallCenterPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[rgba(20,20,40,0.06)]">
-                  {['Время', 'Направление', 'Клиент / номер', 'Статус', 'Длит.', 'Оператор', 'Запись'].map((h) => (
+                  {['Время', 'Направление', 'Клиент / номер', 'Статус', 'Длит.', 'Оператор', 'Действия'].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-[#9a9a9a] uppercase tracking-wider whitespace-nowrap">
                       {h}
                     </th>
@@ -245,17 +249,25 @@ export default function CallCenterPage() {
                           {c.operator ? [c.operator.surname, c.operator.name].filter(Boolean).join(' ') : '—'}
                         </td>
                         <td className="px-5 py-3.5">
-                          {c.recordingKey ? (
+                          <div className="flex items-center gap-1.5">
+                            {c.recordingKey && (
+                              <button
+                                onClick={() => playRecording(c.id)}
+                                disabled={playingId === c.id}
+                                title="Прослушать запись"
+                                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs text-[#5f5e5e] hover:bg-[#f0f0f2] transition-colors disabled:opacity-50"
+                              >
+                                <Play size={13} /> {playingId === c.id ? 'Играет…' : 'Запись'}
+                              </button>
+                            )}
                             <button
-                              onClick={() => playRecording(c.id)}
-                              disabled={playingId === c.id}
-                              className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs text-[#5f5e5e] hover:bg-[#f0f0f2] transition-colors disabled:opacity-50"
+                              onClick={() => setTicketCall(c)}
+                              title={c.ticketId ? 'Заявка привязана' : 'Создать заявку / заметку'}
+                              className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs transition-colors ${c.ticketId ? 'text-[#0a9466] hover:bg-[rgba(52,211,153,0.1)]' : 'text-[#5f5e5e] hover:bg-[#f0f0f2]'}`}
                             >
-                              <Play size={13} /> {playingId === c.id ? 'Играет…' : 'Прослушать'}
+                              <FileSignature size={13} /> {c.ticketId ? 'Заявка ✓' : 'Заявка'}
                             </button>
-                          ) : (
-                            <span className="text-xs text-[#c0c0c0]">—</span>
-                          )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -266,6 +278,8 @@ export default function CallCenterPage() {
           </div>
         </div>
       </main>
+
+      {ticketCall && <CallTicketModal call={ticketCall} onClose={() => setTicketCall(null)} />}
     </div>
   );
 }

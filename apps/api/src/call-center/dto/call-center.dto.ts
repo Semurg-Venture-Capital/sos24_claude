@@ -13,3 +13,22 @@ export class AttachTicketDto {
   @MaxLength(4000)
   note?: string;
 }
+
+export class CreateCallTicketDto {
+  @ApiPropertyOptional({ enum: ['POLICY', 'PAYMENT', 'ACCIDENT', 'ACCOUNT', 'OTHER'] })
+  @IsOptional()
+  @IsString()
+  category?: string;
+
+  @ApiPropertyOptional({ description: 'Тема заявки' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  subject?: string;
+
+  @ApiPropertyOptional({ description: 'Заметка оператора по звонку' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(4000)
+  note?: string;
+}

@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Prisma } from '@prisma/client';
 import { MinioService } from '../files/minio.service';
@@ -283,12 +283,60 @@ export class CallCenterService implements OnModuleInit {
     return { url };
   }
 
-  // Привязать звонок к заявке + заметка оператора.
+  // Привязать звонок к существующей заявке + заметка оператора.
   async attachTicket(id: string, ticketId: string | null, note?: string) {
     await this.get(id);
     return this.prisma.call.update({
       where: { id },
       data: { ticketId: ticketId ?? null, ...(note !== undefined ? { note } : {}) },
+    });
+  }
+
+  // Создать НОВУЮ заявку поддержки по звонку (омниканальность). Требует определённого клиента.
+  async createTicketFromCall(
+    callId: string,
+    operatorId: string,
+    dto: { category?: string; subject?: string; note?: string },
+  ) {
+    const call = await this.prisma.call.findUnique({
+      where: { id: callId },
+      select: { id: true, userId: true, externalNumber: true, ticketId: true },
+    });
+    if (!call) throw new NotFoundException('Звонок не найден');
+    if (!call.userId) {
+      throw new BadRequestException('Звонок без определённого клиента — заявку создать нельзя (сохраните заметку)');
+    }
+    if (call.ticketId) throw new BadRequestException('К звонку уже привязана заявка');
+
+    const subject = dto.subject?.trim() || `Обращение по звонку ${call.externalNumber ?? ''}`.trim();
+    const category = (dto.category?.trim() || 'OTHER') as never;
+    const note = dto.note?.trim();
+
+    return this.prisma.$transaction(async (tx) => {
+      const ticket = await tx.supportTicket.create({
+        data: {
+          userId: call.userId!,
+          subject,
+          category,
+          status: 'OPEN',
+          agentId: operatorId,
+          lastMessagePreview: note ?? subject,
+          lastMessageAt: new Date(),
+        },
+      });
+      await tx.supportMessage.create({
+        data: {
+          ticketId: ticket.id,
+          senderRole: 'SYSTEM',
+          type: 'SYSTEM',
+          body: `Заявка создана по звонку оператором.${note ? '\nЗаметка: ' + note : ''}`,
+        },
+      });
+      await tx.call.update({
+        where: { id: callId },
+        data: { ticketId: ticket.id, ...(note ? { note } : {}) },
+      });
+      return ticket;
     });
   }
 }

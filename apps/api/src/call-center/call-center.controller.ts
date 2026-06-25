@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SupportGuard } from '../support/support.guard';
-import { AttachTicketDto } from './dto/call-center.dto';
+import { AttachTicketDto, CreateCallTicketDto } from './dto/call-center.dto';
 import { CallCenterService } from './call-center.service';
 
 // Рабочее место оператора колл-центра в админке. Доступ: SUPPORT или ADMIN.
@@ -45,8 +45,18 @@ export class CallCenterController {
   }
 
   @Patch('calls/:id/ticket')
-  @ApiOperation({ summary: 'Привязать звонок к заявке + заметка оператора.' })
+  @ApiOperation({ summary: 'Привязать звонок к существующей заявке + заметка оператора.' })
   attachTicket(@Param('id') id: string, @Body() dto: AttachTicketDto) {
     return this.service.attachTicket(id, dto.ticketId ?? null, dto.note);
+  }
+
+  @Post('calls/:id/ticket')
+  @ApiOperation({ summary: 'Создать новую заявку поддержки по звонку (омниканальность).' })
+  createTicket(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: CreateCallTicketDto,
+  ) {
+    return this.service.createTicketFromCall(id, user.sub, dto);
   }
 }

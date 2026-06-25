@@ -62,6 +62,8 @@ export const callcenterApi = {
     api.get(`/admin/call-center/calls/${id}/recording`).then((r) => r.data as { url: string }),
   attachTicket: (id: string, body: { ticketId?: string | null; note?: string }) =>
     api.patch(`/admin/call-center/calls/${id}/ticket`, body).then((r) => r.data),
+  createTicket: (id: string, body: { category?: string; subject?: string; note?: string }) =>
+    api.post(`/admin/call-center/calls/${id}/ticket`, body).then((r) => r.data as { id: string }),
   sipCredentials: () => api.get('/admin/call-center/sip-credentials').then((r) => r.data),
 };
 
