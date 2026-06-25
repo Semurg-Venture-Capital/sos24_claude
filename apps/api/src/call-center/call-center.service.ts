@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Prisma } from '@prisma/client';
 import { MinioService } from '../files/minio.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -20,7 +21,30 @@ export class CallCenterService implements OnModuleInit {
     private readonly minio: MinioService,
     private readonly ari: AriService,
     private readonly gateway: CallCenterGateway,
+    private readonly config: ConfigService,
   ) {}
+
+  // SIP-креды для браузерного софтфона оператора (WebRTC через WSS).
+  // ⚠️ dev: один тестовый extension (1114) из env. Прод: эфемерные креды на оператора.
+  sipCredentials(operatorId: string) {
+    const wsServer = this.config.get<string>('ASTERISK_WSS_URL');
+    const domain = this.config.get<string>('ASTERISK_SIP_DOMAIN');
+    const ext = this.config.get<string>('ASTERISK_TEST_SIP_EXT');
+    const password = this.config.get<string>('ASTERISK_TEST_SIP_SECRET');
+    if (!wsServer || !domain || !ext || !password) {
+      return { configured: false as const };
+    }
+    return {
+      configured: true as const,
+      wsServer,
+      domain,
+      ext,
+      password,
+      uri: `sip:${ext}@${domain}`,
+      displayName: `Оператор ${ext}`,
+      operatorId,
+    };
+  }
 
   onModuleInit() {
     this.ari.on('event', (e: AriEvent) => {

@@ -62,6 +62,7 @@ export const callcenterApi = {
     api.get(`/admin/call-center/calls/${id}/recording`).then((r) => r.data as { url: string }),
   attachTicket: (id: string, body: { ticketId?: string | null; note?: string }) =>
     api.patch(`/admin/call-center/calls/${id}/ticket`, body).then((r) => r.data),
+  sipCredentials: () => api.get('/admin/call-center/sip-credentials').then((r) => r.data),
 };
 
 export function useCallHealth() {

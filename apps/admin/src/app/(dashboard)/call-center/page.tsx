@@ -15,6 +15,7 @@ import {
 } from '@/lib/callcenter';
 import { ensureAudioUnlocked, playPing, requestNotifyPermission, showDesktopNotification } from '@/lib/agentAlerts';
 import { formatPhone } from '@/lib/utils';
+import { SoftphoneBar } from './SoftphoneBar';
 
 const DIR_LABEL: Record<string, string> = {
   INBOUND_EXTERNAL: 'Внешний',
@@ -104,6 +105,9 @@ export default function CallCenterPage() {
       />
 
       <main className="flex-1 p-6 flex flex-col gap-6">
+        {/* Софтфон оператора */}
+        <SoftphoneBar />
+
         {/* Статус + включить звук */}
         <div className="flex items-center gap-3">
           <span
