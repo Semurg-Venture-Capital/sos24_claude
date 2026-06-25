@@ -24,6 +24,10 @@
 - Единый бэкбон на Asterisk. ✅
 - Первая фаза — **внешние звонки** (инфраструктура уже есть), in-app — второй фазой. ✅
 
+**Уточнение архитектуры Фазы 1 (2026-06-25): НЕ пишем свой ARI-бридж.**
+Медиа-соединение оператор↔клиент и запись делает **нативная FreePBX-очередь (ACD + MixMonitor)** — это уже есть в FreePBX. Наш бэкенд только **наблюдает** события через ARI с `subscribeAll=true` (ведёт журнал `Call`, screen-pop, метаданные записи). Проверено: при `subscribeAll=true` ARI WS отдаёт события и обычных, не-Stasis каналов (`ChannelCreated/StateChange/Dial/Destroyed/HangupRequest/Bridge*`). Stasis оставляем для in-app (Фаза 2). Это сильно меньше кода и надёжнее (используем штатные ACD/запись FreePBX, GUI-управление очередью).
+⚠️ Следствие: обработчик событий в `CallCenterService` нужно расширить с StasisStart на FreePBX-нативный жизненный цикл звонка (ChannelCreated→Dial→Up→BridgeEnter→Hangup).
+
 ## 3. Целевая архитектура
 
 ```
