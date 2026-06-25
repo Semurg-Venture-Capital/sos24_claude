@@ -117,20 +117,33 @@ export class Softphone {
     void this.audioEl.play().catch(() => {});
   }
 
+  private answering = false;
+
   async answer() {
-    if (!this.invitation) return;
-    // Если на машине нет микрофона (напр. Mac mini) — отвечаем в режиме «только приём»
-    // (recvonly): слышим собеседника, но не передаём. Иначе getUserMedia падает NotFoundError.
-    let audio = true;
+    const inv = this.invitation;
+    // Принять можно один раз и только из начального состояния — иначе SIP.js бросает
+    // "Invalid session state Establishing" (двойной клик / повторный вызов).
+    if (!inv || this.answering || inv.state !== SessionState.Initial) return;
+    this.answering = true;
     try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      audio = devices.some((d) => d.kind === 'audioinput');
+      // Если на машине нет микрофона (напр. Mac mini) — отвечаем в режиме «только приём»
+      // (recvonly): слышим собеседника, но не передаём. Иначе getUserMedia падает NotFoundError.
+      let audio = true;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        audio = devices.some((d) => d.kind === 'audioinput');
+      } catch {
+        audio = true;
+      }
+      if (inv.state !== SessionState.Initial) return; // состояние могло измениться за время await
+      await inv.accept({
+        sessionDescriptionHandlerOptions: { constraints: { audio, video: false } },
+      });
     } catch {
-      audio = true;
+      /* приём не удался — состояние изменилось / звонок отменён */
+    } finally {
+      this.answering = false;
     }
-    await this.invitation.accept({
-      sessionDescriptionHandlerOptions: { constraints: { audio, video: false } },
-    });
   }
 
   async hangup() {
