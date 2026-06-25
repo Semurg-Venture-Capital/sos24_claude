@@ -134,7 +134,10 @@
 
 12. **`fwconsole restart` виснет («cannot be run during shutdown»).** Грейсфул-стоп залип. Лечение: `pkill -9 -x asterisk` (+ `pkill -9 -f safe_asterisk`), убедиться `pgrep -x asterisk` пуст, затем `fwconsole start`, ждать готовности (`asterisk -rx "core show version"`).
 
-13. **WebRTC-агент в ОЧЕРЕДИ: `setRemoteDescription ... SDP without DTLS fingerprint`** (звонок звонит, при «Принять» уходит 480; offer от Asterisk = `m=audio ... RTP/AVP` с BUNDLE/rtcp-mux, но без `a=fingerprint`/`SAVPF`). Причина: при маршруте **через очередь** (`Local/102@from-queue/n`) медиа транка (RTP/ulaw) проходит к webrtc-ноге без DTLS. Прямой звонок на `PJSIP/102` DTLS отдаёт корректно (проверено — работает). **Текущее решение:** прод-маршрут входящего = **прямой → 102** (`incoming.destination='from-did-direct,102,1'`), очередь временно в обход. ⚠️ **Для мультиоператорной очереди нужен отдельный фикс** webrtc+queue (вероятно — агент как прямой PJSIP-член, не Local; или media-настройки бриджа). Для одного оператора прямой маршрут полностью рабочий (звук в обе стороны подтверждён на проде).
+13. **`setRemoteDescription ... SDP without DTLS fingerprint`** (звонок звонит, при «Принять» уходит 480; offer от Asterisk = `m=audio ... RTP/AVP` без `a=fingerprint`/`SAVPF`). **РЕАЛЬНАЯ причина: extension оператора НЕ был WebRTC-включён** (`webrtc:no`, `media_encryption:no` → Asterisk отдаёт plain RTP/AVP, браузер требует DTLS-SRTP → отказ). Проверка: `pjsip show endpoint <ext> | grep -E "webrtc|media_encryption|transport"` — должно быть `webrtc:yes`, `media_encryption:dtls`, `transport:0.0.0.0-wss`. **Лечение:** включить WebRTC на extension (FreePBX GUI тумблер; если не применился — скопировать поля `avpf/icesupport/media_encryption/rtcp_mux/transport/webrtc` из рабочего webrtc-ext в БД `sip` + `fwconsole reload`). После этого **И прямой звонок, И очередь** (`Local/<ext>@from-queue/n`) отдают DTLS — **нативная FreePBX-очередь работает, прямые-PJSIP-члены/обходы НЕ нужны**.
+    ⚠️ Изначально ошибочно списал на «Local/очередь рвёт DTLS» и временно вернул прямой маршрут — причина была не в этом, а в не-webrtc extension (105 завели через GUI без WebRTC). **Правило: каждый оператор-extension в очереди обязан быть WebRTC.** Прод-маршрут возвращён на очередь (`ext-queues,7000,1`).
+
+14. **Односторонний звук: оператор в браузере не слышит абонента, абонент оператора слышит** — *(в работе 2026-06-25)*.
 
 ---
 
@@ -152,8 +155,9 @@
 ## 9. Осталось / открытые вопросы
 
 - ✅ **Прод задеплоен и подключён (2026-06-25):** образы api+admin, миграции `call_center`/`operator_sip`, секрет дополнен `ASTERISK_*`/`REC_S3_*` (прод ARI_APP=`sos24-callcenter`, dev=`sos24-callcenter-dev`); прод-бэкенд подключён к ARI+AMI, очередь читается. Связность кластер↔Asterisk DevOps решил (OPNsense WG, см. болевую точку #7).
-- ✅ **Прод-софтфон рабочий (2026-06-25):** реальный звонок звонит в панели `admin.sos24.uz`, приём + **двусторонний звук** подтверждены. Маршрут входящего = **прямой → 102** (очередь в обход из-за webrtc+queue DTLS, см. болевую точку #13). Микрофон разрешён в nginx (#5b).
-- **Фикс webrtc+queue (для мультиоператора):** вернуть ACD-очередь, решив потерю DTLS (болевая точка #13).
+- ✅ **Прод-софтфон рабочий (2026-06-25):** реальный звонок звонит в панели `admin.sos24.uz`, приём работает. Микрофон разрешён в nginx (#5b).
+- ✅ **Очередь работает нативно (исправлено):** «webrtc+queue DTLS» оказался не проблемой Local/очереди, а **не-webrtc extension** (#13). Маршрут возвращён на **очередь 7000**; оба оператора (102, 105) сделаны WebRTC. Правило: каждый оператор-extension обязан быть WebRTC.
+- ⏳ **Односторонний звук** (оператор не слышит абонента) — в работе (#14).
 - Завести **реальных операторов**: WebRTC-extension в FreePBX + `sipExtension`/`secret` в админке. Операторы — в офисной сети (Asterisk наружу не выводим).
 - Атрибуция оператора на звонке (`operatorId` — кто принял).
 - Fail-over очереди = Hangup → позже voicemail/announcement (24/7).
