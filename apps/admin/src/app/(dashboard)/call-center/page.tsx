@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Phone, PhoneIncoming, PhoneMissed, ShieldCheck, FileText, Volume2 } from 'lucide-react';
+import { Phone, PhoneIncoming, PhoneMissed, ShieldCheck, FileText, Volume2, Play } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import {
   useCalls,
   useCallHealth,
   callsSocket,
+  callcenterApi,
   type Call,
   type CallStatus,
   type IncomingCall,
@@ -85,6 +86,20 @@ export default function CallCenterPage() {
     requestNotifyPermission();
     playPing();
     setAudioOn(true);
+  };
+
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const playRecording = async (id: string) => {
+    try {
+      const { url } = await callcenterApi.recording(id);
+      const audio = new Audio(url);
+      setPlayingId(id);
+      audio.onended = () => setPlayingId(null);
+      audio.onerror = () => setPlayingId(null);
+      await audio.play();
+    } catch {
+      setPlayingId(null);
+    }
   };
 
   const list: Call[] = calls ?? [];
@@ -182,7 +197,7 @@ export default function CallCenterPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[rgba(20,20,40,0.06)]">
-                  {['Время', 'Направление', 'Клиент / номер', 'Статус', 'Длит.', 'Оператор'].map((h) => (
+                  {['Время', 'Направление', 'Клиент / номер', 'Статус', 'Длит.', 'Оператор', 'Запись'].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-[#9a9a9a] uppercase tracking-wider whitespace-nowrap">
                       {h}
                     </th>
@@ -192,13 +207,13 @@ export default function CallCenterPage() {
               <tbody className="divide-y divide-[rgba(20,20,40,0.04)]">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-8 text-center text-sm text-[#9a9a9a]">
+                    <td colSpan={7} className="px-5 py-8 text-center text-sm text-[#9a9a9a]">
                       Загрузка...
                     </td>
                   </tr>
                 ) : list.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-10 text-center">
+                    <td colSpan={7} className="px-5 py-10 text-center">
                       <Phone size={20} className="mx-auto text-[#c0c0c0] mb-2" />
                       <p className="text-sm text-[#9a9a9a]">Звонков пока нет</p>
                     </td>
@@ -228,6 +243,19 @@ export default function CallCenterPage() {
                         <td className="px-5 py-3.5 text-sm text-[#5f5e5e]">{fmtDur(c.durationSec)}</td>
                         <td className="px-5 py-3.5 text-sm text-[#5f5e5e]">
                           {c.operator ? [c.operator.surname, c.operator.name].filter(Boolean).join(' ') : '—'}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          {c.recordingKey ? (
+                            <button
+                              onClick={() => playRecording(c.id)}
+                              disabled={playingId === c.id}
+                              className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs text-[#5f5e5e] hover:bg-[#f0f0f2] transition-colors disabled:opacity-50"
+                            >
+                              <Play size={13} /> {playingId === c.id ? 'Играет…' : 'Прослушать'}
+                            </button>
+                          ) : (
+                            <span className="text-xs text-[#c0c0c0]">—</span>
+                          )}
                         </td>
                       </tr>
                     );

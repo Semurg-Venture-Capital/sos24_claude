@@ -144,6 +144,21 @@ export class AriService extends EventEmitter implements OnModuleInit, OnModuleDe
   hangup(channelId: string) {
     return this.request('DELETE', `/channels/${encodeURIComponent(channelId)}`);
   }
+
+  // Прочитать переменную канала (напр. MIXMONITOR_FILENAME — путь файла записи FreePBX).
+  // Возвращает null, если переменной нет или канал уже завершён.
+  async getChannelVar(channelId: string, variable: string): Promise<string | null> {
+    try {
+      const res = await this.request<{ value?: string }>(
+        'GET',
+        `/channels/${encodeURIComponent(channelId)}/variable`,
+        { variable },
+      );
+      return res?.value || null;
+    } catch {
+      return null;
+    }
+  }
 }
 
 // Минимальная типизация ARI-события (нужные поля; остальное приходит как есть).

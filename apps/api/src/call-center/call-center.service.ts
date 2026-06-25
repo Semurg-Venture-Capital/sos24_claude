@@ -3,8 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import type { Prisma } from '@prisma/client';
 import { MinioService } from '../files/minio.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { Client as MinioClient } from 'minio';
 import { AriService, type AriChannel, type AriEvent } from './ari.service';
 import { CallCenterGateway } from './call-center.gateway';
+
+// Префикс ключа записей разговоров в MinIO. Аплоадер на Asterisk кладёт файлы сюда же.
+const REC_PREFIX = 'call-recordings';
 
 // Бизнес-логика колл-центра: слушает ARI-события и ведёт журнал звонков (модель Call),
 // определяет звонящего (screen pop) и шлёт события операторам через gateway.
@@ -126,15 +130,27 @@ export class CallCenterService implements OnModuleInit {
     const call = await this.prisma.call.findUnique({ where: { channelId: ch.id } });
     if (!call || call.answeredAt) return;
     const now = new Date();
+    // К моменту ответа FreePBX-запись (MixMonitor) уже стартовала → ключ записи доступен.
+    const recordingKey = call.recordingKey ?? (await this.captureRecordingKey(ch.id));
     const updated = await this.prisma.call.update({
       where: { id: call.id },
       data: {
         status: 'ANSWERED',
         answeredAt: now,
         waitSec: Math.max(0, Math.round((now.getTime() - call.startedAt.getTime()) / 1000)),
+        ...(recordingKey ? { recordingKey } : {}),
       },
     });
     this.gateway.emitUpdate({ callId: updated.id, status: updated.status });
+  }
+
+  // Имя файла записи разговора: читаем MIXMONITOR_FILENAME с канала через ARI.
+  // Ключ в MinIO = REC_PREFIX/<basename> — аплоадер на Asterisk кладёт файл под тем же ключом.
+  private async captureRecordingKey(channelId: string): Promise<string | null> {
+    const path = await this.ari.getChannelVar(channelId, 'MIXMONITOR_FILENAME');
+    if (!path) return null;
+    const base = path.split('/').pop();
+    return base ? `${REC_PREFIX}/${base}` : null;
   }
 
   private async onCallEnd(ch: AriChannel) {
@@ -235,11 +251,36 @@ export class CallCenterService implements OnModuleInit {
     return call;
   }
 
-  // Временная ссылка на запись разговора (MinIO presigned).
+  // Временная ссылка на запись разговора. Записи лежат в выделенном хранилище
+  // (прод-MinIO s3.sos24.uz, REC_S3_*) — туда же их заливает аплоадер на Asterisk.
+  // presign считается локально (сеть к MinIO не нужна), поэтому работает и из dev.
+  private recClient: MinioClient | null = null;
+  private recBucket = '';
+
+  private getRecClient(): MinioClient | null {
+    if (this.recClient) return this.recClient;
+    const endPoint = this.config.get<string>('REC_S3_ENDPOINT');
+    const accessKey = this.config.get<string>('REC_S3_ACCESS_KEY');
+    const secretKey = this.config.get<string>('REC_S3_SECRET_KEY');
+    if (!endPoint || !accessKey || !secretKey) return null;
+    this.recBucket = this.config.get<string>('REC_S3_BUCKET') ?? 'sos24';
+    this.recClient = new MinioClient({
+      endPoint,
+      port: Number(this.config.get<string>('REC_S3_PORT') ?? 443),
+      useSSL: (this.config.get<string>('REC_S3_SSL') ?? 'true') !== 'false',
+      accessKey,
+      secretKey,
+    });
+    return this.recClient;
+  }
+
   async recordingUrl(id: string) {
     const call = await this.prisma.call.findUnique({ where: { id }, select: { recordingKey: true } });
     if (!call?.recordingKey) throw new NotFoundException('Записи нет');
-    return { url: await this.minio.presignedGetUrl(call.recordingKey, 3600) };
+    const client = this.getRecClient();
+    if (!client) throw new NotFoundException('Хранилище записей не настроено (REC_S3_*)');
+    const url = await client.presignedGetObject(this.recBucket, call.recordingKey, 3600);
+    return { url };
   }
 
   // Привязать звонок к заявке + заметка оператора.
