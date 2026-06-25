@@ -21,6 +21,7 @@ import {
   Building2,
   Bell,
   MessageCircle,
+  Phone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NAPP_TOOLS, NAPP_GROUPS } from '@/lib/nappTools';
@@ -35,6 +36,7 @@ const NAV = [
   { href: '/adjuster', label: 'Аджастер', icon: Siren },
   { href: '/europrotocols', label: 'Европротоколы', icon: FileWarning },
   { href: '/support', label: 'Поддержка', icon: MessageCircle },
+  { href: '/call-center', label: 'Колл-центр', icon: Phone },
   { href: '/partners', label: 'Партнёры', icon: Handshake },
   { href: '/notifications', label: 'Уведомления', icon: Bell },
   { href: '/myid-test', label: 'MyID данные', icon: Fingerprint },
@@ -52,13 +54,13 @@ export function Sidebar() {
   const [nappOpen, setNappOpen] = useState(onNapp);
   const activeTool = sp.get('tool');
 
-  // Операторы поддержки видят только раздел «Поддержка».
+  // Операторы поддержки видят только «Поддержку» и «Колл-центр».
   const [role, setRole] = useState<string | null>(null);
   useEffect(() => {
     setRole(localStorage.getItem('sos24_admin_role'));
   }, []);
   const isSupportOnly = role === 'SUPPORT';
-  const nav = isSupportOnly ? NAV.filter((n) => n.href === '/support') : NAV;
+  const nav = isSupportOnly ? NAV.filter((n) => n.href === '/support' || n.href === '/call-center') : NAV;
 
   return (
     <aside className="w-60 shrink-0 flex flex-col h-full bg-[#111111] text-white">
