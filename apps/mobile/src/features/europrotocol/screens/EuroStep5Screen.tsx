@@ -20,8 +20,6 @@ import type { EuroStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStep5'>;
 
-const SCHEME_LABEL = { rear: 'Наезд сзади', front: 'Лобовое', side: 'Боковое' } as const;
-
 function formatDate(iso: string): string {
   const [y, m, d] = iso.slice(0, 10).split('-');
   return d && m && y ? `${d}.${m}.${y}` : iso;
@@ -75,6 +73,17 @@ export function EuroStep5Screen() {
       setPhase('Загрузка медиа…');
       const photos = await uploadMedia();
 
+      // Рисунок схемы ДТП (карта + машины) → MinIO; ключ попадёт в PDF бланка.
+      let schemeImageKey: string | undefined;
+      if (s.schemeImageUri) {
+        try {
+          const { key } = await uploadEuroMedia(s.schemeImageUri, 'image');
+          schemeImageKey = key;
+        } catch {
+          /* не блокируем отправку, если схему загрузить не удалось */
+        }
+      }
+
       // ВУ стороны A заполнено в шаге 2 (в профиле его не было) → сохраняем в профиль,
       // чтобы оно попало в PDF извещения.
       if (s.myDlSeria.trim() && s.myDlNumber.trim() && s.myDlIssue) {
@@ -107,6 +116,7 @@ export function EuroStep5Screen() {
         otherPolicyNumber: s.otherPolicyNumber || undefined,
         otherPolicyValid: s.otherPolicyValid ?? undefined,
         schemeType: s.schemeType ?? undefined,
+        schemeImageKey,
         description: s.description || undefined,
         photos,
         // общая часть
@@ -171,7 +181,7 @@ export function EuroStep5Screen() {
         rows={[
           { label: 'Дата и время', value: `${formatDate(s.date)} · ${s.time}` },
           { label: 'Место', value: s.place || '—' },
-          { label: 'Схема', value: s.schemeType ? SCHEME_LABEL[s.schemeType] : '—' },
+          { label: 'Схема', value: s.schemeImageUri ? 'на карте ✓' : '—' },
           { label: 'Фото / видео', value: `${photosCount} из ${REQUIRED_PHOTOS.length} · ${s.videos.length} видео` },
           { label: 'Обстоятельства', value: circCount ? `отмечено ${circCount}` : '—' },
         ]}

@@ -67,6 +67,7 @@ export type EuroStackParamList = {
   EuroStep1: undefined; // M9.3 шаг 1 — обстоятельства (когда и где)
   EuroStep2: undefined; // M9.3 шаг 2 — транспортные средства / второй участник
   EuroStep3: undefined; // M9.3 шаг 3 — схема ДТП + описание обстоятельств
+  EuroSchemeMap: undefined; // M9.3 шаг 3 — редактор схемы ДТП на карте (машины + точка удара)
   EuroStep4: undefined; // M9.3 шаг 4 — фотофиксация (только камера)
   EuroStep5: undefined; // M9.3 шаг 5 — итог + подтверждение + отправка
   EuroSuccess: undefined; // экран успеха (№ извещения)

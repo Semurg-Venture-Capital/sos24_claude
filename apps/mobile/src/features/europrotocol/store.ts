@@ -67,6 +67,7 @@ interface EuroState {
 
   // Шаг 3 — схема + описание
   schemeType: SchemeType | null;
+  schemeImageUri: string | null; // локальный URI готового рисунка схемы (карта + машины), заливается на шаге 5
   description: string;
 
   // Шаг 4 — фотофиксация (только камера, антифрод). uri + метка времени.
@@ -126,6 +127,7 @@ interface EuroState {
   setOtherVehicle: (v: TechPassportInfo | null) => void;
   setOtherPolicyValid: (v: boolean | null) => void;
   setScheme: (v: SchemeType) => void;
+  setSchemeImage: (uri: string | null) => void;
   setDescription: (v: string) => void;
   setPhoto: (key: PhotoKey, photo: EuroPhoto | null) => void;
   setSubmittedNumber: (n: string) => void;
@@ -174,6 +176,7 @@ const INITIAL = {
   otherPolicyValid: null as boolean | null,
   otherPhone: '',
   schemeType: null as SchemeType | null,
+  schemeImageUri: null as string | null,
   description: '',
   photos: { overview: null, myCar: null, otherCar: null, scene: null } as Record<PhotoKey, EuroPhoto | null>,
   videos: [] as EuroPhoto[],
@@ -227,6 +230,7 @@ export const useEuroStore = create<EuroState>((set) => ({
   setOtherVehicle: (v) => set({ otherVehicle: v }),
   setOtherPolicyValid: (v) => set({ otherPolicyValid: v }),
   setScheme: (v) => set({ schemeType: v }),
+  setSchemeImage: (uri) => set({ schemeImageUri: uri }),
   setDescription: (v) => set({ description: v }),
   setPhoto: (key, photo) => set((st) => ({ photos: { ...st.photos, [key]: photo } })),
   setSubmittedNumber: (n) => set({ submittedNumber: n }),

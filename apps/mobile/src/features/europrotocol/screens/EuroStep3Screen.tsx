@@ -1,29 +1,24 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Pressable, Text, TextInput, View } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import { Image, Pressable, Text, TextInput, View } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
+import { IconPencil } from '../../../components/icons/LineIcons';
 import { Glass } from '../../../components/ui/Glass';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { WizardFrame } from '../../../components/ui/WizardFrame';
 import { tokens } from '../../../theme/colors';
 import { EURO_CIRCUMSTANCES } from '../circumstances';
 import { FieldInput, SectionLabel, Segmented, YesNoToggle, ZoneSelect } from '../components/EuroFields';
-import { useEuroStore, type SchemeType } from '../store';
+import { useEuroStore } from '../store';
 import type { EuroStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStep3'>;
 
-const SCHEMES: { key: SchemeType; label: string; Illu: (p: { color: string }) => React.ReactElement }[] = [
-  { key: 'rear', label: 'Наезд сзади', Illu: SchemeRear },
-  { key: 'front', label: 'Лобовое', Illu: SchemeFront },
-  { key: 'side', label: 'Боковое', Illu: SchemeSide },
-];
-
-// M9.3 шаг 3 — схема столкновения (шаблон) + описание обстоятельств своими словами.
+// M9.3 шаг 3 — схема ДТП на карте (машины + точка удара) + описание обстоятельств.
 export function EuroStep3Screen() {
   const nav = useNavigation<Nav>();
   const s = useEuroStore();
-  const { schemeType, description, setScheme, setDescription, patch, toggleCircumstance } = s;
+  const { description, setDescription, patch, toggleCircumstance } = s;
 
   return (
     <WizardFrame
@@ -31,22 +26,27 @@ export function EuroStep3Screen() {
       total={5}
       eyebrow="Шаг 3 из 5 · Схема"
       primary="Далее"
-      primaryEnabled={!!schemeType && !!s.driverRole && s.canMove !== null}
+      primaryEnabled={!!s.driverRole && s.canMove !== null}
       primaryAction={() => nav.navigate('EuroStep4')}
       onBack={() => nav.goBack()}
     >
-      <ScreenHeading title="Схема столкновения" subtitle="Выберите подходящий шаблон и опишите, как произошло ДТП" />
+      <ScreenHeading title="Схема столкновения" subtitle="Отметьте на карте, как стояли машины, и опишите, как произошло ДТП" />
 
-      <View style={{ flexDirection: 'row', gap: 10 }}>
-        {SCHEMES.map((it) => (
-          <SchemeOption
-            key={it.key}
-            label={it.label}
-            selected={schemeType === it.key}
-            onPress={() => setScheme(it.key)}
-            Illu={it.Illu}
-          />
-        ))}
+      <SchemeCard uri={s.schemeImageUri} onOpen={() => nav.navigate('EuroSchemeMap')} onClear={() => s.setSchemeImage(null)} />
+
+      <View
+        style={{
+          paddingHorizontal: 14,
+          paddingVertical: 10,
+          borderRadius: 14,
+          backgroundColor: 'rgba(230,20,40,0.08)',
+          borderWidth: 1,
+          borderColor: 'rgba(230,20,40,0.35)',
+        }}
+      >
+        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: tokens.red, lineHeight: 17 }}>
+          ⚠️ Укажите место ДТП и положение машин точно. При неверных данных страховая компания может отказать в выплате.
+        </Text>
       </View>
 
       <View style={{ gap: 10, marginTop: 4 }}>
@@ -221,75 +221,58 @@ function SideBox({ label, active, onPress }: { label: string; active: boolean; o
   );
 }
 
-function SchemeOption({
-  label,
-  selected,
-  onPress,
-  Illu,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  Illu: (p: { color: string }) => React.ReactElement;
-}) {
+// Карточка схемы ДТП: пустая (кнопка «Открыть карту») или с превью готового рисунка.
+function SchemeCard({ uri, onOpen, onClear }: { uri: string | null; onOpen: () => void; onClear: () => void }) {
+  if (uri) {
+    return (
+      <View style={{ gap: 8 }}>
+        <View style={{ borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: tokens.hairline }}>
+          <Image source={{ uri }} style={{ width: '100%', height: 180 }} resizeMode="cover" />
+        </View>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <Pressable
+            onPress={onOpen}
+            style={{ flex: 1, height: 44, borderRadius: 14, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: tokens.inkDark }}
+          >
+            <IconPencil size={16} color="#fff" />
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#fff' }}>Изменить</Text>
+          </Pressable>
+          <Pressable
+            onPress={onClear}
+            style={{ height: 44, paddingHorizontal: 18, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(20,20,20,0.06)', borderWidth: 1, borderColor: tokens.hairline }}
+          >
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkMuted }}>Убрать</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
   return (
     <Pressable
-      onPress={onPress}
+      onPress={onOpen}
       style={({ pressed }) => ({
-        flex: 1,
         borderRadius: 18,
-        padding: 12,
-        gap: 8,
+        paddingVertical: 22,
+        paddingHorizontal: 16,
+        gap: 10,
         alignItems: 'center',
-        backgroundColor: selected ? tokens.inkDark : 'rgba(255,255,255,0.55)',
+        backgroundColor: 'rgba(255,255,255,0.55)',
         borderWidth: 1,
-        borderColor: selected ? tokens.inkDark : tokens.hairline,
+        borderColor: tokens.hairline,
+        borderStyle: 'dashed',
         opacity: pressed ? 0.8 : 1,
       })}
     >
-      <View style={{ height: 44, alignItems: 'center', justifyContent: 'center' }}>
-        <Illu color={selected ? '#fff' : tokens.inkDark} />
+      <View style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(230,20,40,0.1)' }}>
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={tokens.red} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+          <Path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z" />
+          <Circle cx={12} cy={10} r={3} />
+        </Svg>
       </View>
-      <Text
-        style={{
-          fontFamily: 'Manrope_500Medium',
-          fontSize: 11,
-          color: selected ? '#fff' : tokens.inkDark,
-          textAlign: 'center',
-        }}
-      >
-        {label}
+      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: tokens.inkDark }}>Открыть карту</Text>
+      <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkSubtle, textAlign: 'center', lineHeight: 17 }}>
+        Поставьте две машины на карте текущего места и укажите точку удара
       </Text>
     </Pressable>
-  );
-}
-
-// Мини-иллюстрации схем. Цвет контура передаётся снаружи (белый на выбранной тёмной
-// плашке, тёмный — на светлой). Красный акцент удара виден на обоих фонах.
-function SchemeRear({ color }: { color: string }) {
-  return (
-    <Svg width={60} height={40} viewBox="0 0 60 40" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Rect x={6} y={14} width={22} height={14} rx={3} />
-      <Rect x={32} y={14} width={22} height={14} rx={3} />
-      <Path d="M30 18l-2 3 2 3" stroke={tokens.red} strokeWidth={2} />
-    </Svg>
-  );
-}
-function SchemeFront({ color }: { color: string }) {
-  return (
-    <Svg width={60} height={40} viewBox="0 0 60 40" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Rect x={6} y={14} width={22} height={14} rx={3} />
-      <Rect x={32} y={14} width={22} height={14} rx={3} />
-      <Path d="M28 21h4" stroke={tokens.red} strokeWidth={2.5} />
-    </Svg>
-  );
-}
-function SchemeSide({ color }: { color: string }) {
-  return (
-    <Svg width={40} height={44} viewBox="0 0 40 44" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Rect x={10} y={4} width={20} height={14} rx={3} />
-      <Rect x={10} y={26} width={20} height={14} rx={3} />
-      <Path d="M20 20v4" stroke={tokens.red} strokeWidth={2.5} />
-    </Svg>
   );
 }
