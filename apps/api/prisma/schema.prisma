@@ -589,6 +589,7 @@ model Partner {
   services PartnerService[]
   reviews  PartnerReview[]
   bookings PartnerBooking[]
+  doctors  Doctor[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -597,6 +598,36 @@ model Partner {
   @@index([city])
   @@index([categoryId])
   @@map("partners")
+}
+
+// Врач при клинике-партнёре (M14 · раздел «Здоровье»). Запись к врачу —
+// поверх PartnerBooking (см. поле doctorId ниже), максимум переиспользования.
+model Doctor {
+  id           String  @id @default(cuid())
+  partnerId    String? // клиника (Partner); null — частный врач
+  partner      Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  fullName     String
+  specialty    String // Терапевт / ЛОР / Кардиолог …
+  experienceY  Int? // стаж, лет
+  bio          String?  @db.Text
+  photoKey     String? // фото в MinIO
+  rating       Float    @default(0)
+  reviewCount  Int      @default(0)
+  pricePrimary Int? // первичный приём, сум
+  priceRepeat  Int? // повторный приём
+  priceVideo   Int? // видео (для будущего)
+  videoEnabled Boolean  @default(false) // видео-приём (пока false везде)
+  verified     Boolean  @default(false) // бейдж «Партнёр SOS24»
+  active       Boolean  @default(true)
+  workingHours Json? // { mon: {open,close} | null, ... } — для расчёта слотов; fallback — часы клиники
+
+  bookings  PartnerBooking[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([partnerId])
+  @@index([specialty])
+  @@map("doctors")
 }
 
 // Услуга партнёра с ценой (цена опциональна).
@@ -652,12 +683,17 @@ model PartnerBooking {
   status      PartnerBookingStatus @default(PENDING)
   comment     String?
 
+  // Запись к врачу (M14): если задан — это приём к конкретному доктору клиники.
+  doctorId String?
+  doctor   Doctor? @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
   review    PartnerReview?
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
   @@index([partnerId, scheduledAt])
   @@index([userId, createdAt])
+  @@index([doctorId, scheduledAt])
   @@map("partner_bookings")
 }
 
