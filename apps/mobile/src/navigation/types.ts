@@ -14,7 +14,22 @@ export type MainTabParamList = {
   Home: undefined;
   Policies: undefined;
   Garage: undefined;
-  Profile: undefined;
+  Health: undefined;
+};
+
+// Здоровье и SOS-Медицина (M14) — вкладка «Здоровье».
+export type HealthStackParamList = {
+  HealthHub: undefined; // M14.1 — хаб
+  HealthTriage: undefined; // M14.2 — ИИ-триаж (чат)
+  HealthDiagnosis: undefined; // M14.3 — предв. диагноз
+  HealthDoctors: undefined; // M14.4 — врачи и клиники
+  HealthDoctorProfile: { id: string }; // M14.5 — профиль врача
+  HealthBooking: { doctorId: string }; // M14.6 — бронирование
+  HealthBookingDone: undefined; // M14.7 — запись + Google Meet (заглушка)
+  HealthVideoCall: undefined; // M14.8 — видео-консультация (заглушка)
+  HealthMedCard: undefined; // M14.9 — мед.карта (Medical ID)
+  HealthMedCardEdit: undefined; // M14.10 — редактирование мед.карты
+  HealthContacts: undefined; // M14.11 — экстренные контакты
 };
 
 export type PoliciesStackParamList = {
@@ -97,6 +112,14 @@ export type MainStackParamList = {
   Tabs: undefined;
   Notifications: undefined;
   PolicyQrFullscreen: { id: string }; // QR полиса на весь экран — корневой модал
+  HealthSosActive: undefined; // M14.12 — экран ЧП/SOS, корневой модал (поверх табов)
+  // Профиль вынесен из нижнего меню в корневой стек — открывается с главного экрана.
+  Profile:
+    | undefined
+    | {
+        screen?: keyof ProfileStackParamList;
+        params?: ProfileStackParamList[keyof ProfileStackParamList];
+      };
 
   Purchase:
     | undefined

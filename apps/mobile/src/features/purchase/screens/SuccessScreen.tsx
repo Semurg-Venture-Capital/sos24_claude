@@ -45,7 +45,7 @@ export function SuccessScreen() {
                 { name: 'Home' },
                 { name: 'Policies' },
                 { name: 'Garage' },
-                { name: 'Profile' },
+                { name: 'Health' },
               ],
               index: tab === 'Home' ? 0 : 1,
             },

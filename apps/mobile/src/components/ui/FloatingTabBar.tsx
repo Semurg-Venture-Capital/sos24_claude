@@ -2,7 +2,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TabIconCar, TabIconHome, TabIconShield, TabIconUser } from '../icons/TabIcons';
+import { TabIconCar, TabIconHeart, TabIconHome, TabIconShield, TabIconUser } from '../icons/TabIcons';
 import { tokens } from '../../theme/colors';
 
 // Плавающий нижний бар для Android (Вариант 3, fintech-стиль): белая капсула с тенью,
@@ -12,12 +12,14 @@ import { tokens } from '../../theme/colors';
 const ICONS: Record<string, (p: { size?: number; color?: string; active?: boolean }) => React.ReactElement> = {
   Home: TabIconHome,
   Policies: TabIconShield,
+  Health: TabIconHeart,
   Garage: TabIconCar,
   Profile: TabIconUser,
 };
 const LABELS: Record<string, string> = {
   Home: 'Главная',
   Policies: 'Полисы',
+  Health: 'Здоровье',
   Garage: 'Гараж',
   Profile: 'Профиль',
 };

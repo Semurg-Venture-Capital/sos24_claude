@@ -120,7 +120,7 @@ export function HomeScreen() {
   const [menuPolicy, setMenuPolicy] = useState<Policy | null>(null);
 
   // Переход в профиль (вкладка Profile).
-  const openProfile = () => nav.navigate('Profile');
+  const openProfile = () => nav.getParent<RootNav>()?.navigate('Profile');
 
   // Экран уведомлений (живёт на MainStack).
   const openNotifications = () => nav.getParent<RootNav>()?.navigate('Notifications');

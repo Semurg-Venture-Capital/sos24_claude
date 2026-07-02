@@ -7,6 +7,8 @@ import { Platform } from 'react-native';
 import { AdjusterNavigator } from './AdjusterNavigator';
 import { EuroNavigator } from './EuroNavigator';
 import { GarageNavigator } from './GarageNavigator';
+import { HealthNavigator } from './HealthNavigator';
+import { HealthSosActiveScreen } from '../features/health/screens/HealthSosActiveScreen';
 import { HomeScreen } from '../features/main/screens/HomeScreen';
 import { NotificationsScreen } from '../features/notifications/screens/NotificationsScreen';
 import { PolicyQrFullscreenScreen } from '../features/policies/screens/PolicyQrFullscreenScreen';
@@ -26,7 +28,7 @@ const isIOS = Platform.OS === 'ios';
 // экране стека (деталь/редактирование/…) — скрываем: у них своя кнопка «назад» сверху.
 // display:'none' читают и нативный iOS-таб (→ tabBarHidden), и FloatingTabBar (Android).
 function tabBarStyleFor(
-  route: RouteProp<MainTabParamList, 'Policies' | 'Garage' | 'Profile'>,
+  route: RouteProp<MainTabParamList, 'Policies' | 'Garage' | 'Health'>,
   rootName: string,
 ): { display: 'flex' | 'none' } {
   const focused = getFocusedRouteNameFromRoute(route);
@@ -79,14 +81,14 @@ function IosTabs() {
         })}
       />
       <Tab.Screen
-        name="Profile"
-        component={ProfileNavigator}
+        name="Health"
+        component={HealthNavigator}
         options={({ route }) => ({
-          tabBarLabel: 'Профиль',
+          tabBarLabel: 'Здоровье',
           tabBarIcon: isIOS
-            ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'person.fill' : 'person' })
+            ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'heart.fill' : 'heart' })
             : undefined,
-          tabBarStyle: tabBarStyleFor(route, 'ProfileMain'),
+          tabBarStyle: tabBarStyleFor(route, 'HealthHub'),
         })}
       />
     </Tab.Navigator>
@@ -114,9 +116,9 @@ function AndroidTabs() {
         options={({ route }) => ({ tabBarStyle: tabBarStyleFor(route, 'GarageList') })}
       />
       <JsTab.Screen
-        name="Profile"
-        component={ProfileNavigator}
-        options={({ route }) => ({ tabBarStyle: tabBarStyleFor(route, 'ProfileMain') })}
+        name="Health"
+        component={HealthNavigator}
+        options={({ route }) => ({ tabBarStyle: tabBarStyleFor(route, 'HealthHub') })}
       />
     </JsTab.Navigator>
   );
@@ -164,7 +166,17 @@ export function MainNavigator() {
       <Stack.Screen name="EuroProtocol" component={EuroNavigator} />
       <Stack.Screen name="Support" component={SupportNavigator} />
       <Stack.Screen name="Partners" component={PartnersNavigator} />
+      {/* Профиль вынесен из нижнего меню — открывается с главного экрана как push-страница. */}
+      <Stack.Screen name="Profile" component={ProfileNavigator} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
+      {/* Экран ЧП/SOS — корневой полноэкранный модал поверх табов (вызывается из любого места). */}
+      <Stack.Screen
+        name="HealthSosActive"
+        component={HealthSosActiveScreen}
+        options={
+          Platform.OS === 'web' ? {} : { presentation: 'fullScreenModal', animation: 'fade' }
+        }
+      />
       <Stack.Screen
         name="PolicyQrFullscreen"
         component={PolicyQrFullscreenScreen}
