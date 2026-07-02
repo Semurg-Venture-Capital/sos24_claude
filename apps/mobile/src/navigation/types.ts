@@ -25,7 +25,7 @@ export type HealthStackParamList = {
   HealthDoctors: undefined; // M14.4 — врачи и клиники
   HealthDoctorProfile: { id: string }; // M14.5 — профиль врача
   HealthBooking: { doctorId: string }; // M14.6 — бронирование
-  HealthBookingDone: undefined; // M14.7 — запись + Google Meet (заглушка)
+  HealthBookingDone: { doctorName: string; specialty: string; clinicName?: string; scheduledAt: string }; // M14.7 — запись подтверждена
   HealthVideoCall: undefined; // M14.8 — видео-консультация (заглушка)
   HealthMedCard: undefined; // M14.9 — мед.карта (Medical ID)
   HealthMedCardEdit: undefined; // M14.10 — редактирование мед.карты

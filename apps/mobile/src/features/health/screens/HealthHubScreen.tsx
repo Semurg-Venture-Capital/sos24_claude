@@ -7,15 +7,20 @@ import { tokens } from '../../../theme/colors';
 import type { HealthStackParamList } from '../../../navigation/types';
 import { IconBell } from '../../../components/icons/IconBell';
 import { ChevronRightThin, MedCrossIcon, PhoneFillIcon, StethoscopeIcon, UsersIcon } from '../../../components/icons/MedIcons';
+import { useDoctors } from '../../../api/health';
 import { MedDoctorCard, MedQuickTile, MedSectionLabel } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthHub'>;
+
+const money = (n: number | null) => (n != null ? `${n.toLocaleString('ru-RU')} сум` : '—');
 
 // M14.1 — Хаб раздела «Здоровье» (Фаза C · собран на медкомпонентах Фазы B).
 // SOS-герой, вход в ИИ-диагноз, быстрые плитки, «врачи рядом».
 export function HealthHubScreen() {
   const nav = useNavigation<Nav>();
   const openSos = () => nav.getParent()?.navigate('HealthSosActive' as never);
+  const { data } = useDoctors({});
+  const nearby = (data?.doctors ?? []).slice(0, 2);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
@@ -176,30 +181,21 @@ export function HealthHubScreen() {
             <MedSectionLabel action="Все врачи" onAction={() => nav.navigate('HealthDoctors')}>
               Врачи рядом
             </MedSectionLabel>
-            <MedDoctorCard
-              name="Дилшод Рахимов"
-              specialty="ЛОР"
-              experience="12 лет"
-              rating="4.9"
-              reviews="214 отзывов"
-              price="180 000 сум"
-              distance="1.2 км"
-              video
-              onPress={() => nav.navigate('HealthDoctorProfile', { id: 'dr-rahimov' })}
-              onBook={() => nav.navigate('HealthDoctorProfile', { id: 'dr-rahimov' })}
-            />
-            <MedDoctorCard
-              name="Малика Содиқова"
-              specialty="Терапевт"
-              experience="9 лет"
-              rating="4.8"
-              reviews="160 отзывов"
-              price="140 000 сум"
-              distance="2.4 км"
-              video
-              onPress={() => nav.navigate('HealthDoctorProfile', { id: 'dr-sodiqova' })}
-              onBook={() => nav.navigate('HealthDoctorProfile', { id: 'dr-sodiqova' })}
-            />
+            {nearby.map((d) => (
+              <MedDoctorCard
+                key={d.id}
+                name={d.fullName}
+                specialty={d.specialty}
+                experience={d.experienceY != null ? `${d.experienceY} лет` : undefined}
+                rating={d.rating.toFixed(1)}
+                reviews={`${d.reviewCount} отзывов`}
+                price={money(d.pricePrimary)}
+                video={d.videoEnabled}
+                verified={d.verified}
+                onPress={() => nav.navigate('HealthDoctorProfile', { id: d.id })}
+                onBook={() => nav.navigate('HealthBooking', { doctorId: d.id })}
+              />
+            ))}
           </View>
         </View>
       </ScrollView>
