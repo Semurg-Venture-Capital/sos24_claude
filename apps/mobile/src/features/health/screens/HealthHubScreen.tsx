@@ -1,72 +1,206 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
 import type { HealthStackParamList } from '../../../navigation/types';
+import { IconBell } from '../../../components/icons/IconBell';
+import { ChevronRightThin, MedCrossIcon, PhoneFillIcon, StethoscopeIcon, UsersIcon } from '../../../components/icons/MedIcons';
+import { MedDoctorCard, MedQuickTile, MedSectionLabel } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthHub'>;
 
-// M14.1 — Хаб раздела «Здоровье» (Фаза A: каркас с навигацией по будущим экранам).
-// Полный дизайн (SOS-герой, ИИ-диагноз, плитки, врачи рядом) — в фазе C по docs/HEALTH.md.
+// M14.1 — Хаб раздела «Здоровье» (Фаза C · собран на медкомпонентах Фазы B).
+// SOS-герой, вход в ИИ-диагноз, быстрые плитки, «врачи рядом».
 export function HealthHubScreen() {
   const nav = useNavigation<Nav>();
-
-  const links: { to: keyof HealthStackParamList; label: string; hint: string }[] = [
-    { to: 'HealthTriage', label: 'ИИ-диагноз', hint: 'M14.2 · триаж-чат' },
-    { to: 'HealthDoctors', label: 'Врачи и клиники', hint: 'M14.4 · каталог' },
-    { to: 'HealthMedCard', label: 'Мед.карта', hint: 'M14.9 · Medical ID' },
-    { to: 'HealthContacts', label: 'Экстренные контакты', hint: 'M14.11' },
-  ];
+  const openSos = () => nav.getParent()?.navigate('HealthSosActive' as never);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 140, gap: 20 }}>
-        <View style={{ gap: 4 }}>
-          <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 28, color: tokens.ink }}>Здоровье</Text>
-          <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
-            Помощь рядом, когда нужна
-          </Text>
-        </View>
-
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
+        {/* Заголовок */}
         <View
           style={{
-            padding: 16,
-            borderRadius: 16,
-            backgroundColor: 'rgba(230,20,40,0.08)',
-            borderWidth: 1,
-            borderColor: 'rgba(230,20,40,0.25)',
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            paddingHorizontal: 24,
+            paddingTop: 16,
           }}
         >
-          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red, lineHeight: 18 }}>
-            Раздел в разработке (Фаза A · каркас). Ниже — переходы к экранам, которые наполним по docs/HEALTH.md.
-          </Text>
+          <View style={{ gap: 4 }}>
+            <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 28, letterSpacing: -0.28, color: tokens.ink }}>
+              Здоровье
+            </Text>
+            <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
+              Помощь рядом, когда нужна
+            </Text>
+          </View>
+          <Pressable
+            hitSlop={8}
+            style={({ pressed }) => ({
+              width: 40,
+              height: 40,
+              borderRadius: 999,
+              backgroundColor: tokens.glass,
+              borderWidth: 1,
+              borderColor: tokens.hairline,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <IconBell size={18} color={tokens.ink} />
+          </Pressable>
         </View>
 
-        <View style={{ gap: 10 }}>
-          {links.map((l) => (
-            <Pressable
-              key={l.to}
-              onPress={() => nav.navigate(l.to as never)}
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: 18,
-                borderRadius: 18,
-                backgroundColor: 'rgba(255,255,255,0.6)',
-                borderWidth: 1,
-                borderColor: tokens.hairline,
-                opacity: pressed ? 0.7 : 1,
-              })}
+        <View style={{ paddingHorizontal: 24, paddingTop: 20, gap: 20 }}>
+          {/* SOS-герой */}
+          <Pressable onPress={openSos}>
+            {({ pressed }) => (
+              <LinearGradient
+                colors={['#E61428', '#B00C1E']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  borderRadius: 32,
+                  padding: 22,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 18,
+                  opacity: pressed ? 0.94 : 1,
+                  shadowColor: tokens.red,
+                  shadowOpacity: 0.4,
+                  shadowRadius: 24,
+                  shadowOffset: { width: 0, height: 16 },
+                }}
+              >
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 999,
+                    backgroundColor: 'rgba(255,255,255,0.16)',
+                    borderWidth: 2,
+                    borderColor: 'rgba(255,255,255,0.5)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ fontFamily: 'NeueMontreal-Bold', fontSize: 18, letterSpacing: 0.4, color: '#fff' }}>
+                    SOS
+                  </Text>
+                </View>
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: '#fff' }}>
+                    Экстренная помощь
+                  </Text>
+                  <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: 'rgba(255,255,255,0.85)', lineHeight: 17 }}>
+                    Удерживайте — оповестим близких и отправим геолокацию
+                  </Text>
+                </View>
+              </LinearGradient>
+            )}
+          </Pressable>
+
+          {/* Вход в ИИ-диагноз */}
+          <Pressable
+            onPress={() => nav.navigate('HealthTriage')}
+            style={({ pressed }) => ({
+              backgroundColor: tokens.inkDark,
+              borderRadius: 28,
+              padding: 20,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 16,
+              opacity: pressed ? 0.9 : 1,
+            })}
+          >
+            <LinearGradient
+              colors={['#E61428', '#3A1117']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ width: 52, height: 52, borderRadius: 999, alignItems: 'center', justifyContent: 'center' }}
             >
-              <View style={{ gap: 2 }}>
-                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.ink }}>{l.label}</Text>
-                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle }}>{l.hint}</Text>
-              </View>
-              <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 18, color: tokens.inkSubtle }}>›</Text>
-            </Pressable>
-          ))}
+              <StethoscopeIcon size={22} color="#fff" />
+            </LinearGradient>
+            <View style={{ flex: 1, gap: 3 }}>
+              <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: '#fff' }}>ИИ-диагноз</Text>
+              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkMutedDark, lineHeight: 17 }}>
+                Опишите или наговорите симптомы — подскажем, что делать
+              </Text>
+            </View>
+            <ChevronRightThin size={16} color="rgba(255,255,255,0.5)" />
+          </Pressable>
+
+          {/* Быстрые действия 2×2 */}
+          <View style={{ gap: 12 }}>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <MedQuickTile
+                tone="red"
+                title="Мед.карта"
+                sub="Группа крови, аллергии, контакты"
+                icon={(c) => <MedCrossIcon size={20} color={c} />}
+                onPress={() => nav.navigate('HealthMedCard')}
+              />
+              <MedQuickTile
+                tone="red"
+                title="Скорая 103"
+                sub="Прямой вызов, гео автоматически"
+                icon={(c) => <PhoneFillIcon size={20} color={c} />}
+                onPress={openSos}
+              />
+            </View>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <MedQuickTile
+                tone="glass"
+                title="Найти врача"
+                sub="Терапевт, ЛОР, кардиолог"
+                icon={(c) => <StethoscopeIcon size={20} color={c} />}
+                onPress={() => nav.navigate('HealthDoctors')}
+              />
+              <MedQuickTile
+                tone="glass"
+                title="Контакты ЧП"
+                sub="2 близких настроены"
+                icon={(c) => <UsersIcon size={20} color={c} />}
+                onPress={() => nav.navigate('HealthContacts')}
+              />
+            </View>
+          </View>
+
+          {/* Врачи рядом */}
+          <View style={{ gap: 12 }}>
+            <MedSectionLabel action="Все врачи" onAction={() => nav.navigate('HealthDoctors')}>
+              Врачи рядом
+            </MedSectionLabel>
+            <MedDoctorCard
+              name="Дилшод Рахимов"
+              specialty="ЛОР"
+              experience="12 лет"
+              rating="4.9"
+              reviews="214 отзывов"
+              price="180 000 сум"
+              distance="1.2 км"
+              video
+              onPress={() => nav.navigate('HealthDoctorProfile', { id: 'dr-rahimov' })}
+              onBook={() => nav.navigate('HealthDoctorProfile', { id: 'dr-rahimov' })}
+            />
+            <MedDoctorCard
+              name="Малика Содиқова"
+              specialty="Терапевт"
+              experience="9 лет"
+              rating="4.8"
+              reviews="160 отзывов"
+              price="140 000 сум"
+              distance="2.4 км"
+              video
+              onPress={() => nav.navigate('HealthDoctorProfile', { id: 'dr-sodiqova' })}
+              onBook={() => nav.navigate('HealthDoctorProfile', { id: 'dr-sodiqova' })}
+            />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
