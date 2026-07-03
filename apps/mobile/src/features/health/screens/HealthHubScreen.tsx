@@ -1,6 +1,7 @@
+import { useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
@@ -62,53 +63,8 @@ export function HealthHubScreen() {
         </View>
 
         <View style={{ paddingHorizontal: 24, paddingTop: 20, gap: 20 }}>
-          {/* SOS-герой */}
-          <Pressable onPress={openSos}>
-            {({ pressed }) => (
-              <LinearGradient
-                colors={['#E61428', '#B00C1E']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{
-                  borderRadius: 32,
-                  padding: 22,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 18,
-                  opacity: pressed ? 0.94 : 1,
-                  shadowColor: tokens.red,
-                  shadowOpacity: 0.4,
-                  shadowRadius: 24,
-                  shadowOffset: { width: 0, height: 16 },
-                }}
-              >
-                <View
-                  style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 999,
-                    backgroundColor: 'rgba(255,255,255,0.16)',
-                    borderWidth: 2,
-                    borderColor: 'rgba(255,255,255,0.5)',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Text style={{ fontFamily: 'NeueMontreal-Bold', fontSize: 18, letterSpacing: 0.4, color: '#fff' }}>
-                    SOS
-                  </Text>
-                </View>
-                <View style={{ flex: 1, gap: 4 }}>
-                  <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: '#fff' }}>
-                    Экстренная помощь
-                  </Text>
-                  <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: 'rgba(255,255,255,0.85)', lineHeight: 17 }}>
-                    Удерживайте — оповестим близких и отправим геолокацию
-                  </Text>
-                </View>
-              </LinearGradient>
-            )}
-          </Pressable>
+          {/* SOS-герой — активация удержанием */}
+          <SosHero onActivate={openSos} />
 
           {/* Вход в ИИ-диагноз */}
           <Pressable
@@ -200,5 +156,83 @@ export function HealthHubScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+const HOLD_MS = 1000; // сколько удерживать для активации SOS
+
+// SOS-герой с активацией удержанием: заполнение-прогресс при зажатии,
+// срабатывание по long-press; короткий тап показывает подсказку.
+function SosHero({ onActivate }: { onActivate: () => void }) {
+  const fill = useRef(new Animated.Value(0)).current;
+  const [hint, setHint] = useState(false);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const startHold = () => {
+    fill.stopAnimation();
+    Animated.timing(fill, { toValue: 1, duration: HOLD_MS, easing: Easing.linear, useNativeDriver: false }).start();
+  };
+  const cancelHold = () => {
+    Animated.timing(fill, { toValue: 0, duration: 180, useNativeDriver: false }).start();
+  };
+  const activate = () => {
+    fill.setValue(0);
+    onActivate();
+  };
+  const showHint = () => {
+    setHint(true);
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    hintTimer.current = setTimeout(() => setHint(false), 2600);
+  };
+
+  const fillWidth = fill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+
+  return (
+    <Pressable onPressIn={startHold} onPressOut={cancelHold} onLongPress={activate} onPress={showHint} delayLongPress={HOLD_MS}>
+      <LinearGradient
+        colors={['#E61428', '#B00C1E']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          borderRadius: 32,
+          padding: 22,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 18,
+          overflow: 'hidden',
+          shadowColor: tokens.red,
+          shadowOpacity: 0.4,
+          shadowRadius: 24,
+          shadowOffset: { width: 0, height: 16 },
+        }}
+      >
+        {/* Прогресс удержания */}
+        <Animated.View
+          style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: fillWidth, backgroundColor: 'rgba(255,255,255,0.2)' }}
+        />
+        <View
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: 999,
+            backgroundColor: 'rgba(255,255,255,0.16)',
+            borderWidth: 2,
+            borderColor: 'rgba(255,255,255,0.5)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{ fontFamily: 'NeueMontreal-Bold', fontSize: 18, letterSpacing: 0.4, color: '#fff' }}>SOS</Text>
+        </View>
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: '#fff' }}>Экстренная помощь</Text>
+          <Text style={{ fontFamily: hint ? 'Manrope_600SemiBold' : 'Manrope_400Regular', fontSize: 12.5, color: '#fff', lineHeight: 17 }}>
+            {hint
+              ? 'Нажмите и удерживайте кнопку 1 секунду'
+              : 'Удерживайте — оповестим близких и отправим геолокацию'}
+          </Text>
+        </View>
+      </LinearGradient>
+    </Pressable>
   );
 }
