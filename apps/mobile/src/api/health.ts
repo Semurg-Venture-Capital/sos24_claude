@@ -135,10 +135,18 @@ export interface MedicalProfileData {
   updatedAt: string;
 }
 
+export interface MedicalProfileDefaults {
+  fullName: string | null;
+  birthDate: string | null;
+  gender: 'M' | 'F' | null;
+}
+
 export interface MedicalProfileResponse {
   exists: boolean;
   consented: boolean;
   profile: MedicalProfileData | null;
+  // Автозаполнение из профиля пользователя (MyID) — для незаполненной карты.
+  defaults: MedicalProfileDefaults;
 }
 
 export interface MedicalProfileInput {

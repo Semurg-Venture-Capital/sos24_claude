@@ -230,8 +230,24 @@ export class HealthService {
 
   // ── Мед.карта (M14.9/14.10) — чувствительные поля шифруются ──
   async getMedicalProfile(userId: string) {
-    const p = await this.prisma.medicalProfile.findUnique({ where: { userId } });
-    return this.serializeMedicalProfile(p);
+    const [p, user] = await Promise.all([
+      this.prisma.medicalProfile.findUnique({ where: { userId } }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true, surname: true, patronymic: true, birthDate: true, gender: true },
+      }),
+    ]);
+    return { ...this.serializeMedicalProfile(p), defaults: this.profileDefaults(user) };
+  }
+
+  // Автозаполнение из профиля пользователя (MyID): ФИО, дата рождения, пол.
+  private profileDefaults(user: { name: string | null; surname: string | null; patronymic: string | null; birthDate: Date | null; gender: string | null } | null) {
+    if (!user) return { fullName: null, birthDate: null, gender: null };
+    const fullName = [user.name, user.surname, user.patronymic].filter(Boolean).join(' ') || null;
+    const birthDate = user.birthDate
+      ? `${String(user.birthDate.getUTCDate()).padStart(2, '0')}.${String(user.birthDate.getUTCMonth() + 1).padStart(2, '0')}.${user.birthDate.getUTCFullYear()}`
+      : null;
+    return { fullName, birthDate, gender: user.gender ?? null };
   }
 
   async updateMedicalProfile(userId: string, dto: UpdateMedicalProfileDto) {

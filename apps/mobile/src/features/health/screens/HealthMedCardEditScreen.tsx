@@ -50,6 +50,8 @@ export function HealthMedCardEditScreen() {
 
   const alreadyConsented = data?.consented ?? false;
 
+  const [prefilled, setPrefilled] = useState(false);
+
   useEffect(() => {
     if (hydrated || !data) return;
     const p = data.profile;
@@ -69,6 +71,13 @@ export function HealthMedCardEditScreen() {
       setPregnancy(!!p.pregnancy);
       setDmsPolicy(p.dmsPolicy ?? '');
       setDoctorName(p.doctorName ?? '');
+    } else {
+      // Новая карта — автозаполняем из профиля (MyID): ФИО, дата рождения, пол.
+      const dflt = data.defaults;
+      if (dflt.fullName) setFullName(dflt.fullName);
+      if (dflt.birthDate) setBirthDate(dflt.birthDate);
+      if (dflt.gender) setGender(dflt.gender);
+      if (dflt.fullName || dflt.birthDate || dflt.gender) setPrefilled(true);
     }
     setHydrated(true);
   }, [data, hydrated]);
@@ -120,6 +129,14 @@ export function HealthMedCardEditScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {prefilled ? (
+          <View style={{ flexDirection: 'row', gap: 10, padding: 12, borderRadius: 14, backgroundColor: 'rgba(86,140,255,0.1)' }}>
+            <Text style={{ flex: 1, fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: '#1a3577', lineHeight: 17 }}>
+              ФИО, дата рождения и пол заполнены из вашего профиля — проверьте и при необходимости измените.
+            </Text>
+          </View>
+        ) : null}
+
         <TextField label="ФИО" value={fullName} onChangeText={setFullName} placeholder="Азиз Каримов" />
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
