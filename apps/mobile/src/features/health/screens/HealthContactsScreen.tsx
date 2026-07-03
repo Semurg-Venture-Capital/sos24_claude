@@ -1,20 +1,56 @@
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
 import { BackButton } from '../../../components/ui/BackButton';
+import { TextField } from '../../../components/ui/TextField';
 import { Toggle } from '../../../components/ui/Toggle';
 import { AddTile } from '../../../components/ui/AddTile';
+import { RedButton } from '../../../components/ui/RedButton';
+import { useAddContact, useDeleteContact, useEmergencyContacts } from '../../../api/health';
 import { MedContactCard, MedSectionLabel, medGlass } from '../components';
 
-// M14.11 — Экстренные контакты. UI на медкомпонентах Фазы B, данные — мок.
-// Реальные контакты + SOS-оповещение (push/SMS + гео) — Фаза F (docs/HEALTH.md).
+// M14.11 — Экстренные контакты. Реальный CRUD (лимит 3). SOS-настройки — локально.
 export function HealthContactsScreen() {
   const nav = useNavigation();
+  const { data, isLoading } = useEmergencyContacts();
+  const addContact = useAddContact();
+  const deleteContact = useDeleteContact();
+
   const [autoNotify, setAutoNotify] = useState(true);
   const [sendGeo, setSendGeo] = useState(true);
   const [call103, setCall103] = useState(false);
+
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState('');
+  const [relation, setRelation] = useState('');
+  const [phone, setPhone] = useState('');
+
+  const contacts = data?.contacts ?? [];
+  const limit = data?.limit ?? 3;
+  const canAdd = contacts.length < limit;
+
+  const submitAdd = async () => {
+    if (!name.trim() || !phone.trim()) return;
+    try {
+      await addContact.mutateAsync({ name: name.trim(), relation: relation.trim() || undefined, phone: phone.trim() });
+      setName('');
+      setRelation('');
+      setPhone('');
+      setAdding(false);
+    } catch (e: unknown) {
+      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg || 'Не удалось добавить контакт');
+    }
+  };
+
+  const confirmDelete = (id: string, contactName: string) => {
+    Alert.alert('Удалить контакт?', contactName, [
+      { text: 'Отмена', style: 'cancel' },
+      { text: 'Удалить', style: 'destructive', onPress: () => deleteContact.mutate(id) },
+    ]);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
@@ -23,6 +59,7 @@ export function HealthContactsScreen() {
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 48, gap: 24 }}
       >
         <View style={{ gap: 8 }}>
@@ -35,10 +72,60 @@ export function HealthContactsScreen() {
         </View>
 
         <View style={{ gap: 10 }}>
-          <MedSectionLabel>Контакты · 2 из 3</MedSectionLabel>
-          <MedContactCard name="Гулнора Каримова" relation="Супруга" phone="+998 90 234-56-78" />
-          <MedContactCard name="Бахтиёр Каримов" relation="Брат" phone="+998 91 345-67-89" />
-          <AddTile onPress={() => {}}>Добавить контакт</AddTile>
+          <MedSectionLabel>{`Контакты · ${contacts.length} из ${limit}`}</MedSectionLabel>
+
+          {isLoading ? (
+            <ActivityIndicator color={tokens.red} style={{ marginTop: 8, alignSelf: 'flex-start' }} />
+          ) : (
+            contacts.map((c) => (
+              <MedContactCard
+                key={c.id}
+                name={c.name}
+                relation={c.relation ?? undefined}
+                phone={c.phone}
+                onDelete={() => confirmDelete(c.id, c.name)}
+              />
+            ))
+          )}
+
+          {/* Форма добавления */}
+          {adding ? (
+            <View style={[{ padding: 16, borderRadius: 22, gap: 12 }, medGlass]}>
+              <TextField label="Имя" value={name} onChangeText={setName} placeholder="Гулнора Каримова" />
+              <TextField label="Кем приходится" value={relation} onChangeText={setRelation} placeholder="Супруга" />
+              <TextField
+                label="Телефон"
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="+998 90 234-56-78"
+                keyboardType="phone-pad"
+              />
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <Pressable
+                  onPress={() => {
+                    setAdding(false);
+                    setName('');
+                    setRelation('');
+                    setPhone('');
+                  }}
+                  style={({ pressed }) => ({ flex: 1, height: 52, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: tokens.glass, borderWidth: 1, borderColor: tokens.hairline, opacity: pressed ? 0.7 : 1 })}
+                >
+                  <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: tokens.inkDark }}>Отмена</Text>
+                </Pressable>
+                <View style={{ flex: 1 }}>
+                  <RedButton trailing={false} onPress={submitAdd} disabled={!name.trim() || !phone.trim() || addContact.isPending} style={{ height: 52 }}>
+                    {addContact.isPending ? 'Добавляем…' : 'Добавить'}
+                  </RedButton>
+                </View>
+              </View>
+            </View>
+          ) : canAdd ? (
+            <AddTile onPress={() => setAdding(true)}>Добавить контакт</AddTile>
+          ) : (
+            <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkMuted, paddingHorizontal: 4 }}>
+              Достигнут лимит в {limit} контакта. Удалите один, чтобы добавить другой.
+            </Text>
+          )}
         </View>
 
         <View style={{ gap: 8 }}>
@@ -72,14 +159,7 @@ function SosToggleRow({
   return (
     <View
       style={[
-        {
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 14,
-          paddingVertical: 14,
-          paddingHorizontal: 16,
-          borderRadius: 18,
-        },
+        { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 18 },
         medGlass,
       ]}
     >

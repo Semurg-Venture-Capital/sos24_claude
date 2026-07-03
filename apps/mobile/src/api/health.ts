@@ -173,3 +173,56 @@ export function useSaveMedicalProfile() {
     onSuccess: (data) => qc.setQueryData(['health', 'medical-profile'], data),
   });
 }
+
+// ── Экстренные контакты (M14.11) ──
+
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  relation: string | null;
+  phone: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+const CONTACTS_KEY = ['health', 'emergency-contacts'];
+
+export function useEmergencyContacts() {
+  return useQuery({
+    queryKey: CONTACTS_KEY,
+    queryFn: () => api.get<{ contacts: EmergencyContact[]; limit: number }>('/health/emergency-contacts').then((r) => r.data),
+  });
+}
+
+export function useAddContact() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { name: string; relation?: string; phone: string }) =>
+      api.post<EmergencyContact>('/health/emergency-contacts', input).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: CONTACTS_KEY }),
+  });
+}
+
+export function useDeleteContact() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/health/emergency-contacts/${id}`).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: CONTACTS_KEY }),
+  });
+}
+
+// ── ЧП / SOS (M14.12) ──
+
+export interface SosTriggerResult {
+  alert: { id: string; status: string; createdAt: string; lat: number | null; lng: number | null; address: string | null };
+  contacts: EmergencyContact[];
+}
+
+export async function triggerSos(payload: { lat?: number; lng?: number; address?: string }): Promise<SosTriggerResult> {
+  const { data } = await api.post<SosTriggerResult>('/health/sos/trigger', payload);
+  return data;
+}
+
+export async function cancelSos(alertId: string): Promise<void> {
+  await api.post(`/health/sos/${alertId}/cancel`);
+}

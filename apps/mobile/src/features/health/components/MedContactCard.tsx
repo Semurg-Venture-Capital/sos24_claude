@@ -5,16 +5,19 @@ import { tokens } from '../../../theme/colors';
 import { medGlass } from './medGlass';
 
 // Карточка экстренного контакта (M14.11): аватар, имя/отношение/телефон, звонок в 1 тап.
+// onDelete — опциональная кнопка удаления (экран управления контактами).
 export function MedContactCard({
   name,
   relation,
   phone,
   onCall,
+  onDelete,
 }: {
   name: string;
   relation?: string;
   phone: string;
   onCall?: () => void;
+  onDelete?: () => void;
 }) {
   const call = onCall ?? (() => Linking.openURL(`tel:${phone.replace(/\s/g, '')}`));
   return (
@@ -41,6 +44,23 @@ export function MedContactCard({
           {phone}
         </Text>
       </View>
+      {onDelete ? (
+        <Pressable
+          onPress={onDelete}
+          hitSlop={6}
+          style={({ pressed }) => ({
+            width: 40,
+            height: 40,
+            borderRadius: 999,
+            backgroundColor: 'rgba(230,20,40,0.1)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: pressed ? 0.6 : 1,
+          })}
+        >
+          <Text style={{ fontSize: 18, color: tokens.red, lineHeight: 20 }}>×</Text>
+        </Pressable>
+      ) : null}
       <Pressable
         onPress={call}
         style={({ pressed }) => ({
