@@ -81,6 +81,38 @@ export function useAppointments(status: string) {
   });
 }
 
+export interface SosContact {
+  name: string;
+  phone: string;
+  status: string;
+}
+
+export interface SosAlertAdmin {
+  id: string;
+  patientName: string;
+  patientPhone: string | null;
+  lat: number | null;
+  lng: number | null;
+  address: string | null;
+  status: string;
+  notified: number;
+  acknowledgedAt: string | null;
+  dispatcherName: string | null;
+  note: string | null;
+  contacts: SosContact[];
+  createdAt: string;
+  cancelledAt: string | null;
+}
+
+export function useSosAlerts(status: string) {
+  return useQuery({
+    queryKey: ['health', 'sos', status],
+    queryFn: () =>
+      api.get<{ alerts: SosAlertAdmin[] }>('/admin/health/sos', { params: status ? { status } : {} }).then((r) => r.data.alerts),
+    refetchInterval: 8000, // диспетчер: подтягиваем новые тревоги каждые 8 с
+  });
+}
+
 export function useInvalidateHealth() {
   const qc = useQueryClient();
   return () => qc.invalidateQueries({ queryKey: ['health'] });
@@ -92,4 +124,6 @@ export const healthApi = {
   deleteDoctor: (id: string) => api.delete(`/admin/health/doctors/${id}`).then((r) => r.data),
   setAppointmentStatus: (id: string, status: string) =>
     api.patch(`/admin/health/appointments/${id}/status`, { status }).then((r) => r.data),
+  updateSos: (id: string, action: 'acknowledge' | 'resolve', note?: string) =>
+    api.patch(`/admin/health/sos/${id}`, { action, note }).then((r) => r.data),
 };

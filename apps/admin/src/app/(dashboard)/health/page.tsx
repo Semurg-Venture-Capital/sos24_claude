@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Star, BadgeCheck } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, BadgeCheck, MapPin, Siren, Check } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { formatDate } from '@/lib/utils';
 import {
@@ -9,6 +9,7 @@ import {
   useAppointments,
   useDoctors,
   useInvalidateHealth,
+  useSosAlerts,
   type DoctorAdmin,
 } from '@/lib/health';
 import { DoctorEditor } from './DoctorEditor';
@@ -16,6 +17,7 @@ import { DoctorEditor } from './DoctorEditor';
 const TABS = [
   { key: 'doctors', label: 'Врачи' },
   { key: 'appointments', label: 'Записи' },
+  { key: 'sos', label: 'SOS / ЧП' },
 ];
 
 const STATUS = [
@@ -54,6 +56,7 @@ export default function HealthPage() {
       <main className="flex-1 p-6">
         {tab === 'doctors' && <DoctorsTab />}
         {tab === 'appointments' && <AppointmentsTab />}
+        {tab === 'sos' && <SosTab />}
       </main>
     </div>
   );
@@ -178,6 +181,98 @@ function AppointmentsTab() {
                       <option key={s} value={s}>{STATUS_LABEL[s]}</option>
                     ))}
                   </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+const SOS_STATUS = [
+  { key: 'ACTIVE', label: 'Активные' },
+  { key: '', label: 'Все' },
+  { key: 'RESOLVED', label: 'Закрытые' },
+  { key: 'CANCELLED', label: 'Отменённые' },
+];
+const SOS_LABEL: Record<string, string> = { ACTIVE: 'Активна', RESOLVED: 'Закрыта', CANCELLED: 'Отменена' };
+const SOS_STYLE: Record<string, string> = {
+  ACTIVE: 'bg-[rgba(230,20,40,0.12)] text-[#e61428]',
+  RESOLVED: 'bg-[rgba(52,211,153,0.14)] text-[#0a9466]',
+  CANCELLED: 'bg-[rgba(20,20,40,0.06)] text-[#9a9a9a]',
+};
+
+function SosTab() {
+  const [status, setStatus] = useState('ACTIVE');
+  const { data: alerts = [], isLoading } = useSosAlerts(status);
+  const invalidate = useInvalidateHealth();
+
+  const act = async (id: string, action: 'acknowledge' | 'resolve') => {
+    if (action === 'resolve' && !confirm('Закрыть тревогу?')) return;
+    await healthApi.updateSos(id, action);
+    invalidate();
+  };
+
+  return (
+    <>
+      <div className="flex items-center gap-1 mb-5">
+        {SOS_STATUS.map((s) => (
+          <button key={s.key} onClick={() => setStatus(s.key)} className={`px-3 py-1.5 text-xs rounded-lg ${status === s.key ? 'bg-[#151515] text-white' : 'text-[#5f5e5e] hover:bg-[#f0f0f2]'}`}>{s.label}</button>
+        ))}
+        <span className="ml-auto text-xs text-[#9a9a9a] flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#e61428] animate-pulse" /> обновляется автоматически</span>
+      </div>
+      <div className="bg-white rounded-2xl border border-[rgba(20,20,40,0.06)] overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-[rgba(20,20,40,0.06)]">
+              {['Пациент', 'Геолокация', 'Оповещено', 'Время', 'Статус', 'Действие'].map((h) => (
+                <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-[#9a9a9a] uppercase tracking-wider whitespace-nowrap">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[rgba(20,20,40,0.04)]">
+            {isLoading ? (
+              <tr><td colSpan={6} className="px-5 py-8 text-center text-sm text-[#9a9a9a]">Загрузка…</td></tr>
+            ) : alerts.length === 0 ? (
+              <tr><td colSpan={6} className="px-5 py-8 text-center text-sm text-[#9a9a9a]">Тревог нет</td></tr>
+            ) : alerts.map((a) => (
+              <tr key={a.id} className={a.status === 'ACTIVE' ? 'bg-[rgba(230,20,40,0.03)]' : 'hover:bg-[#fafafa]'}>
+                <td className="px-5 py-3.5">
+                  <p className="text-sm font-medium text-[#151515] flex items-center gap-1.5"><Siren size={13} className="text-[#e61428]" /> {a.patientName}</p>
+                  <p className="text-xs text-[#9a9a9a]">{a.patientPhone}</p>
+                </td>
+                <td className="px-5 py-3.5 text-sm">
+                  {a.address && <p className="text-[#151515]">{a.address}</p>}
+                  {a.lat != null && a.lng != null ? (
+                    <a href={`https://maps.google.com/?q=${a.lat},${a.lng}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-[#3670d4] hover:underline">
+                      <MapPin size={11} /> {a.lat.toFixed(4)}, {a.lng.toFixed(4)}
+                    </a>
+                  ) : (
+                    <span className="text-xs text-[#9a9a9a]">гео нет</span>
+                  )}
+                </td>
+                <td className="px-5 py-3.5">
+                  <p className="text-sm text-[#151515]">{a.notified} из {a.contacts.length}</p>
+                  <p className="text-xs text-[#9a9a9a]">{a.contacts.map((c) => c.name).join(', ') || '—'}</p>
+                </td>
+                <td className="px-5 py-3.5 text-sm text-[#5f5e5e] whitespace-nowrap">{formatDate(a.createdAt)}</td>
+                <td className="px-5 py-3.5">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${SOS_STYLE[a.status] ?? ''}`}>{SOS_LABEL[a.status] ?? a.status}</span>
+                  {a.dispatcherName && <p className="text-[10px] text-[#9a9a9a] mt-1">принял: {a.dispatcherName}</p>}
+                </td>
+                <td className="px-5 py-3.5 whitespace-nowrap">
+                  {a.status === 'ACTIVE' ? (
+                    <>
+                      {!a.acknowledgedAt && (
+                        <button onClick={() => act(a.id, 'acknowledge')} className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs text-[#3670d4] hover:bg-[rgba(86,140,255,0.1)]"><Check size={13} /> Принять</button>
+                      )}
+                      <button onClick={() => act(a.id, 'resolve')} className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs text-[#0a9466] hover:bg-[rgba(52,211,153,0.12)]">Закрыть</button>
+                    </>
+                  ) : (
+                    <span className="text-xs text-[#9a9a9a]">—</span>
+                  )}
                 </td>
               </tr>
             ))}

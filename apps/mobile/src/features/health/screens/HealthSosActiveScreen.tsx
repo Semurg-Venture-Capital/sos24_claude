@@ -6,7 +6,7 @@ import * as Location from 'expo-location';
 import { tokens } from '../../../theme/colors';
 import { Avatar } from '../../../components/ui/Avatar';
 import { MapPinIcon, PhoneFillIcon } from '../../../components/icons/MedIcons';
-import { cancelSos, triggerSos, type EmergencyContact } from '../../../api/health';
+import { cancelSos, triggerSos, type SosContact } from '../../../api/health';
 
 type Phase = 'locating' | 'active' | 'error';
 
@@ -16,7 +16,7 @@ export function HealthSosActiveScreen() {
   const nav = useNavigation();
   const [phase, setPhase] = useState<Phase>('locating');
   const [alertId, setAlertId] = useState<string | null>(null);
-  const [contacts, setContacts] = useState<EmergencyContact[]>([]);
+  const [contacts, setContacts] = useState<SosContact[]>([]);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState<string | null>(null);
 
@@ -176,7 +176,9 @@ export function HealthSosActiveScreen() {
                     {c.name}
                     {c.relation ? ` · ${c.relation}` : ''}
                   </Text>
-                  <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.green }}>оповещён</Text>
+                  <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: c.notifyStatus === 'FAILED' ? '#ff8a8a' : tokens.green }}>
+                    {c.notifyStatus === 'FAILED' ? 'не доставлено' : 'оповещён'}
+                  </Text>
                 </View>
               ))}
             </View>

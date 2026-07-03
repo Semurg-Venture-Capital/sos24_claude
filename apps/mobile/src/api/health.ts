@@ -221,9 +221,13 @@ export function useDeleteContact() {
 
 // ── ЧП / SOS (M14.12) ──
 
+export interface SosContact extends EmergencyContact {
+  notifyStatus?: 'SENT' | 'FAILED';
+}
+
 export interface SosTriggerResult {
   alert: { id: string; status: string; createdAt: string; lat: number | null; lng: number | null; address: string | null };
-  contacts: EmergencyContact[];
+  contacts: SosContact[];
 }
 
 export async function triggerSos(payload: { lat?: number; lng?: number; address?: string }): Promise<SosTriggerResult> {
