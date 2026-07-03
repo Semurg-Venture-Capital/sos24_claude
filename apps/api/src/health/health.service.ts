@@ -7,11 +7,14 @@ import { MockTriageProvider, type TriageMessage, type TriageProvider } from './t
 import type {
   CreateAppointmentDto,
   CreateContactDto,
+  DoctorInputDto,
   DoctorsQueryDto,
   SosTriggerDto,
   UpdateContactDto,
+  UpdateDoctorDto,
   UpdateMedicalProfileDto,
 } from './dto/health.dto';
+import type { PartnerBookingStatus } from '@prisma/client';
 
 const MAX_CONTACTS = 3;
 
@@ -226,6 +229,133 @@ export class HealthService {
       comment: b.comment,
       createdAt: b.createdAt,
     };
+  }
+
+  // ══════════ Админка: врачи и записи ══════════
+  async adminListDoctors() {
+    const rows = await this.prisma.doctor.findMany({
+      orderBy: [{ active: 'desc' }, { rating: 'desc' }, { createdAt: 'desc' }],
+      include: { partner: { select: { id: true, name: true } }, _count: { select: { bookings: true } } },
+    });
+    return {
+      doctors: rows.map((d) => ({
+        id: d.id,
+        fullName: d.fullName,
+        specialty: d.specialty,
+        experienceY: d.experienceY,
+        bio: d.bio,
+        rating: d.rating,
+        reviewCount: d.reviewCount,
+        pricePrimary: d.pricePrimary,
+        priceRepeat: d.priceRepeat,
+        priceVideo: d.priceVideo,
+        videoEnabled: d.videoEnabled,
+        verified: d.verified,
+        active: d.active,
+        partnerId: d.partnerId,
+        clinicName: d.partner?.name ?? null,
+        bookingsCount: d._count.bookings,
+        createdAt: d.createdAt,
+      })),
+    };
+  }
+
+  // Клиники для выпадающего списка (медицинские партнёры).
+  async adminListClinics() {
+    const rows = await this.prisma.partner.findMany({
+      where: { type: 'CLINIC' },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, city: true },
+    });
+    return { clinics: rows };
+  }
+
+  async adminCreateDoctor(dto: DoctorInputDto) {
+    if (dto.partnerId) {
+      const p = await this.prisma.partner.findUnique({ where: { id: dto.partnerId } });
+      if (!p) throw new BadRequestException('Клиника не найдена');
+    }
+    return this.prisma.doctor.create({
+      data: {
+        fullName: dto.fullName,
+        specialty: dto.specialty,
+        partnerId: dto.partnerId ?? null,
+        experienceY: dto.experienceY ?? null,
+        bio: dto.bio ?? null,
+        pricePrimary: dto.pricePrimary ?? null,
+        priceRepeat: dto.priceRepeat ?? null,
+        priceVideo: dto.priceVideo ?? null,
+        videoEnabled: dto.videoEnabled ?? false,
+        verified: dto.verified ?? false,
+        active: dto.active ?? true,
+      },
+    });
+  }
+
+  async adminUpdateDoctor(id: string, dto: UpdateDoctorDto) {
+    const doc = await this.prisma.doctor.findUnique({ where: { id } });
+    if (!doc) throw new NotFoundException('Врач не найден');
+    if (dto.partnerId) {
+      const p = await this.prisma.partner.findUnique({ where: { id: dto.partnerId } });
+      if (!p) throw new BadRequestException('Клиника не найдена');
+    }
+    return this.prisma.doctor.update({
+      where: { id },
+      data: {
+        fullName: dto.fullName ?? undefined,
+        specialty: dto.specialty ?? undefined,
+        partnerId: dto.partnerId === undefined ? undefined : dto.partnerId,
+        experienceY: dto.experienceY === undefined ? undefined : dto.experienceY,
+        bio: dto.bio === undefined ? undefined : dto.bio,
+        pricePrimary: dto.pricePrimary === undefined ? undefined : dto.pricePrimary,
+        priceRepeat: dto.priceRepeat === undefined ? undefined : dto.priceRepeat,
+        priceVideo: dto.priceVideo === undefined ? undefined : dto.priceVideo,
+        videoEnabled: dto.videoEnabled ?? undefined,
+        verified: dto.verified ?? undefined,
+        active: dto.active ?? undefined,
+      },
+    });
+  }
+
+  async adminDeleteDoctor(id: string) {
+    const doc = await this.prisma.doctor.findUnique({ where: { id } });
+    if (!doc) throw new NotFoundException('Врач не найден');
+    await this.prisma.doctor.delete({ where: { id } }); // записи получат doctorId=null (onDelete: SetNull)
+    return { ok: true };
+  }
+
+  async adminListAppointments(status?: PartnerBookingStatus) {
+    const rows = await this.prisma.partnerBooking.findMany({
+      where: { doctorId: { not: null }, ...(status ? { status } : {}) },
+      orderBy: { scheduledAt: 'desc' },
+      take: 300,
+      include: {
+        doctor: { select: { fullName: true, specialty: true } },
+        partner: { select: { name: true } },
+        user: { select: { name: true, surname: true, phone: true } },
+      },
+    });
+    return {
+      appointments: rows.map((b) => ({
+        id: b.id,
+        doctorName: b.doctor?.fullName ?? null,
+        specialty: b.doctor?.specialty ?? null,
+        clinicName: b.partner?.name ?? null,
+        patientName: [b.user?.name, b.user?.surname].filter(Boolean).join(' ') || 'Клиент',
+        patientPhone: b.user?.phone ?? null,
+        scheduledAt: b.scheduledAt,
+        status: b.status,
+        comment: b.comment,
+        createdAt: b.createdAt,
+      })),
+    };
+  }
+
+  async adminSetAppointmentStatus(id: string, status: PartnerBookingStatus) {
+    const b = await this.prisma.partnerBooking.findUnique({ where: { id } });
+    if (!b || b.doctorId == null) throw new NotFoundException('Запись не найдена');
+    await this.prisma.partnerBooking.update({ where: { id }, data: { status } });
+    return { ok: true, status };
   }
 
   // ── Мед.карта (M14.9/14.10) — чувствительные поля шифруются ──

@@ -98,6 +98,41 @@ export class TriageMessageDto {
   text!: string;
 }
 
+// ── Админка: врачи (M14) ──
+export class DoctorInputDto {
+  @ApiProperty() @IsString() @MaxLength(120) fullName!: string;
+  @ApiProperty({ example: 'ЛОР' }) @IsString() @MaxLength(60) specialty!: string;
+  @ApiPropertyOptional({ description: 'ID клиники-партнёра' }) @IsOptional() @IsString() partnerId?: string;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(70) experienceY?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) bio?: string;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) pricePrimary?: number;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) priceRepeat?: number;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) priceVideo?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() videoEnabled?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() verified?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() active?: boolean;
+}
+
+export class UpdateDoctorDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) fullName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(60) specialty?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() partnerId?: string;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(70) experienceY?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) bio?: string;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) pricePrimary?: number;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) priceRepeat?: number;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) priceVideo?: number;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() videoEnabled?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() verified?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() active?: boolean;
+}
+
+export class SetAppointmentStatusDto {
+  @ApiProperty({ enum: ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'] })
+  @IsIn(['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'])
+  status!: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+}
+
 // Тревога ЧП/SOS (M14.12): координаты необязательны (могут прийти позже).
 export class SosTriggerDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) lat?: number;
