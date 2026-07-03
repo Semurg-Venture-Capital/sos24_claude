@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,13 +11,15 @@ import { useDoctors, type DoctorCard } from '../../../api/health';
 import { MedDoctorCard } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthDoctors'>;
+type Rt = RouteProp<HealthStackParamList, 'HealthDoctors'>;
 
 const money = (n: number | null) => (n != null ? `${n.toLocaleString('ru-RU')} сум` : '—');
 
 export function HealthDoctorsScreen() {
   const nav = useNavigation<Nav>();
+  const { params } = useRoute<Rt>();
   const [q, setQ] = useState('');
-  const [specialty, setSpecialty] = useState<string | null>(null);
+  const [specialty, setSpecialty] = useState<string | null>(params?.specialty ?? null);
 
   const chips = useDoctors({}); // стабильный список специальностей
   const list = useDoctors({ q: q.trim() || undefined, specialty: specialty || undefined });

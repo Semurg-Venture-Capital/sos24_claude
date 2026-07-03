@@ -21,8 +21,8 @@ export type MainTabParamList = {
 export type HealthStackParamList = {
   HealthHub: undefined; // M14.1 — хаб
   HealthTriage: undefined; // M14.2 — ИИ-триаж (чат)
-  HealthDiagnosis: undefined; // M14.3 — предв. диагноз
-  HealthDoctors: undefined; // M14.4 — врачи и клиники
+  HealthDiagnosis: { sessionId: string }; // M14.3 — предв. диагноз
+  HealthDoctors: { specialty?: string } | undefined; // M14.4 — врачи и клиники
   HealthDoctorProfile: { id: string }; // M14.5 — профиль врача
   HealthBooking: { doctorId: string }; // M14.6 — бронирование
   HealthBookingDone: { doctorName: string; specialty: string; clinicName?: string; scheduledAt: string }; // M14.7 — запись подтверждена

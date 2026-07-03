@@ -226,3 +226,52 @@ export async function triggerSos(payload: { lat?: number; lng?: number; address?
 export async function cancelSos(alertId: string): Promise<void> {
   await api.post(`/health/sos/${alertId}/cancel`);
 }
+
+// ── ИИ-триаж (M14.2/14.3) ──
+
+export interface TriageMessage {
+  role: 'assistant' | 'user';
+  text: string;
+  at: string;
+}
+
+export interface TriageTurn {
+  sessionId?: string;
+  messages: TriageMessage[];
+  quickReplies: string[];
+  canFinalize: boolean;
+  disclaimer: string;
+}
+
+export type Urgency = 'low' | 'medium' | 'high';
+
+export interface TriageRecommendation {
+  text: string;
+  tone: 'default' | 'red';
+}
+
+export interface TriageDiagnosis {
+  verdict: string;
+  description: string;
+  urgency: Urgency;
+  confidence: number;
+  symptoms: string[];
+  recommendations: TriageRecommendation[];
+  suggestedSpecialty: string | null;
+  disclaimer: string;
+}
+
+export async function startTriage(): Promise<TriageTurn> {
+  const { data } = await api.post<TriageTurn>('/health/triage/start');
+  return data;
+}
+
+export async function sendTriageMessage(sessionId: string, text: string): Promise<TriageTurn> {
+  const { data } = await api.post<TriageTurn>(`/health/triage/${sessionId}/message`, { text });
+  return data;
+}
+
+export async function finalizeTriage(sessionId: string): Promise<TriageDiagnosis> {
+  const { data } = await api.post<TriageDiagnosis>(`/health/triage/${sessionId}/finalize`);
+  return data;
+}
