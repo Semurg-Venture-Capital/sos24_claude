@@ -115,3 +115,61 @@ export function useCancelAppointment() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['health', 'appointments'] }),
   });
 }
+
+// ── Мед.карта (M14.9/14.10) ──
+
+export interface MedicalProfileData {
+  fullName: string | null;
+  birthDate: string | null;
+  gender: 'M' | 'F' | null;
+  bloodType: string | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  allergies: string[];
+  chronic: string | null;
+  medications: string | null;
+  organDonor: boolean | null;
+  pregnancy: boolean | null;
+  dmsPolicy: string | null;
+  doctorName: string | null;
+  updatedAt: string;
+}
+
+export interface MedicalProfileResponse {
+  exists: boolean;
+  consented: boolean;
+  profile: MedicalProfileData | null;
+}
+
+export interface MedicalProfileInput {
+  fullName?: string;
+  birthDate?: string;
+  gender?: 'M' | 'F';
+  bloodType?: string;
+  heightCm?: number;
+  weightKg?: number;
+  allergies?: string[];
+  chronic?: string;
+  medications?: string;
+  organDonor?: boolean;
+  pregnancy?: boolean;
+  dmsPolicy?: string;
+  doctorName?: string;
+  consent?: boolean;
+}
+
+export function useMedicalProfile() {
+  return useQuery({
+    queryKey: ['health', 'medical-profile'],
+    queryFn: () => api.get<MedicalProfileResponse>('/health/medical-profile').then((r) => r.data),
+  });
+}
+
+export function useSaveMedicalProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MedicalProfileInput) =>
+      api.put<MedicalProfileResponse>('/health/medical-profile', input).then((r) => r.data),
+    onSuccess: (data) => qc.setQueryData(['health', 'medical-profile'], data),
+  });
+}

@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
@@ -8,14 +8,21 @@ import type { HealthStackParamList } from '../../../navigation/types';
 import { Avatar } from '../../../components/ui/Avatar';
 import { BackArrow } from '../../../components/icons/BackArrow';
 import { BloodDropIcon, MedCrossIcon } from '../../../components/icons/MedIcons';
-import { MedCardRow, MedChip, MedContactCard, MedSectionLabel, MedVital } from '../components';
+import { RedButton } from '../../../components/ui/RedButton';
+import { useMedicalProfile, type MedicalProfileData } from '../../../api/health';
+import { MedCardRow, MedChip, MedContactCard, MedSectionLabel, MedVital, medGlass } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthMedCard'>;
 
-// M14.9 — Мед.карта (Medical ID). UI на медкомпонентах Фазы B, данные — мок.
-// Реальные данные + шифрование чувствительных полей — Фаза E (docs/HEALTH.md).
+const genderLabel = (g: string | null) => (g === 'M' ? 'Мужчина' : g === 'F' ? 'Женщина' : null);
+
+// M14.9 — Мед.карта (Medical ID). Данные с бэкенда (чувствительные поля
+// расшифровываются на сервере при чтении владельцем). Фаза E.
 export function HealthMedCardScreen() {
   const nav = useNavigation<Nav>();
+  const { data, isLoading } = useMedicalProfile();
+
+  const filled = data?.exists && data.profile;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
@@ -25,7 +32,7 @@ export function HealthMedCardScreen() {
           colors={['#E61428', '#9c0a1a']}
           start={{ x: 0.1, y: 0 }}
           end={{ x: 0.9, y: 1 }}
-          style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 56 }}
+          style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: filled ? 56 : 28 }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <Pressable
@@ -75,70 +82,133 @@ export function HealthMedCardScreen() {
           </View>
 
           {/* Идентификация */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 20 }}>
-            <Avatar name="Азиз Каримов" size={72} />
-            <View style={{ gap: 4 }}>
-              <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 24, color: '#fff', letterSpacing: -0.24 }}>
-                Азиз Каримов
-              </Text>
-              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13.5, color: 'rgba(255,255,255,0.85)' }}>
-                Мужчина · 32 года · 15.03.1994
-              </Text>
+          {filled ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 20 }}>
+              <Avatar name={data!.profile!.fullName || 'Пациент'} size={72} />
+              <View style={{ gap: 4, flex: 1 }}>
+                <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 24, color: '#fff', letterSpacing: -0.24 }}>
+                  {data!.profile!.fullName || 'Без имени'}
+                </Text>
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13.5, color: 'rgba(255,255,255,0.85)' }}>
+                  {[genderLabel(data!.profile!.gender), data!.profile!.birthDate].filter(Boolean).join(' · ') || 'Данные не заполнены'}
+                </Text>
+              </View>
             </View>
-          </View>
+          ) : null}
         </LinearGradient>
 
-        {/* Виталы — накладываются на шапку */}
-        <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 24, marginTop: -34 }}>
-          <MedVital label="Кровь" value="B(III) Rh+" accent icon={<BloodDropIcon size={13} />} />
-          <MedVital label="Рост" value="178" unit="см" />
-          <MedVital label="Вес" value="74" unit="кг" />
-        </View>
+        {isLoading ? (
+          <ActivityIndicator color={tokens.red} style={{ marginTop: 48 }} />
+        ) : !filled ? (
+          <EmptyState onFill={() => nav.navigate('HealthMedCardEdit')} />
+        ) : (
+          <FilledCard p={data!.profile!} onEditContacts={() => nav.navigate('HealthContacts')} />
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
 
-        {/* Секции */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 24, gap: 18 }}>
+function EmptyState({ onFill }: { onFill: () => void }) {
+  return (
+    <View style={{ paddingHorizontal: 24, paddingTop: 40, alignItems: 'center', gap: 12 }}>
+      <View style={{ width: 72, height: 72, borderRadius: 999, backgroundColor: 'rgba(230,20,40,0.1)', alignItems: 'center', justifyContent: 'center' }}>
+        <MedCrossIcon size={28} color={tokens.red} />
+      </View>
+      <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink, textAlign: 'center' }}>
+        Мед.карта ещё не заполнена
+      </Text>
+      <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center', lineHeight: 20, maxWidth: 300 }}>
+        Группа крови, аллергии и хронические заболевания помогут врачам скорой при экстренной ситуации.
+      </Text>
+      <View style={{ width: '100%', marginTop: 12 }}>
+        <RedButton trailing={false} onPress={onFill}>
+          Заполнить мед.карту
+        </RedButton>
+      </View>
+    </View>
+  );
+}
+
+function TextCard({ text }: { text: string }) {
+  return (
+    <View style={[{ paddingVertical: 14, paddingHorizontal: 16, borderRadius: 18 }, medGlass]}>
+      <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 14, color: tokens.ink, lineHeight: 20 }}>{text}</Text>
+    </View>
+  );
+}
+
+function FilledCard({ p, onEditContacts }: { p: MedicalProfileData; onEditContacts: () => void }) {
+  const hasVitals = p.bloodType || p.heightCm != null || p.weightKg != null;
+  const dataRows: { label: string; value: string; color?: string }[] = [];
+  if (p.organDonor != null) dataRows.push({ label: 'Донор органов', value: p.organDonor ? 'Да' : 'Нет', color: p.organDonor ? '#0a3a26' : tokens.inkMuted });
+  if (p.pregnancy != null) dataRows.push({ label: 'Беременность', value: p.pregnancy ? 'Да' : '—', color: tokens.inkMuted });
+  if (p.dmsPolicy) dataRows.push({ label: 'Полис ДМС', value: p.dmsPolicy });
+  if (p.doctorName) dataRows.push({ label: 'Лечащий врач', value: p.doctorName });
+
+  return (
+    <>
+      {/* Виталы */}
+      {hasVitals ? (
+        <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 24, marginTop: -34 }}>
+          <MedVital label="Кровь" value={p.bloodType || '—'} accent icon={<BloodDropIcon size={13} />} />
+          <MedVital label="Рост" value={p.heightCm != null ? String(p.heightCm) : '—'} unit={p.heightCm != null ? 'см' : undefined} />
+          <MedVital label="Вес" value={p.weightKg != null ? String(p.weightKg) : '—'} unit={p.weightKg != null ? 'кг' : undefined} />
+        </View>
+      ) : null}
+
+      <View style={{ paddingHorizontal: 24, paddingTop: 24, gap: 18 }}>
+        {p.allergies.length > 0 ? (
           <View style={{ gap: 10 }}>
             <MedSectionLabel>Аллергии</MedSectionLabel>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              <MedChip tone="red">Пенициллин</MedChip>
-              <MedChip tone="red">Аспирин</MedChip>
-              <MedChip tone="yellow">Пыльца</MedChip>
+              {p.allergies.map((a, i) => (
+                <MedChip key={`${a}-${i}`} tone="red">
+                  {a}
+                </MedChip>
+              ))}
             </View>
           </View>
+        ) : null}
 
+        {p.chronic ? (
           <View style={{ gap: 10 }}>
             <MedSectionLabel>Хронические заболевания</MedSectionLabel>
-            <MedCardRow label="Бронхиальная астма" value="лёгкая форма" valueColor={tokens.inkMuted} />
+            <TextCard text={p.chronic} />
           </View>
+        ) : null}
 
+        {p.medications ? (
           <View style={{ gap: 10 }}>
             <MedSectionLabel>Постоянные лекарства</MedSectionLabel>
-            <MedCardRow label="Сальбутамол (ингалятор)" value="по потребности" valueColor={tokens.inkMuted} />
+            <TextCard text={p.medications} />
           </View>
+        ) : null}
 
+        {dataRows.length > 0 ? (
           <View style={{ gap: 10 }}>
             <MedSectionLabel>Данные</MedSectionLabel>
-            <MedCardRow label="Донор органов" value="Да" valueColor="#0a3a26" />
-            <MedCardRow label="Беременность" value="—" valueColor={tokens.inkMuted} />
-            <MedCardRow label="Полис ДМС" value="SOS24 · до 12.2026" />
-            <MedCardRow label="Лечащий врач" value="Малика Содиқова" />
+            {dataRows.map((r) => (
+              <MedCardRow key={r.label} label={r.label} value={r.value} valueColor={r.color} />
+            ))}
           </View>
+        ) : null}
 
-          <View style={{ gap: 10 }}>
-            <MedSectionLabel action="Изменить" onAction={() => nav.navigate('HealthContacts')}>
-              Экстренные контакты
-            </MedSectionLabel>
-            <MedContactCard name="Гулнора Каримова" relation="Супруга" phone="+998 90 234-56-78" />
-            <MedContactCard name="Бахтиёр Каримов" relation="Брат" phone="+998 91 345-67-89" />
-          </View>
-
-          <View style={{ flexDirection: 'row', gap: 10, padding: 14, borderRadius: 16, backgroundColor: 'rgba(20,20,20,0.04)' }}>
-            <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted, lineHeight: 17, flex: 1 }}>
-              Доступно с экрана блокировки для врачей скорой. При SOS отправляется вместе с геолокацией.
-            </Text>
-          </View>
+        {/* Экстренные контакты (мок — реальные в Фазе F) */}
+        <View style={{ gap: 10 }}>
+          <MedSectionLabel action="Изменить" onAction={onEditContacts}>
+            Экстренные контакты
+          </MedSectionLabel>
+          <MedContactCard name="Гулнора Каримова" relation="Супруга" phone="+998 90 234-56-78" />
+          <MedContactCard name="Бахтиёр Каримов" relation="Брат" phone="+998 91 345-67-89" />
         </View>
-      </ScrollView>
-    </SafeAreaView>
+
+        <View style={{ flexDirection: 'row', gap: 10, padding: 14, borderRadius: 16, backgroundColor: 'rgba(20,20,20,0.04)' }}>
+          <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted, lineHeight: 17, flex: 1 }}>
+            Доступно с экрана блокировки для врачей скорой. При SOS отправляется вместе с геолокацией.
+          </Text>
+        </View>
+      </View>
+    </>
   );
 }
