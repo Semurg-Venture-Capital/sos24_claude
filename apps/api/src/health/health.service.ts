@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { MinioService } from '../files/minio.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { decryptField, decryptJson, encryptField, encryptJson } from '../common/crypto/field-cipher';
+import { MockTriageProvider, type TriageMessage, type TriageProvider } from './triage/triage.provider';
 import type {
   CreateAppointmentDto,
   CreateContactDto,
@@ -13,6 +14,8 @@ import type {
 } from './dto/health.dto';
 
 const MAX_CONTACTS = 3;
+
+const TRIAGE_DISCLAIMER = 'Это не диагноз. ИИ помогает сориентироваться — точный диагноз ставит врач.';
 
 const IMG_TTL = 3600;
 const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
@@ -30,6 +33,10 @@ function toMinutes(hhmm: string): number {
 @Injectable()
 export class HealthService {
   private readonly logger = new Logger(HealthService.name);
+
+  // Провайдер триажа: сейчас mock. LLM подключается позже через тот же интерфейс
+  // (TRIAGE_MODE=mock|llm) без изменения сервиса.
+  private readonly triage: TriageProvider = new MockTriageProvider();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -324,6 +331,66 @@ export class HealthService {
     if (a.status !== 'ACTIVE') return { ok: true, status: a.status };
     await this.prisma.sosAlert.update({ where: { id }, data: { status: 'CANCELLED', cancelledAt: new Date() } });
     return { ok: true, status: 'CANCELLED' };
+  }
+
+  // ── ИИ-триаж (M14.2/14.3) ──
+  private readMessages(session: { messages: string | null }): TriageMessage[] {
+    return decryptJson<TriageMessage[]>(session.messages) ?? [];
+  }
+
+  async startTriage(userId: string) {
+    const intro = this.triage.intro();
+    const messages: TriageMessage[] = [{ role: 'assistant', text: intro.text, at: new Date().toISOString() }];
+    const session = await this.prisma.triageSession.create({
+      data: { userId, messages: encryptJson(messages), step: 0 },
+    });
+    return {
+      sessionId: session.id,
+      messages,
+      quickReplies: intro.quickReplies,
+      canFinalize: false,
+      disclaimer: TRIAGE_DISCLAIMER,
+    };
+  }
+
+  async triageMessage(userId: string, id: string, text: string) {
+    const session = await this.prisma.triageSession.findUnique({ where: { id } });
+    if (!session || session.userId !== userId) throw new NotFoundException('Сессия не найдена');
+
+    const messages = this.readMessages(session);
+    messages.push({ role: 'user', text, at: new Date().toISOString() });
+
+    const userTexts = messages.filter((m) => m.role === 'user').map((m) => m.text);
+    const turn = this.triage.ask(session.step, text, userTexts);
+    messages.push({ role: 'assistant', text: turn.text, at: new Date().toISOString() });
+
+    await this.prisma.triageSession.update({
+      where: { id },
+      data: { messages: encryptJson(messages), step: session.step + 1 },
+    });
+
+    return { messages, quickReplies: turn.quickReplies, canFinalize: turn.canFinalize, disclaimer: TRIAGE_DISCLAIMER };
+  }
+
+  async finalizeTriage(userId: string, id: string) {
+    const session = await this.prisma.triageSession.findUnique({ where: { id } });
+    if (!session || session.userId !== userId) throw new NotFoundException('Сессия не найдена');
+
+    const messages = this.readMessages(session);
+    const userTexts = messages.filter((m) => m.role === 'user').map((m) => m.text);
+    if (userTexts.length === 0) throw new BadRequestException('Опишите симптомы перед получением результата');
+
+    const v = this.triage.finalize(userTexts);
+    await this.prisma.triageSession.update({
+      where: { id },
+      data: {
+        symptoms: encryptJson(v.symptoms),
+        verdict: encryptField(v.verdict),
+        urgency: v.urgency,
+        confidence: v.confidence,
+      },
+    });
+    return { ...v, disclaimer: 'Это предварительная оценка ИИ, а не медицинский диагноз. Точный диагноз ставит только врач на очном осмотре.' };
   }
 
   private serializeMedicalProfile(p: any) {

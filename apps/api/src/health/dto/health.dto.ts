@@ -90,6 +90,14 @@ export class UpdateContactDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) phone?: string;
 }
 
+// Сообщение в ИИ-триаж (M14.2).
+export class TriageMessageDto {
+  @ApiProperty({ description: 'Текст пользователя' })
+  @IsString()
+  @MaxLength(1000)
+  text!: string;
+}
+
 // Тревога ЧП/SOS (M14.12): координаты необязательны (могут прийти позже).
 export class SosTriggerDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) lat?: number;

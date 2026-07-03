@@ -9,6 +9,7 @@ import {
   DoctorSlotsQueryDto,
   DoctorsQueryDto,
   SosTriggerDto,
+  TriageMessageDto,
   UpdateContactDto,
   UpdateMedicalProfileDto,
 } from './dto/health.dto';
@@ -62,6 +63,25 @@ export class HealthController {
   @ApiOperation({ summary: 'Удалить экстренный контакт.' })
   removeContact(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
     return this.service.deleteContact(user.sub, id);
+  }
+
+  // ── ИИ-триаж (M14.2/14.3) ──
+  @Post('triage/start')
+  @ApiOperation({ summary: 'Начать сессию ИИ-триажа.' })
+  triageStart(@CurrentUser() user: JwtPayload) {
+    return this.service.startTriage(user.sub);
+  }
+
+  @Post('triage/:id/message')
+  @ApiOperation({ summary: 'Отправить сообщение в триаж (ответ mock-провайдера).' })
+  triageSend(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: TriageMessageDto) {
+    return this.service.triageMessage(user.sub, id, dto.text);
+  }
+
+  @Post('triage/:id/finalize')
+  @ApiOperation({ summary: 'Завершить триаж — предварительный вердикт + срочность.' })
+  triageFinalize(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.service.finalizeTriage(user.sub, id);
   }
 
   // ── ЧП / SOS (M14.12) ──

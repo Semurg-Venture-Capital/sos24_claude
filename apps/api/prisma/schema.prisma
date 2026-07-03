@@ -222,6 +222,7 @@ model User {
   medicalProfile   MedicalProfile?
   emergencyContacts EmergencyContact[]
   sosAlerts        SosAlert[]
+  triageSessions   TriageSession[]
 
   // B2B-кабинет (роль PARTNER): пользователь владеет РОВНО одной сущностью — компанией ИЛИ точкой.
   ownedCompany InsuranceCompany? @relation("CompanyOwner")
@@ -601,6 +602,25 @@ model Partner {
   @@index([city])
   @@index([categoryId])
   @@map("partners")
+}
+
+// Сессия ИИ-триажа (M14.2/14.3). Чат + вердикт. Чувствительные поля
+// (messages/symptoms/verdict) ЗАШИФРОВАНЫ (AES-256-GCM). urgency: low|medium|high.
+model TriageSession {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages   String?  @db.Text // ШИФРУЕТСЯ — JSON [{role,text,at}]
+  symptoms   String?  @db.Text // ШИФРУЕТСЯ — JSON string[]
+  verdict    String?  @db.Text // ШИФРУЕТСЯ — предв. диагноз (текст)
+  urgency    String? // low | medium | high
+  confidence Int? // 0..100
+  step       Int      @default(0) // сколько уточняющих вопросов задано
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@map("triage_sessions")
 }
 
 // Экстренные контакты (M14.11): кого оповестить при SOS. Лимит 3 (в сервисе).
