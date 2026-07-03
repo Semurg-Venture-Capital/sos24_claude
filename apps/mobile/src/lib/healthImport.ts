@@ -13,6 +13,9 @@ export interface HealthImportResult {
   bloodType?: string; // «B(III) Rh+»
   heightCm?: number;
   weightKg?: number;
+  // Почему группа крови не подтянулась: 'ok' — подтянулась; 'notSet' — в Health
+  // не задана; 'denied' — нет доступа к чтению этой характеристики.
+  bloodTypeStatus: 'ok' | 'notSet' | 'denied';
 }
 
 // BloodType enum HealthKit → наш формат группы крови.
@@ -49,13 +52,18 @@ export async function importFromHealth(): Promise<HealthImportResult | null> {
     ],
   });
 
-  const result: HealthImportResult = {};
+  const result: HealthImportResult = { bloodTypeStatus: 'notSet' };
 
   try {
     const bt = (await HK.getBloodTypeAsync()) as number;
-    if (BLOOD_MAP[bt]) result.bloodType = BLOOD_MAP[bt];
+    if (bt && BLOOD_MAP[bt]) {
+      result.bloodType = BLOOD_MAP[bt];
+      result.bloodTypeStatus = 'ok';
+    } else {
+      result.bloodTypeStatus = 'notSet'; // 0 = notSet: в Health группа крови не введена
+    }
   } catch {
-    /* группа крови не задана */
+    result.bloodTypeStatus = 'denied'; // чтение характеристики не разрешено
   }
 
   try {
