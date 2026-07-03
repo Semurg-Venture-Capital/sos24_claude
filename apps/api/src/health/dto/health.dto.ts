@@ -76,3 +76,27 @@ export class UpdateMedicalProfileDto {
   @IsBoolean()
   consent?: boolean;
 }
+
+// Экстренный контакт (M14.11).
+export class CreateContactDto {
+  @ApiProperty() @IsString() @MaxLength(120) name!: string;
+  @ApiPropertyOptional({ description: 'Отношение: супруга, брат …' }) @IsOptional() @IsString() @MaxLength(60) relation?: string;
+  @ApiProperty({ example: '+998 90 234-56-78' }) @IsString() @MaxLength(30) phone!: string;
+}
+
+export class UpdateContactDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) name?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(60) relation?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) phone?: string;
+}
+
+// Тревога ЧП/SOS (M14.12): координаты необязательны (могут прийти позже).
+export class SosTriggerDto {
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) lat?: number;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) lng?: number;
+  @ApiPropertyOptional({ description: 'Читаемый адрес (reverse-geocode с устройства)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  address?: string;
+}

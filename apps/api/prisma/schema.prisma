@@ -220,6 +220,8 @@ model User {
   partnerReviews   PartnerReview[]
   partnerBookings  PartnerBooking[]
   medicalProfile   MedicalProfile?
+  emergencyContacts EmergencyContact[]
+  sosAlerts        SosAlert[]
 
   // B2B-кабинет (роль PARTNER): пользователь владеет РОВНО одной сущностью — компанией ИЛИ точкой.
   ownedCompany InsuranceCompany? @relation("CompanyOwner")
@@ -599,6 +601,44 @@ model Partner {
   @@index([city])
   @@index([categoryId])
   @@map("partners")
+}
+
+// Экстренные контакты (M14.11): кого оповестить при SOS. Лимит 3 (в сервисе).
+model EmergencyContact {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  relation  String? // «супруга», «брат» …
+  phone     String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("emergency_contacts")
+}
+
+enum SosStatus {
+  ACTIVE
+  CANCELLED
+  RESOLVED
+}
+
+// Тревога ЧП/SOS (M14.12): факт срабатывания + геолокация + сколько контактов оповещено.
+model SosAlert {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lat         Float?
+  lng         Float?
+  address     String?
+  status      SosStatus @default(ACTIVE)
+  notified    Int       @default(0) // сколько экстренных контактов оповещено
+  createdAt   DateTime  @default(now())
+  cancelledAt DateTime?
+
+  @@index([userId, createdAt])
+  @@map("sos_alerts")
 }
 
 // Мед.карта (Medical ID · M14.9/14.10). Чувствительные поля (allergies/chronic/

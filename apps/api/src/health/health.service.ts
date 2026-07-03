@@ -3,7 +3,16 @@ import { Prisma } from '@prisma/client';
 import { MinioService } from '../files/minio.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { decryptField, decryptJson, encryptField, encryptJson } from '../common/crypto/field-cipher';
-import type { CreateAppointmentDto, DoctorsQueryDto, UpdateMedicalProfileDto } from './dto/health.dto';
+import type {
+  CreateAppointmentDto,
+  CreateContactDto,
+  DoctorsQueryDto,
+  SosTriggerDto,
+  UpdateContactDto,
+  UpdateMedicalProfileDto,
+} from './dto/health.dto';
+
+const MAX_CONTACTS = 3;
 
 const IMG_TTL = 3600;
 const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
@@ -250,6 +259,71 @@ export class HealthService {
       update: data,
     });
     return this.serializeMedicalProfile(saved);
+  }
+
+  // ── Экстренные контакты (M14.11) ──
+  async listContacts(userId: string) {
+    const rows = await this.prisma.emergencyContact.findMany({
+      where: { userId },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    });
+    return { contacts: rows, limit: MAX_CONTACTS };
+  }
+
+  async createContact(userId: string, dto: CreateContactDto) {
+    const count = await this.prisma.emergencyContact.count({ where: { userId } });
+    if (count >= MAX_CONTACTS) throw new BadRequestException(`Можно добавить не более ${MAX_CONTACTS} контактов`);
+    return this.prisma.emergencyContact.create({
+      data: { userId, name: dto.name, relation: dto.relation ?? null, phone: dto.phone, sortOrder: count },
+    });
+  }
+
+  async updateContact(userId: string, id: string, dto: UpdateContactDto) {
+    const c = await this.prisma.emergencyContact.findUnique({ where: { id } });
+    if (!c || c.userId !== userId) throw new NotFoundException('Контакт не найден');
+    return this.prisma.emergencyContact.update({
+      where: { id },
+      data: { name: dto.name ?? c.name, relation: dto.relation ?? c.relation, phone: dto.phone ?? c.phone },
+    });
+  }
+
+  async deleteContact(userId: string, id: string) {
+    const c = await this.prisma.emergencyContact.findUnique({ where: { id } });
+    if (!c || c.userId !== userId) throw new NotFoundException('Контакт не найден');
+    await this.prisma.emergencyContact.delete({ where: { id } });
+    return { ok: true };
+  }
+
+  // ── ЧП / SOS (M14.12) ──
+  async triggerSos(userId: string, dto: SosTriggerDto) {
+    const contacts = await this.prisma.emergencyContact.findMany({
+      where: { userId },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    });
+    const alert = await this.prisma.sosAlert.create({
+      data: {
+        userId,
+        lat: dto.lat ?? null,
+        lng: dto.lng ?? null,
+        address: dto.address ?? null,
+        status: 'ACTIVE',
+        notified: contacts.length,
+      },
+    });
+    // TODO: реальная рассылка SMS/push контактам — через Playmobile/уведомления (пока фиксируем факт).
+    this.logger.log(`SOS ${alert.id} для user=${userId}: оповещено контактов=${contacts.length}`);
+    return {
+      alert: { id: alert.id, status: alert.status, createdAt: alert.createdAt, lat: alert.lat, lng: alert.lng, address: alert.address },
+      contacts,
+    };
+  }
+
+  async cancelSos(userId: string, id: string) {
+    const a = await this.prisma.sosAlert.findUnique({ where: { id } });
+    if (!a || a.userId !== userId) throw new NotFoundException('Тревога не найдена');
+    if (a.status !== 'ACTIVE') return { ok: true, status: a.status };
+    await this.prisma.sosAlert.update({ where: { id }, data: { status: 'CANCELLED', cancelledAt: new Date() } });
+    return { ok: true, status: 'CANCELLED' };
   }
 
   private serializeMedicalProfile(p: any) {
