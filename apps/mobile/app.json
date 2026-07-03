@@ -49,6 +49,12 @@
         {
           "color": "#E61428"
         }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "SOS24 читает группу крови, рост и вес из приложения «Здоровье», чтобы автоматически заполнить вашу медицинскую карту."
+        }
       ]
     ]
   }

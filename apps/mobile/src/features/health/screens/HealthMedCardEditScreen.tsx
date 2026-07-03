@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
 import { BackButton } from '../../../components/ui/BackButton';
@@ -10,7 +10,9 @@ import { Toggle } from '../../../components/ui/Toggle';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import { RedButton } from '../../../components/ui/RedButton';
 import { PlusIcon } from '../../../components/icons/PlusIcon';
+import { HeartFillIcon } from '../../../components/icons/MedIcons';
 import { useMedicalProfile, useSaveMedicalProfile } from '../../../api/health';
+import { importFromHealth, isHealthImportSupported } from '../../../lib/healthImport';
 import { medGlass } from '../components';
 
 const BLOOD_GROUPS = ['O(I)', 'A(II)', 'B(III)', 'AB(IV)'];
@@ -82,11 +84,49 @@ export function HealthMedCardEditScreen() {
     setHydrated(true);
   }, [data, hydrated]);
 
+  const [importing, setImporting] = useState(false);
+
   const addAllergy = () => {
     const v = newAllergy.trim();
     if (!v || allergies.includes(v)) return;
     setAllergies((prev) => [...prev, v]);
     setNewAllergy('');
+  };
+
+  const importHealth = async () => {
+    setImporting(true);
+    try {
+      const res = await importFromHealth();
+      if (!res) {
+        Alert.alert('Недоступно', 'Приложение «Здоровье» доступно только на iPhone.');
+        return;
+      }
+      const filled: string[] = [];
+      if (res.bloodType) {
+        const b = parseBlood(res.bloodType);
+        setGroup(b.group);
+        setRh(b.rh);
+        filled.push('группа крови');
+      }
+      if (res.heightCm != null) {
+        setHeight(String(res.heightCm));
+        filled.push('рост');
+      }
+      if (res.weightKg != null) {
+        setWeight(String(res.weightKg));
+        filled.push('вес');
+      }
+      Alert.alert(
+        filled.length ? 'Данные импортированы' : 'Нет данных',
+        filled.length
+          ? `Заполнено из «Здоровья»: ${filled.join(', ')}. Проверьте и сохраните.`
+          : 'В «Здоровье» нет группы крови, роста или веса, либо доступ не предоставлен. Разрешить можно в Настройки → Здоровье → Доступ к данным.',
+      );
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось прочитать данные из приложения «Здоровье».');
+    } finally {
+      setImporting(false);
+    }
   };
 
   const bloodType = group ? `${group}${rh ? ` Rh${rh === '-' ? '−' : '+'}` : ''}` : undefined;
@@ -129,6 +169,26 @@ export function HealthMedCardEditScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {isHealthImportSupported() ? (
+          <Pressable
+            onPress={importHealth}
+            disabled={importing}
+            style={({ pressed }) => [
+              { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 18, opacity: pressed ? 0.8 : 1 },
+              medGlass,
+            ]}
+          >
+            <View style={{ width: 38, height: 38, borderRadius: 999, backgroundColor: 'rgba(230,20,40,0.1)', alignItems: 'center', justifyContent: 'center' }}>
+              <HeartFillIcon size={20} color={tokens.red} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>Заполнить из приложения «Здоровье»</Text>
+              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>Группа крови, рост и вес — из Apple Health</Text>
+            </View>
+            {importing ? <ActivityIndicator color={tokens.red} /> : <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 18, color: tokens.inkSubtle }}>›</Text>}
+          </Pressable>
+        ) : null}
+
         {prefilled ? (
           <View style={{ flexDirection: 'row', gap: 10, padding: 12, borderRadius: 14, backgroundColor: 'rgba(86,140,255,0.1)' }}>
             <Text style={{ flex: 1, fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: '#1a3577', lineHeight: 17 }}>
