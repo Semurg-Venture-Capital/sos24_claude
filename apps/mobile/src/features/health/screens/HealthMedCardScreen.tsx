@@ -9,7 +9,7 @@ import { Avatar } from '../../../components/ui/Avatar';
 import { BackArrow } from '../../../components/icons/BackArrow';
 import { BloodDropIcon, MedCrossIcon } from '../../../components/icons/MedIcons';
 import { RedButton } from '../../../components/ui/RedButton';
-import { useMedicalProfile, type MedicalProfileData } from '../../../api/health';
+import { useEmergencyContacts, useMedicalProfile, type EmergencyContact, type MedicalProfileData } from '../../../api/health';
 import { MedCardRow, MedChip, MedContactCard, MedSectionLabel, MedVital, medGlass } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthMedCard'>;
@@ -21,6 +21,7 @@ const genderLabel = (g: string | null) => (g === 'M' ? 'Мужчина' : g === 
 export function HealthMedCardScreen() {
   const nav = useNavigation<Nav>();
   const { data, isLoading } = useMedicalProfile();
+  const { data: contactsData } = useEmergencyContacts();
 
   const filled = data?.exists && data.profile;
 
@@ -102,7 +103,11 @@ export function HealthMedCardScreen() {
         ) : !filled ? (
           <EmptyState onFill={() => nav.navigate('HealthMedCardEdit')} />
         ) : (
-          <FilledCard p={data!.profile!} onEditContacts={() => nav.navigate('HealthContacts')} />
+          <FilledCard
+            p={data!.profile!}
+            contacts={contactsData?.contacts ?? []}
+            onEditContacts={() => nav.navigate('HealthContacts')}
+          />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -138,7 +143,15 @@ function TextCard({ text }: { text: string }) {
   );
 }
 
-function FilledCard({ p, onEditContacts }: { p: MedicalProfileData; onEditContacts: () => void }) {
+function FilledCard({
+  p,
+  contacts,
+  onEditContacts,
+}: {
+  p: MedicalProfileData;
+  contacts: EmergencyContact[];
+  onEditContacts: () => void;
+}) {
   const hasVitals = p.bloodType || p.heightCm != null || p.weightKg != null;
   const dataRows: { label: string; value: string; color?: string }[] = [];
   if (p.organDonor != null) dataRows.push({ label: 'Донор органов', value: p.organDonor ? 'Да' : 'Нет', color: p.organDonor ? '#0a3a26' : tokens.inkMuted });
@@ -194,13 +207,28 @@ function FilledCard({ p, onEditContacts }: { p: MedicalProfileData; onEditContac
           </View>
         ) : null}
 
-        {/* Экстренные контакты (мок — реальные в Фазе F) */}
+        {/* Экстренные контакты (реальные, из API) */}
         <View style={{ gap: 10 }}>
-          <MedSectionLabel action="Изменить" onAction={onEditContacts}>
+          <MedSectionLabel action={contacts.length ? 'Изменить' : 'Добавить'} onAction={onEditContacts}>
             Экстренные контакты
           </MedSectionLabel>
-          <MedContactCard name="Гулнора Каримова" relation="Супруга" phone="+998 90 234-56-78" />
-          <MedContactCard name="Бахтиёр Каримов" relation="Брат" phone="+998 91 345-67-89" />
+          {contacts.length > 0 ? (
+            contacts.map((c) => (
+              <MedContactCard key={c.id} name={c.name} relation={c.relation ?? undefined} phone={c.phone} />
+            ))
+          ) : (
+            <Pressable
+              onPress={onEditContacts}
+              style={({ pressed }) => [
+                { padding: 16, borderRadius: 18, alignItems: 'center', opacity: pressed ? 0.7 : 1 },
+                medGlass,
+              ]}
+            >
+              <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13.5, color: tokens.inkMuted, textAlign: 'center' }}>
+                Контакты не добавлены. Укажите близких — их оповестят при SOS.
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         <View style={{ flexDirection: 'row', gap: 10, padding: 14, borderRadius: 16, backgroundColor: 'rgba(20,20,20,0.04)' }}>
