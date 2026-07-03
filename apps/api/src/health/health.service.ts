@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { MinioService } from '../files/minio.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { SmsService } from '../notifications/sms.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { decryptField, decryptJson, encryptField, encryptJson } from '../common/crypto/field-cipher';
 import { MockTriageProvider, type TriageMessage, type TriageProvider } from './triage/triage.provider';
@@ -44,6 +46,8 @@ export class HealthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly minio: MinioService,
+    private readonly notifications: NotificationsService,
+    private readonly sms: SmsService,
   ) {}
 
   private async imgUrl(key?: string | null): Promise<string | null> {
@@ -358,6 +362,51 @@ export class HealthService {
     return { ok: true, status };
   }
 
+  // ── Админка: SOS-тревоги (диспетчер) ──
+  async adminListSosAlerts(status?: 'ACTIVE' | 'CANCELLED' | 'RESOLVED') {
+    const rows = await this.prisma.sosAlert.findMany({
+      where: status ? { status } : {},
+      orderBy: [{ createdAt: 'desc' }],
+      take: 200,
+      include: {
+        user: { select: { name: true, surname: true, phone: true } },
+        dispatcher: { select: { name: true, surname: true } },
+        notifications: true,
+      },
+    });
+    return {
+      alerts: rows.map((a) => ({
+        id: a.id,
+        patientName: [a.user?.name, a.user?.surname].filter(Boolean).join(' ') || 'Клиент',
+        patientPhone: a.user?.phone ?? null,
+        lat: a.lat,
+        lng: a.lng,
+        address: a.address,
+        status: a.status,
+        notified: a.notified,
+        acknowledgedAt: a.acknowledgedAt,
+        dispatcherName: a.dispatcher ? [a.dispatcher.name, a.dispatcher.surname].filter(Boolean).join(' ') : null,
+        note: a.note,
+        contacts: a.notifications.map((n) => ({ name: n.contactName, phone: n.phone, status: n.status })),
+        createdAt: a.createdAt,
+        cancelledAt: a.cancelledAt,
+      })),
+    };
+  }
+
+  async adminUpdateSosAlert(dispatcherId: string, id: string, action: 'acknowledge' | 'resolve', note?: string) {
+    const a = await this.prisma.sosAlert.findUnique({ where: { id } });
+    if (!a) throw new NotFoundException('Тревога не найдена');
+    const data: Prisma.SosAlertUpdateInput = {
+      dispatcher: { connect: { id: dispatcherId } },
+      acknowledgedAt: a.acknowledgedAt ?? new Date(),
+      ...(note !== undefined ? { note } : {}),
+    };
+    if (action === 'resolve') data.status = 'RESOLVED';
+    const updated = await this.prisma.sosAlert.update({ where: { id }, data });
+    return { ok: true, status: updated.status };
+  }
+
   // ── Мед.карта (M14.9/14.10) — чувствительные поля шифруются ──
   async getMedicalProfile(userId: string) {
     const [p, user] = await Promise.all([
@@ -449,26 +498,86 @@ export class HealthService {
 
   // ── ЧП / SOS (M14.12) ──
   async triggerSos(userId: string, dto: SosTriggerDto) {
-    const contacts = await this.prisma.emergencyContact.findMany({
-      where: { userId },
-      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
-    });
+    const [user, contacts] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: userId }, select: { name: true, surname: true, phone: true } }),
+      this.prisma.emergencyContact.findMany({
+        where: { userId },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      }),
+    ]);
+    const patientName = [user?.name, user?.surname].filter(Boolean).join(' ') || 'Пользователь SOS24';
+
     const alert = await this.prisma.sosAlert.create({
-      data: {
-        userId,
-        lat: dto.lat ?? null,
-        lng: dto.lng ?? null,
-        address: dto.address ?? null,
-        status: 'ACTIVE',
-        notified: contacts.length,
-      },
+      data: { userId, lat: dto.lat ?? null, lng: dto.lng ?? null, address: dto.address ?? null, status: 'ACTIVE' },
     });
-    // TODO: реальная рассылка SMS/push контактам — через Playmobile/уведомления (пока фиксируем факт).
-    this.logger.log(`SOS ${alert.id} для user=${userId}: оповещено контактов=${contacts.length}`);
+
+    // 1) Оповещаем экстренные контакты по SMS (статус — по каждому).
+    const locationLine = this.locationLine(dto.lat, dto.lng, dto.address);
+    const smsText = `SOS24: ${patientName} запросил(а) экстренную помощь. ${locationLine} Тел.: ${user?.phone ?? '—'}`.trim();
+
+    const notifResults = await Promise.all(
+      contacts.map(async (c) => {
+        const res = await this.sms.send(c.phone, smsText);
+        const notif = await this.prisma.sosNotification.create({
+          data: {
+            alertId: alert.id,
+            contactName: c.name,
+            phone: c.phone,
+            channel: 'SMS',
+            status: res.ok ? 'SENT' : 'FAILED',
+            error: res.error ?? null,
+            sentAt: res.ok ? new Date() : null,
+          },
+        });
+        return { contact: c, notif };
+      }),
+    );
+    const notifiedCount = notifResults.filter((r) => r.notif.status === 'SENT').length;
+    await this.prisma.sosAlert.update({ where: { id: alert.id }, data: { notified: notifiedCount } });
+
+    // 2) Push диспетчерам (роль ADMIN/SUPPORT), чтобы приняли тревогу в админке.
+    await this.notifyDispatchers(alert.id, patientName, locationLine);
+
+    this.logger.warn(`SOS ${alert.id} · ${patientName} · оповещено контактов ${notifiedCount}/${contacts.length}`);
+
     return {
       alert: { id: alert.id, status: alert.status, createdAt: alert.createdAt, lat: alert.lat, lng: alert.lng, address: alert.address },
-      contacts,
+      contacts: notifResults.map((r) => ({
+        id: r.contact.id,
+        name: r.contact.name,
+        relation: r.contact.relation,
+        phone: r.contact.phone,
+        sortOrder: r.contact.sortOrder,
+        createdAt: r.contact.createdAt,
+        notifyStatus: r.notif.status, // SENT | FAILED
+      })),
     };
+  }
+
+  private locationLine(lat?: number | null, lng?: number | null, address?: string | null): string {
+    const parts: string[] = [];
+    if (address) parts.push(`Адрес: ${address}.`);
+    if (lat != null && lng != null) parts.push(`Гео: https://maps.google.com/?q=${lat},${lng}`);
+    return parts.join(' ') || 'Геолокация недоступна.';
+  }
+
+  private async notifyDispatchers(alertId: string, patientName: string, locationLine: string) {
+    const dispatchers = await this.prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPPORT'] } },
+      select: { id: true },
+    });
+    await Promise.all(
+      dispatchers.map((d) =>
+        this.notifications
+          .send(d.id, {
+            type: 'SOS_ALERT',
+            title: '🚨 SOS-тревога',
+            body: `${patientName} вызвал экстренную помощь. ${locationLine}`,
+            data: { screen: 'sos', id: alertId },
+          })
+          .catch(() => undefined),
+      ),
+    );
   }
 
   async cancelSos(userId: string, id: string) {

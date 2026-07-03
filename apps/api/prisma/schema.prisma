@@ -139,6 +139,7 @@ enum NotificationType {
   SUPPORT_REPLY
   PARTNER_BOOKING
   PROMO
+  SOS_ALERT
   SYSTEM
 }
 
@@ -221,7 +222,8 @@ model User {
   partnerBookings  PartnerBooking[]
   medicalProfile   MedicalProfile?
   emergencyContacts EmergencyContact[]
-  sosAlerts        SosAlert[]
+  sosAlerts        SosAlert[]        @relation("SosOwner")
+  dispatchedSos    SosAlert[]        @relation("SosDispatcher")
   triageSessions   TriageSession[]
 
   // B2B-кабинет (роль PARTNER): пользователь владеет РОВНО одной сущностью — компанией ИЛИ точкой.
@@ -644,21 +646,54 @@ enum SosStatus {
   RESOLVED
 }
 
-// Тревога ЧП/SOS (M14.12): факт срабатывания + геолокация + сколько контактов оповещено.
+// Тревога ЧП/SOS (M14.12): факт срабатывания + геолокация + оповещения + диспетчер.
 model SosAlert {
   id          String    @id @default(cuid())
   userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User      @relation("SosOwner", fields: [userId], references: [id], onDelete: Cascade)
   lat         Float?
   lng         Float?
   address     String?
   status      SosStatus @default(ACTIVE)
-  notified    Int       @default(0) // сколько экстренных контактов оповещено
+  notified    Int       @default(0) // сколько экстренных контактов успешно оповещено
+
+  // Диспетчер, принявший тревогу (роль ADMIN/SUPPORT).
+  dispatcherId   String?
+  dispatcher     User?     @relation("SosDispatcher", fields: [dispatcherId], references: [id], onDelete: SetNull)
+  acknowledgedAt DateTime?
+  note           String?
+
+  notifications SosNotification[]
+
   createdAt   DateTime  @default(now())
   cancelledAt DateTime?
 
   @@index([userId, createdAt])
+  @@index([status, createdAt])
   @@map("sos_alerts")
+}
+
+enum SosNotifyStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+// Оповещение конкретного экстренного контакта при SOS (SMS). Статус доставки.
+model SosNotification {
+  id          String          @id @default(cuid())
+  alertId     String
+  alert       SosAlert        @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  contactName String
+  phone       String
+  channel     String          @default("SMS")
+  status      SosNotifyStatus @default(PENDING)
+  error       String?
+  sentAt      DateTime?
+  createdAt   DateTime        @default(now())
+
+  @@index([alertId])
+  @@map("sos_notifications")
 }
 
 // Мед.карта (Medical ID · M14.9/14.10). Чувствительные поля (allergies/chronic/

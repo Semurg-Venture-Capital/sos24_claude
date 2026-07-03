@@ -133,6 +133,15 @@ export class SetAppointmentStatusDto {
   status!: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
 }
 
+// Диспетчер: принять/закрыть SOS-тревогу.
+export class UpdateSosAlertDto {
+  @ApiProperty({ enum: ['acknowledge', 'resolve'] })
+  @IsIn(['acknowledge', 'resolve'])
+  action!: 'acknowledge' | 'resolve';
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) note?: string;
+}
+
 // Тревога ЧП/SOS (M14.12): координаты необязательны (могут прийти позже).
 export class SosTriggerDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) lat?: number;

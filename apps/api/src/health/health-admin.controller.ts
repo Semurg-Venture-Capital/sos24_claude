@@ -3,7 +3,9 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { PartnerBookingStatus } from '@prisma/client';
 import { AdminGuard } from '../admin/admin.guard';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { DoctorInputDto, SetAppointmentStatusDto, UpdateDoctorDto } from './dto/health.dto';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { JwtPayload } from '../auth/jwt.strategy';
+import { DoctorInputDto, SetAppointmentStatusDto, UpdateDoctorDto, UpdateSosAlertDto } from './dto/health.dto';
 import { HealthService } from './health.service';
 
 // Админка модуля «Здоровье» (M14): врачи и записи. Только роль ADMIN.
@@ -56,5 +58,18 @@ export class HealthAdminController {
   @ApiOperation({ summary: 'Сменить статус записи.' })
   setStatus(@Param('id') id: string, @Body() dto: SetAppointmentStatusDto) {
     return this.service.adminSetAppointmentStatus(id, dto.status);
+  }
+
+  // — SOS-тревоги (диспетчер) —
+  @Get('sos')
+  @ApiOperation({ summary: 'SOS-тревоги (фильтр по статусу).' })
+  sos(@Query('status') status?: 'ACTIVE' | 'CANCELLED' | 'RESOLVED') {
+    return this.service.adminListSosAlerts(status);
+  }
+
+  @Patch('sos/:id')
+  @ApiOperation({ summary: 'Принять/закрыть SOS-тревогу.' })
+  updateSos(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: UpdateSosAlertDto) {
+    return this.service.adminUpdateSosAlert(user.sub, id, dto.action, dto.note);
   }
 }
