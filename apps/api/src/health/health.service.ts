@@ -2,7 +2,8 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { Prisma } from '@prisma/client';
 import { MinioService } from '../files/minio.service';
 import { PrismaService } from '../prisma/prisma.service';
-import type { CreateAppointmentDto, DoctorsQueryDto } from './dto/health.dto';
+import { decryptField, decryptJson, encryptField, encryptJson } from '../common/crypto/field-cipher';
+import type { CreateAppointmentDto, DoctorsQueryDto, UpdateMedicalProfileDto } from './dto/health.dto';
 
 const IMG_TTL = 3600;
 const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
@@ -208,6 +209,72 @@ export class HealthService {
       status: b.status,
       comment: b.comment,
       createdAt: b.createdAt,
+    };
+  }
+
+  // ── Мед.карта (M14.9/14.10) — чувствительные поля шифруются ──
+  async getMedicalProfile(userId: string) {
+    const p = await this.prisma.medicalProfile.findUnique({ where: { userId } });
+    return this.serializeMedicalProfile(p);
+  }
+
+  async updateMedicalProfile(userId: string, dto: UpdateMedicalProfileDto) {
+    const existing = await this.prisma.medicalProfile.findUnique({ where: { userId } });
+
+    // Согласие обязательно при первом сохранении.
+    if (!existing?.consentAt && !dto.consent) {
+      throw new BadRequestException('Требуется согласие на обработку медицинских данных');
+    }
+
+    const data: Prisma.MedicalProfileUncheckedCreateInput = {
+      userId,
+      fullName: dto.fullName ?? null,
+      birthDate: dto.birthDate ?? null,
+      gender: dto.gender ?? null,
+      bloodType: dto.bloodType ?? null,
+      heightCm: dto.heightCm ?? null,
+      weightKg: dto.weightKg ?? null,
+      allergies: encryptJson(dto.allergies),
+      chronic: encryptField(dto.chronic),
+      medications: encryptField(dto.medications),
+      organDonor: dto.organDonor ?? null,
+      pregnancy: dto.pregnancy ?? null,
+      dmsPolicy: dto.dmsPolicy ?? null,
+      doctorName: dto.doctorName ?? null,
+      consentAt: existing?.consentAt ?? new Date(),
+    };
+
+    const saved = await this.prisma.medicalProfile.upsert({
+      where: { userId },
+      create: data,
+      update: data,
+    });
+    return this.serializeMedicalProfile(saved);
+  }
+
+  private serializeMedicalProfile(p: any) {
+    if (!p) {
+      return { exists: false, consented: false, profile: null };
+    }
+    return {
+      exists: true,
+      consented: p.consentAt != null,
+      profile: {
+        fullName: p.fullName,
+        birthDate: p.birthDate,
+        gender: p.gender,
+        bloodType: p.bloodType,
+        heightCm: p.heightCm,
+        weightKg: p.weightKg,
+        allergies: decryptJson<string[]>(p.allergies) ?? [],
+        chronic: decryptField(p.chronic),
+        medications: decryptField(p.medications),
+        organDonor: p.organDonor,
+        pregnancy: p.pregnancy,
+        dmsPolicy: p.dmsPolicy,
+        doctorName: p.doctorName,
+        updatedAt: p.updatedAt,
+      },
     };
   }
 }

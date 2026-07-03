@@ -1,5 +1,5 @@
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import { IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Matches, Max, MaxLength, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 // Поиск/фильтр врачей (M14.4).
@@ -45,4 +45,34 @@ export class CreateAppointmentDto {
   @IsString()
   @MaxLength(500)
   comment?: string;
+}
+
+// Сохранение мед.карты (M14.10). Чувствительные поля шифруются на бэкенде.
+export class UpdateMedicalProfileDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) fullName?: string;
+  @ApiPropertyOptional({ description: 'Дата рождения, свободный формат' }) @IsOptional() @IsString() @MaxLength(40) birthDate?: string;
+  @ApiPropertyOptional({ enum: ['M', 'F'] }) @IsOptional() @IsIn(['M', 'F']) gender?: 'M' | 'F';
+  @ApiPropertyOptional({ example: 'B(III) Rh+' }) @IsOptional() @IsString() @MaxLength(20) bloodType?: string;
+
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(30) @Max(260) heightCm?: number;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(2) @Max(400) weightKg?: number;
+
+  @ApiPropertyOptional({ type: [String], description: 'Аллергии (массив)' })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  allergies?: string[];
+
+  @ApiPropertyOptional({ description: 'Хронические заболевания' }) @IsOptional() @IsString() @MaxLength(1000) chronic?: string;
+  @ApiPropertyOptional({ description: 'Постоянные лекарства' }) @IsOptional() @IsString() @MaxLength(1000) medications?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() organDonor?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() pregnancy?: boolean;
+  @ApiPropertyOptional({ description: 'Полис ОМС/ДМС' }) @IsOptional() @IsString() @MaxLength(120) dmsPolicy?: string;
+  @ApiPropertyOptional({ description: 'Лечащий врач' }) @IsOptional() @IsString() @MaxLength(120) doctorName?: string;
+
+  @ApiPropertyOptional({ description: 'Согласие на обработку мед-данных (обязательно при первом сохранении)' })
+  @IsOptional()
+  @IsBoolean()
+  consent?: boolean;
 }

@@ -1,9 +1,9 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
-import { CreateAppointmentDto, DoctorSlotsQueryDto, DoctorsQueryDto } from './dto/health.dto';
+import { CreateAppointmentDto, DoctorSlotsQueryDto, DoctorsQueryDto, UpdateMedicalProfileDto } from './dto/health.dto';
 import { HealthService } from './health.service';
 
 @ApiTags('health')
@@ -17,6 +17,18 @@ export class HealthController {
   @ApiOperation({ summary: 'Список врачей (поиск, фильтр по специальности).' })
   doctors(@Query() query: DoctorsQueryDto) {
     return this.service.listDoctors(query);
+  }
+
+  @Get('medical-profile')
+  @ApiOperation({ summary: 'Моя мед.карта (Medical ID).' })
+  medicalProfile(@CurrentUser() user: JwtPayload) {
+    return this.service.getMedicalProfile(user.sub);
+  }
+
+  @Put('medical-profile')
+  @ApiOperation({ summary: 'Сохранить мед.карту (первое сохранение требует согласия).' })
+  saveMedicalProfile(@CurrentUser() user: JwtPayload, @Body() dto: UpdateMedicalProfileDto) {
+    return this.service.updateMedicalProfile(user.sub, dto);
   }
 
   @Get('appointments')

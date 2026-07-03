@@ -219,6 +219,7 @@ model User {
   supportMessages  SupportMessage[]
   partnerReviews   PartnerReview[]
   partnerBookings  PartnerBooking[]
+  medicalProfile   MedicalProfile?
 
   // B2B-кабинет (роль PARTNER): пользователь владеет РОВНО одной сущностью — компанией ИЛИ точкой.
   ownedCompany InsuranceCompany? @relation("CompanyOwner")
@@ -598,6 +599,33 @@ model Partner {
   @@index([city])
   @@index([categoryId])
   @@map("partners")
+}
+
+// Мед.карта (Medical ID · M14.9/14.10). Чувствительные поля (allergies/chronic/
+// medications) хранятся ЗАШИФРОВАННЫМИ (AES-256-GCM, common/crypto/field-cipher).
+model MedicalProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName    String?
+  birthDate   String? // «15.03.1994» (свободный формат из формы)
+  gender      String? // 'M' | 'F'
+  bloodType   String? // «B(III) Rh+»
+  heightCm    Int?
+  weightKg    Int?
+  allergies   String? @db.Text // ШИФРУЕТСЯ (JSON-массив строк)
+  chronic     String? @db.Text // ШИФРУЕТСЯ
+  medications String? @db.Text // ШИФРУЕТСЯ
+  organDonor  Boolean?
+  pregnancy   Boolean?
+  dmsPolicy   String?
+  doctorName  String?
+  consentAt   DateTime? // согласие на обработку мед-данных (фиксируется при первом сохранении)
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+
+  @@map("medical_profiles")
 }
 
 // Врач при клинике-партнёре (M14 · раздел «Здоровье»). Запись к врачу —
