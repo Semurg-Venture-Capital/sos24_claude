@@ -374,6 +374,9 @@ importers:
       expo-constants:
         specifier: ^55.0.16
         version: 55.0.16(expo@55.0.25)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))
+      expo-contacts:
+        specifier: ~55.0.15
+        version: 55.0.15(expo@55.0.25)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       expo-device:
         specifier: ~55.0.17
         version: 55.0.17(expo@55.0.25)
@@ -4385,6 +4388,13 @@ packages:
     resolution: {integrity: sha512-Z15/No94UHoogD+pulxjudGAeOHTEIWZgb/vnX48Wx5D+apWTeCbnKxQZZtGQlosvduYL5kaic2/W8U+NHfBQQ==}
     peerDependencies:
       expo: '*'
+      react-native: '*'
+
+  expo-contacts@55.0.15:
+    resolution: {integrity: sha512-A2LIxjZDcVeZyhnJRvUoT2LixjvfVk2muoyCApfpw99TrTPK717AWzYe78KAL8nnbvaVcSlXvZzvnMZo/OFBRw==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
       react-native: '*'
 
   expo-device@55.0.17:
@@ -12645,6 +12655,12 @@ snapshots:
       react-native: 0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.4)
     transitivePeerDependencies:
       - supports-color
+
+  expo-contacts@55.0.15(expo@55.0.25)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
+    dependencies:
+      expo: 55.0.25(@babel/core@7.29.0)(@expo/dom-webview@55.0.6)(@expo/metro-runtime@55.0.11)(react-dom@19.2.0(react@19.2.0))(react-native-webview@13.16.0(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native-worklets@0.7.4(@babel/core@7.29.0)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+      react: 19.2.0
+      react-native: 0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)
 
   expo-device@55.0.17(expo@55.0.25):
     dependencies:

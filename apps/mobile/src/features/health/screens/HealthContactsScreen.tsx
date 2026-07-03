@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Contacts from 'expo-contacts';
 import { tokens } from '../../../theme/colors';
 import { BackButton } from '../../../components/ui/BackButton';
 import { TextField } from '../../../components/ui/TextField';
 import { Toggle } from '../../../components/ui/Toggle';
 import { AddTile } from '../../../components/ui/AddTile';
 import { RedButton } from '../../../components/ui/RedButton';
+import { UsersIcon } from '../../../components/icons/MedIcons';
 import { useAddContact, useDeleteContact, useEmergencyContacts } from '../../../api/health';
 import { MedContactCard, MedSectionLabel, medGlass } from '../components';
 
@@ -52,6 +54,25 @@ export function HealthContactsScreen() {
     ]);
   };
 
+  // Выбор из телефонной книги (нативный пикер, полный доступ к контактам не нужен).
+  const pickFromContacts = async () => {
+    try {
+      const picked = await Contacts.presentContactPickerAsync();
+      if (!picked) return;
+      const pickedName = picked.name || [picked.firstName, picked.lastName].filter(Boolean).join(' ');
+      const pickedPhone = picked.phoneNumbers?.[0]?.number;
+      setName(pickedName ?? '');
+      setPhone(pickedPhone ?? '');
+      setRelation('');
+      setAdding(true);
+      if (!pickedPhone) {
+        Alert.alert('Нет номера', 'У выбранного контакта нет телефона — впишите его вручную.');
+      }
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось открыть контакты.');
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
       <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
@@ -91,6 +112,22 @@ export function HealthContactsScreen() {
           {/* Форма добавления */}
           {adding ? (
             <View style={[{ padding: 16, borderRadius: 22, gap: 12 }, medGlass]}>
+              <Pressable
+                onPress={pickFromContacts}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  height: 46,
+                  borderRadius: 999,
+                  backgroundColor: 'rgba(86,140,255,0.14)',
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <UsersIcon size={17} color="#1a3577" />
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#1a3577' }}>Выбрать из контактов</Text>
+              </Pressable>
               <TextField label="Имя" value={name} onChangeText={setName} placeholder="Гулнора Каримова" />
               <TextField label="Кем приходится" value={relation} onChangeText={setRelation} placeholder="Супруга" />
               <TextField
@@ -120,7 +157,25 @@ export function HealthContactsScreen() {
               </View>
             </View>
           ) : canAdd ? (
-            <AddTile onPress={() => setAdding(true)}>Добавить контакт</AddTile>
+            <View style={{ gap: 10 }}>
+              <Pressable
+                onPress={pickFromContacts}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  height: 52,
+                  borderRadius: 999,
+                  backgroundColor: tokens.inkDark,
+                  opacity: pressed ? 0.85 : 1,
+                })}
+              >
+                <UsersIcon size={18} color="#fff" />
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: '#fff' }}>Выбрать из контактов</Text>
+              </Pressable>
+              <AddTile onPress={() => setAdding(true)}>Ввести вручную</AddTile>
+            </View>
           ) : (
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkMuted, paddingHorizontal: 4 }}>
               Достигнут лимит в {limit} контакта. Удалите один, чтобы добавить другой.
