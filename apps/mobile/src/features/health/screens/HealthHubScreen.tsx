@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Easing, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
@@ -14,6 +14,9 @@ import { MedDoctorCard, MedQuickTile, MedSectionLabel } from '../components';
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthHub'>;
 
 const money = (n: number | null) => (n != null ? `${n.toLocaleString('ru-RU')} сум` : '—');
+
+// Короткий номер экстренной службы SOS24 (диспетчер 24/7). Поменять здесь.
+const SOS_HOTLINE = '1024';
 
 // M14.1 — Хаб раздела «Здоровье» (Фаза C · собран на медкомпонентах Фазы B).
 // SOS-герой, вход в ИИ-диагноз, быстрые плитки, «врачи рядом».
@@ -108,10 +111,10 @@ export function HealthHubScreen() {
               />
               <MedQuickTile
                 tone="red"
-                title="Скорая 103"
-                sub="Прямой вызов, гео автоматически"
+                title="Скорая помощь"
+                sub={`Звонок диспетчеру · ${SOS_HOTLINE}`}
                 icon={(c) => <PhoneFillIcon size={20} color={c} />}
-                onPress={openSos}
+                onPress={() => Linking.openURL(`tel:${SOS_HOTLINE}`)}
               />
             </View>
             <View style={{ flexDirection: 'row', gap: 12 }}>
