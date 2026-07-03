@@ -110,11 +110,11 @@ export function HealthMedCardEditScreen() {
       }
       if (res.heightCm != null) {
         setHeight(String(res.heightCm));
-        filled.push('рост');
+        filled.push(`рост ${res.heightCm} см${res.heightMeta ? ` (${res.heightMeta})` : ''}`);
       }
       if (res.weightKg != null) {
         setWeight(String(res.weightKg));
-        filled.push('вес');
+        filled.push(`вес ${res.weightKg} кг${res.weightMeta ? ` (${res.weightMeta})` : ''}`);
       }
 
       // Отдельно поясняем судьбу группы крови (частый вопрос).
@@ -128,7 +128,7 @@ export function HealthMedCardEditScreen() {
       Alert.alert(
         filled.length ? 'Данные импортированы' : 'Нет данных',
         (filled.length
-          ? `Заполнено из «Здоровья»: ${filled.join(', ')}. Проверьте и сохраните.`
+          ? `Заполнено из «Здоровья»:\n• ${filled.join('\n• ')}\n\nЗначения берутся из самого свежего замера — проверьте и при необходимости исправьте перед сохранением.`
           : 'В приложении «Здоровье» нет доступных данных для импорта.') + bloodNote,
       );
     } catch {

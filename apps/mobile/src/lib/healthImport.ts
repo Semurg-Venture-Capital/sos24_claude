@@ -13,9 +13,25 @@ export interface HealthImportResult {
   bloodType?: string; // «B(III) Rh+»
   heightCm?: number;
   weightKg?: number;
+  // Источник/дата импортированного замера (для сверки: HealthKit берёт самый
+  // свежий замер по дате среди ВСЕХ источников — он может отличаться от того,
+  // что показано в «Медданных»/Medical ID, которые нам недоступны).
+  heightMeta?: string; // «Apple Watch · 14.05.2025»
+  weightMeta?: string;
   // Почему группа крови не подтянулась: 'ok' — подтянулась; 'notSet' — в Health
   // не задана; 'denied' — нет доступа к чтению этой характеристики.
   bloodTypeStatus: 'ok' | 'notSet' | 'denied';
+}
+
+function sampleMeta(sample: { sourceRevision?: { source?: { name?: string } }; startDate?: Date } | undefined): string | undefined {
+  if (!sample) return undefined;
+  const src = sample.sourceRevision?.source?.name;
+  let date: string | undefined;
+  if (sample.startDate) {
+    const d = sample.startDate instanceof Date ? sample.startDate : new Date(sample.startDate);
+    if (!isNaN(d.getTime())) date = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+  }
+  return [src, date].filter(Boolean).join(' · ') || undefined;
 }
 
 // BloodType enum HealthKit → наш формат группы крови.
@@ -68,14 +84,20 @@ export async function importFromHealth(): Promise<HealthImportResult | null> {
 
   try {
     const h = await HK.getMostRecentQuantitySample('HKQuantityTypeIdentifierHeight', 'cm');
-    if (h?.quantity) result.heightCm = Math.round(h.quantity);
+    if (h?.quantity) {
+      result.heightCm = Math.round(h.quantity);
+      result.heightMeta = sampleMeta(h);
+    }
   } catch {
     /* рост не задан */
   }
 
   try {
     const w = await HK.getMostRecentQuantitySample('HKQuantityTypeIdentifierBodyMass', 'kg');
-    if (w?.quantity) result.weightKg = Math.round(w.quantity);
+    if (w?.quantity) {
+      result.weightKg = Math.round(w.quantity);
+      result.weightMeta = sampleMeta(w);
+    }
   } catch {
     /* вес не задан */
   }
