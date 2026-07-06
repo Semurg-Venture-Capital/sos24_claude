@@ -90,3 +90,7 @@ coverage/
 
 # k8s secrets (не коммитим)
 deploy/k8s/secret.yaml
+
+# Reference-исходники (рабочие копии — в apps/mobile/assets)
+/auto-parts.jpg
+/auto_sides
