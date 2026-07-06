@@ -55,7 +55,7 @@ export class SubmitEuroDto {
 
   // --- Сторона A: доп. ---
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) ownershipDocA?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) damageDescA?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1500) damageDescA?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) objectionsA?: string;
   @ApiPropertyOptional({ description: 'Коды зон удара через запятую (мультивыбор)', example: 'front,front-left' }) @IsOptional() @Matches(IMPACT_ZONES_CSV) impactZoneA?: string;
 
@@ -68,7 +68,7 @@ export class SubmitEuroDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) otherOwnershipDoc?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(150) otherInsurer?: string;
   @ApiPropertyOptional({ example: '2026-12-31' }) @IsOptional() @IsString() @MaxLength(10) otherPolicyValidUntil?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) damageDescB?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1500) damageDescB?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) objectionsB?: string;
   @ApiPropertyOptional({ description: 'Коды зон удара через запятую (мультивыбор)', example: 'rear,rear-right' }) @IsOptional() @Matches(IMPACT_ZONES_CSV) impactZoneB?: string;
 

@@ -16,6 +16,7 @@ import { SummaryBlock } from '../../../components/ui/SummaryBlock';
 import { WizardFrame } from '../../../components/ui/WizardFrame';
 import { tokens } from '../../../theme/colors';
 import { REQUIRED_PHOTOS, useEuroStore, type PhotoKey } from '../store';
+import { damagePartsText } from '../components/DamagePartsPicker';
 import type { EuroStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStep5'>;
@@ -128,7 +129,7 @@ export function EuroStep5Screen() {
         circumstancesA: s.circumstancesA,
         circumstancesB: s.circumstancesB,
         // сторона A
-        damageDescA: s.damageDescA || undefined,
+        damageDescA: [damagePartsText(s.damagePartsA), s.damageDescA.trim()].filter(Boolean).join('. ') || undefined,
         objectionsA: s.objectionsA || undefined,
         impactZoneA: s.impactZoneA.length ? s.impactZoneA.join(',') : undefined,
         ownershipDocA: s.ownershipDocA || undefined,
@@ -142,7 +143,7 @@ export function EuroStep5Screen() {
         otherDlIssue: s.otherDlIssue || undefined,
         otherInsurer: s.otherInsurer || undefined,
         otherPolicyValidUntil: s.otherPolicyValidUntil || undefined,
-        damageDescB: s.damageDescB || undefined,
+        damageDescB: [damagePartsText(s.damagePartsB), s.damageDescB.trim()].filter(Boolean).join('. ') || undefined,
         objectionsB: s.objectionsB || undefined,
         // оборот
         driverRole: s.driverRole ?? undefined,

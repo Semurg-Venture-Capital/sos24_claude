@@ -85,7 +85,8 @@ interface EuroState {
   circumstancesB: boolean[];
 
   // --- Сторона A: доп. поля ---
-  damageDescA: string;
+  damagePartsA: string[]; // повреждённые детали (коды, мультивыбор по схеме)
+  damageDescA: string; // доп. описание повреждений (свободный текст)
   objectionsA: string;
   impactZoneA: string[]; // зоны первого удара (коды, мультивыбор)
   ownershipDocA: string; // док. о праве владения (если водитель ≠ владелец)
@@ -99,6 +100,7 @@ interface EuroState {
   otherDlIssue: string; // YYYY-MM-DD
   otherInsurer: string;
   otherPolicyValidUntil: string; // YYYY-MM-DD
+  damagePartsB: string[]; // повреждённые детали стороны B
   damageDescB: string;
   objectionsB: string;
   impactZoneB: string[]; // зоны первого удара стороны B (коды, мультивыбор)
@@ -186,6 +188,7 @@ const INITIAL = {
   officerBadgeNo: '',
   circumstancesA: Array(22).fill(false) as boolean[],
   circumstancesB: Array(22).fill(false) as boolean[],
+  damagePartsA: [] as string[],
   damageDescA: '',
   objectionsA: '',
   impactZoneA: [] as string[],
@@ -198,6 +201,7 @@ const INITIAL = {
   otherDlIssue: '',
   otherInsurer: '',
   otherPolicyValidUntil: '',
+  damagePartsB: [] as string[],
   damageDescB: '',
   objectionsB: '',
   impactZoneB: [] as string[],
