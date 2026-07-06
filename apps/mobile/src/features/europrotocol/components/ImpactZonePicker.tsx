@@ -16,6 +16,27 @@ export type ImpactZone =
   | 'rear'
   | 'rear-right';
 
+// Русские метки зон (для текстовой сводки под схемой).
+export const ZONE_LABEL_RU: Record<string, string> = {
+  front: 'перёд',
+  rear: 'зад',
+  left: 'левая сторона',
+  right: 'правая сторона',
+  'front-left': 'перёд-слева',
+  'front-right': 'перёд-справа',
+  'rear-left': 'зад-слева',
+  'rear-right': 'зад-справа',
+};
+
+// Порядок для читабельной сводки.
+const ZONE_ORDER: ImpactZone[] = ['front-left', 'front', 'front-right', 'left', 'right', 'rear-left', 'rear', 'rear-right'];
+
+export function zonesText(codes: string[]): string {
+  return ZONE_ORDER.filter((z) => codes.includes(z))
+    .map((z) => ZONE_LABEL_RU[z])
+    .join(', ');
+}
+
 // Угол стрелки «внутрь» (0° = вверх), по позиции ячейки вокруг авто.
 const INWARD_ANGLE: Record<ImpactZone, number> = {
   'front-left': 135,
@@ -37,10 +58,12 @@ export function ImpactZonePicker({
   onChange,
 }: {
   label?: string;
-  value: string | null;
-  onChange: (v: ImpactZone) => void;
+  value: string[];
+  onChange: (next: string[]) => void;
 }) {
-  const cell = (zone: ImpactZone) => <ZoneCell zone={zone} active={value === zone} onPress={() => onChange(zone)} />;
+  const toggle = (zone: ImpactZone) =>
+    onChange(value.includes(zone) ? value.filter((z) => z !== zone) : [...value, zone]);
+  const cell = (zone: ImpactZone) => <ZoneCell zone={zone} active={value.includes(zone)} onPress={() => toggle(zone)} />;
 
   return (
     <View style={{ gap: 8 }}>
@@ -77,6 +100,10 @@ export function ImpactZonePicker({
           {cell('rear-right')}
         </View>
       </View>
+      {/* Текстовая сводка выбранных зон */}
+      <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12.5, color: value.length ? tokens.inkDark : tokens.inkSubtle, paddingLeft: 2 }}>
+        {value.length ? `Удар: ${zonesText(value)}` : 'Зона не выбрана'}
+      </Text>
     </View>
   );
 }

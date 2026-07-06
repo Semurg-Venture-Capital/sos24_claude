@@ -13,6 +13,8 @@ import {
 } from 'class-validator';
 
 const IMPACT_ZONES = ['front', 'rear', 'left', 'right', 'front-left', 'front-right', 'rear-left', 'rear-right'];
+// Одна зона или несколько через запятую (мультивыбор): «front» | «front,front-left».
+const IMPACT_ZONES_CSV = new RegExp(`^(${IMPACT_ZONES.join('|')})(,(${IMPACT_ZONES.join('|')}))*$`);
 
 // Полезная нагрузка визарда европротокола (сбор данных, без PDF).
 export class SubmitEuroDto {
@@ -55,7 +57,7 @@ export class SubmitEuroDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) ownershipDocA?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) damageDescA?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) objectionsA?: string;
-  @ApiPropertyOptional({ enum: IMPACT_ZONES }) @IsOptional() @IsIn(IMPACT_ZONES) impactZoneA?: string;
+  @ApiPropertyOptional({ description: 'Коды зон удара через запятую (мультивыбор)', example: 'front,front-left' }) @IsOptional() @Matches(IMPACT_ZONES_CSV) impactZoneA?: string;
 
   // --- Сторона B: ручной ввод ---
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) otherOwnerAddr?: string;
@@ -68,7 +70,7 @@ export class SubmitEuroDto {
   @ApiPropertyOptional({ example: '2026-12-31' }) @IsOptional() @IsString() @MaxLength(10) otherPolicyValidUntil?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) damageDescB?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) objectionsB?: string;
-  @ApiPropertyOptional({ enum: IMPACT_ZONES }) @IsOptional() @IsIn(IMPACT_ZONES) impactZoneB?: string;
+  @ApiPropertyOptional({ description: 'Коды зон удара через запятую (мультивыбор)', example: 'rear,rear-right' }) @IsOptional() @Matches(IMPACT_ZONES_CSV) impactZoneB?: string;
 
   // --- Оборот ---
   @ApiPropertyOptional({ enum: ['owner', 'other'] }) @IsOptional() @IsIn(['owner', 'other']) driverRole?: string;

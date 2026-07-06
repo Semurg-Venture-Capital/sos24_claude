@@ -87,7 +87,7 @@ interface EuroState {
   // --- Сторона A: доп. поля ---
   damageDescA: string;
   objectionsA: string;
-  impactZoneA: string | null; // зона первого удара (код)
+  impactZoneA: string[]; // зоны первого удара (коды, мультивыбор)
   ownershipDocA: string; // док. о праве владения (если водитель ≠ владелец)
   otherOwnershipDoc: string; // док. владения стороны B
 
@@ -101,7 +101,7 @@ interface EuroState {
   otherPolicyValidUntil: string; // YYYY-MM-DD
   damageDescB: string;
   objectionsB: string;
-  impactZoneB: string | null; // зона первого удара стороны B (код)
+  impactZoneB: string[]; // зоны первого удара стороны B (коды, мультивыбор)
   otherSigned: boolean; // сторона B подписала по OTP
 
   // --- Оборот (стр.2) ---
@@ -188,7 +188,7 @@ const INITIAL = {
   circumstancesB: Array(22).fill(false) as boolean[],
   damageDescA: '',
   objectionsA: '',
-  impactZoneA: null as string | null,
+  impactZoneA: [] as string[],
   ownershipDocA: '',
   otherOwnershipDoc: '',
   otherOwnerAddr: '',
@@ -200,7 +200,7 @@ const INITIAL = {
   otherPolicyValidUntil: '',
   damageDescB: '',
   objectionsB: '',
-  impactZoneB: null as string | null,
+  impactZoneB: [] as string[],
   otherSigned: false,
   driverRole: null as 'owner' | 'other' | null,
   canMove: null as boolean | null,

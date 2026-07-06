@@ -19,9 +19,14 @@ const ZONE_LABEL: Record<string, string> = {
   'rear-left': 'орқа-чап',
   'rear-right': 'орқа-ўнг',
 };
+// Одна зона или несколько кодов через запятую (мультивыбор) → узбекские метки.
 function zoneLabel(code?: string | null): string {
   if (!code) return '';
-  return ZONE_LABEL[code] ?? code;
+  return code
+    .split(',')
+    .map((c) => ZONE_LABEL[c.trim()] ?? c.trim())
+    .filter(Boolean)
+    .join(', ');
 }
 
 @Injectable()

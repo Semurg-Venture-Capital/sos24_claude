@@ -130,12 +130,12 @@ export function EuroStep5Screen() {
         // сторона A
         damageDescA: s.damageDescA || undefined,
         objectionsA: s.objectionsA || undefined,
-        impactZoneA: s.impactZoneA || undefined,
+        impactZoneA: s.impactZoneA.length ? s.impactZoneA.join(',') : undefined,
         ownershipDocA: s.ownershipDocA || undefined,
         // сторона B
         otherOwnerAddr: s.otherOwnerAddr || undefined,
         otherOwnershipDoc: s.otherOwnershipDoc || undefined,
-        impactZoneB: s.impactZoneB || undefined,
+        impactZoneB: s.impactZoneB.length ? s.impactZoneB.join(',') : undefined,
         otherDlSeria: s.otherDlSeria || undefined,
         otherDlNumber: s.otherDlNumber || undefined,
         otherDlCategories: s.otherDlCategories || undefined,
