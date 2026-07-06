@@ -139,8 +139,7 @@ function InwardArrow({ angle, color }: { angle: number; color: string }) {
   );
 }
 
-// Силуэт авто (вид сверху) — та же машина, что на схеме повреждений (auto-parts),
-// без «плюсиков». Картинка для единого стиля обоих экранов.
+// Силуэт авто (вид сверху) — чистая схема-картинка (assets/euro/car-top.png).
 function CarTopView() {
   return (
     <Image
