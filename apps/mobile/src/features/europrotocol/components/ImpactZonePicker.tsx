@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
-import Svg, { Defs, Ellipse, G, LinearGradient, Line, Path, Rect, Stop } from 'react-native-svg';
+import Svg, { G, Line, Path, Rect } from 'react-native-svg';
 import { tokens } from '../../../theme/colors';
 
 // Интерактивный выбор зоны первого удара (европротокол, шаг 3).
@@ -139,56 +139,49 @@ function InwardArrow({ angle, color }: { angle: number; color: string }) {
   );
 }
 
-// Силуэт авто (вид сверху, перёд — вверх): залитый кузов с лёгким градиентом,
-// стёкла, крыша, колёса и зеркала.
+// Силуэт авто (вид сверху, перёд — вверх). Технический line-art в стиле схемы
+// осмотра: тонкий монохромный контур без заливок и градиентов.
 function CarTopView() {
-  const outline = 'rgba(20,20,20,0.22)';
-  const glass = '#cdd6e6';
-  const glassStroke = 'rgba(20,20,20,0.12)';
-  const wheel = '#33363d';
+  const line = '#9aa1ab';
+  const thin = '#c2c7cf';
+  const sw = 1.6;
   return (
-    <Svg width={72} height={144} viewBox="0 0 120 240" fill="none">
-      <Defs>
-        <LinearGradient id="carBody" x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor="#f4f5f8" />
-          <Stop offset="0.5" stopColor="#ffffff" />
-          <Stop offset="1" stopColor="#e8eaef" />
-        </LinearGradient>
-      </Defs>
-
-      {/* Колёса (под кузовом) */}
-      <Rect x={12} y={52} width={11} height={30} rx={4} fill={wheel} />
-      <Rect x={97} y={52} width={11} height={30} rx={4} fill={wheel} />
-      <Rect x={12} y={162} width={11} height={30} rx={4} fill={wheel} />
-      <Rect x={97} y={162} width={11} height={30} rx={4} fill={wheel} />
+    <Svg width={70} height={140} viewBox="0 0 120 240" fill="none">
+      {/* Колёса — тонкий контур */}
+      {[
+        [15, 54],
+        [96, 54],
+        [15, 164],
+        [96, 164],
+      ].map(([x, y], i) => (
+        <Rect key={i} x={x} y={y} width={9} height={28} rx={4} stroke={line} strokeWidth={1.3} />
+      ))}
 
       {/* Зеркала */}
-      <Ellipse cx={20} cy={70} rx={6} ry={4} fill="url(#carBody)" stroke={outline} strokeWidth={1} />
-      <Ellipse cx={100} cy={70} rx={6} ry={4} fill="url(#carBody)" stroke={outline} strokeWidth={1} />
+      <Path d="M28 66 L20 62" stroke={line} strokeWidth={1.4} strokeLinecap="round" />
+      <Path d="M92 66 L100 62" stroke={line} strokeWidth={1.4} strokeLinecap="round" />
 
       {/* Кузов */}
       <Path
-        d="M60 10 C48 10 40 14 36 24 L30 42 C25 56 24 70 24 96 L24 156 C24 182 26 196 32 208 C38 222 48 228 60 228 C72 228 82 222 88 208 C94 196 96 182 96 156 L96 96 C96 70 95 56 90 42 L84 24 C80 14 72 10 60 10 Z"
-        fill="url(#carBody)"
-        stroke={outline}
-        strokeWidth={2}
+        d="M60 8 C47 8 39 12 35 23 L29 42 C24 57 23 71 23 97 L23 156 C23 183 25 197 31 209 C37 223 47 230 60 230 C73 230 83 223 89 209 C95 197 97 183 97 156 L97 97 C97 71 96 57 91 42 L85 23 C81 12 73 8 60 8 Z"
+        stroke={line}
+        strokeWidth={sw}
         strokeLinejoin="round"
       />
 
+      {/* Передний бампер / капот */}
+      <Path d="M35 26 C44 22 76 22 85 26" stroke={line} strokeWidth={1.3} />
       {/* Лобовое стекло */}
-      <Path d="M38 58 C46 52 74 52 82 58 L86 78 C74 71 46 71 34 78 Z" fill={glass} stroke={glassStroke} strokeWidth={1} strokeLinejoin="round" />
-      {/* Крыша */}
-      <Rect x={35} y={82} width={50} height={70} rx={8} fill="#eef0f4" stroke={glassStroke} strokeWidth={1} />
+      <Path d="M35 76 C46 69 74 69 85 76" stroke={line} strokeWidth={1.3} />
+      <Path d="M40 58 C48 54 72 54 80 58" stroke={thin} strokeWidth={1.1} />
+      {/* Крыша (боковые окна) */}
+      <Path d="M36 78 L36 150" stroke={line} strokeWidth={1.3} />
+      <Path d="M84 78 L84 150" stroke={line} strokeWidth={1.3} />
       {/* Заднее стекло */}
-      <Path d="M34 158 C46 165 74 165 86 158 L82 176 C74 170 46 170 38 176 Z" fill={glass} stroke={glassStroke} strokeWidth={1} strokeLinejoin="round" />
-
-      {/* Боковые стёкла */}
-      <Path d="M37 86 L37 148" stroke={glassStroke} strokeWidth={1} />
-      <Path d="M83 86 L83 148" stroke={glassStroke} strokeWidth={1} />
-
-      {/* Капот и багажник — тонкие линии */}
-      <Line x1={44} y1={30} x2={76} y2={30} stroke={outline} strokeWidth={1.2} strokeLinecap="round" />
-      <Line x1={42} y1={210} x2={78} y2={210} stroke={outline} strokeWidth={1.2} strokeLinecap="round" />
+      <Path d="M35 152 C46 159 74 159 85 152" stroke={line} strokeWidth={1.3} />
+      {/* Крышка багажника / задний бампер */}
+      <Path d="M35 200 C44 205 76 205 85 200" stroke={line} strokeWidth={1.3} />
+      <Path d="M35 214 C44 218 76 218 85 214" stroke={thin} strokeWidth={1.1} />
     </Svg>
   );
 }
