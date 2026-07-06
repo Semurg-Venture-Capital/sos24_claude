@@ -1,5 +1,5 @@
-import { Pressable, Text, View } from 'react-native';
-import Svg, { G, Line, Path, Rect } from 'react-native-svg';
+import { Image, Pressable, Text, View } from 'react-native';
+import Svg, { G, Line, Path } from 'react-native-svg';
 import { tokens } from '../../../theme/colors';
 
 // Интерактивный выбор зоны первого удара (европротокол, шаг 3).
@@ -139,49 +139,14 @@ function InwardArrow({ angle, color }: { angle: number; color: string }) {
   );
 }
 
-// Силуэт авто (вид сверху, перёд — вверх). Технический line-art в стиле схемы
-// осмотра: тонкий монохромный контур без заливок и градиентов.
+// Силуэт авто (вид сверху) — та же машина, что на схеме повреждений (auto-parts),
+// без «плюсиков». Картинка для единого стиля обоих экранов.
 function CarTopView() {
-  const line = '#9aa1ab';
-  const thin = '#c2c7cf';
-  const sw = 1.6;
   return (
-    <Svg width={70} height={140} viewBox="0 0 120 240" fill="none">
-      {/* Колёса — тонкий контур */}
-      {[
-        [15, 54],
-        [96, 54],
-        [15, 164],
-        [96, 164],
-      ].map(([x, y], i) => (
-        <Rect key={i} x={x} y={y} width={9} height={28} rx={4} stroke={line} strokeWidth={1.3} />
-      ))}
-
-      {/* Зеркала */}
-      <Path d="M28 66 L20 62" stroke={line} strokeWidth={1.4} strokeLinecap="round" />
-      <Path d="M92 66 L100 62" stroke={line} strokeWidth={1.4} strokeLinecap="round" />
-
-      {/* Кузов */}
-      <Path
-        d="M60 8 C47 8 39 12 35 23 L29 42 C24 57 23 71 23 97 L23 156 C23 183 25 197 31 209 C37 223 47 230 60 230 C73 230 83 223 89 209 C95 197 97 183 97 156 L97 97 C97 71 96 57 91 42 L85 23 C81 12 73 8 60 8 Z"
-        stroke={line}
-        strokeWidth={sw}
-        strokeLinejoin="round"
-      />
-
-      {/* Передний бампер / капот */}
-      <Path d="M35 26 C44 22 76 22 85 26" stroke={line} strokeWidth={1.3} />
-      {/* Лобовое стекло */}
-      <Path d="M35 76 C46 69 74 69 85 76" stroke={line} strokeWidth={1.3} />
-      <Path d="M40 58 C48 54 72 54 80 58" stroke={thin} strokeWidth={1.1} />
-      {/* Крыша (боковые окна) */}
-      <Path d="M36 78 L36 150" stroke={line} strokeWidth={1.3} />
-      <Path d="M84 78 L84 150" stroke={line} strokeWidth={1.3} />
-      {/* Заднее стекло */}
-      <Path d="M35 152 C46 159 74 159 85 152" stroke={line} strokeWidth={1.3} />
-      {/* Крышка багажника / задний бампер */}
-      <Path d="M35 200 C44 205 76 205 85 200" stroke={line} strokeWidth={1.3} />
-      <Path d="M35 214 C44 218 76 218 85 214" stroke={thin} strokeWidth={1.1} />
-    </Svg>
+    <Image
+      source={require('../../../../assets/euro/car-top.png')}
+      style={{ width: '100%', height: '92%' }}
+      resizeMode="contain"
+    />
   );
 }
