@@ -60,7 +60,16 @@ export async function updateProfile(input: UpdateProfileInput) {
 const ME_KEY = ['me'] as const;
 
 export function useMe() {
-  return useQuery({ queryKey: ME_KEY, queryFn: getMe });
+  return useQuery({
+    queryKey: ME_KEY,
+    queryFn: getMe,
+    // Протухший токен (401) не ретраим — обработается редиректом на логин.
+    retry: (count, err) => {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401) return false;
+      return count < 2;
+    },
+  });
 }
 
 export function useUpdateProfile() {

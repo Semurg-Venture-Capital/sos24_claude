@@ -38,6 +38,7 @@ import { SosBanner } from '../../../components/ui/SosBanner';
 import { SosLogo } from '../../../components/ui/SosLogo';
 import { TopBar } from '../../../components/ui/TopBar';
 import { tokens } from '../../../theme/colors';
+import { useAuthStore } from '../../../stores/authStore';
 import type { MainStackParamList, MainTabParamList } from '../../../navigation/types';
 
 type RootNav = NativeStackNavigationProp<MainStackParamList>;
@@ -78,9 +79,18 @@ export function HomeScreen() {
   const greeting = greetingByHour(new Date().getHours());
   const nav = useNavigation<TabNav>();
   const insets = useSafeAreaInsets();
-  const { data: me } = useMe();
+  const { data: me, isError: meIsError, error: meError, refetch: refetchMe } = useMe();
   const { data: weather, isFetching: weatherFetching, refetch: refetchWeather } = useWeather();
   const { data: unreadCount } = useUnreadCount();
+  const signOut = useAuthStore((s) => s.signOut);
+
+  // Ошибка загрузки профиля: 401 (протух/невалиден токен) → выход на логин;
+  // прочие ошибки (сеть/сервер) → показываем сообщение (см. ниже).
+  const meErrStatus = (meError as { response?: { status?: number } } | null)?.response?.status;
+  const meAuthError = meErrStatus === 401 || meErrStatus === 403;
+  useEffect(() => {
+    if (meIsError && meAuthError) void signOut();
+  }, [meIsError, meAuthError, signOut]);
 
   // Инициализация push: обработчик показа + регистрация токена устройства.
   useEffect(() => {
@@ -169,6 +179,43 @@ export function HomeScreen() {
         { label: 'Заявить убыток', icon: <ClaimIcon />, onPress: () => Alert.alert('Скоро', 'Оформление страхового случая'), destructive: true },
       ]
     : [];
+
+  // Не-авторизационная ошибка загрузки профиля (сеть/сервер) и профиль ещё не
+  // загружен — показываем понятное сообщение вместо «Гостя» с пустым экраном.
+  if (meIsError && !meAuthError && !me) {
+    return (
+      <PhoneFrame bottomSafeArea={false} topSafeArea={false}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 10 }}>
+          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink, textAlign: 'center' }}>
+            Не удалось загрузить данные
+          </Text>
+          <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center', lineHeight: 20 }}>
+            {meErrStatus
+              ? `Сервер вернул ошибку (${meErrStatus}). Попробуйте позже.`
+              : 'Проверьте подключение к интернету и попробуйте снова.'}
+          </Text>
+          <Pressable
+            onPress={() => void refetchMe()}
+            style={({ pressed }) => ({
+              marginTop: 8,
+              height: 48,
+              paddingHorizontal: 28,
+              borderRadius: 999,
+              backgroundColor: tokens.red,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 15, color: '#fff' }}>Повторить</Text>
+          </Pressable>
+          <Pressable onPress={() => void signOut()} style={({ pressed }) => ({ marginTop: 4, paddingVertical: 8, opacity: pressed ? 0.6 : 1 })}>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkMuted }}>Войти заново</Text>
+          </Pressable>
+        </View>
+      </PhoneFrame>
+    );
+  }
 
   return (
     <PhoneFrame bottomSafeArea={false} topSafeArea={false}>
