@@ -8,7 +8,8 @@ import { ScreenHeading } from '../../../components/ui/ScreenHeading';
 import { WizardFrame } from '../../../components/ui/WizardFrame';
 import { tokens } from '../../../theme/colors';
 import { EURO_CIRCUMSTANCES } from '../circumstances';
-import { FieldInput, SectionLabel, Segmented, YesNoToggle, ZoneSelect } from '../components/EuroFields';
+import { FieldInput, SectionLabel, Segmented, YesNoToggle } from '../components/EuroFields';
+import { ImpactZonePicker } from '../components/ImpactZonePicker';
 import { useEuroStore } from '../store';
 import type { EuroStackParamList } from '../../../navigation/types';
 
@@ -106,8 +107,11 @@ export function EuroStep3Screen() {
       {/* Зона первого удара */}
       <View style={{ gap: 12, marginTop: 4 }}>
         <SectionLabel>Зона первого удара</SectionLabel>
-        <ZoneSelect label="Ваше авто (А)" value={s.impactZoneA} onChange={(v) => patch({ impactZoneA: v })} />
-        <ZoneSelect label="Авто «В»" value={s.impactZoneB} onChange={(v) => patch({ impactZoneB: v })} />
+        <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 16, paddingLeft: 2 }}>
+          Нажмите на место, куда пришёлся первый удар.
+        </Text>
+        <ImpactZonePicker label="Ваше авто (А)" value={s.impactZoneA} onChange={(v) => patch({ impactZoneA: v })} />
+        <ImpactZonePicker label="Авто «В»" value={s.impactZoneB} onChange={(v) => patch({ impactZoneB: v })} />
       </View>
 
       {/* Повреждения и возражения */}
