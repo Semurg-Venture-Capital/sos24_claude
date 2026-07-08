@@ -225,6 +225,7 @@ model User {
   sosAlerts        SosAlert[]        @relation("SosOwner")
   dispatchedSos    SosAlert[]        @relation("SosDispatcher")
   triageSessions   TriageSession[]
+  wearables        WearableConnection[]
 
   // B2B-кабинет (роль PARTNER): пользователь владеет РОВНО одной сущностью — компанией ИЛИ точкой.
   ownedCompany InsuranceCompany? @relation("CompanyOwner")
@@ -721,6 +722,77 @@ model MedicalProfile {
   createdAt   DateTime  @default(now())
 
   @@map("medical_profiles")
+}
+
+// ── Носимые трекеры здоровья (M14 · WHOOP и т.п.) ──
+enum WearableProvider {
+  WHOOP
+}
+
+enum WearableStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+}
+
+// Подключение носимого устройства пользователя. Токены — ШИФРУЮТСЯ (field-cipher, как мед-поля).
+// Один провайдер на пользователя (unique [userId, provider]).
+model WearableConnection {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       WearableProvider
+  status         WearableStatus   @default(CONNECTED)
+  providerUserId String? // id пользователя на стороне провайдера (whoop user_id)
+  accessToken    String?          @db.Text // ШИФРУЕТСЯ
+  refreshToken   String?          @db.Text // ШИФРУЕТСЯ
+  scope          String?
+  expiresAt      DateTime? // истечение access-token
+  lastSyncAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  snapshot WhoopSnapshot?
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("wearable_connections")
+}
+
+// Последние метрики WHOOP на пользователя (для быстрой отдачи в приложение). 1:1 с подключением.
+model WhoopSnapshot {
+  id           String             @id @default(cuid())
+  connectionId String             @unique
+  connection   WearableConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  userId       String             @unique
+
+  // Готовность (Recovery)
+  recoveryScore Int? // 0..100
+  hrvMs         Float? // ВСР (rmssd, мс)
+  restingHr     Int? // пульс покоя
+  spo2          Float? // сатурация, % (только 4.0+)
+  skinTempC     Float? // температура кожи (только 4.0+)
+  recoveryAt    DateTime?
+
+  // Сон (Sleep)
+  sleepPerformance  Int? // %
+  sleepTotalMinutes Int?
+  sleepLightMin     Int?
+  sleepDeepMin      Int?
+  sleepRemMin       Int?
+  sleepAwakeMin     Int?
+  respiratoryRate   Float?
+  sleepAt           DateTime?
+
+  // Сутки / нагрузка (Cycle)
+  dayStrain Float? // 0..21
+  avgHr     Int?
+  maxHr     Int?
+  cycleAt   DateTime?
+
+  updatedAt DateTime @updatedAt
+
+  @@map("whoop_snapshots")
 }
 
 // Врач при клинике-партнёре (M14 · раздел «Здоровье»). Запись к врачу —
