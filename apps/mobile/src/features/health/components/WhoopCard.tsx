@@ -1,9 +1,15 @@
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { useQueryClient } from '@tanstack/react-query';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { tokens } from '../../../theme/colors';
 import { useConnectWhoop, useSyncWhoop, useWearable, timeAgo } from '../../../api/wearables';
 import { MedVital } from './MedVital';
 import { medGlass } from './medGlass';
+
+// Куда WHOOP вернёт пользователя после авторизации (совпадает с WHOOP_SUCCESS_DEEPLINK на бэке).
+const WHOOP_RETURN_URL = 'sos24://health/wearable';
 
 // Цвет кольца восстановления по шкале WHOOP: зелёный ≥67, янтарный 34–66, красный <34.
 function recoveryColor(score: number | null): string {
@@ -67,9 +73,29 @@ function RefreshIcon({ size = 16, color = tokens.inkMuted }: { size?: number; co
 
 // Секция «Мои показатели» на хабе «Здоровье». Два состояния: подключить WHOOP / метрики.
 export function WhoopCard({ onOpenDetail }: { onOpenDetail?: () => void }) {
+  const qc = useQueryClient();
   const { data, isLoading } = useWearable();
   const connect = useConnectWhoop();
   const sync = useSyncWhoop();
+  const [connecting, setConnecting] = useState(false);
+
+  // real: открываем OAuth WHOOP в браузере и ждём возврата по sos24://.
+  // mock: connect уже подключил на сервере (authorizeUrl нет) — просто обновляем статус.
+  const onConnect = async () => {
+    if (connecting) return;
+    setConnecting(true);
+    try {
+      const res = await connect.mutateAsync();
+      if (res?.authorizeUrl) {
+        await WebBrowser.openAuthSessionAsync(res.authorizeUrl, WHOOP_RETURN_URL);
+        await qc.invalidateQueries({ queryKey: ['health', 'wearable'] });
+      }
+    } catch {
+      Alert.alert('Не удалось подключить', 'Попробуйте ещё раз.');
+    } finally {
+      setConnecting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -102,8 +128,8 @@ export function WhoopCard({ onOpenDetail }: { onOpenDetail?: () => void }) {
           </Text>
         </View>
         <Pressable
-          onPress={() => connect.mutate()}
-          disabled={connect.isPending}
+          onPress={onConnect}
+          disabled={connecting}
           style={{
             height: 40,
             paddingHorizontal: 18,
@@ -111,10 +137,10 @@ export function WhoopCard({ onOpenDetail }: { onOpenDetail?: () => void }) {
             backgroundColor: tokens.red,
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: connect.isPending ? 0.6 : 1,
+            opacity: connecting ? 0.6 : 1,
           }}
         >
-          {connect.isPending ? (
+          {connecting ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13.5, color: '#fff' }}>Подключить</Text>
