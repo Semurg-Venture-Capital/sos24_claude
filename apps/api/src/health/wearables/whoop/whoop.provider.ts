@@ -4,6 +4,7 @@
 
 import { Logger } from '@nestjs/common';
 import {
+  WHOOP_API_BASE,
   WHOOP_AUTH_URL,
   WHOOP_CLIENT_ID,
   WHOOP_CLIENT_SECRET,
@@ -171,8 +172,8 @@ export class RealWhoopProvider implements WhoopProvider {
   }
 
   private async get(accessToken: string, path: string): Promise<any | null> {
-    // TODO(whoop): сверить точные пути v2 (/developer/v2/...) при подключении аккаунта.
-    const res = await fetch(`${'https://api.prod.whoop.com'}${path}`, {
+    // Пути v2 сверены по developer.whoop.com/api (база .../developer + /v2/...).
+    const res = await fetch(`${WHOOP_API_BASE}${path}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (res.status === 404) return null;
