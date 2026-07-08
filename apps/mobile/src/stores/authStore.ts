@@ -76,8 +76,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   setAccessToken: (token) => set({ accessToken: token }),
 
   signOut: async () => {
-    // Снять push-токен текущего аккаунта (до сброса JWT — запрос требует авторизации).
-    await unregisterPushToken().catch(() => undefined);
+    // Снять push-токен текущего аккаунта — fire-and-forget: НЕ блокируем выход сетевым
+    // запросом (при протухшем/невалидном токене он может висеть на 401→refresh и выход «зависал»).
+    void unregisterPushToken().catch(() => undefined);
     await clearTokens();
     storage.remove(storageKeys.userId);
     storage.remove(storageKeys.verificationStatus);
