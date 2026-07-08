@@ -2,9 +2,23 @@
 
 > Журнал реальных работ Этапа 1. Что сделано, что отложено, где остановились, как продолжить.
 >
-> **Последнее обновление:** 2026-07-06 — **Модуль «Здоровье» (M14)** фулстек + интерактивный европротокол; **ПРОД задеплоен** (API+admin, миграции health, MED_ENCRYPTION_KEY); **iOS build 6** готов к TestFlight (архив делает пользователь в Xcode). До этого (06-24) — B2B-кабинет партнёров.
+> **Последнее обновление:** 2026-07-08 — **Интеграция WHOOP** (носимый трекер) фулстек: бэкенд (OAuth+токены+синхронизация), вебхуки+очередь BullMQ, мобильный раздел «Мои показатели» с OAuth в приложении; **прод в real-режиме на реальных данных браслета**; публичная страница `/privacy`; фиксы сборки Docker и логаута. **iOS build 10** к TestFlight. До этого (07-06) — модуль «Здоровье» (M14).
 
 ---
+
+## Где остановились (2026-07-08)
+
+> **Статус 2026-07-08 — Интеграция WHOOP end-to-end на реальных данных + прод-деплой. iOS build 10 к TestFlight. Ветка `main`.**
+>
+> **WHOOP (носимый трекер здоровья) — фулстек (API + мобилка).** Бэкенд `apps/api/src/health/wearables/whoop/`: OAuth 2.0 (`connect`→authorizeUrl / `callback`→обмен кода, self-contained зашифрованный `state`), хранение токенов с авто-refresh (field-cipher), `WhoopProvider` = интерфейс + `MockWhoopProvider` + `RealWhoopProvider` (пути v2 сверены по developer.whoop.com), синхронизация Recovery/Sleep/Cycle/Body → `WhoopSnapshot`, авто-подстановка роста/веса в мед.карту. Prisma: `WearableConnection` (шифр. токены) + `WhoopSnapshot`, миграция `whoop_wearables`. **Вебхуки** `POST /webhooks/whoop` (HMAC-подпись, `rawBody` в main.ts) → BullMQ-очередь `whoop-sync` → `WhoopSyncProcessor` тянет свежие метрики. Мобилка: секция **«Мои показатели»** на хабе (кольцо восстановления + ВСР/пульс/сон/дыхание, «обновлено N назад», sync), детальный экран **`HealthWearable`** (стадии сна полосой, нагрузка, отключить), **OAuth в приложении** через `expo-web-browser` (`openAuthSessionAsync`, схема `sos24`). Эндпоинты: `GET /health/wearable`, `POST whoop/connect|sync`, `GET whoop/callback`, `DELETE whoop`.
+>
+> **Прод в real-режиме, проверено на реальном браслете.** Ключи WHOOP (client_id/secret) — в прод-секрете `sos24-api-secret` (НЕ в git), `WHOOP_MODE=real`. Сквозной тест: OAuth → токены → реальные данные (recovery 47 / сон 81% / пульс покоя 68 …). URL для дашборда WHOOP: redirect `https://api.sos24.uz/health/wearable/whoop/callback`, webhook `https://api.sos24.uz/webhooks/whoop`, privacy `https://api.sos24.uz/privacy`.
+>
+> **Публичная `/privacy`** (`LegalModule`) — обязательный Privacy URL для WHOOP; ⚠️ реквизиты оператора (юрлицо/почта/адрес) — заглушки, подтвердить у заказчика/юриста. Документы: `docs/integrations/WHOOP_SETUP.md` (инструкция получения ключей), `WHOOP.md` (исследование), `WHOOP_BRIEF.md` (записка руководству).
+>
+> **Инфраструктура/фиксы:** починен Dockerfile сборки API (очистка `/app` + `NODE_OPTIONS=4096` — устранил OOM и залипание ретраев `ERR_PNPM_DEPLOY_DIR_NOT_EMPTY`); разобран инцидент переполнения диска Mac (освобождено ~20 ГБ — iOS DeviceSupport/DerivedData/Caches, восстановлен повреждённый Docker); фикс мобильного **логаута** (не зависает на снятии push-токена при протухшем токене — fire-and-forget).
+>
+> **⏳ Осталось / нюансы:** (1) подтвердить реквизиты оператора в `/privacy`. (2) **iOS build 10** — архив делает пользователь в Xcode (Team `SRGDG34MV6`, APNs prod `M59GZ76982`); `expo-web-browser` уже в Pods, схема `sos24` в Info.plist, номера сборки (app.json/Info.plist/pbxproj) = 10. (3) для >10 пользователей WHOOP — подать на App Approval. (4) **dev-client сейчас указывает на прод** (Metro поднят с `EXPO_PUBLIC_API_URL=https://api.sos24.uz`) — чтобы вернуть локальную разработку, перезапустить Metro без этой переменной.
 
 ## Где остановились (2026-07-06)
 
