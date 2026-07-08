@@ -5,7 +5,8 @@ import { AppModule } from './app.module';
 import { RedisIoAdapter } from './support/redis-io.adapter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // rawBody: true — сохраняет сырое тело запроса (нужно для проверки HMAC-подписи вебхуков WHOOP).
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
   app.enableCors({ origin: true, credentials: true });
 

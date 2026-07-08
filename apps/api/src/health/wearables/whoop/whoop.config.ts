@@ -9,6 +9,9 @@ export const WHOOP_TOKEN_URL = `${WHOOP_API_BASE}/oauth/oauth2/token`;
 export const WHOOP_CLIENT_ID = process.env.WHOOP_CLIENT_ID ?? '';
 export const WHOOP_CLIENT_SECRET = process.env.WHOOP_CLIENT_SECRET ?? '';
 
+// Очередь BullMQ для фоновой синхронизации по вебхукам.
+export const WHOOP_SYNC_QUEUE = 'whoop-sync';
+
 // Редирект после авторизации — на наш API (нужен для обмена кода). Прод по умолчанию.
 export const WHOOP_REDIRECT_URI =
   process.env.WHOOP_REDIRECT_URI ?? 'https://api.sos24.uz/health/wearable/whoop/callback';

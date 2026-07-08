@@ -1,8 +1,22 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import { InjectQueue } from '@nestjs/bullmq';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { decryptField, encryptField } from '../../../common/crypto/field-cipher';
-import { effectiveWhoopMode, WHOOP_SUCCESS_DEEPLINK } from './whoop.config';
+import { effectiveWhoopMode, WHOOP_CLIENT_SECRET, WHOOP_SUCCESS_DEEPLINK, WHOOP_SYNC_QUEUE } from './whoop.config';
 import { getWhoopProvider, WhoopProvider, WhoopTokens } from './whoop.provider';
+
+export interface WhoopSyncJob {
+  userId: string;
+}
+
+export interface WhoopWebhookEvent {
+  user_id?: number | string;
+  id?: string | number;
+  type?: string;
+  trace_id?: string;
+}
 
 // Оркестратор WHOOP (Фаза 1): подключение (OAuth), хранение зашифрованных токенов с авто-refresh,
 // синхронизация метрик в WhoopSnapshot, статус для приложения, отключение. Провайдер — mock/real.
@@ -13,7 +27,50 @@ export class WhoopService {
     return getWhoopProvider();
   }
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue(WHOOP_SYNC_QUEUE) private readonly syncQueue: Queue<WhoopSyncJob>,
+  ) {}
+
+  // ── Вебхуки WHOOP ──
+  // Проверка HMAC-подписи: base64(HMAC-SHA256(timestamp + raw_body, client_secret)).
+  // Без заданного секрета (dev/mock) — пропускаем с предупреждением.
+  verifySignature(rawBody: Buffer, signature?: string, timestamp?: string): boolean {
+    if (!WHOOP_CLIENT_SECRET) {
+      this.logger.warn('WHOOP webhook: WHOOP_CLIENT_SECRET не задан — проверка подписи пропущена (dev)');
+      return true;
+    }
+    if (!signature || !timestamp) return false;
+    const computed = createHmac('sha256', WHOOP_CLIENT_SECRET)
+      .update(timestamp + rawBody.toString('utf8'))
+      .digest('base64');
+    try {
+      return timingSafeEqual(Buffer.from(computed), Buffer.from(signature));
+    } catch {
+      return false;
+    }
+  }
+
+  // Обрабатывает событие: находит подключение по whoop user_id и ставит задачу синхронизации.
+  async handleWebhook(evt: WhoopWebhookEvent): Promise<{ queued: boolean }> {
+    const whoopUserId = evt?.user_id != null ? String(evt.user_id) : null;
+    if (!whoopUserId) return { queued: false };
+    const conn = await this.prisma.wearableConnection.findFirst({
+      where: { provider: 'WHOOP', status: 'CONNECTED', providerUserId: whoopUserId },
+    });
+    if (!conn) {
+      this.logger.warn(`WHOOP webhook ${evt.type}: нет подключения для user_id=${whoopUserId}`);
+      return { queued: false };
+    }
+    // Дедупликация: один активный job на пользователя (обновляем задержку/данные).
+    await this.syncQueue.add(
+      'sync',
+      { userId: conn.userId },
+      { jobId: `whoop-sync-${conn.userId}`, removeOnComplete: true, removeOnFail: 100 },
+    );
+    this.logger.log(`WHOOP webhook ${evt.type} → задача синхронизации для user=${conn.userId}`);
+    return { queued: true };
+  }
 
   // ── OAuth: старт подключения ──
   // real: возвращаем OAuth-ссылку для браузера (обмен кода придёт в callback).
