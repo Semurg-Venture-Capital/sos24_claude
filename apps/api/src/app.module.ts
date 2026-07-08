@@ -15,6 +15,7 @@ import { EuroprotocolModule } from './europrotocol/europrotocol.module';
 import { FilesModule } from './files/files.module';
 import { HealthModule } from './health/health.module';
 import { InsuranceModule } from './insurance/insurance.module';
+import { LegalModule } from './legal/legal.module';
 import { MyidModule } from './myid/myid.module';
 import { NappModule } from './napp/napp.module';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -66,6 +67,7 @@ import { WalletModule } from './wallet/wallet.module';
     SupportModule,
     CallCenterModule,
     HealthModule,
+    LegalModule,
   ],
   controllers: [FaviconController],
 })
