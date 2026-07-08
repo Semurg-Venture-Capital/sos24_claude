@@ -18,7 +18,9 @@
 >
 > **Инфраструктура/фиксы:** починен Dockerfile сборки API (очистка `/app` + `NODE_OPTIONS=4096` — устранил OOM и залипание ретраев `ERR_PNPM_DEPLOY_DIR_NOT_EMPTY`); разобран инцидент переполнения диска Mac (освобождено ~20 ГБ — iOS DeviceSupport/DerivedData/Caches, восстановлен повреждённый Docker); фикс мобильного **логаута** (не зависает на снятии push-токена при протухшем токене — fire-and-forget).
 >
-> **⏳ Осталось / нюансы:** (1) подтвердить реквизиты оператора в `/privacy`. (2) **iOS build 10** — архив делает пользователь в Xcode (Team `SRGDG34MV6`, APNs prod `M59GZ76982`); `expo-web-browser` уже в Pods, схема `sos24` в Info.plist, номера сборки (app.json/Info.plist/pbxproj) = 10. (3) для >10 пользователей WHOOP — подать на App Approval. (4) **dev-client сейчас указывает на прод** (Metro поднят с `EXPO_PUBLIC_API_URL=https://api.sos24.uz`) — чтобы вернуть локальную разработку, перезапустить Metro без этой переменной.
+> **iOS build 10 — залит в TestFlight (2026-07-08).** `expo-web-browser` в Pods, схема `sos24` в Info.plist, номера (app.json/Info.plist/pbxproj) = 10; Team `SRGDG34MV6`, APNs prod `M59GZ76982`. Release ходит в прод (real-режим WHOOP).
+>
+> **⏳ Осталось / нюансы:** (1) подтвердить реквизиты оператора в `/privacy` (юрлицо/почта/адрес — сейчас заглушки). (2) для >10 пользователей WHOOP — подать на App Approval в дашборде. (3) **dev-client сейчас указывает на прод** (Metro поднят с `EXPO_PUBLIC_API_URL=https://api.sos24.uz`) — чтобы вернуть локальную разработку, перезапустить Metro без этой переменной.
 
 ## Где остановились (2026-07-06)
 
