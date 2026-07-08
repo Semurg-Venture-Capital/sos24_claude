@@ -29,8 +29,11 @@ ENV npm_config_fetch_retries=6 \
     npm_config_fetch_retry_mintimeout=20000 \
     npm_config_fetch_retry_maxtimeout=180000 \
     npm_config_fetch_timeout=600000
+# Перед каждой попыткой чистим /app (иначе после частичного сбоя — ERR_PNPM_DEPLOY_DIR_NOT_EMPTY),
+# и поднимаем heap Node (deploy --legacy тянет метаданные из npm и под эмуляцией упирается в OOM).
 RUN for i in 1 2 3 4 5 6; do \
-      pnpm --filter api deploy --prod --legacy --ignore-scripts /app && break; \
+      rm -rf /app; \
+      NODE_OPTIONS=--max-old-space-size=4096 pnpm --filter api deploy --prod --legacy --ignore-scripts /app && break; \
       echo ">>> deploy attempt $i failed, retry in 15s"; sleep 15; \
     done; \
     test -d /app/node_modules
