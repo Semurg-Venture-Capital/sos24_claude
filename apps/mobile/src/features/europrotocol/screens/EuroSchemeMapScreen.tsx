@@ -6,14 +6,16 @@ import {
   Alert,
   Animated,
   Image,
+  Linking,
   PanResponder,
   Pressable,
   Text,
   View,
 } from 'react-native';
 import MapView from 'react-native-maps';
+import * as Location from 'expo-location';
 import ViewShot from 'react-native-view-shot';
-import Svg, { Line } from 'react-native-svg';
+import Svg, { Circle, Line } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CarTop } from '../components/CarTop';
 import { tokens } from '../../../theme/colors';
@@ -95,21 +97,34 @@ export function EuroSchemeMapScreen() {
   const [ghostB, setGhostB] = useState(0);
   const [mapShot, setMapShot] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [locating, setLocating] = useState(false);
   const mapLoaded = useRef<(() => void) | null>(null);
 
   const center = s.lat != null && s.lng != null ? { latitude: s.lat, longitude: s.lng } : DEFAULT;
   const initialRegion = { ...center, latitudeDelta: 0.002, longitudeDelta: 0.002 };
   const regionRef = useRef(initialRegion);
-  // Панорамирование свободное. Запрещаем только зум-аут: дельты не больше стартовых.
-  const enforceBounds = (r: { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number }) => {
+  const clampingRef = useRef(false);
+  type Region = { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number };
+  // Во время жеста только запоминаем регион (нужен для снимка). НЕ трогаем карту здесь —
+  // иначе animateToRegion борется с активным жестом и панорама зависает.
+  const onRegionChange = (r: Region) => {
     regionRef.current = r;
-    if (mapShot) return;
-    const latDelta = Math.min(r.latitudeDelta, initialRegion.latitudeDelta);
-    const lngDelta = Math.min(r.longitudeDelta, initialRegion.longitudeDelta);
-    if (latDelta !== r.latitudeDelta || lngDelta !== r.longitudeDelta) {
-      const target = { ...r, latitudeDelta: latDelta, longitudeDelta: lngDelta };
+  };
+  // Ограничиваем зум-аут ТОЛЬКО после завершения жеста, с допуском (дельты «дрожат» при
+  // панораме из-за смены широты) и защитой от повторного входа (animate → снова complete).
+  const onRegionSettled = (r: Region) => {
+    regionRef.current = r;
+    if (mapShot || clampingRef.current) return;
+    const maxLat = initialRegion.latitudeDelta * 1.15;
+    const maxLng = initialRegion.longitudeDelta * 1.15;
+    if (r.latitudeDelta > maxLat || r.longitudeDelta > maxLng) {
+      const target = { ...r, latitudeDelta: initialRegion.latitudeDelta, longitudeDelta: initialRegion.longitudeDelta };
       regionRef.current = target;
-      mapRef.current?.animateToRegion(target, 0);
+      clampingRef.current = true;
+      mapRef.current?.animateToRegion(target, 150);
+      setTimeout(() => {
+        clampingRef.current = false;
+      }, 300);
     }
   };
 
@@ -177,6 +192,43 @@ export function EuroSchemeMapScreen() {
     }
   };
 
+  // Центрирует карту на реальном текущем местоположении устройства (запрашивает доступ при
+  // необходимости). Нужно, когда GPS с шага 1 неточный/пустой и карта открылась не там.
+  const goToMyLocation = async () => {
+    if (locating || capturing) return;
+    setLocating(true);
+    try {
+      let { status } = await Location.getForegroundPermissionsAsync();
+      if (status === 'undetermined') {
+        status = (await Location.requestForegroundPermissionsAsync()).status;
+      }
+      if (status !== 'granted') {
+        Alert.alert(
+          'Нет доступа к геолокации',
+          'Разрешите доступ к местоположению, чтобы отметить место ДТП на карте.',
+          [
+            { text: 'Отмена', style: 'cancel' },
+            { text: 'Открыть Настройки', onPress: () => void Linking.openURL('app-settings:') },
+          ],
+        );
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const region = {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        latitudeDelta: initialRegion.latitudeDelta,
+        longitudeDelta: initialRegion.longitudeDelta,
+      };
+      regionRef.current = region;
+      mapRef.current?.animateToRegion(region, 500);
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось определить местоположение. Попробуйте ещё раз.');
+    } finally {
+      setLocating(false);
+    }
+  };
+
   const capturing = !!mapShot;
 
   return (
@@ -219,8 +271,8 @@ export function EuroSchemeMapScreen() {
                 style={[{ flex: 1 }, capturing ? { opacity: 0 } : null]}
                 initialRegion={initialRegion}
                 onMapReady={() => setReady(true)}
-                onRegionChange={enforceBounds}
-                onRegionChangeComplete={enforceBounds}
+                onRegionChange={onRegionChange}
+                onRegionChangeComplete={onRegionSettled}
                 minZoomLevel={16}
                 scrollEnabled={!capturing}
                 zoomEnabled={!capturing}
@@ -280,6 +332,33 @@ export function EuroSchemeMapScreen() {
               ) : null}
             </View>
           </ViewShot>
+
+          {/* Кнопка «моё местоположение» — вне ViewShot, в PDF-снимок не попадает */}
+          {!capturing ? (
+            <Pressable
+              onPress={goToMyLocation}
+              disabled={locating}
+              hitSlop={8}
+              style={{
+                position: 'absolute',
+                top: 10,
+                right: 10,
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                shadowColor: '#000',
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                shadowOffset: { width: 0, height: 2 },
+                elevation: 3,
+              }}
+            >
+              {locating ? <ActivityIndicator size="small" color={tokens.inkDark} /> : <LocateIcon />}
+            </Pressable>
+          ) : null}
         </View>
       </View>
 
@@ -354,6 +433,21 @@ function DragCar({
         <CarTop side={side} size={50} />
       </View>
     </Animated.View>
+  );
+}
+
+// Иконка-«прицел» для кнопки центрирования на текущей геопозиции.
+function LocateIcon() {
+  const c = tokens.inkDark;
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24">
+      <Circle cx={12} cy={12} r={6} stroke={c} strokeWidth={2} fill="none" />
+      <Circle cx={12} cy={12} r={1.8} fill={c} />
+      <Line x1={12} y1={1.5} x2={12} y2={5} stroke={c} strokeWidth={2} strokeLinecap="round" />
+      <Line x1={12} y1={19} x2={12} y2={22.5} stroke={c} strokeWidth={2} strokeLinecap="round" />
+      <Line x1={1.5} y1={12} x2={5} y2={12} stroke={c} strokeWidth={2} strokeLinecap="round" />
+      <Line x1={19} y1={12} x2={22.5} y2={12} stroke={c} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
   );
 }
 
