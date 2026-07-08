@@ -16,11 +16,20 @@ export class WhoopService {
   constructor(private readonly prisma: PrismaService) {}
 
   // ── OAuth: старт подключения ──
-  // state = зашифрованный self-contained маркер (userId + метка времени), не требует хранения.
-  startConnect(userId: string): { authorizeUrl: string; mode: 'mock' | 'real' } {
-    const state = encryptField(JSON.stringify({ userId, t: Date.now() }));
-    if (!state) throw new BadRequestException('Не удалось подготовить подключение');
-    return { authorizeUrl: this.provider.buildAuthorizeUrl(state), mode: effectiveWhoopMode() };
+  // real: возвращаем OAuth-ссылку для браузера (обмен кода придёт в callback).
+  // mock: подключаем сразу (dev-удобство — без браузера и нативных OAuth-библиотек),
+  //       возвращаем уже готовый статус с метриками.
+  async startConnect(userId: string): Promise<{ mode: 'mock' | 'real'; authorizeUrl?: string } & Record<string, unknown>> {
+    if (effectiveWhoopMode() === 'real') {
+      const state = encryptField(JSON.stringify({ userId, t: Date.now() }));
+      if (!state) throw new BadRequestException('Не удалось подготовить подключение');
+      return { mode: 'real', authorizeUrl: this.provider.buildAuthorizeUrl(state) };
+    }
+    const tokens = await this.provider.exchangeCode('MOCK');
+    await this.saveTokens(userId, tokens);
+    await this.sync(userId).catch((e) => this.logger.warn(`mock connect sync failed: ${e?.message}`));
+    // getStatus уже содержит mode ('mock') + connected + metrics.
+    return this.getStatus(userId);
   }
 
   // ── OAuth: возврат из браузера ──

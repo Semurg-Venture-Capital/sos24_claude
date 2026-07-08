@@ -9,7 +9,7 @@ import type { HealthStackParamList } from '../../../navigation/types';
 import { IconBell } from '../../../components/icons/IconBell';
 import { ChevronRightThin, MedCrossIcon, PhoneFillIcon, StethoscopeIcon, UsersIcon } from '../../../components/icons/MedIcons';
 import { useDoctors } from '../../../api/health';
-import { MedDoctorCard, MedQuickTile, MedSectionLabel } from '../components';
+import { MedDoctorCard, MedQuickTile, MedSectionLabel, WhoopCard } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthHub'>;
 
@@ -98,6 +98,9 @@ export function HealthHubScreen() {
             </View>
             <ChevronRightThin size={16} color="rgba(255,255,255,0.5)" />
           </Pressable>
+
+          {/* Мои показатели (носимый трекер WHOOP) */}
+          <WhoopCard onOpenDetail={() => nav.navigate('HealthWearable')} />
 
           {/* Быстрые действия 2×2 */}
           <View style={{ gap: 12 }}>
