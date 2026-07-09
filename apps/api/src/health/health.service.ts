@@ -5,7 +5,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { SmsService } from '../notifications/sms.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { decryptField, decryptJson, encryptField, encryptJson } from '../common/crypto/field-cipher';
-import { MockTriageProvider, type TriageMessage, type TriageProvider } from './triage/triage.provider';
+import { getTriageProvider, type TriageMessage, type TriageProvider } from './triage/triage.provider';
 import type {
   CreateAppointmentDto,
   CreateContactDto,
@@ -41,7 +41,7 @@ export class HealthService {
 
   // Провайдер триажа: сейчас mock. LLM подключается позже через тот же интерфейс
   // (TRIAGE_MODE=mock|llm) без изменения сервиса.
-  private readonly triage: TriageProvider = new MockTriageProvider();
+  private readonly triage: TriageProvider = getTriageProvider();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -594,7 +594,7 @@ export class HealthService {
   }
 
   async startTriage(userId: string) {
-    const intro = this.triage.intro();
+    const intro = await this.triage.intro();
     const messages: TriageMessage[] = [{ role: 'assistant', text: intro.text, at: new Date().toISOString() }];
     const session = await this.prisma.triageSession.create({
       data: { userId, messages: encryptJson(messages), step: 0 },
@@ -615,8 +615,7 @@ export class HealthService {
     const messages = this.readMessages(session);
     messages.push({ role: 'user', text, at: new Date().toISOString() });
 
-    const userTexts = messages.filter((m) => m.role === 'user').map((m) => m.text);
-    const turn = this.triage.ask(session.step, text, userTexts);
+    const turn = await this.triage.ask(messages);
     messages.push({ role: 'assistant', text: turn.text, at: new Date().toISOString() });
 
     await this.prisma.triageSession.update({
@@ -635,7 +634,7 @@ export class HealthService {
     const userTexts = messages.filter((m) => m.role === 'user').map((m) => m.text);
     if (userTexts.length === 0) throw new BadRequestException('Опишите симптомы перед получением результата');
 
-    const v = this.triage.finalize(userTexts);
+    const v = await this.triage.finalize(messages);
     await this.prisma.triageSession.update({
       where: { id },
       data: {
