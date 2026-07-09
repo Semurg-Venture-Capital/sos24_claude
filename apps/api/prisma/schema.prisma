@@ -795,6 +795,26 @@ model WhoopSnapshot {
   @@map("whoop_snapshots")
 }
 
+// Лог каждого вызова к LLM (Gemini): фича, модель, токены, время, результат.
+// userId — необязателен (nullable, без FK) — логируем и системные вызовы.
+model AiUsageLog {
+  id           String   @id @default(cuid())
+  userId       String?
+  feature      String // triage_ask | triage_finalize | euro_voice ...
+  model        String
+  promptTokens Int      @default(0)
+  outputTokens Int      @default(0)
+  totalTokens  Int      @default(0)
+  latencyMs    Int      @default(0)
+  ok           Boolean  @default(true)
+  error        String?  @db.Text
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([feature])
+  @@map("ai_usage_logs")
+}
+
 // Врач при клинике-партнёре (M14 · раздел «Здоровье»). Запись к врачу —
 // поверх PartnerBooking (см. поле doctorId ниже), максимум переиспользования.
 model Doctor {

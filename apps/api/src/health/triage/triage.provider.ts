@@ -1,8 +1,8 @@
-// Движок ИИ-триажа (M14.2/14.3). Интерфейс + mock-реализация (сценарные вопросы) +
-// LLM-реализация на Gemini. Переключение через TRIAGE_MODE=mock|llm (+ нужен GEMINI_API_KEY).
-// Интерфейс async и получает полную историю диалога — чтобы LLM вёл связный разговор.
+// Движок ИИ-триажа (M14.2/14.3). Интерфейс + mock (сценарные вопросы) + LLM (Gemini через
+// общий LlmService — все вызовы логируются в AiUsageLog). Переключение TRIAGE_MODE=mock|llm.
 
-import { Logger } from '@nestjs/common';
+import { llmEnabled } from '../../llm/llm.config';
+import type { GeminiContent, LlmService } from '../../llm/llm.service';
 
 export type Urgency = 'low' | 'medium' | 'high';
 
@@ -35,25 +35,19 @@ export interface TriageVerdict {
 
 export interface TriageProvider {
   intro(): Promise<TriageTurn>;
-  ask(messages: TriageMessage[]): Promise<TriageTurn>;
-  finalize(messages: TriageMessage[]): Promise<TriageVerdict>;
+  ask(messages: TriageMessage[], userId?: string): Promise<TriageTurn>;
+  finalize(messages: TriageMessage[], userId?: string): Promise<TriageVerdict>;
 }
 
-// ── Общий вступительный экран (без вызова LLM — экономим запрос) ──
+// Вступительный экран (без вызова LLM — экономим запрос).
 const INTRO: TriageTurn = {
   text: 'Здравствуйте! Я медицинский ИИ SOS24. Помогу сориентироваться. Что вас беспокоит? Опишите симптомы своими словами.',
   quickReplies: ['Температура', 'Боль в горле', 'Головная боль', 'Кашель', 'Боль в животе', 'Боль в груди'],
   canFinalize: false,
 };
 
-// ─────────────────────────── Конфиг LLM ───────────────────────────
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? '';
-const LLM_MODEL = process.env.LLM_MODEL ?? 'gemini-2.5-flash';
-const GEMINI_URL = (model: string) =>
-  `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-
 export function effectiveTriageMode(): 'mock' | 'llm' {
-  return (process.env.TRIAGE_MODE ?? 'mock').toLowerCase() === 'llm' && !!GEMINI_API_KEY ? 'llm' : 'mock';
+  return (process.env.TRIAGE_MODE ?? 'mock').toLowerCase() === 'llm' && llmEnabled() ? 'llm' : 'mock';
 }
 
 const RED_FLAGS = ['боль в груди', 'в груди', 'давит груд', 'одышк', 'задыха', 'теряю сознан', 'потерял сознан', 'кровотеч', 'инсульт', 'немеет', 'речь', 'сильная боль'];
@@ -87,7 +81,7 @@ export class MockTriageProvider implements TriageProvider {
 
   async ask(messages: TriageMessage[]): Promise<TriageTurn> {
     const userTexts = userTextsOf(messages);
-    const step = Math.max(0, userTexts.length - 1); // первый ответ пользователя → шаг 0
+    const step = Math.max(0, userTexts.length - 1);
     const userText = userTexts[userTexts.length - 1] ?? '';
     if (has(userText, RED_FLAGS)) return URGENT_TURN;
     if (step < QUESTIONS.length) return QUESTIONS[step];
@@ -108,11 +102,8 @@ export class MockTriageProvider implements TriageProvider {
 
     if (has(all, RED_FLAGS)) {
       return {
-        verdict: 'Возможно неотложное состояние',
-        description: 'Описанные симптомы могут указывать на состояние, требующее срочной помощи. Не занимайтесь самолечением.',
-        urgency: 'high',
-        confidence: 55,
-        symptoms: symptoms.length ? symptoms : ['Тревожные симптомы'],
+        verdict: 'Возможно неотложное состояние', description: 'Описанные симптомы могут указывать на состояние, требующее срочной помощи. Не занимайтесь самолечением.',
+        urgency: 'high', confidence: 55, symptoms: symptoms.length ? symptoms : ['Тревожные симптомы'],
         recommendations: [
           { text: 'Немедленно вызовите скорую — 103', tone: 'red' },
           { text: 'Не принимайте лекарства без назначения до осмотра', tone: 'default' },
@@ -157,11 +148,7 @@ export class MockTriageProvider implements TriageProvider {
   }
 }
 
-// ─────────────────────────────── LLM (Gemini) ───────────────────────────────
-const SAFETY = ['HARM_CATEGORY_HARASSMENT', 'HARM_CATEGORY_HATE_SPEECH', 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'HARM_CATEGORY_DANGEROUS_CONTENT'].map(
-  (category) => ({ category, threshold: 'BLOCK_NONE' }),
-);
-
+// ─────────────────────────────── LLM (Gemini через LlmService) ───────────────────────────────
 const ASK_SYSTEM = `Ты — медицинский ИИ-ассистент SOS24 (Узбекистан). Ведёшь короткий триаж-диалог.
 Правила:
 - Отвечай на языке пользователя (русский по умолчанию; поддерживай узбекский).
@@ -202,42 +189,55 @@ const FINAL_SCHEMA = {
     symptoms: { type: 'array', items: { type: 'string' } },
     recommendations: {
       type: 'array',
-      items: {
-        type: 'object',
-        properties: { text: { type: 'string' }, tone: { type: 'string', enum: ['default', 'red'] } },
-        required: ['text', 'tone'],
-      },
+      items: { type: 'object', properties: { text: { type: 'string' }, tone: { type: 'string', enum: ['default', 'red'] } }, required: ['text', 'tone'] },
     },
     suggestedSpecialty: { type: 'string' },
   },
   required: ['verdict', 'description', 'urgency', 'confidence', 'symptoms', 'recommendations', 'suggestedSpecialty'],
 };
 
+// История диалога → contents для Gemini (assistant→model). Контент должен начинаться с user.
+function toContents(messages: TriageMessage[]): GeminiContent[] {
+  const trimmed = [...messages];
+  while (trimmed.length && trimmed[0].role === 'assistant') trimmed.shift();
+  return trimmed.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.text }] }));
+}
+
 export class LlmTriageProvider implements TriageProvider {
-  private readonly logger = new Logger('LlmTriage');
+  constructor(private readonly llm: LlmService) {}
 
   async intro(): Promise<TriageTurn> {
     return INTRO;
   }
 
-  async ask(messages: TriageMessage[]): Promise<TriageTurn> {
+  async ask(messages: TriageMessage[], userId?: string): Promise<TriageTurn> {
     try {
-      const j = await this.gemini(ASK_SYSTEM, messages, ASK_SCHEMA);
+      const j = await this.llm.generateJson<any>({
+        feature: 'triage_ask',
+        userId,
+        system: ASK_SYSTEM,
+        contents: toContents(messages),
+        schema: ASK_SCHEMA,
+      });
       return {
         text: String(j.text ?? 'Расскажите подробнее о симптомах.'),
         quickReplies: Array.isArray(j.quickReplies) ? j.quickReplies.slice(0, 4).map(String) : [],
         canFinalize: !!j.canFinalize,
       };
-    } catch (e: any) {
-      this.logger.warn(`ask fallback: ${e?.message}`);
-      // Безопасный фолбэк: даём завершить и получить оценку.
+    } catch {
       return { text: 'Спасибо. Могу подготовить предварительную оценку.', quickReplies: [], canFinalize: true };
     }
   }
 
-  async finalize(messages: TriageMessage[]): Promise<TriageVerdict> {
+  async finalize(messages: TriageMessage[], userId?: string): Promise<TriageVerdict> {
     try {
-      const j = await this.gemini(FINAL_SYSTEM, messages, FINAL_SCHEMA);
+      const j = await this.llm.generateJson<any>({
+        feature: 'triage_finalize',
+        userId,
+        system: FINAL_SYSTEM,
+        contents: toContents(messages),
+        schema: FINAL_SCHEMA,
+      });
       const urgency: Urgency = ['low', 'medium', 'high'].includes(j.urgency) ? j.urgency : 'medium';
       const recs: TriageRecommendation[] = Array.isArray(j.recommendations)
         ? j.recommendations.map((r: any) => ({ text: String(r.text ?? ''), tone: r.tone === 'red' ? 'red' : 'default' })).filter((r: TriageRecommendation) => r.text)
@@ -251,11 +251,9 @@ export class LlmTriageProvider implements TriageProvider {
         recommendations: recs.length ? recs : [{ text: 'Записаться к терапевту для очного осмотра', tone: 'default' }],
         suggestedSpecialty: j.suggestedSpecialty ? String(j.suggestedSpecialty) : 'Терапевт',
       };
-    } catch (e: any) {
-      this.logger.warn(`finalize fallback: ${e?.message}`);
+    } catch {
       return {
-        verdict: 'Требуется осмотр специалиста',
-        description: 'Не удалось получить оценку ИИ. Рекомендуем очную консультацию врача.',
+        verdict: 'Требуется осмотр специалиста', description: 'Не удалось получить оценку ИИ. Рекомендуем очную консультацию врача.',
         urgency: 'medium', confidence: 40, symptoms: [],
         recommendations: [
           { text: 'Записаться к терапевту', tone: 'default' },
@@ -265,37 +263,8 @@ export class LlmTriageProvider implements TriageProvider {
       };
     }
   }
-
-  // Один вызов Gemini со структурированным JSON-ответом.
-  private async gemini(system: string, messages: TriageMessage[], schema: object): Promise<any> {
-    // Контент должен начинаться с реплики пользователя — отбрасываем ведущие assistant-сообщения.
-    const trimmed = [...messages];
-    while (trimmed.length && trimmed[0].role === 'assistant') trimmed.shift();
-    const contents = trimmed.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.text }] }));
-
-    const res = await fetch(GEMINI_URL(LLM_MODEL), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents,
-        generationConfig: { responseMimeType: 'application/json', responseSchema: schema, temperature: 0.4 },
-        safetySettings: SAFETY,
-      }),
-    });
-    if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
-    const data: any = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('Gemini: пустой ответ');
-    return JSON.parse(text);
-  }
 }
 
-let cached: TriageProvider | null = null;
-export function getTriageProvider(): TriageProvider {
-  const mode = effectiveTriageMode();
-  if (!cached || (cached instanceof MockTriageProvider) !== (mode === 'mock')) {
-    cached = mode === 'llm' ? new LlmTriageProvider() : new MockTriageProvider();
-  }
-  return cached;
+export function getTriageProvider(llm: LlmService): TriageProvider {
+  return effectiveTriageMode() === 'llm' ? new LlmTriageProvider(llm) : new MockTriageProvider();
 }
