@@ -45,6 +45,12 @@
       ],
       "expo-sharing",
       "expo-web-browser",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "SOS24 использует микрофон, чтобы вы могли надиктовать замечание (Изоҳ) в европротоколе."
+        }
+      ],
       "@react-native-community/datetimepicker",
       [
         "expo-notifications",

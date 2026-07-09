@@ -150,6 +150,8 @@ export function EuroStep5Screen() {
         canMove: s.canMove ?? undefined,
         cannotMovePlace: s.cannotMovePlace || undefined,
         remarks: s.remarks || undefined,
+        remarksAudioKey: s.remarksAudioKey || undefined,
+        remarksRaw: s.remarksRaw || undefined,
       });
 
       // Подпись стороны «В» фиксируется автоматически на бэкенде по факту прохождения MyID

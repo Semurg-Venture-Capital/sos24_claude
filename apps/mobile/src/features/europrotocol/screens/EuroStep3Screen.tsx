@@ -11,6 +11,7 @@ import { EURO_CIRCUMSTANCES } from '../circumstances';
 import { FieldInput, SectionLabel, Segmented, YesNoToggle } from '../components/EuroFields';
 import { ImpactZonePicker } from '../components/ImpactZonePicker';
 import { DamagePartsPicker } from '../components/DamagePartsPicker';
+import { VoiceRemarks } from '../components/VoiceRemarks';
 import { useEuroStore } from '../store';
 import type { EuroStackParamList } from '../../../navigation/types';
 
@@ -166,7 +167,20 @@ export function EuroStep3Screen() {
             </Text>
           </View>
         ) : null}
-        <FieldInput label="Замечания (Изоҳ)" value={s.remarks} onChangeText={(v) => patch({ remarks: v })} placeholder="Доп. замечания…" multiline maxLength={2000} />
+        <View style={{ gap: 8 }}>
+          <VoiceRemarks
+            audioAttached={!!s.remarksAudioKey}
+            onResult={(r) => patch({ remarks: r.normalized, remarksAudioKey: r.audioKey, remarksRaw: r.transcript })}
+          />
+          <FieldInput
+            label="Замечания (Изоҳ)"
+            value={s.remarks}
+            onChangeText={(v) => patch({ remarks: v })}
+            placeholder="Продиктуйте голосом или введите текст…"
+            multiline
+            maxLength={2000}
+          />
+        </View>
       </View>
     </WizardFrame>
   );

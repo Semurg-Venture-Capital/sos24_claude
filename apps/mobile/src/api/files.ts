@@ -9,7 +9,7 @@ export interface UploadedMedia {
   contentType: string;
 }
 
-type FileKind = 'image' | 'video' | 'pdf' | 'doc';
+type FileKind = 'image' | 'video' | 'pdf' | 'doc' | 'audio';
 
 interface PresignUploadResp {
   url: string;
@@ -24,6 +24,9 @@ function inferContentType(uri: string, kind: FileKind): string {
   const ext = (uri.split('?')[0].split('.').pop() || '').toLowerCase();
   if (kind === 'video') {
     return ext === 'mp4' ? 'video/mp4' : ext === 'webm' ? 'video/webm' : 'video/quicktime';
+  }
+  if (kind === 'audio') {
+    return ext === 'wav' ? 'audio/wav' : ext === 'mp3' ? 'audio/mpeg' : ext === 'aac' ? 'audio/aac' : 'audio/mp4';
   }
   if (kind === 'pdf') return 'application/pdf';
   return ext === 'png'

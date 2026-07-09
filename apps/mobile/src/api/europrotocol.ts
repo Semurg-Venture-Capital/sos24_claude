@@ -84,6 +84,8 @@ export interface SubmitEuroPayload {
   canMove?: boolean;
   cannotMovePlace?: string;
   remarks?: string;
+  remarksAudioKey?: string;
+  remarksRaw?: string;
 }
 
 export interface StepUpResult {
@@ -181,6 +183,23 @@ export type { UploadedMedia } from './files';
 // Заливает локальный файл (фото/видео) → MinIO напрямую (presigned POST). Возвращает ключ объекта.
 export function uploadEuroMedia(uri: string, kind: 'image' | 'video') {
   return uploadFileToS3(uri, kind);
+}
+
+// Голосовой «Изоҳ»: загрузка аудио в MinIO.
+export function uploadEuroAudio(uri: string) {
+  return uploadFileToS3(uri, 'audio');
+}
+
+export interface TranscribeResult {
+  transcript: string;
+  normalized: string;
+  language: string;
+}
+
+// Транскрипция + нормализация голосового «Изоҳ» (аудио уже в MinIO).
+export async function transcribeEuroRemarks(audioKey: string, mimeType?: string): Promise<TranscribeResult> {
+  const { data } = await api.post<TranscribeResult>('/europrotocol/remarks/transcribe', { audioKey, mimeType });
+  return data;
 }
 
 // Подпись стороны «В» по OTP (на otherPhone).

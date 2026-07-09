@@ -111,6 +111,8 @@ interface EuroState {
   canMove: boolean | null;
   cannotMovePlace: string;
   remarks: string;
+  remarksAudioKey: string | null; // голос «Изоҳ» в MinIO
+  remarksRaw: string | null; // сырой транскрипт (до правок пользователя)
 
   // Шаг 5 — отправка
   submittedNumber: string | null; // присвоенный № извещения после отправки
@@ -210,6 +212,8 @@ const INITIAL = {
   canMove: null as boolean | null,
   cannotMovePlace: '',
   remarks: '',
+  remarksAudioKey: null,
+  remarksRaw: null,
   submittedNumber: null as string | null,
 };
 
