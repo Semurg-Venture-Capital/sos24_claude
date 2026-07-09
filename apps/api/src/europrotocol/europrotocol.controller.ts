@@ -5,6 +5,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { SubmitEuroDto } from './dto/submit-euro.dto';
+import { TranscribeRemarksDto } from './dto/transcribe-remarks.dto';
 import { ValidatePolicyDto } from './dto/validate-policy.dto';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { EuroprotocolPdfService } from './europrotocol-pdf.service';
@@ -42,6 +43,12 @@ export class EuroprotocolController {
   @ApiOperation({ summary: 'Подпись стороны «В» по OTP (на otherPhone). Фиксирует факт+время подписи.' })
   signOther(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: VerifyCodeDto) {
     return this.euro.signOther(user.sub, id, dto.code);
+  }
+
+  @Post('remarks/transcribe')
+  @ApiOperation({ summary: 'Голосовой «Изоҳ» → транскрипт + нормализованный текст (Gemini). Аудио уже в MinIO.' })
+  transcribeRemarks(@Body() dto: TranscribeRemarksDto) {
+    return this.euro.transcribeRemarks(dto.audioKey, dto.mimeType);
   }
 
   @Post()

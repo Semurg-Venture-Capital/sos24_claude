@@ -17,12 +17,13 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MinioService } from './minio.service';
 
 const MAX_BYTES = 80 * 1024 * 1024; // 80 МБ (фото/видео ДТП)
-const ALLOWED = /^(image\/(png|jpe?g|webp|heic)|video\/(mp4|quicktime|webm)|application\/pdf)$/i;
+const ALLOWED = /^(image\/(png|jpe?g|webp|heic)|video\/(mp4|quicktime|webm)|audio\/(mp4|m4a|x-m4a|aac|wav|x-wav|mpeg|ogg|webm)|application\/pdf)$/i;
 
 // kind → префикс в бакете.
 const KIND_PREFIX: Record<string, string> = {
   image: 'europrotocol/image',
   video: 'europrotocol/video',
+  audio: 'europrotocol/audio',
   pdf: 'documents/pdf',
   doc: 'documents/doc',
 };
@@ -37,14 +38,23 @@ function extFromContentType(ct: string): string {
     'video/mp4': '.mp4',
     'video/quicktime': '.mov',
     'video/webm': '.webm',
+    'audio/mp4': '.m4a',
+    'audio/m4a': '.m4a',
+    'audio/x-m4a': '.m4a',
+    'audio/aac': '.aac',
+    'audio/wav': '.wav',
+    'audio/x-wav': '.wav',
+    'audio/mpeg': '.mp3',
+    'audio/ogg': '.ogg',
+    'audio/webm': '.weba',
     'application/pdf': '.pdf',
   };
   return map[ct.toLowerCase()] ?? '';
 }
 
 class PresignUploadDto {
-  @IsIn(['image', 'video', 'pdf', 'doc'])
-  kind!: 'image' | 'video' | 'pdf' | 'doc';
+  @IsIn(['image', 'video', 'audio', 'pdf', 'doc'])
+  kind!: 'image' | 'video' | 'audio' | 'pdf' | 'doc';
 
   @IsString()
   @Matches(ALLOWED, { message: 'Недопустимый content-type (только изображения, видео, pdf)' })
@@ -76,7 +86,7 @@ export class FilesController {
     if (!ALLOWED.test(file.mimetype)) {
       throw new BadRequestException(`Недопустимый тип: ${file.mimetype}. Только изображения, видео и pdf.`);
     }
-    const kind = file.mimetype.startsWith('video/') ? 'video' : 'image';
+    const kind = file.mimetype.startsWith('video/') ? 'video' : file.mimetype.startsWith('audio/') ? 'audio' : 'image';
     const key = await this.minio.put(file.buffer, file.mimetype, undefined, `europrotocol/${kind}`);
     return { key, contentType: file.mimetype, size: file.size };
   }

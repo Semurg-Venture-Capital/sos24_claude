@@ -1082,7 +1082,9 @@ model EuroProtocol {
   driverRole      String?  @map("driver_role") // 'owner' | 'other'
   canMove         Boolean? @map("can_move") // ТС может двигаться самостоятельно
   cannotMovePlace String?  @map("cannot_move_place") // место стоянки, если не может
-  remarks         String? // 4. Изоҳ (доп. замечания)
+  remarks         String? // 4. Изоҳ (доп. замечания) — итоговый (нормализованный) текст
+  remarksAudioKey String? // голосовая запись «Изоҳ» в MinIO (первоисточник)
+  remarksRaw      String? @db.Text // сырой транскрипт голоса (до нормализации)
 
   // --- Подписи (OTP/MyID — храним факт + время, рендерим штамп) ---
   signedAAt DateTime? @map("signed_a_at") // сторона A (инициатор, MyID step-up)

@@ -77,4 +77,6 @@ export class SubmitEuroDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() canMove?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) cannotMovePlace?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) remarks?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) remarksAudioKey?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(4000) remarksRaw?: string;
 }

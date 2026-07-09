@@ -1,11 +1,30 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { EuroParticipant, EuroStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { MinioService } from '../files/minio.service';
+import { LlmService } from '../llm/llm.service';
 import { MyidService, type MyIdUserData } from '../myid/myid.service';
 import { NappService } from '../napp/napp.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import type { SubmitEuroDto } from './dto/submit-euro.dto';
+
+// Голосовое замечание «Изоҳ» — транскрипция + консервативная нормализация (юр. документ!).
+const VOICE_PROMPT = `Это голосовое замечание участника ДТП для официального бланка европротокола.
+Верни JSON:
+1) transcript — дословная транскрипция на языке оригинала (русский или узбекский), без изменения смысла.
+2) normalized — та же мысль с исправленной орфографией и пунктуацией, без слов-паразитов и повторов. КРИТИЧНО: НЕ добавляй и НЕ убирай факты, НЕ меняй смысл, не придумывай детали.
+3) language — "ru", "uz" или "other".`;
+
+const VOICE_SCHEMA = {
+  type: 'object',
+  properties: {
+    transcript: { type: 'string' },
+    normalized: { type: 'string' },
+    language: { type: 'string', enum: ['ru', 'uz', 'other'] },
+  },
+  required: ['transcript', 'normalized', 'language'],
+};
 
 // include для детального ответа (участник + авто инициатора).
 const EURO_INCLUDE = {
@@ -31,7 +50,34 @@ export class EuroprotocolService {
     private readonly myid: MyidService,
     private readonly napp: NappService,
     private readonly notifications: NotificationsService,
+    private readonly minio: MinioService,
+    private readonly llm: LlmService,
   ) {}
+
+  // Транскрипция + нормализация голосового «Изоҳ». Аудио уже загружено в MinIO (audioKey).
+  // Stateless: вызывается на шаге 3 визарда, до создания записи; ключ+текст сохранятся при submit.
+  async transcribeRemarks(audioKey: string, mimeType?: string): Promise<{ transcript: string; normalized: string; language: string }> {
+    if (!this.llm.enabled) throw new BadRequestException('Распознавание речи сейчас недоступно');
+    let buf: Buffer;
+    try {
+      buf = await this.minio.get(audioKey);
+    } catch {
+      throw new NotFoundException('Аудиофайл не найден');
+    }
+    const j = await this.llm.generateJson<{ transcript: string; normalized: string; language: string }>({
+      feature: 'euro_voice',
+      temperature: 0.2,
+      schema: VOICE_SCHEMA,
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: VOICE_PROMPT }, { inline_data: { mime_type: mimeType || 'audio/mp4', data: buf.toString('base64') } }],
+        },
+      ],
+    });
+    const transcript = (j.transcript ?? '').trim();
+    return { transcript, normalized: (j.normalized ?? transcript).trim(), language: j.language ?? 'other' };
+  }
 
   // ── Отправка европротокола (сбор данных визарда) ──
   async submit(userId: string, dto: SubmitEuroDto): Promise<{ id: string; number: string }> {
@@ -106,6 +152,8 @@ export class EuroprotocolService {
         canMove: dto.canMove ?? null,
         cannotMovePlace: dto.cannotMovePlace ?? null,
         remarks: dto.remarks ?? null,
+        remarksAudioKey: dto.remarksAudioKey ?? null,
+        remarksRaw: dto.remarksRaw ?? null,
 
         // Подпись A — инициатор подтверждён через MyID step-up при submit
         signedAAt: dto.selfVerified ? new Date() : null,
