@@ -23,6 +23,7 @@ import {
   MessageCircle,
   Phone,
   HeartPulse,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NAPP_TOOLS, NAPP_GROUPS } from '@/lib/nappTools';
@@ -40,6 +41,7 @@ const NAV = [
   { href: '/call-center', label: 'Колл-центр', icon: Phone },
   { href: '/partners', label: 'Партнёры', icon: Handshake },
   { href: '/health', label: 'Здоровье', icon: HeartPulse },
+  { href: '/ai-usage', label: 'AI-лог', icon: Sparkles },
   { href: '/notifications', label: 'Уведомления', icon: Bell },
   { href: '/myid-test', label: 'MyID данные', icon: Fingerprint },
 ];

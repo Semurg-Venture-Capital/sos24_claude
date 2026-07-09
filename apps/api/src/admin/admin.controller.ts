@@ -18,6 +18,12 @@ export class AdminController {
     return this.adminService.getStats();
   }
 
+  @Get('ai-usage')
+  @ApiOperation({ summary: 'Лог использования ИИ (Gemini): запросы, токены, агрегаты по фичам.' })
+  getAiUsage(@Query('page') page = '1', @Query('limit') limit = '50', @Query('feature') feature?: string) {
+    return this.adminService.getAiUsage({ page: +page, limit: +limit, feature });
+  }
+
   @Get('users')
   @ApiOperation({ summary: 'Список всех пользователей с пагинацией и фильтрами.' })
   getUsers(

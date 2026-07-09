@@ -11,6 +11,34 @@ export class AdminService {
     private readonly references: NappReferenceService,
   ) {}
 
+  // Лог использования ИИ (Gemini): список запросов + агрегаты по токенам и фичам.
+  async getAiUsage(params: { page?: number; limit?: number; feature?: string }) {
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 50));
+    const where: Prisma.AiUsageLogWhereInput = params.feature ? { feature: params.feature } : {};
+    const [items, total, totals, byFeature] = await Promise.all([
+      this.prisma.aiUsageLog.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      this.prisma.aiUsageLog.count({ where }),
+      this.prisma.aiUsageLog.aggregate({ _sum: { totalTokens: true, promptTokens: true, outputTokens: true }, _count: true }),
+      this.prisma.aiUsageLog.groupBy({ by: ['feature'], _sum: { totalTokens: true }, _count: true }),
+    ]);
+    return {
+      items,
+      total,
+      page,
+      limit,
+      summary: {
+        calls: totals._count,
+        totalTokens: totals._sum.totalTokens ?? 0,
+        promptTokens: totals._sum.promptTokens ?? 0,
+        outputTokens: totals._sum.outputTokens ?? 0,
+        byFeature: byFeature
+          .map((f) => ({ feature: f.feature, calls: f._count, tokens: f._sum.totalTokens ?? 0 }))
+          .sort((a, b) => b.tokens - a.tokens),
+      },
+    };
+  }
+
   async getStats() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

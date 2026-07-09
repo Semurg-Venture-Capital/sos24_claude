@@ -15,6 +15,41 @@ export function useStats() {
   });
 }
 
+export interface AiUsageItem {
+  id: string;
+  userId: string | null;
+  feature: string;
+  model: string;
+  promptTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  latencyMs: number;
+  ok: boolean;
+  error: string | null;
+  createdAt: string;
+}
+export interface AiUsageResponse {
+  items: AiUsageItem[];
+  total: number;
+  page: number;
+  limit: number;
+  summary: {
+    calls: number;
+    totalTokens: number;
+    promptTokens: number;
+    outputTokens: number;
+    byFeature: { feature: string; calls: number; tokens: number }[];
+  };
+}
+
+export function useAiUsage(page = 1, feature = '') {
+  return useQuery({
+    queryKey: ['admin', 'ai-usage', page, feature],
+    queryFn: () =>
+      api.get<AiUsageResponse>('/admin/ai-usage', { params: { page, feature: feature || undefined } }).then((r) => r.data),
+  });
+}
+
 export function useUsers(page = 1, limit = 20, search = '', verified = '', role = '') {
   return useQuery({
     queryKey: ['admin', 'users', page, search, verified, role],
