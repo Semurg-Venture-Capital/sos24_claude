@@ -123,8 +123,8 @@ export default function EuroprotocolDetailPage() {
                 ) : null}
                 <Field label="Схема" value={p.schemeType ? SCHEME_LABEL[p.schemeType] ?? p.schemeType : '—'} />
                 <Field label="Кол-во ТС" value="2" />
-                <Field label="Описание (своими словами)" value={p.description} />
-                <Field label="Доп. замечания (оборот)" value={p.remarks} />
+                <VoiceField label="Описание (своими словами)" text={p.description} audioKey={p.descAudioKey} raw={p.descRaw} />
+                <VoiceField label="Доп. замечания (оборот)" text={p.remarks} audioKey={p.remarksAudioKey} raw={p.remarksRaw} />
               </Section>
 
               {/* Общая часть */}
@@ -209,6 +209,64 @@ function Section({ title, accent, children }: { title: string; accent?: string; 
         <div className="text-xs font-semibold text-[#9a9a9a] uppercase tracking-wide">{title}</div>
       </div>
       <div>{children}</div>
+    </div>
+  );
+}
+
+// Поле с голосовой записью: текст (нормализованный/правленый) + плеер + сырой транскрипт.
+function VoiceField({
+  label,
+  text,
+  audioKey,
+  raw,
+}: {
+  label: string;
+  text?: string | null;
+  audioKey?: string | null;
+  raw?: string | null;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [showRaw, setShowRaw] = useState(false);
+  useEffect(() => {
+    if (!audioKey) {
+      setUrl(null);
+      return;
+    }
+    let alive = true;
+    api
+      .get('/files/presign-download', { params: { key: audioKey } })
+      .then((r) => alive && setUrl(r.data.url))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [audioKey]);
+
+  const empty = !text;
+  return (
+    <div className="py-2 border-b border-[#f4f4f4] last:border-0">
+      <div className="flex justify-between gap-4">
+        <span className="text-xs text-[#9a9a9a] shrink-0">{label}</span>
+        <span className={`text-sm text-right ${empty ? 'text-[#c4c4c4]' : 'text-[#151515]'}`}>{empty ? '—' : text}</span>
+      </div>
+      {audioKey ? (
+        <div className="mt-2 flex flex-col items-end gap-1">
+          <div className="flex items-center gap-2 text-xs text-[#9a9a9a]">
+            <span>🎙 Голосовая запись</span>
+            {raw && raw !== text ? (
+              <button onClick={() => setShowRaw((s) => !s)} className="underline hover:text-[#151515]">
+                {showRaw ? 'скрыть транскрипт' : 'сырой транскрипт'}
+              </button>
+            ) : null}
+          </div>
+          {url ? (
+            <audio controls src={url} className="w-full max-w-sm" />
+          ) : (
+            <span className="text-xs text-[#c4c4c4]">загрузка аудио…</span>
+          )}
+          {showRaw && raw ? <div className="text-xs text-[#9a9a9a] italic text-right">«{raw}»</div> : null}
+        </div>
+      ) : null}
     </div>
   );
 }
