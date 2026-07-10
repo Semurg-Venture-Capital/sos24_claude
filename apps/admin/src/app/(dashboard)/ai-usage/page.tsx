@@ -31,7 +31,7 @@ export default function AiUsagePage() {
   const pages = data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1;
 
   return (
-    <div className="p-6">
+    <div className="flex-1 overflow-auto p-6">
       <h1 className="text-2xl font-semibold mb-1">AI-лог</h1>
       <p className="text-sm text-gray-500 mb-6">Все запросы к ИИ (Gemini): расход токенов, время ответа, статус.</p>
 
@@ -143,23 +143,23 @@ export default function AiUsagePage() {
       </div>
 
       {/* Пагинация */}
-      {data && pages > 1 ? (
-        <div className="flex items-center justify-between mt-4 text-sm">
+      {data ? (
+        <div className="flex items-center justify-between mt-4 mb-2 text-sm">
           <span className="text-gray-500">
-            Стр. {data.page} из {pages} · всего {fmt(data.total)}
+            Стр. {data.page} из {pages} · всего записей: {fmt(data.total)}
           </span>
           <div className="flex gap-2">
             <button
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="px-3 py-1.5 rounded-lg border border-gray-300 disabled:opacity-40"
+              className="px-3 py-1.5 rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
             >
               Назад
             </button>
             <button
               disabled={page >= pages}
               onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1.5 rounded-lg border border-gray-300 disabled:opacity-40"
+              className="px-3 py-1.5 rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
             >
               Вперёд
             </button>
