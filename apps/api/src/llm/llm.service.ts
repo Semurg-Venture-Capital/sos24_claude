@@ -53,22 +53,33 @@ export class LlmService {
     let usage = { prompt: 0, output: 0, total: 0 };
     try {
       if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY не задан');
-      const res = await fetch(geminiUrl(model), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
-      const data: any = await res.json();
-      const u = data?.usageMetadata ?? {};
-      usage = {
-        prompt: u.promptTokenCount ?? 0,
-        output: u.candidatesTokenCount ?? 0,
-        total: u.totalTokenCount ?? 0,
-      };
-      const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).filter(Boolean).join('') ?? '';
-      if (!text) throw new Error('Gemini: пустой ответ (возможно, сработал фильтр)');
-      return text;
+      // Ретраи на временные 503 (перегрузка модели) и 429 (лимит) — с backoff.
+      const MAX_ATTEMPTS = 4;
+      let lastStatus = 0;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        const res = await fetch(geminiUrl(model), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        lastStatus = res.status;
+        if ((res.status === 503 || res.status === 429) && attempt < MAX_ATTEMPTS) {
+          await new Promise((r) => setTimeout(r, 800 * attempt)); // 0.8s, 1.6s, 2.4s
+          continue;
+        }
+        if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
+        const data: any = await res.json();
+        const u = data?.usageMetadata ?? {};
+        usage = {
+          prompt: u.promptTokenCount ?? 0,
+          output: u.candidatesTokenCount ?? 0,
+          total: u.totalTokenCount ?? 0,
+        };
+        const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).filter(Boolean).join('') ?? '';
+        if (!text) throw new Error('Gemini: пустой ответ (возможно, сработал фильтр)');
+        return text;
+      }
+      throw new Error(`Gemini ${lastStatus}: недоступно после ${MAX_ATTEMPTS} попыток (перегрузка/лимит)`);
     } catch (e: any) {
       ok = false;
       error = e?.message ?? String(e);
