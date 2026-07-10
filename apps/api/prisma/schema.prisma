@@ -1047,6 +1047,8 @@ model EuroProtocol {
   schemeType     String? @map("scheme_type")
   schemeImageKey String? @map("scheme_image_key") // ключ нарисованной/загруженной схемы в MinIO
   description    String? // = оборот «1. ЙТҲ ҳолати» (обстоятельства своими словами)
+  descAudioKey   String? // голосовая запись «Описание обстоятельств» в MinIO
+  descRaw        String? @db.Text // сырой транскрипт голоса описания (до нормализации)
   photos         Json? // массив ключей MinIO + метаданные
 
   // --- Общая часть бланка (пп. 4–6) ---

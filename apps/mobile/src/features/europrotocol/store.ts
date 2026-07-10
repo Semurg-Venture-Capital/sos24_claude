@@ -69,6 +69,8 @@ interface EuroState {
   schemeType: SchemeType | null;
   schemeImageUri: string | null; // локальный URI готового рисунка схемы (карта + машины), заливается на шаге 5
   description: string;
+  descAudioKey: string | null; // голос «Описание обстоятельств» в MinIO
+  descRaw: string | null; // сырой транскрипт описания
 
   // Шаг 4 — фотофиксация (только камера, антифрод). uri + метка времени.
   photos: Record<PhotoKey, EuroPhoto | null>;
@@ -182,6 +184,8 @@ const INITIAL = {
   schemeType: null as SchemeType | null,
   schemeImageUri: null as string | null,
   description: '',
+  descAudioKey: null,
+  descRaw: null,
   photos: { overview: null, myCar: null, otherCar: null, scene: null } as Record<PhotoKey, EuroPhoto | null>,
   videos: [] as EuroPhoto[],
   medCheck: null as boolean | null,

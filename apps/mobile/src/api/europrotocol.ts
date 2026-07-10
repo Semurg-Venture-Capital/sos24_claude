@@ -48,6 +48,8 @@ export interface SubmitEuroPayload {
   schemeType?: string;
   schemeImageKey?: string;
   description?: string;
+  descAudioKey?: string;
+  descRaw?: string;
   photos?: unknown[];
 
   // Общая часть

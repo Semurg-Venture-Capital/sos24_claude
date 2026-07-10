@@ -119,6 +119,8 @@ export function EuroStep5Screen() {
         schemeType: s.schemeType ?? undefined,
         schemeImageKey,
         description: s.description || undefined,
+        descAudioKey: s.descAudioKey || undefined,
+        descRaw: s.descRaw || undefined,
         photos,
         // общая часть
         medCheck: s.medCheck ?? undefined,

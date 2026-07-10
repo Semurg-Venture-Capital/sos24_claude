@@ -56,6 +56,10 @@ export function EuroStep3Screen() {
         <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.07 }}>
           Описание обстоятельств
         </Text>
+        <VoiceRemarks
+          audioAttached={!!s.descAudioKey}
+          onResult={(r) => patch({ description: r.normalized, descAudioKey: r.audioKey, descRaw: r.transcript })}
+        />
         <View style={{ borderRadius: 20, overflow: 'hidden' }}>
           <Glass intensity={20} tint="light" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
             <TextInput

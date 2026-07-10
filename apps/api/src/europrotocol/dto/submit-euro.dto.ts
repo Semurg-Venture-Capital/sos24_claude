@@ -41,6 +41,8 @@ export class SubmitEuroDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(16) schemeType?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) schemeImageKey?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) description?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) descAudioKey?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(4000) descRaw?: string;
   @ApiPropertyOptional({ type: 'array' }) @IsOptional() @IsArray() @ArrayMaxSize(50) photos?: unknown[];
 
   // --- Общая часть (4–6) ---

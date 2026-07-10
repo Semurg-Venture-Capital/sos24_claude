@@ -116,6 +116,8 @@ export class EuroprotocolService {
         schemeType: dto.schemeType ?? null,
         schemeImageKey: dto.schemeImageKey ?? null,
         description: dto.description ?? null,
+        descAudioKey: dto.descAudioKey ?? null,
+        descRaw: dto.descRaw ?? null,
         photos: (dto.photos ?? Prisma.JsonNull) as Prisma.InputJsonValue,
 
         // Общая часть
