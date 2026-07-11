@@ -322,6 +322,7 @@ export class HealthService {
       address: p.address,
       phone: p.phone,
       category: p.category?.name ?? null,
+      description: p.description,
       rating: p.rating,
       reviewCount: p.reviewCount,
       workingHours: p.workingHours,
