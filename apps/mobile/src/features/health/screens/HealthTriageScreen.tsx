@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,7 +19,8 @@ import type { HealthStackParamList } from '../../../navigation/types';
 import { BackButton } from '../../../components/ui/BackButton';
 import { RedButton } from '../../../components/ui/RedButton';
 import { MicIcon, StethoscopeIcon } from '../../../components/icons/MedIcons';
-import { sendTriageMessage, startTriage, type TriageMessage } from '../../../api/health';
+import { sendTriageMessage, startTriage } from '../../../api/health';
+import { useTriageStore } from '../triageStore';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthTriage'>;
 
@@ -28,30 +30,41 @@ export function HealthTriageScreen() {
   const nav = useNavigation<Nav>();
   const scrollRef = useRef<ScrollView>(null);
 
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<TriageMessage[]>([]);
-  const [quickReplies, setQuickReplies] = useState<string[]>([]);
-  const [canFinalize, setCanFinalize] = useState(false);
-  const [disclaimer, setDisclaimer] = useState('Это не диагноз. ИИ помогает сориентироваться.');
+  const { messages, quickReplies, canFinalize, disclaimer, diagnosis, sessionId } = useTriageStore();
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!useTriageStore.getState().sessionId);
   const [sending, setSending] = useState(false);
+  const hasResult = canFinalize || !!diagnosis;
 
-  useEffect(() => {
+  // Начать новый триаж на бэкенде и сохранить в стор. Возвращает cleanup (для useEffect).
+  const beginNew = () => {
+    setLoading(true);
     let alive = true;
     startTriage()
       .then((t) => {
         if (!alive) return;
-        setSessionId(t.sessionId ?? null);
-        setMessages(t.messages);
-        setQuickReplies(t.quickReplies);
-        setCanFinalize(t.canFinalize);
-        setDisclaimer(t.disclaimer);
+        useTriageStore.getState().setTurn({
+          sessionId: t.sessionId ?? null,
+          messages: t.messages,
+          quickReplies: t.quickReplies,
+          canFinalize: t.canFinalize,
+          disclaimer: t.disclaimer,
+        });
       })
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
     };
+  };
+
+  // На входе: есть сохранённый чат → восстанавливаем; иначе — начинаем новый.
+  useEffect(() => {
+    if (useTriageStore.getState().sessionId) {
+      setLoading(false);
+      return;
+    }
+    return beginNew();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -61,24 +74,39 @@ export function HealthTriageScreen() {
 
   const send = async (text: string) => {
     const value = text.trim();
-    if (!value || !sessionId || sending) return;
+    const store = useTriageStore.getState();
+    if (!value || !store.sessionId || sending) return;
     setInput('');
-    setQuickReplies([]);
-    setMessages((prev) => [...prev, { role: 'user', text: value, at: new Date().toISOString() }]);
+    store.appendUser(value);
     setSending(true);
     try {
-      const t = await sendTriageMessage(sessionId, value);
-      setMessages(t.messages);
-      setQuickReplies(t.quickReplies);
-      setCanFinalize(t.canFinalize);
+      const t = await sendTriageMessage(store.sessionId, value);
+      useTriageStore.getState().setTurn({ messages: t.messages, quickReplies: t.quickReplies, canFinalize: t.canFinalize });
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', text: 'Не удалось отправить. Проверьте соединение и попробуйте ещё раз.', at: new Date().toISOString() },
-      ]);
+      const cur = useTriageStore.getState();
+      cur.setTurn({
+        messages: [...cur.messages, { role: 'assistant', text: 'Не удалось отправить. Проверьте соединение или начните новый диалог.', at: new Date().toISOString() }],
+        quickReplies: [],
+        canFinalize: cur.canFinalize,
+      });
     } finally {
       setSending(false);
     }
+  };
+
+  // «Начать сначала» — с подтверждением (переписка удаляется).
+  const restart = () => {
+    Alert.alert('Начать новый диалог?', 'Текущая переписка будет удалена.', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Начать сначала',
+        style: 'destructive',
+        onPress: () => {
+          useTriageStore.getState().reset();
+          beginNew();
+        },
+      },
+    ]);
   };
 
   return (
@@ -115,12 +143,12 @@ export function HealthTriageScreen() {
           </ScrollView>
         )}
 
-        {/* Быстрые ответы / CTA финала */}
+        {/* Результат / быстрые ответы / начать сначала */}
         {!loading ? (
           <View style={{ paddingHorizontal: 16, gap: 10 }}>
-            {canFinalize ? (
+            {hasResult ? (
               <RedButton trailing={false} onPress={() => sessionId && nav.navigate('HealthDiagnosis', { sessionId })}>
-                Показать предварительный результат
+                {diagnosis ? 'Показать результат' : 'Показать предварительный результат'}
               </RedButton>
             ) : quickReplies.length > 0 ? (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
@@ -134,6 +162,11 @@ export function HealthTriageScreen() {
                   </Pressable>
                 ))}
               </View>
+            ) : null}
+            {messages.length > 1 ? (
+              <Pressable onPress={restart} hitSlop={8} style={{ alignSelf: 'center', paddingVertical: 4, paddingHorizontal: 12 }}>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: tokens.inkMuted }}>↺ Начать сначала</Text>
+              </Pressable>
             ) : null}
           </View>
         ) : null}

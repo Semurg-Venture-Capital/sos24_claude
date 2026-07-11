@@ -8,6 +8,7 @@ import type { HealthStackParamList } from '../../../navigation/types';
 import { BackButton } from '../../../components/ui/BackButton';
 import { RedButton } from '../../../components/ui/RedButton';
 import { finalizeTriage, type TriageDiagnosis, type Urgency } from '../../../api/health';
+import { useTriageStore } from '../triageStore';
 import { MedChip, MedSectionLabel, medGlass } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthDiagnosis'>;
@@ -29,9 +30,22 @@ export function HealthDiagnosisScreen() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    // Кеш: если диагноз для этой сессии уже получен — берём из стора, без повторного вызова ИИ.
+    const store = useTriageStore.getState();
+    if (store.diagnosis && store.sessionId === params.sessionId) {
+      setD(store.diagnosis);
+      setLoading(false);
+      return;
+    }
     let alive = true;
     finalizeTriage(params.sessionId)
-      .then((res) => alive && setD(res))
+      .then((res) => {
+        if (!alive) return;
+        setD(res);
+        if (useTriageStore.getState().sessionId === params.sessionId) {
+          useTriageStore.getState().setDiagnosis(res);
+        }
+      })
       .catch(() => alive && setError(true))
       .finally(() => alive && setLoading(false));
     return () => {
