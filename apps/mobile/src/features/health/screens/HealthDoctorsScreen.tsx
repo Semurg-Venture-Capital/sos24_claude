@@ -45,7 +45,10 @@ export function HealthDoctorsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 12 }}>
         <BackButton onPress={() => nav.goBack()} />
-        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 18, color: tokens.ink }}>Врачи и клиники</Text>
+        <Text style={{ flex: 1, fontFamily: 'Manrope_600SemiBold', fontSize: 18, color: tokens.ink }}>Врачи</Text>
+        <Pressable onPress={() => nav.navigate('HealthClinics')} hitSlop={8} style={{ paddingVertical: 7, paddingHorizontal: 14, borderRadius: 999, backgroundColor: tokens.glass, borderWidth: 1, borderColor: tokens.hairline }}>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkDark }}>Клиники →</Text>
+        </Pressable>
       </View>
 
       {/* Поиск */}

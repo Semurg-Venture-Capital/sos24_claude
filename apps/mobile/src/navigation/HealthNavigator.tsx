@@ -11,6 +11,8 @@ import { HealthMedCardScreen } from '../features/health/screens/HealthMedCardScr
 import { HealthMedCardEditScreen } from '../features/health/screens/HealthMedCardEditScreen';
 import { HealthContactsScreen } from '../features/health/screens/HealthContactsScreen';
 import { HealthWearableScreen } from '../features/health/screens/HealthWearableScreen';
+import { HealthClinicsScreen } from '../features/health/screens/HealthClinicsScreen';
+import { HealthClinicProfileScreen } from '../features/health/screens/HealthClinicProfileScreen';
 import type { HealthStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<HealthStackParamList>();
@@ -35,6 +37,8 @@ export function HealthNavigator() {
       <Stack.Screen name="HealthMedCardEdit" component={HealthMedCardEditScreen} />
       <Stack.Screen name="HealthContacts" component={HealthContactsScreen} />
       <Stack.Screen name="HealthWearable" component={HealthWearableScreen} />
+      <Stack.Screen name="HealthClinics" component={HealthClinicsScreen} />
+      <Stack.Screen name="HealthClinicProfile" component={HealthClinicProfileScreen} />
     </Stack.Navigator>
   );
 }

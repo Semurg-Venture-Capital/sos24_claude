@@ -31,6 +31,8 @@ export type HealthStackParamList = {
   HealthMedCardEdit: undefined; // M14.10 — редактирование мед.карты
   HealthContacts: undefined; // M14.11 — экстренные контакты
   HealthWearable: undefined; // M14.13 — показатели носимого трекера (WHOOP)
+  HealthClinics: undefined; // M14.14 — справочник клиник
+  HealthClinicProfile: { id: string }; // профиль клиники + её врачи
 };
 
 export type PoliciesStackParamList = {
