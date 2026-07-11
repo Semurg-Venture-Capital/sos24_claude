@@ -39,6 +39,7 @@ import { SosLogo } from '../../../components/ui/SosLogo';
 import { TopBar } from '../../../components/ui/TopBar';
 import { tokens } from '../../../theme/colors';
 import { useAuthStore } from '../../../stores/authStore';
+import { useGeoStore } from '../../../stores/geoStore';
 import type { MainStackParamList, MainTabParamList } from '../../../navigation/types';
 
 type RootNav = NativeStackNavigationProp<MainStackParamList>;
@@ -96,6 +97,7 @@ export function HomeScreen() {
   useEffect(() => {
     configurePushHandler();
     void registerPushToken();
+    void useGeoStore.getState().detect(); // определить область для фильтров «Здоровья»
   }, []);
   const { data: policies } = usePolicies('ACTIVE');
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);

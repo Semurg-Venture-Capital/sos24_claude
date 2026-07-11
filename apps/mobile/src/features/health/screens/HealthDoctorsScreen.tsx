@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -7,7 +7,8 @@ import { tokens } from '../../../theme/colors';
 import type { HealthStackParamList } from '../../../navigation/types';
 import { BackButton } from '../../../components/ui/BackButton';
 import { MapPinIcon } from '../../../components/icons/MedIcons';
-import { useDoctors, type DoctorCard } from '../../../api/health';
+import { useDoctors, useRegions, type DoctorCard } from '../../../api/health';
+import { useGeoStore } from '../../../stores/geoStore';
 import { MedDoctorCard } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthDoctors'>;
@@ -21,8 +22,21 @@ export function HealthDoctorsScreen() {
   const [q, setQ] = useState('');
   const [specialty, setSpecialty] = useState<string | null>(params?.specialty ?? null);
 
+  // Область: дефолт из гео (по GPS), пользователь может сменить.
+  const geoRegion = useGeoStore((s) => s.region);
+  const [region, setRegion] = useState<string | null>(geoRegion);
+  const touched = useRef(false);
+  useEffect(() => {
+    if (!touched.current && geoRegion) setRegion(geoRegion);
+  }, [geoRegion]);
+  const pickRegion = (r: string | null) => {
+    touched.current = true;
+    setRegion(r);
+  };
+
   const chips = useDoctors({}); // стабильный список специальностей
-  const list = useDoctors({ q: q.trim() || undefined, specialty: specialty || undefined });
+  const list = useDoctors({ q: q.trim() || undefined, specialty: specialty || undefined, region: region || undefined });
+  const { data: regions = [] } = useRegions();
 
   const specialties = chips.data?.specialties ?? [];
   const doctors = list.data?.doctors ?? [];
@@ -59,11 +73,24 @@ export function HealthDoctorsScreen() {
         </View>
       </View>
 
-      {/* Фильтр-чипы */}
+      {/* Фильтр по области */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 16 }}
+        contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 14 }}
+        style={{ flexGrow: 0 }}
+      >
+        <FilterChip label="Все области" active={region == null} onPress={() => pickRegion(null)} />
+        {regions.map((r) => (
+          <FilterChip key={r} label={r} active={region === r} onPress={() => pickRegion(r)} />
+        ))}
+      </ScrollView>
+
+      {/* Фильтр по специальности */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 10 }}
         style={{ flexGrow: 0 }}
       >
         <FilterChip label="Все" active={specialty == null} onPress={() => setSpecialty(null)} />
@@ -79,7 +106,7 @@ export function HealthDoctorsScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <MapPinIcon size={13} />
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkMuted }}>
-            Партнёрские клиники · Ташкент
+            {region ? `Область: ${region}` : 'Все области'} · {doctors.length} врачей
           </Text>
         </View>
 

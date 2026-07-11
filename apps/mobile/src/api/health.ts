@@ -7,6 +7,7 @@ export interface DoctorClinic {
   id: string | null; // null — свободное место работы (врач-контакт без партнёра)
   name: string;
   city?: string | null;
+  region?: string | null;
 }
 
 export interface DoctorCard {
@@ -74,6 +75,7 @@ export interface Appointment {
 export interface DoctorsParams {
   q?: string;
   specialty?: string;
+  region?: string;
 }
 
 export function useDoctors(params: DoctorsParams = {}) {
@@ -88,6 +90,52 @@ export function useDoctor(id: string) {
   return useQuery({
     queryKey: ['health', 'doctor', id],
     queryFn: () => api.get<DoctorDetail>(`/health/doctors/${id}`).then((r) => r.data),
+  });
+}
+
+// ── Области + клиники-справочник ──
+export function useRegions() {
+  return useQuery({
+    queryKey: ['health', 'regions'],
+    queryFn: () => api.get<{ regions: string[] }>('/health/regions').then((r) => r.data.regions),
+    staleTime: 60 * 60 * 1000,
+  });
+}
+
+export interface ClinicCard {
+  id: string;
+  name: string;
+  city: string;
+  region: string | null;
+  address: string;
+  phone: string | null;
+  category: string | null;
+  rating: number;
+  reviewCount: number;
+  logoUrl: string | null;
+  doctorCount: number;
+}
+
+export interface ClinicDetail extends ClinicCard {
+  workingHours: unknown;
+  website: string | null;
+  lat: number | null;
+  lng: number | null;
+  coverUrl: string | null;
+  doctors: DoctorCard[];
+}
+
+export function useClinics(params: { region?: string; q?: string } = {}) {
+  return useQuery({
+    queryKey: ['health', 'clinics', params],
+    queryFn: () => api.get<{ clinics: ClinicCard[] }>('/health/clinics', { params }).then((r) => r.data.clinics),
+  });
+}
+
+export function useClinic(id: string) {
+  return useQuery({
+    queryKey: ['health', 'clinic', id],
+    queryFn: () => api.get<ClinicDetail>(`/health/clinics/${id}`).then((r) => r.data),
   });
 }
 

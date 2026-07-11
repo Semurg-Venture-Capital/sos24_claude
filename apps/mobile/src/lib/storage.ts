@@ -13,6 +13,7 @@ export const storageKeys = {
   userId: 'sos24.userId',
   verificationStatus: 'sos24.verificationStatus',
   triageChat: 'sos24.triageChat',
+  geoRegion: 'sos24.geoRegion',
 } as const;
 
 const KEYS = Object.values(storageKeys);
