@@ -7,6 +7,9 @@ export interface DoctorAdmin {
   id: string;
   fullName: string;
   specialty: string;
+  phone: string | null;
+  bookingEnabled: boolean;
+  city: string | null;
   experienceY: number | null;
   bio: string | null;
   rating: number;
@@ -45,6 +48,10 @@ export interface AppointmentAdmin {
 export interface DoctorInput {
   fullName?: string;
   specialty?: string;
+  phone?: string;
+  bookingEnabled?: boolean;
+  clinicName?: string;
+  city?: string;
   partnerId?: string | null;
   experienceY?: number;
   bio?: string;

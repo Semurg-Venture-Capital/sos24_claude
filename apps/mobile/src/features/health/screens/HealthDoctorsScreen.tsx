@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
 import type { HealthStackParamList } from '../../../navigation/types';
@@ -101,8 +101,11 @@ export function HealthDoctorsScreen() {
               price={money(d.pricePrimary)}
               video={d.videoEnabled}
               verified={d.verified}
+              bookingEnabled={d.bookingEnabled}
+              workplace={[d.clinic?.name, d.clinic?.city].filter(Boolean).join(' · ')}
               onPress={() => nav.navigate('HealthDoctorProfile', { id: d.id })}
               onBook={() => nav.navigate('HealthBooking', { doctorId: d.id })}
+              onCall={() => d.phone && void Linking.openURL(`tel:${d.phone}`)}
             />
           ))
         )}

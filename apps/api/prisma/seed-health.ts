@@ -100,6 +100,7 @@ async function main() {
         priceVideo: d.priceVideo,
         videoEnabled: false, // видео отложено (запись только очно)
         verified: true,
+        bookingEnabled: true,
         active: true,
       },
       update: {
@@ -111,6 +112,7 @@ async function main() {
         priceRepeat: d.priceRepeat,
         priceVideo: d.priceVideo,
         verified: true,
+        bookingEnabled: true,
         active: true,
       },
     });

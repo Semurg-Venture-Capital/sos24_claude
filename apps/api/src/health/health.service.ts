@@ -91,6 +91,8 @@ export class HealthService {
       id: d.id,
       fullName: d.fullName,
       specialty: d.specialty,
+      phone: d.phone,
+      bookingEnabled: d.bookingEnabled,
       experienceY: d.experienceY,
       rating: d.rating,
       reviewCount: d.reviewCount,
@@ -98,7 +100,12 @@ export class HealthService {
       videoEnabled: d.videoEnabled,
       verified: d.verified,
       photoUrl: await this.imgUrl(d.photoKey),
-      clinic: d.partner ? { id: d.partner.id, name: d.partner.name, city: d.partner.city } : null,
+      // Клиника-партнёр или (для врача-контакта) свободное место работы.
+      clinic: d.partner
+        ? { id: d.partner.id, name: d.partner.name, city: d.partner.city }
+        : d.clinicName || d.city
+          ? { id: null, name: d.clinicName ?? '', city: d.city ?? null }
+          : null,
     };
   }
 
@@ -120,6 +127,8 @@ export class HealthService {
       id: d.id,
       fullName: d.fullName,
       specialty: d.specialty,
+      phone: d.phone,
+      bookingEnabled: d.bookingEnabled,
       experienceY: d.experienceY,
       bio: d.bio,
       rating: d.rating,
@@ -130,7 +139,7 @@ export class HealthService {
       videoEnabled: d.videoEnabled,
       verified: d.verified,
       photoUrl: await this.imgUrl(d.photoKey),
-      clinic: d.partner,
+      clinic: d.partner ?? (d.clinicName || d.city ? { id: null, name: d.clinicName ?? '', city: d.city ?? null, address: null } : null),
       services,
     };
   }
@@ -249,6 +258,9 @@ export class HealthService {
         id: d.id,
         fullName: d.fullName,
         specialty: d.specialty,
+        phone: d.phone,
+        bookingEnabled: d.bookingEnabled,
+        city: d.city,
         experienceY: d.experienceY,
         bio: d.bio,
         rating: d.rating,
@@ -260,7 +272,7 @@ export class HealthService {
         verified: d.verified,
         active: d.active,
         partnerId: d.partnerId,
-        clinicName: d.partner?.name ?? null,
+        clinicName: d.clinicName ?? d.partner?.name ?? null,
         bookingsCount: d._count.bookings,
         createdAt: d.createdAt,
       })),
@@ -286,6 +298,10 @@ export class HealthService {
       data: {
         fullName: dto.fullName,
         specialty: dto.specialty,
+        phone: dto.phone ?? null,
+        bookingEnabled: dto.bookingEnabled ?? false,
+        clinicName: dto.clinicName ?? null,
+        city: dto.city ?? null,
         partnerId: dto.partnerId ?? null,
         experienceY: dto.experienceY ?? null,
         bio: dto.bio ?? null,
@@ -311,6 +327,10 @@ export class HealthService {
       data: {
         fullName: dto.fullName ?? undefined,
         specialty: dto.specialty ?? undefined,
+        phone: dto.phone === undefined ? undefined : dto.phone,
+        bookingEnabled: dto.bookingEnabled ?? undefined,
+        clinicName: dto.clinicName === undefined ? undefined : dto.clinicName,
+        city: dto.city === undefined ? undefined : dto.city,
         partnerId: dto.partnerId === undefined ? undefined : dto.partnerId,
         experienceY: dto.experienceY === undefined ? undefined : dto.experienceY,
         bio: dto.bio === undefined ? undefined : dto.bio,

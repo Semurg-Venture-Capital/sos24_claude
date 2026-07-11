@@ -16,7 +16,11 @@ export function DoctorEditor({ doctor, onClose }: { doctor: DoctorAdmin | null; 
 
   const [fullName, setFullName] = useState(doctor?.fullName ?? '');
   const [specialty, setSpecialty] = useState(doctor?.specialty ?? '');
+  const [phone, setPhone] = useState(doctor?.phone ?? '');
+  const [bookingEnabled, setBookingEnabled] = useState(doctor?.bookingEnabled ?? false);
   const [partnerId, setPartnerId] = useState(doctor?.partnerId ?? '');
+  const [clinicName, setClinicName] = useState(doctor?.partnerId ? '' : (doctor?.clinicName ?? ''));
+  const [city, setCity] = useState(doctor?.city ?? '');
   const [experienceY, setExperienceY] = useState(doctor?.experienceY?.toString() ?? '');
   const [bio, setBio] = useState(doctor?.bio ?? '');
   const [pricePrimary, setPricePrimary] = useState(doctor?.pricePrimary?.toString() ?? '');
@@ -31,12 +35,20 @@ export function DoctorEditor({ doctor, onClose }: { doctor: DoctorAdmin | null; 
       setError('Укажите ФИО и специальность');
       return;
     }
+    if (!bookingEnabled && !phone.trim()) {
+      setError('Для режима «Позвонить» укажите телефон');
+      return;
+    }
     setSaving(true);
     setError('');
     const data: DoctorInput = {
       fullName: fullName.trim(),
       specialty: specialty.trim(),
+      phone: phone.trim() || undefined,
+      bookingEnabled,
       partnerId: partnerId || null,
+      clinicName: clinicName.trim() || undefined,
+      city: city.trim() || undefined,
       experienceY: num(experienceY),
       bio: bio.trim() || undefined,
       pricePrimary: num(pricePrimary),
@@ -83,13 +95,37 @@ export function DoctorEditor({ doctor, onClose }: { doctor: DoctorAdmin | null; 
               <input value={experienceY} onChange={(e) => setExperienceY(e.target.value)} inputMode="numeric" placeholder="12" className={field} />
             </div>
           </div>
+          {/* Режим взаимодействия */}
           <div>
-            <span className={label}>Клиника</span>
+            <span className={label}>Режим</span>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setBookingEnabled(false)} className={`flex-1 h-10 rounded-xl border text-sm ${!bookingEnabled ? 'bg-[#151515] text-white border-[#151515]' : 'bg-white text-[#5f5e5e] border-[rgba(20,20,40,0.1)]'}`}>Позвонить</button>
+              <button type="button" onClick={() => setBookingEnabled(true)} className={`flex-1 h-10 rounded-xl border text-sm ${bookingEnabled ? 'bg-[#151515] text-white border-[#151515]' : 'bg-white text-[#5f5e5e] border-[rgba(20,20,40,0.1)]'}`}>Запись</button>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <span className={label}>Телефон{!bookingEnabled ? ' *' : ''}</span>
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 90 234-56-78" className={field} />
+            </div>
+            <div className="w-40">
+              <span className={label}>Город</span>
+              <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ташкент" className={field} />
+            </div>
+          </div>
+          <div>
+            <span className={label}>Клиника (партнёр)</span>
             <select value={partnerId} onChange={(e) => setPartnerId(e.target.value)} className={field}>
               <option value="">Без клиники (частный)</option>
               {clinics.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
+          {!partnerId ? (
+            <div>
+              <span className={label}>Место работы (если без клиники-партнёра)</span>
+              <input value={clinicName} onChange={(e) => setClinicName(e.target.value)} placeholder="Клиника «…» / кабинет" className={field} />
+            </div>
+          ) : null}
           <div className="flex gap-3">
             <div className="flex-1">
               <span className={label}>Первичный приём, сум</span>

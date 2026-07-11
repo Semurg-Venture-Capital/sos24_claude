@@ -102,6 +102,10 @@ export class TriageMessageDto {
 export class DoctorInputDto {
   @ApiProperty() @IsString() @MaxLength(120) fullName!: string;
   @ApiProperty({ example: 'ЛОР' }) @IsString() @MaxLength(60) specialty!: string;
+  @ApiPropertyOptional({ description: 'Контактный телефон (для режима «Позвонить»)' }) @IsOptional() @IsString() @MaxLength(30) phone?: string;
+  @ApiPropertyOptional({ description: 'true → «Записаться», false → «Позвонить»' }) @IsOptional() @IsBoolean() bookingEnabled?: boolean;
+  @ApiPropertyOptional({ description: 'Место работы (для врача без партнёра)' }) @IsOptional() @IsString() @MaxLength(160) clinicName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) city?: string;
   @ApiPropertyOptional({ description: 'ID клиники-партнёра' }) @IsOptional() @IsString() partnerId?: string;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(70) experienceY?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) bio?: string;
@@ -116,6 +120,10 @@ export class DoctorInputDto {
 export class UpdateDoctorDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) fullName?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(60) specialty?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) phone?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() bookingEnabled?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(160) clinicName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) city?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() partnerId?: string;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(70) experienceY?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) bio?: string;

@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { Avatar } from '../../../components/ui/Avatar';
 import { StarIcon } from '../../../components/icons/StarIcon';
-import { BadgeCheckIcon, MapPinIcon, VideoIcon } from '../../../components/icons/MedIcons';
+import { BadgeCheckIcon, MapPinIcon, PhoneFillIcon, VideoIcon } from '../../../components/icons/MedIcons';
 import { ChevronRight } from '../../../components/icons/ChevronRight';
 import { tokens } from '../../../theme/colors';
 import { medGlass } from './medGlass';
@@ -16,8 +16,12 @@ export interface MedDoctorCardProps {
   distance?: string; // «1.2 км»
   video?: boolean;
   verified?: boolean;
+  // Режим: запись (по умолчанию) или звонок (врач-контакт).
+  bookingEnabled?: boolean;
+  workplace?: string; // «Клиника · Город» — для врача-контакта
   onPress?: () => void;
   onBook?: () => void;
+  onCall?: () => void;
 }
 
 // Карточка врача (M14.4/14.1): аватар с бейджем-check, специальность/стаж,
@@ -32,9 +36,13 @@ export function MedDoctorCard({
   distance,
   video,
   verified = true,
+  bookingEnabled = true,
+  workplace,
   onPress,
   onBook,
+  onCall,
 }: MedDoctorCardProps) {
+  const hasPrice = !!price && price !== '—';
   return (
     <Pressable
       onPress={onPress}
@@ -72,60 +80,76 @@ export function MedDoctorCard({
             {specialty}
             {experience ? ` · стаж ${experience}` : ''}
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 2 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <StarIcon size={13} />
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.ink }}>{rating}</Text>
-              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>· {reviews}</Text>
-            </View>
-            {distance ? (
+          {bookingEnabled ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 2 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <MapPinIcon size={13} />
-                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>{distance}</Text>
+                <StarIcon size={13} />
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.ink }}>{rating}</Text>
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>· {reviews}</Text>
               </View>
-            ) : null}
-          </View>
+              {distance ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <MapPinIcon size={13} />
+                  <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>{distance}</Text>
+                </View>
+              ) : null}
+            </View>
+          ) : workplace ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+              <MapPinIcon size={13} />
+              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }} numberOfLines={1}>
+                {workplace}
+              </Text>
+            </View>
+          ) : null}
         </View>
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        {video ? (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-              paddingVertical: 6,
-              paddingHorizontal: 12,
-              borderRadius: 999,
-              backgroundColor: 'rgba(86,140,255,0.14)',
-            }}
-          >
-            <VideoIcon size={13} color="#1a3577" />
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#1a3577' }}>Видео-приём</Text>
-          </View>
-        ) : null}
-        <View style={{ flex: 1 }} />
-        <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>приём</Text>
-        <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 15, color: tokens.ink }}>{price}</Text>
-      </View>
+      {(bookingEnabled && video) || hasPrice ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {bookingEnabled && video ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+                paddingVertical: 6,
+                paddingHorizontal: 12,
+                borderRadius: 999,
+                backgroundColor: 'rgba(86,140,255,0.14)',
+              }}
+            >
+              <VideoIcon size={13} color="#1a3577" />
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#1a3577' }}>Видео-приём</Text>
+            </View>
+          ) : null}
+          <View style={{ flex: 1 }} />
+          {hasPrice ? (
+            <>
+              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>приём</Text>
+              <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 15, color: tokens.ink }}>{price}</Text>
+            </>
+          ) : null}
+        </View>
+      ) : null}
 
-      <Pressable
-        onPress={onBook ?? onPress}
-        style={({ pressed }) => ({
-          height: 46,
-          borderRadius: 999,
-          backgroundColor: tokens.inkDark,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          opacity: pressed ? 0.85 : 1,
-        })}
-      >
-        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#fff' }}>Записаться</Text>
-        <ChevronRight size={12} color="rgba(255,255,255,0.6)" />
-      </Pressable>
+      {bookingEnabled ? (
+        <Pressable
+          onPress={onBook ?? onPress}
+          style={({ pressed }) => ({ height: 46, borderRadius: 999, backgroundColor: tokens.inkDark, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: pressed ? 0.85 : 1 })}
+        >
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#fff' }}>Записаться</Text>
+          <ChevronRight size={12} color="rgba(255,255,255,0.6)" />
+        </Pressable>
+      ) : (
+        <Pressable
+          onPress={onCall}
+          style={({ pressed }) => ({ height: 46, borderRadius: 999, backgroundColor: tokens.red, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: pressed ? 0.85 : 1 })}
+        >
+          <PhoneFillIcon size={15} color="#fff" />
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#fff' }}>Позвонить</Text>
+        </Pressable>
+      )}
     </Pressable>
   );
 }

@@ -1,6 +1,6 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
 import type { HealthStackParamList } from '../../../navigation/types';
@@ -72,12 +72,12 @@ export function HealthDoctorProfileScreen() {
               ) : null}
             </View>
 
-            {/* Статы */}
+            {/* Статы (рейтинг — только для врачей с записью) */}
             <View style={{ flexDirection: 'row', gap: 10 }}>
-              <StatBox value={d.rating.toFixed(1)} label={`${d.reviewCount} отзывов`} star />
+              {d.bookingEnabled ? <StatBox value={d.rating.toFixed(1)} label={`${d.reviewCount} отзывов`} star /> : null}
               {d.experienceY != null ? <StatBox value={`${d.experienceY} лет`} label="опыт" /> : null}
               {d.clinic ? (
-                <StatBox value={d.clinic.name.replace(/^Клиника\s*/, '').replace(/[«»]/g, '')} label="клиника" />
+                <StatBox value={d.clinic.name.replace(/^Клиника\s*/, '').replace(/[«»]/g, '') || d.clinic.city || 'клиника'} label={d.clinic.city ?? 'место работы'} />
               ) : null}
             </View>
 
@@ -115,9 +115,15 @@ export function HealthDoctorProfileScreen() {
               borderTopColor: tokens.hairline,
             }}
           >
-            <RedButton trailing={false} onPress={() => nav.navigate('HealthBooking', { doctorId: d.id })}>
-              Записаться очно
-            </RedButton>
+            {d.bookingEnabled ? (
+              <RedButton trailing={false} onPress={() => nav.navigate('HealthBooking', { doctorId: d.id })}>
+                Записаться очно
+              </RedButton>
+            ) : (
+              <RedButton trailing={false} onPress={() => d.phone && void Linking.openURL(`tel:${d.phone}`)}>
+                Позвонить{d.phone ? ` · ${d.phone}` : ''}
+              </RedButton>
+            )}
           </View>
         </>
       )}

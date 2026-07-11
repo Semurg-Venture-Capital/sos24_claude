@@ -154,8 +154,11 @@ export function HealthHubScreen() {
                 price={money(d.pricePrimary)}
                 video={d.videoEnabled}
                 verified={d.verified}
+                bookingEnabled={d.bookingEnabled}
+                workplace={[d.clinic?.name, d.clinic?.city].filter(Boolean).join(' · ')}
                 onPress={() => nav.navigate('HealthDoctorProfile', { id: d.id })}
                 onBook={() => nav.navigate('HealthBooking', { doctorId: d.id })}
+                onCall={() => d.phone && void Linking.openURL(`tel:${d.phone}`)}
               />
             ))}
           </View>

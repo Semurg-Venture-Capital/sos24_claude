@@ -4,15 +4,17 @@ import { api } from './client';
 // API раздела «Здоровье» (M14) · врачи и запись на приём.
 
 export interface DoctorClinic {
-  id: string;
+  id: string | null; // null — свободное место работы (врач-контакт без партнёра)
   name: string;
-  city?: string;
+  city?: string | null;
 }
 
 export interface DoctorCard {
   id: string;
   fullName: string;
   specialty: string;
+  phone: string | null;
+  bookingEnabled: boolean; // false → «Позвонить», true → «Записаться»
   experienceY: number | null;
   rating: number;
   reviewCount: number;
@@ -33,6 +35,8 @@ export interface DoctorDetail {
   id: string;
   fullName: string;
   specialty: string;
+  phone: string | null;
+  bookingEnabled: boolean;
   experienceY: number | null;
   bio: string | null;
   rating: number;

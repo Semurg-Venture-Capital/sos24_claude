@@ -823,6 +823,10 @@ model Doctor {
   partner      Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   fullName     String
   specialty    String // Терапевт / ЛОР / Кардиолог …
+  phone        String? // контактный телефон (для режима «Позвонить»)
+  bookingEnabled Boolean @default(false) // false → «Позвонить» (tel:), true → «Записаться»
+  clinicName   String? // место работы (для врача без Partner)
+  city         String? // город
   experienceY  Int? // стаж, лет
   bio          String?  @db.Text
   photoKey     String? // фото в MinIO
