@@ -16,6 +16,12 @@ export class DoctorsQueryDto {
   @MaxLength(60)
   specialty?: string;
 
+  @ApiPropertyOptional({ description: 'Фильтр по области (через клинику)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  region?: string;
+
   @ApiPropertyOptional({ description: 'Лимит результатов', default: 50 })
   @IsOptional()
   @Type(() => Number)

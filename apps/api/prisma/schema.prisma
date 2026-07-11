@@ -574,6 +574,9 @@ model Partner {
   rating  Float        @default(0)
   isOpen  Boolean      @default(true) // ручной override; фактическое «открыто» считается из workingHours
   city    String       @default("Ташкент")
+  region  String? // область РУз (Ташкент, Самаркандская, …) — для фильтра в «Здоровье»
+  // Клиника-справочник: заведена в раздел «Здоровье», НЕ показывается в каталоге «Партнёры».
+  healthDirectory Boolean @default(false)
   lat     Float?
   lng     Float?
 

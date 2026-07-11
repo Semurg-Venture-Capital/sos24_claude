@@ -66,6 +66,7 @@ export class HealthService {
   async listDoctors(query: DoctorsQueryDto) {
     const where: Prisma.DoctorWhereInput = { active: true };
     if (query.specialty) where.specialty = query.specialty;
+    if (query.region) where.partner = { is: { region: query.region } };
     if (query.q) {
       where.OR = [
         { fullName: { contains: query.q, mode: 'insensitive' } },
@@ -76,7 +77,7 @@ export class HealthService {
       where,
       orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
       take: Math.min(query.limit ?? 50, 100),
-      include: { partner: { select: { id: true, name: true, city: true } } },
+      include: { partner: { select: { id: true, name: true, city: true, region: true, phone: true } } },
     });
 
     // Уникальные специальности для фильтр-чипов.
@@ -91,7 +92,8 @@ export class HealthService {
       id: d.id,
       fullName: d.fullName,
       specialty: d.specialty,
-      phone: d.phone,
+      // Для «Позвонить»: свой телефон врача, иначе ресепшн клиники.
+      phone: d.phone ?? d.partner?.phone ?? null,
       bookingEnabled: d.bookingEnabled,
       experienceY: d.experienceY,
       rating: d.rating,
@@ -102,9 +104,9 @@ export class HealthService {
       photoUrl: await this.imgUrl(d.photoKey),
       // Клиника-партнёр или (для врача-контакта) свободное место работы.
       clinic: d.partner
-        ? { id: d.partner.id, name: d.partner.name, city: d.partner.city }
+        ? { id: d.partner.id, name: d.partner.name, city: d.partner.city, region: d.partner.region ?? null }
         : d.clinicName || d.city
-          ? { id: null, name: d.clinicName ?? '', city: d.city ?? null }
+          ? { id: null, name: d.clinicName ?? '', city: d.city ?? null, region: null }
           : null,
     };
   }
@@ -113,7 +115,7 @@ export class HealthService {
   async doctorDetail(id: string) {
     const d = await this.prisma.doctor.findFirst({
       where: { id, active: true },
-      include: { partner: { select: { id: true, name: true, city: true, address: true } } },
+      include: { partner: { select: { id: true, name: true, city: true, region: true, address: true, phone: true } } },
     });
     if (!d) throw new NotFoundException('Врач не найден');
 
@@ -127,7 +129,7 @@ export class HealthService {
       id: d.id,
       fullName: d.fullName,
       specialty: d.specialty,
-      phone: d.phone,
+      phone: d.phone ?? d.partner?.phone ?? null,
       bookingEnabled: d.bookingEnabled,
       experienceY: d.experienceY,
       bio: d.bio,
@@ -244,6 +246,91 @@ export class HealthService {
       status: b.status,
       comment: b.comment,
       createdAt: b.createdAt,
+    };
+  }
+
+  // ── Области РУз (для фильтров «Здоровья») ──
+  private static readonly REGIONS = [
+    'Ташкент',
+    'Ташкентская',
+    'Андижанская',
+    'Бухарская',
+    'Джизакская',
+    'Кашкадарьинская',
+    'Навоийская',
+    'Наманганская',
+    'Самаркандская',
+    'Сурхандарьинская',
+    'Сырдарьинская',
+    'Ферганская',
+    'Хорезмская',
+    'Каракалпакстан',
+  ];
+
+  listRegions() {
+    return { regions: HealthService.REGIONS };
+  }
+
+  // ── Клиники-справочник (раздел «Здоровье»; healthDirectory=true) ──
+  async listClinics(query: { region?: string; q?: string }) {
+    const where: Prisma.PartnerWhereInput = { active: true, healthDirectory: true };
+    if (query.region) where.region = query.region;
+    if (query.q) {
+      where.OR = [
+        { name: { contains: query.q, mode: 'insensitive' } },
+        { address: { contains: query.q, mode: 'insensitive' } },
+      ];
+    }
+    const rows = await this.prisma.partner.findMany({
+      where,
+      orderBy: [{ sortOrder: 'asc' }, { rating: 'desc' }, { name: 'asc' }],
+      include: { category: { select: { name: true } }, _count: { select: { doctors: true } } },
+    });
+    const clinics = await Promise.all(
+      rows.map(async (p) => ({
+        id: p.id,
+        name: p.name,
+        city: p.city,
+        region: p.region,
+        address: p.address,
+        phone: p.phone,
+        category: p.category?.name ?? null,
+        rating: p.rating,
+        reviewCount: p.reviewCount,
+        logoUrl: await this.imgUrl(p.logoKey),
+        doctorCount: p._count.doctors,
+      })),
+    );
+    return { clinics };
+  }
+
+  async clinicDetail(id: string) {
+    const p = await this.prisma.partner.findFirst({
+      where: { id, active: true },
+      include: {
+        category: { select: { name: true } },
+        doctors: { where: { active: true }, orderBy: { fullName: 'asc' } },
+      },
+    });
+    if (!p) throw new NotFoundException('Клиника не найдена');
+    const doctors = await Promise.all(p.doctors.map((d) => this.serializeCard({ ...d, partner: p })));
+    return {
+      id: p.id,
+      name: p.name,
+      city: p.city,
+      region: p.region,
+      address: p.address,
+      phone: p.phone,
+      category: p.category?.name ?? null,
+      rating: p.rating,
+      reviewCount: p.reviewCount,
+      workingHours: p.workingHours,
+      website: p.website,
+      lat: p.lat,
+      lng: p.lng,
+      logoUrl: await this.imgUrl(p.logoKey),
+      coverUrl: await this.imgUrl(p.coverKey),
+      doctors,
     };
   }
 

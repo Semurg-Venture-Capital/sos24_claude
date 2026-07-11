@@ -98,6 +98,7 @@ export class PartnersService {
   async catalog(query: CatalogQueryDto) {
     const where: Prisma.PartnerWhereInput = {
       active: true,
+      healthDirectory: false, // справочник-клиники «Здоровья» в каталог «Партнёры» не показываем
       ...(query.categoryId ? { categoryId: query.categoryId } : {}),
       ...(query.search
         ? {
@@ -134,7 +135,7 @@ export class PartnersService {
 
   async nearby(query: NearbyQueryDto) {
     const partners = await this.prisma.partner.findMany({
-      where: { active: true, lat: { not: null }, lng: { not: null } },
+      where: { active: true, healthDirectory: false, lat: { not: null }, lng: { not: null } },
       include: {
         category: { select: { id: true, name: true, icon: true } },
         services: { where: { active: true }, orderBy: { sortOrder: 'asc' }, select: { name: true } },

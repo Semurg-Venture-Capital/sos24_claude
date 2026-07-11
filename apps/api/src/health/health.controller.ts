@@ -23,9 +23,27 @@ export class HealthController {
   constructor(private readonly service: HealthService) {}
 
   @Get('doctors')
-  @ApiOperation({ summary: 'Список врачей (поиск, фильтр по специальности).' })
+  @ApiOperation({ summary: 'Список врачей (поиск, фильтр по специальности и области).' })
   doctors(@Query() query: DoctorsQueryDto) {
     return this.service.listDoctors(query);
+  }
+
+  @Get('regions')
+  @ApiOperation({ summary: 'Список областей РУз (для фильтров).' })
+  regions() {
+    return this.service.listRegions();
+  }
+
+  @Get('clinics')
+  @ApiOperation({ summary: 'Список клиник-справочника (фильтр область, поиск).' })
+  clinics(@Query('region') region?: string, @Query('q') q?: string) {
+    return this.service.listClinics({ region, q });
+  }
+
+  @Get('clinics/:id')
+  @ApiOperation({ summary: 'Профиль клиники + её врачи.' })
+  clinic(@Param('id') id: string) {
+    return this.service.clinicDetail(id);
   }
 
   @Get('medical-profile')
