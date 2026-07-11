@@ -19,6 +19,8 @@ export interface MedDoctorCardProps {
   // Режим: запись (по умолчанию) или звонок (врач-контакт).
   bookingEnabled?: boolean;
   workplace?: string; // «Клиника · Город» — для врача-контакта
+  // Скрыть нижнюю кнопку действия (напр. на странице клиники, где «Позвонить» уже внизу).
+  hideAction?: boolean;
   onPress?: () => void;
   onBook?: () => void;
   onCall?: () => void;
@@ -38,6 +40,7 @@ export function MedDoctorCard({
   verified = true,
   bookingEnabled = true,
   workplace,
+  hideAction = false,
   onPress,
   onBook,
   onCall,
@@ -133,7 +136,7 @@ export function MedDoctorCard({
         </View>
       ) : null}
 
-      {bookingEnabled ? (
+      {hideAction ? null : bookingEnabled ? (
         <Pressable
           onPress={onBook ?? onPress}
           style={({ pressed }) => ({ height: 46, borderRadius: 999, backgroundColor: tokens.inkDark, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: pressed ? 0.85 : 1 })}

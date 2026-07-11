@@ -117,7 +117,8 @@ export interface ClinicCard {
 }
 
 export interface ClinicDetail extends ClinicCard {
-  workingHours: unknown;
+  description: string | null;
+  workingHours: Record<string, { open: string; close: string } | null> | null;
   website: string | null;
   lat: number | null;
   lng: number | null;

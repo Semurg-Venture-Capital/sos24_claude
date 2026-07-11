@@ -16,6 +16,19 @@ type Rt = RouteProp<HealthStackParamList, 'HealthClinicProfile'>;
 
 const money = (n: number | null) => (n != null ? `${n.toLocaleString('ru-RU')} сум` : '—');
 
+// Компактная сводка графика: { mon:{open,close}, … } → "Пн–Сб · 09:00–16:00".
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+const DAY_LABEL: Record<string, string> = { mon: 'Пн', tue: 'Вт', wed: 'Ср', thu: 'Чт', fri: 'Пт', sat: 'Сб', sun: 'Вс' };
+function formatHours(wh: Record<string, { open: string; close: string } | null> | null): string | null {
+  if (!wh) return null;
+  const open = DAY_KEYS.filter((k) => wh[k]);
+  if (open.length === 0) return null;
+  const first = wh[open[0]]!;
+  const same = open.every((k) => wh[k]!.open === first.open && wh[k]!.close === first.close);
+  const days = open.length > 1 ? `${DAY_LABEL[open[0]]}–${DAY_LABEL[open[open.length - 1]]}` : DAY_LABEL[open[0]];
+  return same ? `${days} · ${first.open}–${first.close}` : open.map((k) => `${DAY_LABEL[k]} ${wh[k]!.open}–${wh[k]!.close}`).join(', ');
+}
+
 export function HealthClinicProfileScreen() {
   const nav = useNavigation<Nav>();
   const { params } = useRoute<Rt>();
@@ -48,7 +61,21 @@ export function HealthClinicProfileScreen() {
                   <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>· {c.reviewCount} отзывов</Text>
                 </View>
               ) : null}
+              {formatHours(c.workingHours) ? (
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
+                  🕘 {formatHours(c.workingHours)}
+                </Text>
+              ) : null}
             </View>
+
+            {c.description ? (
+              <View style={{ gap: 8 }}>
+                <MedSectionLabel>О клинике</MedSectionLabel>
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, lineHeight: 21, color: tokens.ink }}>
+                  {c.description.trim()}
+                </Text>
+              </View>
+            ) : null}
 
             {c.doctors.length > 0 ? (
               <View style={{ gap: 12 }}>
@@ -65,10 +92,10 @@ export function HealthClinicProfileScreen() {
                     video={d.videoEnabled}
                     verified={d.verified}
                     bookingEnabled={d.bookingEnabled}
+                    hideAction
                     workplace={[d.clinic?.name, d.clinic?.city].filter(Boolean).join(' · ')}
                     onPress={() => nav.navigate('HealthDoctorProfile', { id: d.id })}
                     onBook={() => nav.navigate('HealthBooking', { doctorId: d.id })}
-                    onCall={() => d.phone && void Linking.openURL(`tel:${d.phone}`)}
                   />
                 ))}
               </View>
