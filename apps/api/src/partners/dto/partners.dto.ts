@@ -181,6 +181,16 @@ export class PartnerInputDto {
   @IsString()
   city?: string;
 
+  @ApiPropertyOptional({ description: 'Область РУз' })
+  @IsOptional()
+  @IsString()
+  region?: string;
+
+  @ApiPropertyOptional({ description: 'Справочник «Здоровья» (скрыт из каталога «Партнёры»)' })
+  @IsOptional()
+  @IsBoolean()
+  healthDirectory?: boolean;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

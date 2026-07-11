@@ -39,6 +39,8 @@ export interface PartnerFull {
   name: string;
   address: string;
   city: string;
+  region: string | null;
+  healthDirectory: boolean;
   phone: string | null;
   email: string | null;
   website: string | null;

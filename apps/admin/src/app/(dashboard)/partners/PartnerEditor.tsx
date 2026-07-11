@@ -24,9 +24,15 @@ const DAYS = [
 type WH = Record<string, { open: string; close: string } | null>;
 
 const EMPTY = {
-  name: '', categoryId: '', address: '', city: 'Ташкент', phone: '', email: '', website: '',
-  description: '', lat: '', lng: '', active: true,
+  name: '', categoryId: '', address: '', city: 'Ташкент', region: '', phone: '', email: '', website: '',
+  description: '', lat: '', lng: '', active: true, healthDirectory: false,
 };
+
+const REGIONS = [
+  'Ташкент', 'Ташкентская', 'Андижанская', 'Бухарская', 'Джизакская', 'Кашкадарьинская',
+  'Навоийская', 'Наманганская', 'Самаркандская', 'Сурхандарьинская', 'Сырдарьинская',
+  'Ферганская', 'Хорезмская', 'Каракалпакстан',
+];
 
 export function PartnerEditor({ partnerId, onClose }: { partnerId: string | null | 'new'; onClose: () => void }) {
   const isNew = partnerId === 'new';
@@ -47,9 +53,9 @@ export function PartnerEditor({ partnerId, onClose }: { partnerId: string | null
     if (!partnerId || partnerId === 'new') return;
     partnersApi.get(partnerId).then((p: PartnerFull) => {
       setForm({
-        name: p.name, categoryId: p.categoryId ?? '', address: p.address, city: p.city,
+        name: p.name, categoryId: p.categoryId ?? '', address: p.address, city: p.city, region: p.region ?? '',
         phone: p.phone ?? '', email: p.email ?? '', website: p.website ?? '', description: p.description ?? '',
-        lat: p.lat?.toString() ?? '', lng: p.lng?.toString() ?? '', active: p.active,
+        lat: p.lat?.toString() ?? '', lng: p.lng?.toString() ?? '', active: p.active, healthDirectory: p.healthDirectory ?? false,
       });
       setWh((p.workingHours as WH) ?? {});
       setLogoKey(p.logoKey); setCoverKey(p.coverKey); setLogoUrl(p.logoUrl); setCoverUrl(p.coverUrl);
@@ -71,6 +77,7 @@ export function PartnerEditor({ partnerId, onClose }: { partnerId: string | null
 
   const body = () => ({
     name: form.name, categoryId: form.categoryId || undefined, address: form.address, city: form.city,
+    region: form.region || undefined, healthDirectory: form.healthDirectory,
     phone: form.phone || undefined, email: form.email || undefined, website: form.website || undefined,
     description: form.description || undefined,
     lat: form.lat ? Number(form.lat) : undefined, lng: form.lng ? Number(form.lng) : undefined,
@@ -123,8 +130,22 @@ export function PartnerEditor({ partnerId, onClose }: { partnerId: string | null
           <Field label="Адрес"><input value={form.address} onChange={(e) => set('address', e.target.value)} className={inp} /></Field>
           <div className="grid grid-cols-3 gap-3">
             <Field label="Город"><input value={form.city} onChange={(e) => set('city', e.target.value)} className={inp} /></Field>
-            <Field label="Телефон"><input value={form.phone} onChange={(e) => set('phone', e.target.value)} className={inp} /></Field>
+            <Field label="Телефон (ресепшн)"><input value={form.phone} onChange={(e) => set('phone', e.target.value)} className={inp} /></Field>
             <Field label="Email"><input value={form.email} onChange={(e) => set('email', e.target.value)} className={inp} /></Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Область">
+              <select value={form.region} onChange={(e) => set('region', e.target.value)} className={inp}>
+                <option value="">— область —</option>
+                {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </Field>
+            <Field label="Показ в приложении">
+              <label className="flex items-center gap-2 h-10 text-sm text-[#151515] cursor-pointer">
+                <input type="checkbox" checked={form.healthDirectory} onChange={(e) => set('healthDirectory', e.target.checked)} className="accent-[#e61428]" />
+                Справочник (только «Здоровье»)
+              </label>
+            </Field>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <Field label="Сайт"><input value={form.website} onChange={(e) => set('website', e.target.value)} className={inp} /></Field>

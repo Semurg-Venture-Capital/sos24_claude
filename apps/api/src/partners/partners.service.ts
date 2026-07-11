@@ -432,7 +432,7 @@ export class PartnersService {
 
   private partnerData(dto: PartnerInputDto, partial = false): Record<string, unknown> {
     const data: Record<string, unknown> = {};
-    const fields: (keyof PartnerInputDto)[] = ['name', 'categoryId', 'address', 'city', 'phone', 'email', 'website', 'description', 'lat', 'lng', 'logoKey', 'coverKey', 'workingHours', 'active', 'sortOrder'];
+    const fields: (keyof PartnerInputDto)[] = ['name', 'categoryId', 'address', 'city', 'region', 'healthDirectory', 'phone', 'email', 'website', 'description', 'lat', 'lng', 'logoKey', 'coverKey', 'workingHours', 'active', 'sortOrder'];
     for (const f of fields) {
       if (dto[f] !== undefined) data[f] = dto[f] as unknown;
     }
