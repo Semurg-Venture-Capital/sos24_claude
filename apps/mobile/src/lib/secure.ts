@@ -9,19 +9,42 @@ const isNative = Platform.OS === 'ios' || Platform.OS === 'android';
 const ACCESS_KEY = 'sos24.accessToken';
 const REFRESH_KEY = 'sos24.refreshToken';
 
+// На native пробуем Keychain (SecureStore). Если он недоступен (например,
+// dev-сборка без keychain-entitlement → «No keychain is available»), НЕ роняем
+// логин, а падаем на AsyncStorage. Так вход всегда проходит; на корректной
+// сборке используется настоящий Keychain.
 async function setItem(key: string, value: string) {
-  if (isNative) await SecureStore.setItemAsync(key, value);
-  else await AsyncStorage.setItem(key, value);
+  if (!isNative) {
+    await AsyncStorage.setItem(key, value);
+    return;
+  }
+  try {
+    await SecureStore.setItemAsync(key, value);
+  } catch {
+    await AsyncStorage.setItem(key, value);
+  }
 }
 
 async function getItem(key: string): Promise<string | null> {
-  if (isNative) return SecureStore.getItemAsync(key);
+  if (!isNative) return AsyncStorage.getItem(key);
+  try {
+    const v = await SecureStore.getItemAsync(key);
+    if (v != null) return v;
+  } catch {
+    // Keychain недоступен — читаем из fallback ниже.
+  }
   return AsyncStorage.getItem(key);
 }
 
 async function removeItem(key: string) {
-  if (isNative) await SecureStore.deleteItemAsync(key);
-  else await AsyncStorage.removeItem(key);
+  if (isNative) {
+    try {
+      await SecureStore.deleteItemAsync(key);
+    } catch {
+      // игнорируем — почистим fallback ниже
+    }
+  }
+  await AsyncStorage.removeItem(key);
 }
 
 export async function saveTokens(accessToken: string, refreshToken: string) {
