@@ -9,7 +9,7 @@ import { BackButton } from '../../../components/ui/BackButton';
 import { MapPinIcon } from '../../../components/icons/MedIcons';
 import { useDoctors, useRegions, type DoctorCard } from '../../../api/health';
 import { useGeoStore } from '../../../stores/geoStore';
-import { MedDoctorCard } from '../components';
+import { GlassChip, MedDoctorCard } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthDoctors'>;
 type Rt = RouteProp<HealthStackParamList, 'HealthDoctors'>;
@@ -81,11 +81,11 @@ export function HealthDoctorsScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 14 }}
-        style={{ flexGrow: 0 }}
+        style={{ flexGrow: 0, flexShrink: 0 }}
       >
-        <FilterChip label="Все области" active={region == null} onPress={() => pickRegion(null)} />
+        <GlassChip label="Все области" active={region == null} onPress={() => pickRegion(null)} />
         {regions.map((r) => (
-          <FilterChip key={r} label={r} active={region === r} onPress={() => pickRegion(r)} />
+          <GlassChip key={r} label={r} active={region === r} onPress={() => pickRegion(r)} />
         ))}
       </ScrollView>
 
@@ -94,16 +94,17 @@ export function HealthDoctorsScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 10 }}
-        style={{ flexGrow: 0 }}
+        style={{ flexGrow: 0, flexShrink: 0 }}
       >
-        <FilterChip label="Все" active={specialty == null} onPress={() => setSpecialty(null)} />
+        <GlassChip label="Все" active={specialty == null} onPress={() => setSpecialty(null)} />
         {specialties.map((s) => (
-          <FilterChip key={s} label={s} active={specialty === s} onPress={() => setSpecialty(s)} />
+          <GlassChip key={s} label={s} active={specialty === s} onPress={() => setSpecialty(s)} />
         ))}
       </ScrollView>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 140, gap: 14 }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -144,20 +145,3 @@ export function HealthDoctorsScreen() {
   );
 }
 
-function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        paddingVertical: 9,
-        paddingHorizontal: 16,
-        borderRadius: 999,
-        backgroundColor: active ? tokens.inkDark : tokens.glass,
-        borderWidth: active ? 0 : 1,
-        borderColor: tokens.hairline,
-      }}
-    >
-      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: active ? '#fff' : tokens.inkDark }}>{label}</Text>
-    </Pressable>
-  );
-}

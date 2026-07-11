@@ -10,7 +10,7 @@ import { MapPinIcon, PhoneFillIcon } from '../../../components/icons/MedIcons';
 import { StarIcon } from '../../../components/icons/StarIcon';
 import { useClinics, useRegions, type ClinicCard } from '../../../api/health';
 import { useGeoStore } from '../../../stores/geoStore';
-import { medGlass } from '../components';
+import { GlassChip, medGlass } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthClinics'>;
 
@@ -45,14 +45,14 @@ export function HealthClinicsScreen() {
         </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 14 }} style={{ flexGrow: 0 }}>
-        <Chip label="Все области" active={region == null} onPress={() => pickRegion(null)} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 14 }} style={{ flexGrow: 0, flexShrink: 0 }}>
+        <GlassChip label="Все области" active={region == null} onPress={() => pickRegion(null)} />
         {regions.map((r) => (
-          <Chip key={r} label={r} active={region === r} onPress={() => pickRegion(r)} />
+          <GlassChip key={r} label={r} active={region === r} onPress={() => pickRegion(r)} />
         ))}
       </ScrollView>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 140, gap: 12 }}>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 140, gap: 12 }}>
         {isLoading ? (
           <ActivityIndicator color={tokens.red} style={{ marginTop: 24 }} />
         ) : clinics.length === 0 ? (
@@ -109,10 +109,3 @@ function ClinicRow({ clinic: c, onPress, onCall }: { clinic: ClinicCard; onPress
   );
 }
 
-function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999, backgroundColor: active ? tokens.inkDark : tokens.glass, borderWidth: 1, borderColor: active ? tokens.inkDark : tokens.hairline }}>
-      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: active ? '#fff' : tokens.inkDark }}>{label}</Text>
-    </Pressable>
-  );
-}
