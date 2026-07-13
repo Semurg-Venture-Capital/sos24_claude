@@ -45,18 +45,32 @@ RUN cd /app && ./node_modules/.bin/prisma generate --schema prisma/schema.prisma
 
 # ---------- runtime ----------
 FROM node:22-slim AS runtime
-# Chromium + шрифты (кириллица/латиница) — Puppeteer рендерит PDF Европротокола
-# системным браузером, а не скачанным бандлом.
+# Браузер для Puppeteer (PDF Европротокола) + шрифты (кириллица/латиница).
+#
+# ⚠️ НЕ ставим Debian-пакет `chromium`: его текущая версия (150) падает по SIGTRAP
+# на нодах прода («Failed to launch the browser process … Code: null»), причём даже
+# при запуске из шелла, без puppeteer. Проверено: Chrome for Testing 131 в том же
+# контейнере работает и рендерит PDF. Поэтому пинуем известную рабочую версию.
+# Подробности — docs/DEVOPS.md.
+ARG CHROME_VERSION=131.0.6778.204
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      openssl ca-certificates \
-      chromium \
+      openssl ca-certificates wget unzip \
       fonts-liberation fonts-dejavu-core fonts-noto-core \
+      libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libcairo2 libcups2 \
+      libdbus-1-3 libdrm2 libgbm1 libglib2.0-0 libnspr4 libnss3 libpango-1.0-0 \
+      libx11-6 libxcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 \
+      libxkbcommon0 libxrandr2 libvulkan1 libxrender1 \
+ && wget -q -O /tmp/chrome.zip \
+      "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip" \
+ && unzip -q /tmp/chrome.zip -d /opt \
+ && rm /tmp/chrome.zip \
+ && apt-get purge -y wget unzip && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production PORT=3030 \
     PUPPETEER_SKIP_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+    PUPPETEER_EXECUTABLE_PATH=/opt/chrome-linux64/chrome
 COPY --from=build /app /app
 EXPOSE 3030
 # Миграции запускаем отдельным K8s Job (см. deploy/k8s/api.yaml):
