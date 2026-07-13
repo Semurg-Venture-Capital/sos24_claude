@@ -50,8 +50,20 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 20
           resources:
-            requests: { cpu: "100m", memory: "256Mi" }
-            limits: { cpu: "1", memory: "768Mi" }
+            # Chromium (PDF европротокола) прожорлив: Node + headless Chrome
+            # в 768Mi не влезали → браузер убивался («Code: null»).
+            requests: { cpu: "100m", memory: "512Mi" }
+            limits: { cpu: "1", memory: "1536Mi" }
+          volumeMounts:
+            # Дефолтный /dev/shm в контейнере — 64 МБ, Chromium этого мало.
+            # Даём 256 МБ (в паре с флагом --disable-dev-shm-usage).
+            - name: dshm
+              mountPath: /dev/shm
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
 ---
 apiVersion: v1
 kind: Service

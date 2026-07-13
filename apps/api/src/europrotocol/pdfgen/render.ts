@@ -139,7 +139,14 @@ function getBrowser(): Promise<Browser> {
     browserPromise = puppeteer.launch({
       headless: true,
       executablePath,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        // В контейнере /dev/shm всего 64 МБ — без этого Chromium падает
+        // («Failed to launch the browser process … Code: null»).
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+      ],
     });
   }
   return browserPromise;
