@@ -749,6 +749,72 @@ git push → main (tag)  →  GitHub Actions
                            → ArgoCD (manual approval в UI) → sos24-prod namespace
 ```
 
+### ⚠️ ПРАВИЛО: НИКОГДА не деплоить по тегу `:latest`
+
+> **Инцидент 2026-07-13 (реальный, стоил часа отладки).** Деплой шёл вручную на `:latest`
+> (реестр `10.10.38.11:30500/sos24`). Симптом: `docker push` отрапортовал успех, migrate-Job
+> запустился и написал **«33 migrations found → No pending migrations to apply»**, хотя в
+> исходниках и внутри образа было **38** миграций. В прод-БД новых колонок не появилось
+> (`partners.region`, `partners.healthDirectory`, `doctors.bookingEnabled`, `ai_usage_logs`),
+> и API поехал бы на схеме без них.
+>
+> **Причина:** тег `:latest` в реестре указывал на **старый** образ — push прошёл частично
+> («Layer already exists»), манифест `:latest` не переписался. `imagePullPolicy: Always` не
+> спасает: он честно тянет `:latest`, а `:latest` — это старый digest. Диагностика: сравнить
+> `kubectl get pod … -o jsonpath='{…imageID}'` (digest, который реально тянет под) с
+> `docker inspect --format='{{index .RepoDigests 0}}' <образ>` — **они не совпали**.
+>
+> **Лечение и правило на будущее:** деплоить **только по уникальному неизменяемому тегу**
+> (git-sha / версия). Тогда деплой детерминирован, а откат — это просто прошлый тег.
+
+```bash
+# Правильный ручной деплой (пока нет ArgoCD)
+REG=10.10.38.11:30500/sos24
+TAG="v$(date +%Y%m%d)-$(git rev-parse --short HEAD)"   # напр. v20260713-0a23537
+
+# 1) Сборка под amd64. ВАЖНО: и api, и admin требуют --build-context pnpmstore=...
+docker build --platform linux/amd64 \
+  --build-context pnpmstore="$(dirname "$(pnpm store path)")" \
+  -f apps/api/Dockerfile -t "$REG/sos24-api:$TAG" .
+docker push "$REG/sos24-api:$TAG"
+
+# 2) Проверить, что запушен ИМЕННО он (digest push == digest в реестре)
+docker inspect --format='{{index .RepoDigests 0}}' "$REG/sos24-api:$TAG"
+
+# 3) Миграции — Job на ТОМ ЖЕ теге (не :latest!)
+kubectl delete job sos24-api-migrate -n sos24-dev --cascade=foreground --ignore-not-found
+sed -e "s#__REGISTRY__#$REG#g" -e "s#sos24-api:latest#sos24-api:$TAG#g" deploy/k8s/api.yaml \
+  | kubectl apply -n sos24-dev -f -   # (только kind: Job)
+kubectl wait --for=condition=complete job/sos24-api-migrate -n sos24-dev --timeout=300s
+kubectl logs job/sos24-api-migrate -n sos24-dev | grep -E "migrations found|Applying"
+
+# 4) Rollout на том же теге
+kubectl set image deploy/sos24-api  api="$REG/sos24-api:$TAG"   -n sos24-dev
+kubectl set image deploy/sos24-admin admin="$REG/sos24-admin:$TAG" -n sos24-dev
+kubectl rollout status deploy/sos24-api -n sos24-dev
+
+# 5) Убедиться, что миграции реально применились (а не «No pending» на старом образе)
+kubectl exec -n sos24-dev postgresql-0 -- env PGPASSWORD=<pass> \
+  psql -U postgres -d sos24 -c "\d partners" | grep -E "region|healthDirectory"
+```
+
+**Чек-лист деплоя (не пропускать):**
+1. Тег уникальный (git-sha), **не `:latest`**.
+2. После push сверить digest локального образа с тем, что тянет под.
+3. Migrate-Job — на том же теге; в логе Job'а должно быть **`Applying migration …`**, а не
+   голое «No pending» (если миграции ожидались).
+4. После Job'а — **проверить схему в БД** (колонки/таблицы на месте).
+5. `kubectl logs job/...` читать у **свежего** пода: старый под Job'а может остаться и отдать
+   лог прошлого запуска → удалять Job с `--cascade=foreground` и ждать исчезновения подов.
+
+**Секреты приложения:** `sos24-api-secret` (namespace `sos24-dev`), правится `kubectl patch`:
+```bash
+kubectl patch secret sos24-api-secret -n sos24-dev --type merge \
+  -p '{"stringData":{"TRIAGE_MODE":"llm","LLM_MODEL":"gemini-flash-lite-latest","GEMINI_API_KEY":"<key>"}}'
+```
+Ключи в git **не коммитим** (см. `deploy/k8s/secret.example.yaml` — только плейсхолдеры).
+Изменение секрета применяется **только на новых подах** → после patch нужен rollout.
+
 ---
 
 ## 6. Secrets в Vault — структура
