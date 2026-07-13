@@ -807,6 +807,49 @@ kubectl exec -n sos24-dev postgresql-0 -- env PGPASSWORD=<pass> \
 5. `kubectl logs job/...` читать у **свежего** пода: старый под Job'а может остаться и отдать
    лог прошлого запуска → удалять Job с `--cascade=foreground` и ждать исчезновения подов.
 
+### ⚠️ Chromium/PDF: НЕ ставить Debian-пакет `chromium`
+
+> **Инцидент 2026-07-13.** «Получить PDF» европротокола в проде отдавал 500. В логах API:
+> `Error: Failed to launch the browser process: … Code: null` (процесс убит сигналом).
+>
+> **Диагностика (по шагам, если повторится):**
+> ```bash
+> kubectl exec -n sos24-dev <api-pod> -- /usr/lib/chromium/chromium \
+>   --headless=new --no-sandbox --disable-dev-shm-usage --dump-dom about:blank
+> # → "Trace/breakpoint trap (core dumped)", EXIT=133 (=128+5, SIGTRAP)
+> ```
+> Краш воспроизводится **даже из шелла, без puppeteer**. Не помогло ничего из обычного:
+> запуск от не-root, `--headless=old`, `--single-process --no-zygote`,
+> `seccompProfile: Unconfined`, `/dev/shm` 256 МБ, лимит памяти 1.5 ГБ.
+> Окружение при этом здоровое: x86_64, ядро 5.15, CPU с avx2, все `.so` на месте.
+>
+> **Причина:** текущая версия Debian-пакета `chromium` (**150**) несовместима с нодами —
+> падает по SIGTRAP на старте. Проверено контрольным опытом: **Chrome for Testing 131**
+> в том же контейнере стартует и рендерит PDF через наш puppeteer 25 (PDF OK).
+>
+> **Решение (в `apps/api/Dockerfile`):** пакет `chromium` НЕ ставим. Скачиваем
+> **фиксированную версию Chrome for Testing** + её зависимости и шрифты:
+> ```dockerfile
+> ARG CHROME_VERSION=131.0.6778.204
+> RUN apt-get install -y --no-install-recommends wget unzip \
+>       fonts-liberation fonts-dejavu-core fonts-noto-core \
+>       libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libcairo2 libcups2 \
+>       libdbus-1-3 libdrm2 libgbm1 libglib2.0-0 libnspr4 libnss3 libpango-1.0-0 \
+>       libx11-6 libxcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 \
+>       libxkbcommon0 libxrandr2 libvulkan1 libxrender1 \
+>  && wget -qO /tmp/chrome.zip \
+>       "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip" \
+>  && unzip -q /tmp/chrome.zip -d /opt && rm /tmp/chrome.zip
+> ENV PUPPETEER_EXECUTABLE_PATH=/opt/chrome-linux64/chrome
+> ```
+> **Правило:** версию Chrome **пиним явно** и обновляем только после проверки в поде
+> (`--dump-dom about:blank` должен вернуть DOM и `EXIT=0`). Автоматическое «поедет само»
+> с apt-обновлением Chromium — это мина.
+>
+> В deployment также добавлены (полезно для Chromium, но НЕ были причиной):
+> `/dev/shm` как `emptyDir{medium: Memory, sizeLimit: 256Mi}` + флаг `--disable-dev-shm-usage`,
+> лимит памяти поднят 768Mi → 1536Mi (Node + headless Chrome в 768Mi тесно).
+
 **Секреты приложения:** `sos24-api-secret` (namespace `sos24-dev`), правится `kubectl patch`:
 ```bash
 kubectl patch secret sos24-api-secret -n sos24-dev --type merge \
