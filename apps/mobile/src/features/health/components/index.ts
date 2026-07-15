@@ -9,6 +9,7 @@ export type { MedTileTone } from './MedQuickTile';
 export { MedContactCard } from './MedContactCard';
 export { MedDoctorCard } from './MedDoctorCard';
 export type { MedDoctorCardProps } from './MedDoctorCard';
-export { GlassChip } from './GlassChip';
+export { LiquidGlassChips } from './LiquidGlassChips';
+export type { ChipItem } from './LiquidGlassChips';
 export { WhoopCard } from './WhoopCard';
 export { medGlass } from './medGlass';

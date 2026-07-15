@@ -10,7 +10,9 @@ import { MapPinIcon, PhoneFillIcon } from '../../../components/icons/MedIcons';
 import { StarIcon } from '../../../components/icons/StarIcon';
 import { useClinics, useRegions, type ClinicCard } from '../../../api/health';
 import { useGeoStore } from '../../../stores/geoStore';
-import { GlassChip, medGlass } from '../components';
+import { LiquidGlassChips, medGlass } from '../components';
+
+const ALL = '__all';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthClinics'>;
 
@@ -45,12 +47,11 @@ export function HealthClinicsScreen() {
         </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 14 }} style={{ flexGrow: 0, flexShrink: 0 }}>
-        <GlassChip label="Все области" active={region == null} onPress={() => pickRegion(null)} />
-        {regions.map((r) => (
-          <GlassChip key={r} label={r} active={region === r} onPress={() => pickRegion(r)} />
-        ))}
-      </ScrollView>
+      <LiquidGlassChips
+        items={[{ key: ALL, label: 'Все области' }, ...regions.map((r) => ({ key: r, label: r }))]}
+        selectedKey={region ?? ALL}
+        onSelect={(k) => pickRegion(k === ALL ? null : k)}
+      />
 
       <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 140, gap: 12 }}>
         {isLoading ? (

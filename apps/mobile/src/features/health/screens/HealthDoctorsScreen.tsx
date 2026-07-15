@@ -9,11 +9,12 @@ import { BackButton } from '../../../components/ui/BackButton';
 import { MapPinIcon } from '../../../components/icons/MedIcons';
 import { useDoctors, useRegions, type DoctorCard } from '../../../api/health';
 import { useGeoStore } from '../../../stores/geoStore';
-import { GlassChip, MedDoctorCard } from '../components';
+import { LiquidGlassChips, MedDoctorCard } from '../components';
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthDoctors'>;
 type Rt = RouteProp<HealthStackParamList, 'HealthDoctors'>;
 
+const ALL = '__all';
 const money = (n: number | null) => (n != null ? `${n.toLocaleString('ru-RU')} сум` : '—');
 
 export function HealthDoctorsScreen() {
@@ -77,30 +78,20 @@ export function HealthDoctorsScreen() {
       </View>
 
       {/* Фильтр по области */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 14 }}
-        style={{ flexGrow: 0, flexShrink: 0 }}
-      >
-        <GlassChip label="Все области" active={region == null} onPress={() => pickRegion(null)} />
-        {regions.map((r) => (
-          <GlassChip key={r} label={r} active={region === r} onPress={() => pickRegion(r)} />
-        ))}
-      </ScrollView>
+      <LiquidGlassChips
+        items={[{ key: ALL, label: 'Все области' }, ...regions.map((r) => ({ key: r, label: r }))]}
+        selectedKey={region ?? ALL}
+        onSelect={(k) => pickRegion(k === ALL ? null : k)}
+      />
 
       {/* Фильтр по специальности */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 10 }}
-        style={{ flexGrow: 0, flexShrink: 0 }}
-      >
-        <GlassChip label="Все" active={specialty == null} onPress={() => setSpecialty(null)} />
-        {specialties.map((s) => (
-          <GlassChip key={s} label={s} active={specialty === s} onPress={() => setSpecialty(s)} />
-        ))}
-      </ScrollView>
+      <View style={{ paddingTop: 4 }}>
+        <LiquidGlassChips
+          items={[{ key: ALL, label: 'Все' }, ...specialties.map((s) => ({ key: s, label: s }))]}
+          selectedKey={specialty ?? ALL}
+          onSelect={(k) => setSpecialty(k === ALL ? null : k)}
+        />
+      </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
