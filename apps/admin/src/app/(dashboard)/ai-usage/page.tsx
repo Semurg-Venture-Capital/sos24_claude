@@ -47,11 +47,11 @@ export default function AiUsagePage() {
         <Stat label="Всего токенов" value={s ? fmt(s.totalTokens) : '—'} sub="prompt + output" />
         <Stat label="Входные токены" value={s ? fmt(s.promptTokens) : '—'} />
         <Stat label="Выходные токены" value={s ? fmt(s.outputTokens) : '—'} />
-        <Stat label="Примерная стоимость" value={s ? fmtUsd(s.totalCostUsd) : '—'} sub="оценка, платный тариф" />
+        <Stat label="Примерная стоимость" value={s ? fmtUsd(s.totalCostUsd) : '—'} sub="платный тариф Gemini" />
       </div>
       <p className="text-xs text-gray-400 mb-6">
-        Стоимость — приблизительная оценка по тарифам Gemini на платном плане. Сейчас используется free tier
-        (фактический счёт — $0).
+        Стоимость рассчитана по платным тарифам Gemini (dev и прод работают на платных токенах). Значение
+        приблизительное — округление ставок за 1M токенов.
       </p>
 
       {/* По фичам */}
