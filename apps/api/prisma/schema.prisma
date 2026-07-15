@@ -225,6 +225,7 @@ model User {
   sosAlerts         SosAlert[]           @relation("SosOwner")
   dispatchedSos     SosAlert[]           @relation("SosDispatcher")
   triageSessions    TriageSession[]
+  assistantSessions AssistantSession[]
   wearables         WearableConnection[]
 
   // B2B-кабинет (роль PARTNER): пользователь владеет РОВНО одной сущностью — компанией ИЛИ точкой.
@@ -627,6 +628,21 @@ model TriageSession {
 
   @@index([userId, createdAt])
   @@map("triage_sessions")
+}
+
+// Сессия SOS-ассистента (центральный ИИ-роутер). Сообщения ШИФРУЮТСЯ.
+model AssistantSession {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  String?  @db.Text // ШИФРУЕТСЯ — JSON [{role:'user'|'ai',text,at,actions?,quickReplies?}]
+  category  String? // accident|medical|theft|property|insurance|other
+  urgency   String? // low|medium|high
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, updatedAt])
+  @@map("assistant_sessions")
 }
 
 // Экстренные контакты (M14.11): кого оповестить при SOS. Лимит 3 (в сервисе).

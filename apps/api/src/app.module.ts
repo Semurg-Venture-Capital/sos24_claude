@@ -4,6 +4,7 @@ import { FaviconController } from './common/favicon.controller';
 import { BullModule } from '@nestjs/bullmq';
 import { AdminModule } from './admin/admin.module';
 import { AdjusterModule } from './adjuster/adjuster.module';
+import { AssistantModule } from './assistant/assistant.module';
 import { AuthModule } from './auth/auth.module';
 import { PartnersModule } from './partners/partners.module';
 import { PartnerPortalModule } from './partner-portal/partner-portal.module';
@@ -62,6 +63,7 @@ import { WalletModule } from './wallet/wallet.module';
     MyidModule,
     AdminModule,
     AdjusterModule,
+    AssistantModule,
     PartnersModule,
     PartnerPortalModule,
     EuroprotocolModule,
