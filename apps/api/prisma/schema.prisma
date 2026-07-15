@@ -203,29 +203,29 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  vehicles         Vehicle[]
-  documents        Document[]
-  drivers          Driver[]
-  policies         Policy[]
-  cards            Card[]
-  wallet           Wallet?
-  payments         Payment[]
-  adjusterRequests AdjusterRequest[] @relation("RequestOwner")
-  assignedRequests AdjusterRequest[] @relation("AssignedAdjuster")
-  euroProtocols    EuroProtocol[]
-  notifications    Notification[]
-  deviceTokens     DeviceToken[]
-  supportTickets   SupportTicket[]   @relation("TicketOwner")
-  assignedTickets  SupportTicket[]   @relation("TicketAgent")
-  supportMessages  SupportMessage[]
-  partnerReviews   PartnerReview[]
-  partnerBookings  PartnerBooking[]
-  medicalProfile   MedicalProfile?
+  vehicles          Vehicle[]
+  documents         Document[]
+  drivers           Driver[]
+  policies          Policy[]
+  cards             Card[]
+  wallet            Wallet?
+  payments          Payment[]
+  adjusterRequests  AdjusterRequest[]    @relation("RequestOwner")
+  assignedRequests  AdjusterRequest[]    @relation("AssignedAdjuster")
+  euroProtocols     EuroProtocol[]
+  notifications     Notification[]
+  deviceTokens      DeviceToken[]
+  supportTickets    SupportTicket[]      @relation("TicketOwner")
+  assignedTickets   SupportTicket[]      @relation("TicketAgent")
+  supportMessages   SupportMessage[]
+  partnerReviews    PartnerReview[]
+  partnerBookings   PartnerBooking[]
+  medicalProfile    MedicalProfile?
   emergencyContacts EmergencyContact[]
-  sosAlerts        SosAlert[]        @relation("SosOwner")
-  dispatchedSos    SosAlert[]        @relation("SosDispatcher")
-  triageSessions   TriageSession[]
-  wearables        WearableConnection[]
+  sosAlerts         SosAlert[]           @relation("SosOwner")
+  dispatchedSos     SosAlert[]           @relation("SosDispatcher")
+  triageSessions    TriageSession[]
+  wearables         WearableConnection[]
 
   // B2B-кабинет (роль PARTNER): пользователь владеет РОВНО одной сущностью — компанией ИЛИ точкой.
   ownedCompany InsuranceCompany? @relation("CompanyOwner")
@@ -566,31 +566,31 @@ model PartnerCategory {
 }
 
 model Partner {
-  id      String       @id @default(cuid())
-  name    String
-  type    PartnerType? // legacy; основная категоризация — categoryId
-  address String
-  phone   String?
-  rating  Float        @default(0)
-  isOpen  Boolean      @default(true) // ручной override; фактическое «открыто» считается из workingHours
-  city    String       @default("Ташкент")
-  region  String? // область РУз (Ташкент, Самаркандская, …) — для фильтра в «Здоровье»
+  id              String       @id @default(cuid())
+  name            String
+  type            PartnerType? // legacy; основная категоризация — categoryId
+  address         String
+  phone           String?
+  rating          Float        @default(0)
+  isOpen          Boolean      @default(true) // ручной override; фактическое «открыто» считается из workingHours
+  city            String       @default("Ташкент")
+  region          String? // область РУз (Ташкент, Самаркандская, …) — для фильтра в «Здоровье»
   // Клиника-справочник: заведена в раздел «Здоровье», НЕ показывается в каталоге «Партнёры».
-  healthDirectory Boolean @default(false)
-  lat     Float?
-  lng     Float?
+  healthDirectory Boolean      @default(false)
+  lat             Float?
+  lng             Float?
 
-  categoryId  String?
-  category    PartnerCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  description String?          @db.Text
-  logoKey     String? // лого в MinIO
-  coverKey    String? // баннер в MinIO
-  email       String?
-  website     String?
+  categoryId   String?
+  category     PartnerCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  description  String?          @db.Text
+  logoKey      String? // лого в MinIO
+  coverKey     String? // баннер в MinIO
+  email        String?
+  website      String?
   workingHours Json? // { mon: {open:"09:00", close:"18:00"} | null, ... }
-  reviewCount Int     @default(0)
-  active      Boolean @default(true)
-  sortOrder   Int     @default(0)
+  reviewCount  Int              @default(0)
+  active       Boolean          @default(true)
+  sortOrder    Int              @default(0)
 
   // Владелец B2B-кабинета (роль PARTNER). 1:1 — у точки максимум один логин-владелец.
   ownerId String? @unique @map("owner_id")
@@ -652,14 +652,14 @@ enum SosStatus {
 
 // Тревога ЧП/SOS (M14.12): факт срабатывания + геолокация + оповещения + диспетчер.
 model SosAlert {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation("SosOwner", fields: [userId], references: [id], onDelete: Cascade)
-  lat         Float?
-  lng         Float?
-  address     String?
-  status      SosStatus @default(ACTIVE)
-  notified    Int       @default(0) // сколько экстренных контактов успешно оповещено
+  id       String    @id @default(cuid())
+  userId   String
+  user     User      @relation("SosOwner", fields: [userId], references: [id], onDelete: Cascade)
+  lat      Float?
+  lng      Float?
+  address  String?
+  status   SosStatus @default(ACTIVE)
+  notified Int       @default(0) // сколько экстренных контактов успешно оповещено
 
   // Диспетчер, принявший тревогу (роль ADMIN/SUPPORT).
   dispatcherId   String?
@@ -713,9 +713,9 @@ model MedicalProfile {
   bloodType   String? // «B(III) Rh+»
   heightCm    Int?
   weightKg    Int?
-  allergies   String? @db.Text // ШИФРУЕТСЯ (JSON-массив строк)
-  chronic     String? @db.Text // ШИФРУЕТСЯ
-  medications String? @db.Text // ШИФРУЕТСЯ
+  allergies   String?   @db.Text // ШИФРУЕТСЯ (JSON-массив строк)
+  chronic     String?   @db.Text // ШИФРУЕТСЯ
+  medications String?   @db.Text // ШИФРУЕТСЯ
   organDonor  Boolean?
   pregnancy   Boolean?
   dmsPolicy   String?
@@ -798,6 +798,92 @@ model WhoopSnapshot {
   @@map("whoop_snapshots")
 }
 
+// ── История метрик WHOOP (тайм-серии для графиков/трендов) ──
+// Снапшот выше — «сегодня» для быстрой отдачи; эти таблицы — история.
+// userId без FK (как AiUsageLog): чистим каскадно при disconnect в сервисе.
+
+// Восстановление по дням (recovery.updated)
+model WhoopRecoveryDay {
+  id            String    @id @default(cuid())
+  userId        String
+  date          DateTime  @db.Date // день (UTC-нормализованный)
+  recoveryScore Int? // 0..100
+  hrvMs         Float? // ВСР (rmssd, мс)
+  restingHr     Int? // пульс покоя
+  spo2          Float? // сатурация, % (4.0+)
+  skinTempC     Float? // температура кожи (4.0+)
+  scoredAt      DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("whoop_recovery_days")
+}
+
+// Сон (sleep.updated) — по каждому сну/напу
+model WhoopSleep {
+  id               String   @id @default(cuid())
+  userId           String
+  whoopId          String? // id объекта на стороне WHOOP (идемпотентность)
+  start            DateTime
+  end              DateTime
+  performancePct   Int? // качество сна vs потребность
+  efficiencyPct    Int? // доля сна во времени в кровати
+  consistencyPct   Int? // регулярность режима
+  inBedMin         Int?
+  lightMin         Int?
+  deepMin          Int?
+  remMin           Int?
+  awakeMin         Int?
+  needMin          Int? // потребность в сне (мс→мин)
+  respiratoryRate  Float?
+  disturbanceCount Int?
+  cycleCount       Int?
+  isNap            Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  @@unique([userId, start])
+  @@index([userId, start])
+  @@map("whoop_sleeps")
+}
+
+// Физиологические сутки / нагрузка (cycle) по дням
+model WhoopCycleDay {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @db.Date
+  strain    Float? // 0..21
+  kilojoule Float?
+  avgHr     Int?
+  maxHr     Int?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("whoop_cycle_days")
+}
+
+// Тренировки (workout.updated)
+model WhoopWorkout {
+  id        String   @id @default(cuid())
+  userId    String
+  whoopId   String? // id на стороне WHOOP (идемпотентность)
+  start     DateTime
+  end       DateTime
+  sport     String?
+  strain    Float?
+  avgHr     Int?
+  maxHr     Int?
+  kilojoule Float?
+  distanceM Float?
+  zoneMin   Json? // [z1..z5] минуты в пульсовых зонах
+  createdAt DateTime @default(now())
+
+  @@unique([userId, start])
+  @@index([userId, start])
+  @@map("whoop_workouts")
+}
+
 // Лог каждого вызова к LLM (Gemini): фича, модель, токены, время, результат.
 // userId — необязателен (nullable, без FK) — логируем и системные вызовы.
 model AiUsageLog {
@@ -821,27 +907,27 @@ model AiUsageLog {
 // Врач при клинике-партнёре (M14 · раздел «Здоровье»). Запись к врачу —
 // поверх PartnerBooking (см. поле doctorId ниже), максимум переиспользования.
 model Doctor {
-  id           String  @id @default(cuid())
-  partnerId    String? // клиника (Partner); null — частный врач
-  partner      Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
-  fullName     String
-  specialty    String // Терапевт / ЛОР / Кардиолог …
-  phone        String? // контактный телефон (для режима «Позвонить»)
-  bookingEnabled Boolean @default(false) // false → «Позвонить» (tel:), true → «Записаться»
-  clinicName   String? // место работы (для врача без Partner)
-  city         String? // город
-  experienceY  Int? // стаж, лет
-  bio          String?  @db.Text
-  photoKey     String? // фото в MinIO
-  rating       Float    @default(0)
-  reviewCount  Int      @default(0)
-  pricePrimary Int? // первичный приём, сум
-  priceRepeat  Int? // повторный приём
-  priceVideo   Int? // видео (для будущего)
-  videoEnabled Boolean  @default(false) // видео-приём (пока false везде)
-  verified     Boolean  @default(false) // бейдж «Партнёр SOS24»
-  active       Boolean  @default(true)
-  workingHours Json? // { mon: {open,close} | null, ... } — для расчёта слотов; fallback — часы клиники
+  id             String   @id @default(cuid())
+  partnerId      String? // клиника (Partner); null — частный врач
+  partner        Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  fullName       String
+  specialty      String // Терапевт / ЛОР / Кардиолог …
+  phone          String? // контактный телефон (для режима «Позвонить»)
+  bookingEnabled Boolean  @default(false) // false → «Позвонить» (tel:), true → «Записаться»
+  clinicName     String? // место работы (для врача без Partner)
+  city           String? // город
+  experienceY    Int? // стаж, лет
+  bio            String?  @db.Text
+  photoKey       String? // фото в MinIO
+  rating         Float    @default(0)
+  reviewCount    Int      @default(0)
+  pricePrimary   Int? // первичный приём, сум
+  priceRepeat    Int? // повторный приём
+  priceVideo     Int? // видео (для будущего)
+  videoEnabled   Boolean  @default(false) // видео-приём (пока false везде)
+  verified       Boolean  @default(false) // бейдж «Партнёр SOS24»
+  active         Boolean  @default(true)
+  workingHours   Json? // { mon: {open,close} | null, ... } — для расчёта слотов; fallback — часы клиники
 
   bookings  PartnerBooking[]
   createdAt DateTime         @default(now())
@@ -1093,7 +1179,7 @@ model EuroProtocol {
   cannotMovePlace String?  @map("cannot_move_place") // место стоянки, если не может
   remarks         String? // 4. Изоҳ (доп. замечания) — итоговый (нормализованный) текст
   remarksAudioKey String? // голосовая запись «Изоҳ» в MinIO (первоисточник)
-  remarksRaw      String? @db.Text // сырой транскрипт голоса (до нормализации)
+  remarksRaw      String?  @db.Text // сырой транскрипт голоса (до нормализации)
 
   // --- Подписи (OTP/MyID — храним факт + время, рендерим штамп) ---
   signedAAt DateTime? @map("signed_a_at") // сторона A (инициатор, MyID step-up)
@@ -1115,18 +1201,18 @@ model EuroProtocol {
 
 // Уведомление пользователя (in-app история + источник push).
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type      NotificationType @default(SYSTEM)
-  title     String
-  body      String
+  type  NotificationType @default(SYSTEM)
+  title String
+  body  String
   // Полезная нагрузка для перехода: { screen, params } (deep link в приложении).
-  data      Json?
+  data  Json?
 
   readAt    DateTime?
-  createdAt DateTime         @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([userId, createdAt])
   @@index([userId, readAt])
@@ -1135,9 +1221,9 @@ model Notification {
 
 // Push-токен устройства (нативный: APNs для iOS, FCM для Android).
 model DeviceToken {
-  id         String         @id @default(cuid())
-  userId     String
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   token      String         @unique
   platform   DevicePlatform
@@ -1150,9 +1236,9 @@ model DeviceToken {
 
 // Обращение в поддержку (тикет). На пользователя может быть несколько.
 model SupportTicket {
-  id      String          @id @default(cuid())
-  userId  String
-  user    User            @relation("TicketOwner", fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("TicketOwner", fields: [userId], references: [id], onDelete: Cascade)
 
   subject  String
   category SupportCategory     @default(OTHER)
@@ -1170,8 +1256,8 @@ model SupportTicket {
 
   messages  SupportMessage[]
   calls     Call[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
   closedAt  DateTime?
 
   @@index([userId, lastMessageAt])
@@ -1184,16 +1270,16 @@ model SupportTicket {
 
 enum CallDirection {
   INBOUND_EXTERNAL // звонок на наш внешний номер (PSTN/транк)
-  INBOUND_APP      // звонок из мобильного приложения (WebRTC), известен userId
-  OUTBOUND         // исходящий от оператора
+  INBOUND_APP // звонок из мобильного приложения (WebRTC), известен userId
+  OUTBOUND // исходящий от оператора
 }
 
 enum CallStatus {
-  RINGING   // поступил/в очереди/звонит у оператора
-  ANSWERED  // оператор ответил
-  MISSED    // не приняли (никто не ответил / абонент бросил в очереди)
+  RINGING // поступил/в очереди/звонит у оператора
+  ANSWERED // оператор ответил
+  MISSED // не приняли (никто не ответил / абонент бросил в очереди)
   COMPLETED // завершён нормально
-  FAILED    // техническая ошибка
+  FAILED // техническая ошибка
 }
 
 // Журнал звонков колл-центра. Создаётся/обновляется ARI-приложением по событиям Asterisk.
