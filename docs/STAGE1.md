@@ -6,9 +6,18 @@
 
 ---
 
-## Где остановились (2026-07-15)
+## Где остановились (2026-07-15, вечер) — WHOOP на реальных данных + прод + TestFlight
 
-> **Статус 2026-07-15 — Экраны показателей WHOOP (RU) на стеклянных табах + Liquid Glass чипы «Здоровья». Всё на локальном деве. Ветка `main`.**
+> **Статус 2026-07-15 (вечер) — Бэкфилл истории WHOOP + прод-деплой API + iOS build 12. Прод на РЕАЛЬНЫХ данных WHOOP. Ветка `main`.**
+>
+> - **Бэкфилл истории:** провайдер тянет 30 дней (real — пагинатор v2; mock — генерация); `sync` **самолечит** (ставит бэкфилл если истории <7 дней). Запись по вебхукам уже работала (webhook→HMAC→очередь→sync). Крон не нужен.
+> - **Прод-деплой API** (тег `v20260715-*`): миграции WHOOP применены, rollout. Триггернул sync у аккаунта → бэкфилл подтянул **реальную** историю (recovery/hrv/strain/sleep ~12–14 точек) — тренды на проде живые.
+> - **iOS build 12 — архив собран** (Release→прод), Distribute в Xcode делает пользователь.
+> - **⚠️ Грабли:** `pnpm store prune` (прошлая чистка диска) сломал offline-Docker (`ERR_PNPM_NO_OFFLINE_TARBALL`) → `pnpm fetch`; архив падал `Cannot find module @expo/config-plugins` → чистая переустановка node_modules. Metro для теста real-WHOOP запущен с `EXPO_PUBLIC_API_URL=https://api.sos24.uz`.
+
+## Где остановились (2026-07-15) — экраны WHOOP на табах
+
+> **Статус 2026-07-15 — Экраны показателей WHOOP (RU) на стеклянных табах + Liquid Glass чипы «Здоровья». Ветка `main`.**
 >
 > **Экраны WHOOP (Этапы A/B/C готовы).** Прототип утверждён (`docs/mockups/whoop-pages.html`), план — `docs/integrations/WHOOP_PAGES_PLAN.md`.
 > - **A — история/бэкенд:** тайм-серии `WhoopRecoveryDay/WhoopSleep/WhoopCycleDay/WhoopWorkout` (миграции); `sync` пишет историю; mock-бэкфилл 14 дней; `GET /health/wearable/whoop/history?metric=&range=` (recovery/hrv/rhr/spo2/strain/sleep, 7–90 дней).
