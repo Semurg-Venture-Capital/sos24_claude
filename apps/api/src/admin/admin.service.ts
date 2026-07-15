@@ -19,8 +19,8 @@ export class AdminService {
     const [rows, total, totals, byFeature] = await Promise.all([
       this.prisma.aiUsageLog.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
       this.prisma.aiUsageLog.count({ where }),
-      this.prisma.aiUsageLog.aggregate({ _sum: { totalTokens: true, promptTokens: true, outputTokens: true }, _count: true }),
-      this.prisma.aiUsageLog.groupBy({ by: ['feature'], _sum: { totalTokens: true }, _count: true }),
+      this.prisma.aiUsageLog.aggregate({ where, _sum: { totalTokens: true, promptTokens: true, outputTokens: true }, _count: true }),
+      this.prisma.aiUsageLog.groupBy({ where, by: ['feature'], _sum: { totalTokens: true }, _count: true }),
     ]);
 
     // У AiUsageLog нет связи с User — подтягиваем данные пользователей одним запросом.
