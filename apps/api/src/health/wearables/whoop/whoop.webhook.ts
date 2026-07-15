@@ -45,6 +45,11 @@ export class WhoopSyncProcessor extends WorkerHost {
   }
 
   async process(job: Job<WhoopSyncJob>): Promise<void> {
+    if (job.name === 'backfill') {
+      await this.service.backfill(job.data.userId);
+      this.logger.log(`WHOOP backfill выполнен для user=${job.data.userId}`);
+      return;
+    }
     await this.service.sync(job.data.userId);
     this.logger.log(`WHOOP sync выполнена для user=${job.data.userId}`);
   }

@@ -81,6 +81,10 @@ export interface WhoopProvider {
   fetchCycle(accessToken: string): Promise<CycleData | null>;
   fetchWorkouts(accessToken: string, limit?: number): Promise<WorkoutData[]>;
   fetchBody(accessToken: string): Promise<BodyData | null>;
+  // Бэкфилл истории за `days` дней (для графиков/трендов при подключении).
+  fetchRecoveryHistory(accessToken: string, days: number): Promise<RecoveryData[]>;
+  fetchSleepHistory(accessToken: string, days: number): Promise<SleepData[]>;
+  fetchCycleHistory(accessToken: string, days: number): Promise<CycleData[]>;
 }
 
 const msToMin = (ms: number | null | undefined): number | null =>
@@ -158,6 +162,38 @@ export class MockWhoopProvider implements WhoopProvider {
   async fetchBody(): Promise<BodyData> {
     return { heightCm: 178, weightKg: 74 };
   }
+
+  private day(i: number): Date {
+    const t = new Date();
+    const d = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate()));
+    return new Date(d.getTime() - i * 86_400_000);
+  }
+
+  async fetchRecoveryHistory(_a: string, days: number): Promise<RecoveryData[]> {
+    const out: RecoveryData[] = [];
+    for (let i = days - 1; i >= 1; i--) {
+      const w = Math.sin(i / 2.2);
+      out.push({ recoveryScore: Math.round(56 + w * 16), hrvMs: Math.round((40 + w * 8) * 10) / 10, restingHr: Math.round(58 - w * 3), spo2: 97, skinTempC: 33.3, at: this.day(i) });
+    }
+    return out;
+  }
+
+  async fetchSleepHistory(_a: string, days: number): Promise<SleepData[]> {
+    const out: SleepData[] = [];
+    for (let i = days - 1; i >= 1; i--) {
+      const perf = Math.round(78 + Math.sin(i / 2.6) * 12);
+      out.push({ performance: perf, totalMin: 450, lightMin: 220, deepMin: 88, remMin: 111, awakeMin: 13, respiratoryRate: 14.2, needMin: 500, efficiencyPct: 90, consistencyPct: 72, at: new Date(this.day(i).getTime() - 3_600_000) });
+    }
+    return out;
+  }
+
+  async fetchCycleHistory(_a: string, days: number): Promise<CycleData[]> {
+    const out: CycleData[] = [];
+    for (let i = days - 1; i >= 1; i--) {
+      out.push({ strain: Math.round((11 + Math.sin(i / 1.7) * 4) * 10) / 10, kilojoule: 8500, avgHr: 76, maxHr: 150, at: this.day(i) });
+    }
+    return out;
+  }
 }
 
 // ─────────────────────────────── REAL ───────────────────────────────
@@ -226,8 +262,7 @@ export class RealWhoopProvider implements WhoopProvider {
     return Array.isArray(arr) ? (arr[0] ?? null) : json;
   }
 
-  async fetchRecovery(accessToken: string): Promise<RecoveryData | null> {
-    const rec = this.latest(await this.get(accessToken, '/developer/v2/recovery?limit=1'));
+  private mapRecovery(rec: any): RecoveryData | null {
     const s = rec?.score;
     if (!s) return null;
     return {
@@ -236,12 +271,11 @@ export class RealWhoopProvider implements WhoopProvider {
       restingHr: s.resting_heart_rate ?? null,
       spo2: s.spo2_percentage ?? null,
       skinTempC: s.skin_temp_celsius ?? null,
-      at: rec?.updated_at ? new Date(rec.updated_at) : null,
+      at: rec?.updated_at ? new Date(rec.updated_at) : rec?.created_at ? new Date(rec.created_at) : null,
     };
   }
 
-  async fetchSleep(accessToken: string): Promise<SleepData | null> {
-    const sl = this.latest(await this.get(accessToken, '/developer/v2/activity/sleep?limit=1'));
+  private mapSleep(sl: any): SleepData | null {
     const st = sl?.score?.stage_summary;
     const need = sl?.score?.sleep_needed;
     if (!sl?.score) return null;
@@ -251,9 +285,7 @@ export class RealWhoopProvider implements WhoopProvider {
     return {
       performance: sl.score.sleep_performance_percentage ?? null,
       totalMin: msToMin(
-        (st?.total_light_sleep_time_milli ?? 0) +
-          (st?.total_slow_wave_sleep_time_milli ?? 0) +
-          (st?.total_rem_sleep_time_milli ?? 0),
+        (st?.total_light_sleep_time_milli ?? 0) + (st?.total_slow_wave_sleep_time_milli ?? 0) + (st?.total_rem_sleep_time_milli ?? 0),
       ),
       lightMin: msToMin(st?.total_light_sleep_time_milli),
       deepMin: msToMin(st?.total_slow_wave_sleep_time_milli),
@@ -267,8 +299,7 @@ export class RealWhoopProvider implements WhoopProvider {
     };
   }
 
-  async fetchCycle(accessToken: string): Promise<CycleData | null> {
-    const c = this.latest(await this.get(accessToken, '/developer/v2/cycle?limit=1'));
+  private mapCycle(c: any): CycleData | null {
     if (!c?.score) return null;
     return {
       strain: c.score.strain ?? null,
@@ -277,6 +308,49 @@ export class RealWhoopProvider implements WhoopProvider {
       maxHr: c.score.max_heart_rate ?? null,
       at: c?.start ? new Date(c.start) : null,
     };
+  }
+
+  // Пагинатор коллекций v2: тянет записи за `days` дней (limit=25/страница, до 10 страниц).
+  private async listRecords(accessToken: string, basePath: string, days: number): Promise<any[]> {
+    const start = new Date(Date.now() - days * 86_400_000).toISOString();
+    const out: any[] = [];
+    let token: string | null = null;
+    for (let page = 0; page < 12; page++) {
+      const q = `start=${encodeURIComponent(start)}&limit=25${token ? `&nextToken=${encodeURIComponent(token)}` : ''}`;
+      const json = await this.get(accessToken, `${basePath}?${q}`);
+      const recs: any[] = json?.records ?? [];
+      out.push(...recs);
+      token = json?.next_token ?? null;
+      if (!token || recs.length === 0) break;
+    }
+    return out;
+  }
+
+  async fetchRecovery(accessToken: string): Promise<RecoveryData | null> {
+    return this.mapRecovery(this.latest(await this.get(accessToken, '/developer/v2/recovery?limit=1')));
+  }
+
+  async fetchSleep(accessToken: string): Promise<SleepData | null> {
+    return this.mapSleep(this.latest(await this.get(accessToken, '/developer/v2/activity/sleep?limit=1')));
+  }
+
+  async fetchCycle(accessToken: string): Promise<CycleData | null> {
+    return this.mapCycle(this.latest(await this.get(accessToken, '/developer/v2/cycle?limit=1')));
+  }
+
+  async fetchRecoveryHistory(accessToken: string, days: number): Promise<RecoveryData[]> {
+    const recs = await this.listRecords(accessToken, '/developer/v2/recovery', days);
+    return recs.map((r) => this.mapRecovery(r)).filter((x): x is RecoveryData => !!x && x.at != null);
+  }
+
+  async fetchSleepHistory(accessToken: string, days: number): Promise<SleepData[]> {
+    const recs = await this.listRecords(accessToken, '/developer/v2/activity/sleep', days);
+    return recs.map((s) => this.mapSleep(s)).filter((x): x is SleepData => !!x && x.at != null);
+  }
+
+  async fetchCycleHistory(accessToken: string, days: number): Promise<CycleData[]> {
+    const recs = await this.listRecords(accessToken, '/developer/v2/cycle', days);
+    return recs.map((c) => this.mapCycle(c)).filter((x): x is CycleData => !!x && x.at != null);
   }
 
   async fetchWorkouts(accessToken: string, limit = 10): Promise<WorkoutData[]> {

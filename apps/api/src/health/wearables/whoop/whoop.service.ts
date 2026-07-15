@@ -85,6 +85,7 @@ export class WhoopService {
     const tokens = await this.provider.exchangeCode('MOCK');
     await this.saveTokens(userId, tokens);
     await this.sync(userId).catch((e) => this.logger.warn(`mock connect sync failed: ${e?.message}`));
+    await this.backfill(userId).catch((e) => this.logger.warn(`mock backfill failed: ${e?.message}`));
     // getStatus уже содержит mode ('mock') + connected + metrics.
     return this.getStatus(userId);
   }
@@ -99,6 +100,12 @@ export class WhoopService {
       const tokens = await this.provider.exchangeCode(code);
       const conn = await this.saveTokens(userId, tokens);
       await this.sync(userId).catch((e) => this.logger.warn(`initial sync failed: ${e?.message}`));
+      // Бэкфилл истории (30 дней) — в фоне через очередь, чтобы не тормозить редирект.
+      await this.syncQueue.add(
+        'backfill',
+        { userId },
+        { jobId: `whoop-backfill-${userId}`, removeOnComplete: true, removeOnFail: 100 },
+      );
       this.logger.log(`WHOOP подключён для user=${userId} (conn=${conn.id})`);
       return `${WHOOP_SUCCESS_DEEPLINK}?status=connected`;
     } catch (e: any) {
@@ -213,8 +220,6 @@ export class WhoopService {
       const data = { end: w.end, sport: w.sport, strain: w.strain, avgHr: w.avgHr, maxHr: w.maxHr, kilojoule: w.kilojoule, distanceM: w.distanceM, zoneMin: w.zoneMin ?? undefined, whoopId: w.whoopId };
       await this.prisma.whoopWorkout.upsert({ where: { userId_start: { userId, start: w.start } }, create: { userId, start: w.start, ...data }, update: data });
     }
-    // В mock-режиме досеиваем ~14 дней истории, чтобы графики были наполнены на деве.
-    if (effectiveWhoopMode() === 'mock') await this.backfillMockHistory(userId);
     await this.prisma.wearableConnection.update({ where: { id: conn.id }, data: { lastSyncAt: new Date() } });
 
     // Синергия: подставляем рост/вес в мед.карту, если у пользователя они ещё не заполнены.
@@ -282,39 +287,48 @@ export class WhoopService {
     }
   }
 
-  // Досев истории в mock-режиме (14 дней правдоподобной кривой), идемпотентно.
-  private async backfillMockHistory(userId: string) {
-    const have = await this.prisma.whoopRecoveryDay.count({ where: { userId } });
-    if (have >= 10) return;
-    const today = this.startOfDay(new Date());
-    for (let i = 13; i >= 1; i--) {
-      const date = new Date(today.getTime() - i * 86_400_000);
-      const w = Math.sin(i / 2.2);
-      const recovery = Math.round(56 + w * 16);
-      const hrv = Math.round(40 + w * 8);
-      const rhr = Math.round(58 - w * 3);
-      const strain = Number((11 + Math.sin(i / 1.7) * 4).toFixed(1));
-      const sleepPerf = Math.round(78 + Math.sin(i / 2.6) * 12);
-      await this.prisma.whoopRecoveryDay.upsert({
-        where: { userId_date: { userId, date } },
-        create: { userId, date, recoveryScore: recovery, hrvMs: hrv, restingHr: rhr, spo2: 97, skinTempC: 33.3, scoredAt: date },
-        update: {},
-      });
-      await this.prisma.whoopCycleDay.upsert({
-        where: { userId_date: { userId, date } },
-        create: { userId, date, strain, avgHr: 76, maxHr: 150 },
-        update: {},
-      });
-      const start = new Date(date.getTime() - 3_600_000); // ~23:00 предыдущего дня
-      await this.prisma.whoopSleep.upsert({
-        where: { userId_start: { userId, start } },
-        create: {
-          userId, start, end: new Date(start.getTime() + 7.2 * 3_600_000),
-          performancePct: sleepPerf, inBedMin: 450, lightMin: 220, deepMin: 88, remMin: 111, awakeMin: 13, respiratoryRate: 14.2,
-        },
-        update: {},
-      });
+  // Бэкфилл истории за `days` дней при подключении (mock и real через провайдер), идемпотентно.
+  async backfill(userId: string, days = 30) {
+    const conn = await this.prisma.wearableConnection.findUnique({
+      where: { userId_provider: { userId, provider: 'WHOOP' } },
+    });
+    if (!conn || conn.status !== 'CONNECTED') return;
+    const access = await this.ensureAccessToken(conn);
+    const [recs, sleeps, cycles, workouts] = await Promise.all([
+      this.provider.fetchRecoveryHistory(access, days),
+      this.provider.fetchSleepHistory(access, days),
+      this.provider.fetchCycleHistory(access, days),
+      this.provider.fetchWorkouts(access, 25),
+    ]);
+    for (const r of recs) {
+      if (!r.at) continue;
+      const date = this.startOfDay(new Date(r.at));
+      const data = { recoveryScore: r.recoveryScore ?? null, hrvMs: r.hrvMs ?? null, restingHr: r.restingHr ?? null, spo2: r.spo2 ?? null, skinTempC: r.skinTempC ?? null, scoredAt: new Date(r.at) };
+      await this.prisma.whoopRecoveryDay.upsert({ where: { userId_date: { userId, date } }, create: { userId, date, ...data }, update: data });
     }
+    for (const c of cycles) {
+      if (!c.at) continue;
+      const date = this.startOfDay(new Date(c.at));
+      const data = { strain: c.strain ?? null, kilojoule: c.kilojoule ?? null, avgHr: c.avgHr ?? null, maxHr: c.maxHr ?? null };
+      await this.prisma.whoopCycleDay.upsert({ where: { userId_date: { userId, date } }, create: { userId, date, ...data }, update: data });
+    }
+    for (const s of sleeps) {
+      if (!s.at) continue;
+      const start = new Date(s.at);
+      const end = new Date(start.getTime() + (s.totalMin ?? 0) * 60_000);
+      const data = {
+        end, inBedMin: s.totalMin ?? null, performancePct: s.performance ?? null,
+        efficiencyPct: s.efficiencyPct ?? null, consistencyPct: s.consistencyPct ?? null, needMin: s.needMin ?? null,
+        lightMin: s.lightMin ?? null, deepMin: s.deepMin ?? null, remMin: s.remMin ?? null, awakeMin: s.awakeMin ?? null,
+        respiratoryRate: s.respiratoryRate ?? null,
+      };
+      await this.prisma.whoopSleep.upsert({ where: { userId_start: { userId, start } }, create: { userId, start, ...data }, update: data });
+    }
+    for (const w of workouts) {
+      const data = { end: w.end, sport: w.sport, strain: w.strain, avgHr: w.avgHr, maxHr: w.maxHr, kilojoule: w.kilojoule, distanceM: w.distanceM, zoneMin: w.zoneMin ?? undefined, whoopId: w.whoopId };
+      await this.prisma.whoopWorkout.upsert({ where: { userId_start: { userId, start: w.start } }, create: { userId, start: w.start, ...data }, update: data });
+    }
+    this.logger.log(`WHOOP backfill user=${userId}: rec=${recs.length} sleep=${sleeps.length} cycle=${cycles.length} wo=${workouts.length}`);
   }
 
   // ── История метрик (для графиков/трендов) ──
