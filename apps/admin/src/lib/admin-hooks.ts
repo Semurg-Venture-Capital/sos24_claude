@@ -18,6 +18,7 @@ export function useStats() {
 export interface AiUsageItem {
   id: string;
   userId: string | null;
+  user: { id: string; name: string | null; phone: string } | null;
   feature: string;
   model: string;
   promptTokens: number;

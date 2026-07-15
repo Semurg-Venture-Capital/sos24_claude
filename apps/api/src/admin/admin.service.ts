@@ -16,12 +16,32 @@ export class AdminService {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(100, Math.max(1, params.limit ?? 50));
     const where: Prisma.AiUsageLogWhereInput = params.feature ? { feature: params.feature } : {};
-    const [items, total, totals, byFeature] = await Promise.all([
+    const [rows, total, totals, byFeature] = await Promise.all([
       this.prisma.aiUsageLog.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
       this.prisma.aiUsageLog.count({ where }),
       this.prisma.aiUsageLog.aggregate({ _sum: { totalTokens: true, promptTokens: true, outputTokens: true }, _count: true }),
       this.prisma.aiUsageLog.groupBy({ by: ['feature'], _sum: { totalTokens: true }, _count: true }),
     ]);
+
+    // У AiUsageLog нет связи с User — подтягиваем данные пользователей одним запросом.
+    const userIds = [...new Set(rows.map((r) => r.userId).filter((id): id is string => !!id))];
+    const users = userIds.length
+      ? await this.prisma.user.findMany({
+          where: { id: { in: userIds } },
+          select: { id: true, name: true, surname: true, phone: true },
+        })
+      : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    const items = rows.map((r) => {
+      const u = r.userId ? userMap.get(r.userId) : undefined;
+      return {
+        ...r,
+        user: u
+          ? { id: u.id, name: [u.name, u.surname].filter(Boolean).join(' ') || null, phone: u.phone }
+          : null,
+      };
+    });
+
     return {
       items,
       total,

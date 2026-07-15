@@ -7,6 +7,7 @@ const FEATURE_LABEL: Record<string, string> = {
   triage_ask: 'Триаж · вопрос',
   triage_finalize: 'Триаж · итог',
   euro_voice: 'Европротокол · голос',
+  assistant_route: 'SOS-ассистент',
 };
 const featureLabel = (f: string) => FEATURE_LABEL[f] ?? f;
 
@@ -68,7 +69,7 @@ export default function AiUsagePage() {
 
       {/* Фильтр по фиче */}
       <div className="flex flex-wrap gap-2 mb-3">
-        {['', 'triage_ask', 'triage_finalize', 'euro_voice'].map((f) => (
+        {['', 'assistant_route', 'triage_ask', 'triage_finalize', 'euro_voice'].map((f) => (
           <button
             key={f || 'all'}
             onClick={() => {
@@ -91,6 +92,7 @@ export default function AiUsagePage() {
             <thead className="bg-gray-50 text-gray-500 text-left">
               <tr>
                 <th className="px-4 py-3 font-medium">Время</th>
+                <th className="px-4 py-3 font-medium">Пользователь</th>
                 <th className="px-4 py-3 font-medium">Функция</th>
                 <th className="px-4 py-3 font-medium">Модель</th>
                 <th className="px-4 py-3 font-medium text-right">Вход</th>
@@ -103,7 +105,7 @@ export default function AiUsagePage() {
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
                     Загрузка…
                   </td>
                 </tr>
@@ -112,6 +114,16 @@ export default function AiUsagePage() {
                   <tr key={it.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap text-gray-500">
                       {new Date(it.createdAt).toLocaleString('ru-RU')}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {it.user ? (
+                        <div className="flex flex-col">
+                          <span className="text-gray-900">{it.user.name ?? 'Без имени'}</span>
+                          <span className="text-xs text-gray-400">{it.user.phone}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">{it.userId ? 'Удалён' : '—'}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">{featureLabel(it.feature)}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-gray-500">{it.model}</td>
@@ -132,7 +144,7 @@ export default function AiUsagePage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
                     Пока нет запросов к ИИ
                   </td>
                 </tr>
