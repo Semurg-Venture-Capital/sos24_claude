@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
 import type { HealthStackParamList } from '../../../navigation/types';
@@ -10,7 +10,7 @@ import { MapPinIcon, PhoneFillIcon } from '../../../components/icons/MedIcons';
 import { StarIcon } from '../../../components/icons/StarIcon';
 import { useClinics, useRegions, type ClinicCard } from '../../../api/health';
 import { useGeoStore } from '../../../stores/geoStore';
-import { LiquidGlassChips, medGlass } from '../components';
+import { LiquidGlassChips, MedCardSkeletonList, medGlass } from '../components';
 
 const ALL = '__all';
 
@@ -55,7 +55,7 @@ export function HealthClinicsScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 140, gap: 12 }}>
         {isLoading ? (
-          <ActivityIndicator color={tokens.red} style={{ marginTop: 24 }} />
+          <MedCardSkeletonList count={5} />
         ) : clinics.length === 0 ? (
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, marginTop: 16 }}>
             Клиник не найдено. Измените область или запрос.

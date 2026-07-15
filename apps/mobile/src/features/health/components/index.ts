@@ -11,5 +11,6 @@ export { MedDoctorCard } from './MedDoctorCard';
 export type { MedDoctorCardProps } from './MedDoctorCard';
 export { LiquidGlassChips } from './LiquidGlassChips';
 export type { ChipItem } from './LiquidGlassChips';
+export { MedCardSkeletonList } from './MedCardSkeleton';
 export { WhoopCard } from './WhoopCard';
 export { medGlass } from './medGlass';

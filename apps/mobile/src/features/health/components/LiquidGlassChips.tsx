@@ -29,22 +29,35 @@ export function LiquidGlassChips({
   onSelect: (key: string) => void;
 }) {
   const layouts = useRef<Record<string, { x: number; w: number }>>({});
-  const dropX = useRef(new Animated.Value(0)).current;
-  const dropW = useRef(new Animated.Value(0)).current;
+  // Анимируем ЛЕВЫЙ и ПРАВЫЙ край пилюли раздельно: ведущий край быстрее, задний
+  // отстаёт → в полёте пилюля растягивается «каплей», затем стягивается (эффект Telegram).
+  const edgeL = useRef(new Animated.Value(0)).current;
+  const edgeR = useRef(new Animated.Value(0)).current;
+  const dropW = useRef(Animated.subtract(edgeR, edgeL)).current;
+  const last = useRef({ L: 0, R: 0 });
+  const lastKey = useRef<string | null>(null);
   const positioned = useRef(false);
 
   const moveTo = (key: string, animate: boolean) => {
     const l = layouts.current[key];
     if (!l) return;
-    if (animate) {
-      Animated.parallel([
-        Animated.spring(dropX, { toValue: l.x, useNativeDriver: false, friction: 8, tension: 90 }),
-        Animated.spring(dropW, { toValue: l.w, useNativeDriver: false, friction: 8, tension: 90 }),
-      ]).start();
-    } else {
-      dropX.setValue(l.x);
-      dropW.setValue(l.w);
+    lastKey.current = key;
+    const toL = l.x;
+    const toR = l.x + l.w;
+    if (!animate) {
+      edgeL.setValue(toL);
+      edgeR.setValue(toR);
+      last.current = { L: toL, R: toR };
+      return;
     }
+    const movingRight = toL >= last.current.L;
+    const lead = { friction: 13, tension: 130 }; // ведущий край — снапом
+    const trail = { friction: 11, tension: 55 }; // задний — отстаёт (растяжение)
+    Animated.parallel([
+      Animated.spring(edgeL, { toValue: toL, useNativeDriver: false, ...(movingRight ? trail : lead) }),
+      Animated.spring(edgeR, { toValue: toR, useNativeDriver: false, ...(movingRight ? lead : trail) }),
+    ]).start();
+    last.current = { L: toL, R: toR };
   };
 
   const onChipLayout = (key: string) => (e: LayoutChangeEvent) => {
@@ -56,8 +69,10 @@ export function LiquidGlassChips({
     }
   };
 
+  // Внешняя смена выбранного (GPS-автообласть и т.п.) — тоже плавно.
+  // Тап анимируется сразу в onPress, поэтому здесь дедупим по lastKey.
   useEffect(() => {
-    if (positioned.current) moveTo(selectedKey, true);
+    if (positioned.current && selectedKey !== lastKey.current) moveTo(selectedKey, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKey]);
 
@@ -88,7 +103,7 @@ export function LiquidGlassChips({
               {/* Пилюля выделения — позади текста, переезжает под активный чип. */}
               <Animated.View
                 pointerEvents="none"
-                style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: dropW, transform: [{ translateX: dropX }] }}
+                style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: dropW, transform: [{ translateX: edgeL }] }}
               >
                 {DropInner}
               </Animated.View>
@@ -98,7 +113,10 @@ export function LiquidGlassChips({
                 return (
                   <Pressable
                     key={it.key}
-                    onPress={() => onSelect(it.key)}
+                    onPress={() => {
+                      moveTo(it.key, true); // пилюля едет СРАЗУ, не ожидая ре-рендера от запроса
+                      onSelect(it.key);
+                    }}
                     onLayout={onChipLayout(it.key)}
                     style={{ paddingVertical: PAD_V, paddingHorizontal: PAD_H, justifyContent: 'center' }}
                   >
