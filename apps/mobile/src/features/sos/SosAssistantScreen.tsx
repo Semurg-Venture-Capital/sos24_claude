@@ -25,6 +25,7 @@ import { BenefitCarHit, BenefitCarLock, BenefitProperty } from '../../components
 import { IconQuestion } from '../../components/icons/LineIcons';
 import {
   fetchAssistantSession,
+  resetAssistant,
   sendAssistantMessage,
   type AssistantAction,
   type AssistantMessage,
@@ -140,7 +141,20 @@ export function SosAssistantScreen() {
   const restart = () => {
     Alert.alert('Начать новый диалог?', 'Текущая переписка будет удалена.', [
       { text: 'Отмена', style: 'cancel' },
-      { text: 'Начать сначала', style: 'destructive', onPress: () => reset() },
+      {
+        text: 'Начать сначала',
+        style: 'destructive',
+        onPress: async () => {
+          reset(); // мгновенно чистим локально
+          try {
+            // Новая пустая сессия на сервере (иначе getSession вернёт старую переписку).
+            const { sessionId: newId } = await resetAssistant();
+            useAssistantStore.getState().hydrate({ sessionId: newId, messages: [] });
+          } catch {
+            // офлайн — локально уже очищено, серверную подчистим при следующем reset
+          }
+        },
+      },
     ]);
   };
 
