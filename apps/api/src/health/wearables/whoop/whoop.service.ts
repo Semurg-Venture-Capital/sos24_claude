@@ -201,6 +201,10 @@ export class WhoopService {
       create: { connectionId: conn.id, ...snap },
       update: snap,
     });
+    // История (тайм-серии) — накапливаем по дням для графиков/трендов.
+    await this.persistHistory(userId, rec, sleep, cycle);
+    // В mock-режиме досеиваем ~14 дней истории, чтобы графики были наполнены на деве.
+    if (effectiveWhoopMode() === 'mock') await this.backfillMockHistory(userId);
     await this.prisma.wearableConnection.update({ where: { id: conn.id }, data: { lastSyncAt: new Date() } });
 
     // Синергия: подставляем рост/вес в мед.карту, если у пользователя они ещё не заполнены.
@@ -221,6 +225,108 @@ export class WhoopService {
       create: { userId, ...patch },
       update: patch,
     });
+  }
+
+  private startOfDay(d: Date): Date {
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  }
+
+  // Запись последних значений в тайм-серии (идемпотентно по дню/старту).
+  private async persistHistory(
+    userId: string,
+    rec: { recoveryScore?: number | null; hrvMs?: number | null; restingHr?: number | null; spo2?: number | null; skinTempC?: number | null; at?: Date | null } | null,
+    sleep: { performance?: number | null; totalMin?: number | null; lightMin?: number | null; deepMin?: number | null; remMin?: number | null; awakeMin?: number | null; respiratoryRate?: number | null; at?: Date | null } | null,
+    cycle: { strain?: number | null; avgHr?: number | null; maxHr?: number | null; at?: Date | null } | null,
+  ) {
+    if (rec?.at) {
+      const date = this.startOfDay(new Date(rec.at));
+      const data = {
+        recoveryScore: rec.recoveryScore ?? null,
+        hrvMs: rec.hrvMs ?? null,
+        restingHr: rec.restingHr ?? null,
+        spo2: rec.spo2 ?? null,
+        skinTempC: rec.skinTempC ?? null,
+        scoredAt: new Date(rec.at),
+      };
+      await this.prisma.whoopRecoveryDay.upsert({ where: { userId_date: { userId, date } }, create: { userId, date, ...data }, update: data });
+    }
+    if (cycle?.at) {
+      const date = this.startOfDay(new Date(cycle.at));
+      const data = { strain: cycle.strain ?? null, avgHr: cycle.avgHr ?? null, maxHr: cycle.maxHr ?? null };
+      await this.prisma.whoopCycleDay.upsert({ where: { userId_date: { userId, date } }, create: { userId, date, ...data }, update: data });
+    }
+    if (sleep?.at) {
+      const start = new Date(sleep.at);
+      const end = new Date(start.getTime() + (sleep.totalMin ?? 0) * 60000);
+      const data = {
+        end,
+        inBedMin: sleep.totalMin ?? null,
+        performancePct: sleep.performance ?? null,
+        lightMin: sleep.lightMin ?? null,
+        deepMin: sleep.deepMin ?? null,
+        remMin: sleep.remMin ?? null,
+        awakeMin: sleep.awakeMin ?? null,
+        respiratoryRate: sleep.respiratoryRate ?? null,
+      };
+      await this.prisma.whoopSleep.upsert({ where: { userId_start: { userId, start } }, create: { userId, start, ...data }, update: data });
+    }
+  }
+
+  // Досев истории в mock-режиме (14 дней правдоподобной кривой), идемпотентно.
+  private async backfillMockHistory(userId: string) {
+    const have = await this.prisma.whoopRecoveryDay.count({ where: { userId } });
+    if (have >= 10) return;
+    const today = this.startOfDay(new Date());
+    for (let i = 13; i >= 1; i--) {
+      const date = new Date(today.getTime() - i * 86_400_000);
+      const w = Math.sin(i / 2.2);
+      const recovery = Math.round(56 + w * 16);
+      const hrv = Math.round(40 + w * 8);
+      const rhr = Math.round(58 - w * 3);
+      const strain = Number((11 + Math.sin(i / 1.7) * 4).toFixed(1));
+      const sleepPerf = Math.round(78 + Math.sin(i / 2.6) * 12);
+      await this.prisma.whoopRecoveryDay.upsert({
+        where: { userId_date: { userId, date } },
+        create: { userId, date, recoveryScore: recovery, hrvMs: hrv, restingHr: rhr, spo2: 97, skinTempC: 33.3, scoredAt: date },
+        update: {},
+      });
+      await this.prisma.whoopCycleDay.upsert({
+        where: { userId_date: { userId, date } },
+        create: { userId, date, strain, avgHr: 76, maxHr: 150 },
+        update: {},
+      });
+      const start = new Date(date.getTime() - 3_600_000); // ~23:00 предыдущего дня
+      await this.prisma.whoopSleep.upsert({
+        where: { userId_start: { userId, start } },
+        create: {
+          userId, start, end: new Date(start.getTime() + 7.2 * 3_600_000),
+          performancePct: sleepPerf, inBedMin: 450, lightMin: 220, deepMin: 88, remMin: 111, awakeMin: 13, respiratoryRate: 14.2,
+        },
+        update: {},
+      });
+    }
+  }
+
+  // ── История метрик (для графиков/трендов) ──
+  async history(userId: string, metric: string, rangeDays: number) {
+    const from = this.startOfDay(new Date(Date.now() - rangeDays * 86_400_000));
+    let points: { date: Date; value: number | null }[] = [];
+    if (['recovery', 'hrv', 'rhr', 'spo2'].includes(metric)) {
+      const rows = await this.prisma.whoopRecoveryDay.findMany({ where: { userId, date: { gte: from } }, orderBy: { date: 'asc' } });
+      points = rows.map((r) => ({
+        date: r.date,
+        value: metric === 'recovery' ? r.recoveryScore : metric === 'hrv' ? r.hrvMs : metric === 'rhr' ? r.restingHr : r.spo2,
+      }));
+    } else if (metric === 'strain') {
+      const rows = await this.prisma.whoopCycleDay.findMany({ where: { userId, date: { gte: from } }, orderBy: { date: 'asc' } });
+      points = rows.map((r) => ({ date: r.date, value: r.strain }));
+    } else if (metric === 'sleep') {
+      const rows = await this.prisma.whoopSleep.findMany({ where: { userId, start: { gte: from }, isNap: false }, orderBy: { start: 'asc' } });
+      points = rows.map((r) => ({ date: r.start, value: r.performancePct }));
+    } else {
+      throw new BadRequestException('Неизвестная метрика');
+    }
+    return { metric, rangeDays, points: points.filter((p) => p.value != null) };
   }
 
   // ── Статус + метрики для приложения ──
@@ -257,6 +363,13 @@ export class WhoopService {
 
   async disconnect(userId: string) {
     await this.prisma.wearableConnection.deleteMany({ where: { userId, provider: 'WHOOP' } });
+    // Тайм-серии без FK — чистим вручную.
+    await Promise.all([
+      this.prisma.whoopRecoveryDay.deleteMany({ where: { userId } }),
+      this.prisma.whoopSleep.deleteMany({ where: { userId } }),
+      this.prisma.whoopCycleDay.deleteMany({ where: { userId } }),
+      this.prisma.whoopWorkout.deleteMany({ where: { userId } }),
+    ]);
     return { connected: false };
   }
 }

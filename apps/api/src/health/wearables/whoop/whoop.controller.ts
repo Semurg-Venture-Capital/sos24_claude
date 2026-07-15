@@ -32,6 +32,17 @@ export class WhoopController {
     return this.service.sync(user.sub);
   }
 
+  @Get('whoop/history')
+  @ApiOperation({ summary: 'История метрики WHOOP для графиков (recovery|hrv|rhr|spo2|strain|sleep).' })
+  history(
+    @CurrentUser() user: JwtPayload,
+    @Query('metric') metric = 'recovery',
+    @Query('range') range = '30',
+  ) {
+    const r = Math.min(Math.max(parseInt(range, 10) || 30, 7), 90);
+    return this.service.history(user.sub, metric, r);
+  }
+
   @Delete('whoop')
   @ApiOperation({ summary: 'Отключить WHOOP.' })
   disconnect(@CurrentUser() user: JwtPayload) {

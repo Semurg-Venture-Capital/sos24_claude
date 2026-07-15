@@ -80,6 +80,21 @@ export function useDisconnectWhoop() {
   });
 }
 
+// ── История метрик (графики/тренды) ──
+export type WhoopMetric = 'recovery' | 'hrv' | 'rhr' | 'spo2' | 'strain' | 'sleep';
+export interface WhoopHistoryPoint { date: string; value: number }
+export interface WhoopHistory { metric: WhoopMetric; rangeDays: number; points: WhoopHistoryPoint[] }
+
+export function useWhoopHistory(metric: WhoopMetric, range: 14 | 30 | 90 = 30) {
+  return useQuery({
+    queryKey: ['health', 'wearable', 'history', metric, range],
+    queryFn: () =>
+      api
+        .get<WhoopHistory>('/health/wearable/whoop/history', { params: { metric, range } })
+        .then((r) => r.data),
+  });
+}
+
 // «обновлено N назад» из ISO-времени.
 export function timeAgo(iso: string | null): string {
   if (!iso) return '';
