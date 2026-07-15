@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NappReferenceService } from '../napp/napp-reference.service';
+import { estimateCostUsd } from '../llm/ai-pricing';
 import type { CreateUserDto, UpdateUserDto } from './dto/user-management.dto';
 
 @Injectable()
@@ -16,12 +17,32 @@ export class AdminService {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(100, Math.max(1, params.limit ?? 50));
     const where: Prisma.AiUsageLogWhereInput = params.feature ? { feature: params.feature } : {};
-    const [rows, total, totals, byFeature] = await Promise.all([
+    const [rows, total, totals, byFeatureModel] = await Promise.all([
       this.prisma.aiUsageLog.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
       this.prisma.aiUsageLog.count({ where }),
       this.prisma.aiUsageLog.aggregate({ where, _sum: { totalTokens: true, promptTokens: true, outputTokens: true }, _count: true }),
-      this.prisma.aiUsageLog.groupBy({ where, by: ['feature'], _sum: { totalTokens: true }, _count: true }),
+      // Группируем по feature+model: цена зависит от модели (тарифы разные).
+      this.prisma.aiUsageLog.groupBy({
+        where,
+        by: ['feature', 'model'],
+        _sum: { totalTokens: true, promptTokens: true, outputTokens: true },
+        _count: true,
+      }),
     ]);
+
+    // Разбивка по функциям + стоимость (суммируем по моделям внутри функции).
+    const featMap = new Map<string, { feature: string; calls: number; tokens: number; costUsd: number }>();
+    let totalCostUsd = 0;
+    for (const g of byFeatureModel) {
+      const cost = estimateCostUsd(g.model, g._sum.promptTokens ?? 0, g._sum.outputTokens ?? 0);
+      totalCostUsd += cost;
+      const cur = featMap.get(g.feature) ?? { feature: g.feature, calls: 0, tokens: 0, costUsd: 0 };
+      cur.calls += g._count;
+      cur.tokens += g._sum.totalTokens ?? 0;
+      cur.costUsd += cost;
+      featMap.set(g.feature, cur);
+    }
+    const byFeature = [...featMap.values()].sort((a, b) => b.tokens - a.tokens);
 
     // У AiUsageLog нет связи с User — подтягиваем данные пользователей одним запросом.
     const userIds = [...new Set(rows.map((r) => r.userId).filter((id): id is string => !!id))];
@@ -36,6 +57,7 @@ export class AdminService {
       const u = r.userId ? userMap.get(r.userId) : undefined;
       return {
         ...r,
+        costUsd: estimateCostUsd(r.model, r.promptTokens, r.outputTokens),
         user: u
           ? { id: u.id, name: [u.name, u.surname].filter(Boolean).join(' ') || null, phone: u.phone }
           : null,
@@ -52,9 +74,8 @@ export class AdminService {
         totalTokens: totals._sum.totalTokens ?? 0,
         promptTokens: totals._sum.promptTokens ?? 0,
         outputTokens: totals._sum.outputTokens ?? 0,
-        byFeature: byFeature
-          .map((f) => ({ feature: f.feature, calls: f._count, tokens: f._sum.totalTokens ?? 0 }))
-          .sort((a, b) => b.tokens - a.tokens),
+        totalCostUsd,
+        byFeature,
       },
     };
   }

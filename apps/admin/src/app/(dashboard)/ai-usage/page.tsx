@@ -12,6 +12,9 @@ const FEATURE_LABEL: Record<string, string> = {
 const featureLabel = (f: string) => FEATURE_LABEL[f] ?? f;
 
 const fmt = (n: number) => n.toLocaleString('ru-RU');
+// Стоимость мелкая (доли цента) → до 4 знаков у малых сумм.
+const fmtUsd = (n: number) =>
+  '$' + n.toLocaleString('en-US', { minimumFractionDigits: n < 1 ? 4 : 2, maximumFractionDigits: 4 });
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -34,15 +37,22 @@ export default function AiUsagePage() {
   return (
     <div className="flex-1 overflow-auto p-6">
       <h1 className="text-2xl font-semibold mb-1">AI-лог</h1>
-      <p className="text-sm text-gray-500 mb-6">Все запросы к ИИ (Gemini): расход токенов, время ответа, статус.</p>
+      <p className="text-sm text-gray-500 mb-6">
+        Все запросы к ИИ (Gemini): расход токенов, примерная стоимость, время ответа, статус.
+      </p>
 
       {/* Сводка */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-2">
         <Stat label="Всего запросов" value={s ? fmt(s.calls) : '—'} />
         <Stat label="Всего токенов" value={s ? fmt(s.totalTokens) : '—'} sub="prompt + output" />
         <Stat label="Входные токены" value={s ? fmt(s.promptTokens) : '—'} />
         <Stat label="Выходные токены" value={s ? fmt(s.outputTokens) : '—'} />
+        <Stat label="Примерная стоимость" value={s ? fmtUsd(s.totalCostUsd) : '—'} sub="оценка, платный тариф" />
       </div>
+      <p className="text-xs text-gray-400 mb-6">
+        Стоимость — приблизительная оценка по тарифам Gemini на платном плане. Сейчас используется free tier
+        (фактический счёт — $0).
+      </p>
 
       {/* По фичам */}
       {s && s.byFeature.length > 0 ? (
@@ -57,8 +67,9 @@ export default function AiUsagePage() {
                   <div className="flex-1 h-2.5 rounded-full bg-gray-100 overflow-hidden">
                     <div className="h-full bg-red-500" style={{ width: `${pct}%` }} />
                   </div>
-                  <div className="w-28 shrink-0 text-right text-sm text-gray-600">
+                  <div className="w-44 shrink-0 text-right text-sm text-gray-600">
                     {fmt(f.tokens)} <span className="text-gray-400">· {fmt(f.calls)}×</span>
+                    <span className="ml-1 text-gray-400">· ≈{fmtUsd(f.costUsd)}</span>
                   </div>
                 </div>
               );
@@ -98,6 +109,7 @@ export default function AiUsagePage() {
                 <th className="px-4 py-3 font-medium text-right">Вход</th>
                 <th className="px-4 py-3 font-medium text-right">Выход</th>
                 <th className="px-4 py-3 font-medium text-right">Всего</th>
+                <th className="px-4 py-3 font-medium text-right">≈ Цена</th>
                 <th className="px-4 py-3 font-medium text-right">Время</th>
                 <th className="px-4 py-3 font-medium">Статус</th>
               </tr>
@@ -105,7 +117,7 @@ export default function AiUsagePage() {
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={10} className="px-4 py-8 text-center text-gray-400">
                     Загрузка…
                   </td>
                 </tr>
@@ -130,6 +142,7 @@ export default function AiUsagePage() {
                     <td className="px-4 py-3 text-right text-gray-600">{fmt(it.promptTokens)}</td>
                     <td className="px-4 py-3 text-right text-gray-600">{fmt(it.outputTokens)}</td>
                     <td className="px-4 py-3 text-right font-medium">{fmt(it.totalTokens)}</td>
+                    <td className="px-4 py-3 text-right text-gray-500">≈{fmtUsd(it.costUsd)}</td>
                     <td className="px-4 py-3 text-right text-gray-500">{fmt(it.latencyMs)} мс</td>
                     <td className="px-4 py-3">
                       {it.ok ? (
@@ -144,7 +157,7 @@ export default function AiUsagePage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={10} className="px-4 py-8 text-center text-gray-400">
                     Пока нет запросов к ИИ
                   </td>
                 </tr>

@@ -24,6 +24,7 @@ export interface AiUsageItem {
   promptTokens: number;
   outputTokens: number;
   totalTokens: number;
+  costUsd: number;
   latencyMs: number;
   ok: boolean;
   error: string | null;
@@ -39,7 +40,8 @@ export interface AiUsageResponse {
     totalTokens: number;
     promptTokens: number;
     outputTokens: number;
-    byFeature: { feature: string; calls: number; tokens: number }[];
+    totalCostUsd: number;
+    byFeature: { feature: string; calls: number; tokens: number; costUsd: number }[];
   };
 }
 
