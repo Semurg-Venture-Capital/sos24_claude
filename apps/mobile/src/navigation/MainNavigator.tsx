@@ -178,14 +178,8 @@ export function MainNavigator() {
           Platform.OS === 'web' ? {} : { presentation: 'fullScreenModal', animation: 'fade' }
         }
       />
-      {/* SOS-ассистент — корневой модал поверх табов (вход с красной SOS-кнопки). */}
-      <Stack.Screen
-        name="SosAssistant"
-        component={SosAssistantScreen}
-        options={
-          Platform.OS === 'web' ? {} : { presentation: 'modal', animation: 'slide_from_bottom' }
-        }
-      />
+      {/* SOS-ассистент — обычная push-страница (вход с красной SOS-кнопки). */}
+      <Stack.Screen name="SosAssistant" component={SosAssistantScreen} />
       <Stack.Screen
         name="PolicyQrFullscreen"
         component={PolicyQrFullscreenScreen}
