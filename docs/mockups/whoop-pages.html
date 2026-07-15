@@ -1,0 +1,651 @@
+<title>SOS24 · Здоровье · WHOOP</title>
+<style>
+  :root {
+    --page: #eef0f3;
+    --card: #ffffff;
+    --card-2: #f7f8fa;
+    --ink: #14151a;
+    --ink-2: #5b5e66;
+    --ink-3: #9498a1;
+    --hair: rgba(20,22,28,0.08);
+    --hair-2: rgba(20,22,28,0.05);
+    --brand: #e61428;
+    /* semantic / data hues (WHOOP-established, kept distinct from brand) */
+    --rec-hi: #16a34a;
+    --rec-mid: #e0a20b;
+    --rec-lo: #e6483a;
+    --strain: #3f74ff;
+    --sleep: #7b6cf0;
+    --hrv: #0fb5a6;
+    --rhr: #f0637c;
+    --resp: #3aa0e0;
+    --shadow: 0 22px 50px -28px rgba(20,25,40,0.45);
+    --shadow-sm: 0 8px 22px -14px rgba(20,25,40,0.4);
+    --font: "SF Pro Text", -apple-system, "Segoe UI", system-ui, sans-serif;
+    --num: "SF Pro Display", -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+  :root[data-theme="dark"], :root:not([data-theme="light"]) {}
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #0c0d10;
+      --card: #16181d;
+      --card-2: #1d2027;
+      --ink: #f2f3f6;
+      --ink-2: #a3a7b2;
+      --ink-3: #6c7080;
+      --hair: rgba(255,255,255,0.09);
+      --hair-2: rgba(255,255,255,0.05);
+      --shadow: 0 26px 60px -30px rgba(0,0,0,0.8);
+      --shadow-sm: 0 10px 26px -16px rgba(0,0,0,0.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #0c0d10; --card: #16181d; --card-2: #1d2027;
+    --ink: #f2f3f6; --ink-2: #a3a7b2; --ink-3: #6c7080;
+    --hair: rgba(255,255,255,0.09); --hair-2: rgba(255,255,255,0.05);
+    --shadow: 0 26px 60px -30px rgba(0,0,0,0.8);
+    --shadow-sm: 0 10px 26px -16px rgba(0,0,0,0.7);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font-family: var(--font); -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ---------- intro ---------- */
+  .intro { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end; justify-content: space-between; margin-bottom: 12px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+  .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 18%, transparent); }
+  h1 { font-family: var(--num); font-size: clamp(30px, 4.4vw, 46px); line-height: 1.03; letter-spacing: -0.03em; margin: 14px 0 10px; font-weight: 700; text-wrap: balance; }
+  .lede { max-width: 62ch; color: var(--ink-2); font-size: 16px; }
+  .controls { display: flex; gap: 10px; align-items: center; }
+  .seg { display: inline-flex; background: var(--card); border: 1px solid var(--hair); border-radius: 999px; padding: 4px; box-shadow: var(--shadow-sm); }
+  .seg button { font-family: var(--font); border: 0; background: transparent; color: var(--ink-2); font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 999px; cursor: pointer; transition: .2s; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
+  .hint { color: var(--ink-3); font-size: 12.5px; margin-top: 18px; }
+
+  /* ---------- phone grid ---------- */
+  .phones { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin-top: 40px; }
+  .screen-label { display: flex; align-items: baseline; gap: 10px; margin: 0 6px 12px; }
+  .screen-label b { font-family: var(--num); font-size: 16px; letter-spacing: -0.01em; }
+  .screen-label span { color: var(--ink-3); font-size: 12.5px; }
+  .num { font-size: 11px; color: var(--ink-3); font-weight: 700; letter-spacing: .1em; }
+
+  .phone {
+    background: var(--card); border-radius: 40px; padding: 12px;
+    border: 1px solid var(--hair); box-shadow: var(--shadow);
+    position: relative;
+  }
+  .glass { position: relative; background: linear-gradient(180deg, var(--card), var(--card)); border-radius: 30px; overflow: hidden; height: 620px; display: flex; flex-direction: column; }
+  .statusbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 22px 4px; font-size: 12px; font-weight: 600; color: var(--ink); }
+  .statusbar .dots { display: flex; gap: 4px; align-items: center; color: var(--ink-2); }
+  .app-head { padding: 6px 20px 12px; display: flex; align-items: center; gap: 10px; }
+  .back { width: 30px; height: 30px; border-radius: 999px; border: 1px solid var(--hair); display: grid; place-items: center; color: var(--ink-2); font-size: 15px; }
+  .app-head h2 { font-family: var(--num); font-size: 19px; letter-spacing: -0.02em; margin: 0; font-weight: 700; }
+  .app-head .sub { color: var(--ink-3); font-size: 11.5px; margin-top: 1px; }
+  .body { flex: 1; overflow: auto; padding: 4px 16px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .body::-webkit-scrollbar { width: 0; }
+
+  .card { background: var(--card-2); border: 1px solid var(--hair-2); border-radius: 22px; padding: 16px; }
+  .card.tight { padding: 14px; }
+  .lbl { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-3); }
+  .metric-big { font-family: var(--num); font-variant-numeric: tabular-nums; letter-spacing: -0.03em; font-weight: 700; }
+
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tile { background: var(--card-2); border: 1px solid var(--hair-2); border-radius: 18px; padding: 13px 14px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .tile .k { font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
+  .tile .v { font-family: var(--num); font-variant-numeric: tabular-nums; font-size: 25px; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: baseline; gap: 3px; }
+  .tile .u { font-size: 12px; color: var(--ink-3); font-weight: 600; letter-spacing: 0; }
+  .tile .spark { margin-top: 4px; height: 26px; }
+
+  .row { display: flex; align-items: center; gap: 14px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 10px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-2); font-weight: 600; }
+  .swatch { width: 9px; height: 9px; border-radius: 3px; }
+
+  .seg-bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; gap: 2px; background: transparent; }
+  .seg-bar > i { display: block; height: 100%; border-radius: 3px; }
+
+  .note { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+  .kicker { display:flex; align-items:center; justify-content: space-between; }
+  .chip { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink-2); }
+
+  .zones { display: flex; flex-direction: column; gap: 7px; }
+  .zone { display: grid; grid-template-columns: 54px 1fr 42px; align-items: center; gap: 8px; }
+  .zone .zt { font-size: 10.5px; font-weight: 700; color: var(--ink-2); }
+  .zone .zb { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 7%, transparent); overflow: hidden; }
+  .zone .zb > i { display: block; height: 100%; border-radius: 999px; }
+  .zone .zv { font-size: 10.5px; font-weight: 700; color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
+
+  svg { display: block; }
+  .axisline { stroke: var(--hair); stroke-width: 1; }
+  .trendcard h4 { margin: 0 0 2px; font-family: var(--num); font-size: 14px; letter-spacing: -0.01em; }
+  .trendcard .meta { display: flex; align-items: baseline; gap: 8px; }
+  .trendcard .cur { font-family: var(--num); font-variant-numeric: tabular-nums; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .delta { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+  .up { color: var(--rec-hi); background: color-mix(in srgb, var(--rec-hi) 14%, transparent); }
+  .down { color: var(--rhr); background: color-mix(in srgb, var(--rhr) 14%, transparent); }
+
+  /* ---------- plan ---------- */
+  .plan { margin-top: 72px; }
+  .plan h2 { font-family: var(--num); font-size: clamp(24px,3vw,32px); letter-spacing: -0.02em; margin: 0 0 6px; }
+  .plan .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 18px; margin-top: 26px; }
+  .pcard { background: var(--card); border: 1px solid var(--hair); border-radius: 22px; padding: 22px; box-shadow: var(--shadow-sm); }
+  .pcard .ph { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .pcard .badge { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-family: var(--num); font-weight: 700; font-size: 14px; color: #fff; }
+  .pcard h3 { margin: 0; font-size: 16px; letter-spacing: -0.01em; }
+  .pcard ul { margin: 8px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 13.5px; }
+  .pcard li { margin: 5px 0; }
+  .pcard code { font-size: 12px; background: color-mix(in srgb, var(--ink) 7%, transparent); padding: 1px 6px; border-radius: 6px; color: var(--ink); }
+  .phase { display:flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-top: 1px solid var(--hair); }
+  .phase:first-child { border-top: 0; }
+  .phase .pn { font-family: var(--num); font-weight: 700; color: var(--ink-3); font-size: 13px; min-width: 66px; }
+  .phase b { font-size: 14px; }
+  .phase p { margin: 3px 0 0; color: var(--ink-2); font-size: 13px; }
+
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
+  .data-table th, .data-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--hair-2); }
+  .data-table th { color: var(--ink-3); font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; }
+  .tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+  .tag.have { color: var(--rec-hi); background: color-mix(in srgb, var(--rec-hi) 14%, transparent); }
+  .tag.add { color: var(--strain); background: color-mix(in srgb, var(--strain) 14%, transparent); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <div class="intro">
+    <div>
+      <span class="eyebrow"><span class="dot"></span> SOS24 · Здоровье · WHOOP</span>
+      <h1 data-i18n="title">Показатели WHOOP — на русском и узбекском</h1>
+      <p class="lede" data-i18n="lede">Приложение WHOOP есть только на английском. Мы берём те же данные браслета и показываем их красиво и понятно: восстановление, сон, нагрузка и вся история метрик — с графиками и на родном языке.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Язык интерфейса">
+        <button data-lang="ru" aria-pressed="true">RU</button>
+        <button data-lang="uz" aria-pressed="false">UZ</button>
+      </div>
+    </div>
+  </div>
+  <p class="hint" data-i18n="hint">Это интерактивный прототип — переключите RU / UZ, чтобы увидеть локализацию. Данные — пример. Экраны строятся на react-native-svg (уже в проекте), без тяжёлых библиотек.</p>
+
+  <div class="phones" id="phones"></div>
+
+  <!-- ===== PLAN ===== -->
+  <section class="plan">
+    <span class="eyebrow"><span class="dot"></span> <span data-i18n="planKicker">План реализации</span></span>
+    <h2 data-i18n="planTitle">Как это построить</h2>
+    <p class="lede" data-i18n="planLede">Основа интеграции WHOOP уже работает (OAuth, вебхуки, снапшот последних значений). Чтобы появились графики и история — добавляем хранение тайм-серий и пять экранов показателей.</p>
+
+    <div class="grid">
+      <div class="pcard">
+        <div class="ph"><span class="badge" style="background:var(--strain)">1</span><h3 data-i18n="p1t">Данные и модель</h3></div>
+        <ul>
+          <li data-i18n="p1a">Сейчас храним только <b>снапшот</b> последних значений — истории нет.</li>
+          <li data-i18n="p1b">Добавить тайм-серии: <code>WhoopRecoveryDaily</code>, <code>WhoopSleep</code>, <code>WhoopCycle</code>, <code>WhoopWorkout</code>.</li>
+          <li data-i18n="p1c">Бэкфилл истории при подключении (WHOOP отдаёт ~недели назад) + запись по вебхукам.</li>
+        </ul>
+      </div>
+      <div class="pcard">
+        <div class="ph"><span class="badge" style="background:var(--sleep)">2</span><h3 data-i18n="p2t">Бэкенд</h3></div>
+        <ul>
+          <li data-i18n="p2a"><code>GET /health/wearable/whoop/history</code> — метрика + диапазон (7/14/30/90 дней).</li>
+          <li data-i18n="p2b">Агрегации для трендов (средние, база ВСР, дельты) — на сервере.</li>
+          <li data-i18n="p2c">Переиспользуем BullMQ (бэкфилл + авто-refresh токена) — уже есть.</li>
+        </ul>
+      </div>
+      <div class="pcard">
+        <div class="ph"><span class="badge" style="background:var(--rec-hi)">3</span><h3 data-i18n="p3t">Экраны (мобилка)</h3></div>
+        <ul>
+          <li data-i18n="p3a"><b>5 экранов:</b> Обзор · Восстановление · Сон · Нагрузка · Тренды.</li>
+          <li data-i18n="p3b">Графики на <code>react-native-svg</code>: кольца, гейджи, линии, столбцы сна, зоны пульса.</li>
+          <li data-i18n="p3c">Переход из карточки «Мои показатели» в разделе «Здоровье».</li>
+        </ul>
+      </div>
+      <div class="pcard">
+        <div class="ph"><span class="badge" style="background:var(--brand)">4</span><h3 data-i18n="p4t">Языки и формат</h3></div>
+        <ul>
+          <li data-i18n="p4a">Все строки в <code>@sos24/i18n-strings</code>: <b>uz-Latn, uz-Cyrl, ru, en</b>.</li>
+          <li data-i18n="p4b">Числа, даты, единицы — по локали; кДж → ккал, мс, уд/мин.</li>
+          <li data-i18n="p4c">Понятные пояснения к каждой метрике (чего нет в самом WHOOP).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pcard" style="margin-top:18px">
+      <div class="ph"><span class="badge" style="background:var(--ink)">≡</span><h3 data-i18n="dataTitle">Что WHOOP отдаёт → что показываем</h3></div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th data-i18n="dcol1">Метрика</th><th data-i18n="dcol2">Поля WHOOP</th><th data-i18n="dcol3">Статус</th></tr></thead>
+          <tbody id="datarows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="pcard" style="margin-top:18px">
+      <div class="ph"><span class="badge" style="background:var(--hrv)">↗</span><h3 data-i18n="phasesTitle">Порядок работ</h3></div>
+      <div id="phases"></div>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+// ---------------- i18n ----------------
+const T = {
+  ru: {
+    title: "Показатели WHOOP — на русском и узбекском",
+    lede: "Приложение WHOOP есть только на английском. Мы берём те же данные браслета и показываем их красиво и понятно: восстановление, сон, нагрузка и вся история метрик — с графиками и на родном языке.",
+    hint: "Это интерактивный прототип — переключите RU / UZ, чтобы увидеть локализацию. Данные — пример. Экраны строятся на react-native-svg (уже в проекте), без тяжёлых библиотек.",
+    planKicker:"План реализации", planTitle:"Как это построить",
+    planLede:"Основа интеграции WHOOP уже работает (OAuth, вебхуки, снапшот последних значений). Чтобы появились графики и история — добавляем хранение тайм-серий и пять экранов показателей.",
+    p1t:"Данные и модель", p2t:"Бэкенд", p3t:"Экраны (мобилка)", p4t:"Языки и формат",
+    dataTitle:"Что WHOOP отдаёт → что показываем", dcol1:"Метрика", dcol2:"Поля WHOOP", dcol3:"Статус",
+    phasesTitle:"Порядок работ",
+    // screens
+    sc_over:"Обзор", sc_over_sub:"сводка за сегодня",
+    sc_rec:"Восстановление", sc_rec_sub:"готовность организма",
+    sc_sleep:"Сон", sc_sleep_sub:"качество и фазы",
+    sc_strain:"Нагрузка", sc_strain_sub:"день и тренировки",
+    sc_trend:"Тренды", sc_trend_sub:"история метрик",
+    today:"Сегодня", now:"обновлено 2 мин назад",
+    recovery:"Восстановление", strain:"Нагрузка", sleep:"Сон",
+    ready_hi:"Высокая готовность", ready_mid:"Средняя готовность", ready_lo:"Низкая готовность",
+    hrv:"ВСР", rhr:"Пульс покоя", resp:"Дыхание", spo2:"Кислород", skin:"Темп. кожи", cal:"Калории",
+    bpm:"уд/мин", ms:"мс", rpm:"вдох/мин", kcal:"ккал", pct:"%", deg:"°C", h:"ч", m:"мин",
+    recExplain:"Насколько организм восстановился и готов к нагрузке. Считается по ВСР, пульсу покоя, сну и дыханию за ночь.",
+    vsBase:"от вашей базы", baseline:"база",
+    sleepPerf:"Качество сна", need:"Потребность", got:"Получено", debt:"Недосып",
+    deep:"Глубокий", rem:"REM", light:"Лёгкий", awake:"Бодрст.",
+    efficiency:"Эффективность", consistency:"Регулярность",
+    sleepExplain:"Сколько сна вы получили относительно потребности и как распределились фазы. Глубокий сон восстанавливает тело, REM — мозг.",
+    dayStrain:"Дневная нагрузка", avgHr:"Средний пульс", maxHr:"Макс. пульс",
+    zones:"Пульсовые зоны", workouts:"Тренировки", run:"Бег", walk:"Ходьба",
+    strainExplain:"Суммарная нагрузка на сердце за день по шкале 0–21. Сравнивайте с восстановлением: высокая готовность → можно нагружаться.",
+    last14:"14 дней", last30:"30 дней", last90:"90 дней",
+    trendRec:"Восстановление", trendHrv:"ВСР (ночью)", trendRhr:"Пульс покоя", trendStrain:"Нагрузка", trendSleep:"Сон",
+    insight:"Ваша ВСР растёт четвёртый день — восстановление улучшается.",
+    min:"мин", zLbl:["Зона 1","Зона 2","Зона 3","Зона 4","Зона 5"],
+    p1a:"Сейчас храним только <b>снапшот</b> последних значений — истории нет.",
+    p1b:"Добавить тайм-серии: <code>WhoopRecoveryDaily</code>, <code>WhoopSleep</code>, <code>WhoopCycle</code>, <code>WhoopWorkout</code>.",
+    p1c:"Бэкфилл истории при подключении (WHOOP отдаёт ~недели назад) + запись по вебхукам.",
+    p2a:"<code>GET /health/wearable/whoop/history</code> — метрика + диапазон (7/14/30/90 дней).",
+    p2b:"Агрегации для трендов (средние, база ВСР, дельты) — на сервере.",
+    p2c:"Переиспользуем BullMQ (бэкфилл + авто-refresh токена) — уже есть.",
+    p3a:"<b>5 экранов:</b> Обзор · Восстановление · Сон · Нагрузка · Тренды.",
+    p3b:"Графики на <code>react-native-svg</code>: кольца, гейджи, линии, столбцы сна, зоны пульса.",
+    p3c:"Переход из карточки «Мои показатели» в разделе «Здоровье».",
+    p4a:"Все строки в <code>@sos24/i18n-strings</code>: <b>uz-Latn, uz-Cyrl, ru, en</b>.",
+    p4b:"Числа, даты, единицы — по локали; кДж → ккал, мс, уд/мин.",
+    p4c:"Понятные пояснения к каждой метрике (чего нет в самом WHOOP).",
+  },
+  uz: {
+    title: "WHOOP ko‘rsatkichlari — rus va o‘zbek tilida",
+    lede: "WHOOP ilovasi faqat ingliz tilida. Biz o‘sha bilaguzuk ma’lumotlarini chiroyli va tushunarli ko‘rsatamiz: tiklanish, uyqu, yuklama va barcha ko‘rsatkichlar tarixi — grafiklar bilan, ona tilingizda.",
+    hint: "Bu — interaktiv prototip. Lokalizatsiyani ko‘rish uchun RU / UZ ni almashtiring. Ma’lumotlar — namuna. Ekranlar react-native-svg asosida (loyihada bor), og‘ir kutubxonalarsiz.",
+    planKicker:"Amalga oshirish rejasi", planTitle:"Buni qanday quramiz",
+    planLede:"WHOOP integratsiyasining asosi ishlayapti (OAuth, veb-huklar, oxirgi qiymatlar snapshoti). Grafiklar va tarix uchun — vaqt qatorlarini saqlash va beshta ko‘rsatkich ekranini qo‘shamiz.",
+    p1t:"Ma’lumot va model", p2t:"Backend", p3t:"Ekranlar (mobil)", p4t:"Tillar va format",
+    dataTitle:"WHOOP nima beradi → nimani ko‘rsatamiz", dcol1:"Ko‘rsatkich", dcol2:"WHOOP maydonlari", dcol3:"Holat",
+    phasesTitle:"Ish tartibi",
+    sc_over:"Umumiy", sc_over_sub:"bugungi xulosa",
+    sc_rec:"Tiklanish", sc_rec_sub:"organizm tayyorligi",
+    sc_sleep:"Uyqu", sc_sleep_sub:"sifat va bosqichlar",
+    sc_strain:"Yuklama", sc_strain_sub:"kun va mashg‘ulotlar",
+    sc_trend:"Tendensiyalar", sc_trend_sub:"ko‘rsatkichlar tarixi",
+    today:"Bugun", now:"2 daqiqa oldin yangilandi",
+    recovery:"Tiklanish", strain:"Yuklama", sleep:"Uyqu",
+    ready_hi:"Yuqori tayyorlik", ready_mid:"O‘rta tayyorlik", ready_lo:"Past tayyorlik",
+    hrv:"YuRV", rhr:"Tinch puls", resp:"Nafas", spo2:"Kislorod", skin:"Teri harorati", cal:"Kaloriya",
+    bpm:"zarba/daq", ms:"ms", rpm:"nafas/daq", kcal:"kkal", pct:"%", deg:"°C", h:"soat", m:"daq",
+    recExplain:"Organizm qanchalik tiklangani va yuklamaga tayyorligi. Kechasi YuRV, tinch puls, uyqu va nafas bo‘yicha hisoblanadi.",
+    vsBase:"bazangizdan", baseline:"baza",
+    sleepPerf:"Uyqu sifati", need:"Ehtiyoj", got:"Olindi", debt:"Uyqu qarzi",
+    deep:"Chuqur", rem:"REM", light:"Yengil", awake:"Uyg‘oq",
+    efficiency:"Samaradorlik", consistency:"Muntazamlik",
+    sleepExplain:"Ehtiyojga nisbatan qancha uxlaganingiz va bosqichlar taqsimoti. Chuqur uyqu tanani, REM — miyani tiklaydi.",
+    dayStrain:"Kunlik yuklama", avgHr:"O‘rtacha puls", maxHr:"Maks. puls",
+    zones:"Puls zonalari", workouts:"Mashg‘ulotlar", run:"Yugurish", walk:"Yurish",
+    strainExplain:"Kun davomida yurakka umumiy yuklama, 0–21 shkalada. Tiklanish bilan solishtiring: yuqori tayyorlik → yuklama mumkin.",
+    last14:"14 kun", last30:"30 kun", last90:"90 kun",
+    trendRec:"Tiklanish", trendHrv:"YuRV (kechasi)", trendRhr:"Tinch puls", trendStrain:"Yuklama", trendSleep:"Uyqu",
+    insight:"YuRV to‘rt kundan beri o‘smoqda — tiklanish yaxshilanyapti.",
+    min:"daq", zLbl:["1-zona","2-zona","3-zona","4-zona","5-zona"],
+    p1a:"Hozir faqat oxirgi qiymatlar <b>snapshoti</b> saqlanadi — tarix yo‘q.",
+    p1b:"Vaqt qatorlarini qo‘shish: <code>WhoopRecoveryDaily</code>, <code>WhoopSleep</code>, <code>WhoopCycle</code>, <code>WhoopWorkout</code>.",
+    p1c:"Ulanishda tarixni backfill (WHOOP ~haftalar oldingini beradi) + veb-huk orqali yozish.",
+    p2a:"<code>GET /health/wearable/whoop/history</code> — ko‘rsatkich + diapazon (7/14/30/90 kun).",
+    p2b:"Tendensiya agregatsiyalari (o‘rtacha, YuRV bazasi, deltalar) — serverda.",
+    p2c:"BullMQ qayta ishlatiladi (backfill + token avto-refresh) — allaqachon bor.",
+    p3a:"<b>5 ekran:</b> Umumiy · Tiklanish · Uyqu · Yuklama · Tendensiyalar.",
+    p3b:"Grafiklar <code>react-native-svg</code>da: halqalar, geyjlar, chiziqlar, uyqu ustunlari, puls zonalari.",
+    p3c:"«Mening ko‘rsatkichlarim» kartasidan «Salomatlik» bo‘limida o‘tish.",
+    p4a:"Barcha satrlar <code>@sos24/i18n-strings</code>da: <b>uz-Latn, uz-Cyrl, ru, en</b>.",
+    p4b:"Sonlar, sanalar, birliklar — lokal bo‘yicha; kJ → kkal, ms, zarba/daq.",
+    p4c:"Har bir ko‘rsatkichga tushunarli izoh (WHOOP’ning o‘zida yo‘q).",
+  }
+};
+
+const DATA_ROWS = [
+  ["recovery","recovery_score · hrv_rmssd · resting_heart_rate · spo2 · skin_temp","have"],
+  ["sleep","sleep_performance · stages (deep/rem/light/awake) · respiratory_rate · sleep_need · consistency","have"],
+  ["strain","strain (0–21) · avg/max HR · kilojoule","have"],
+  ["workouts","sport · strain · HR zones · calories · distance","add"],
+  ["history","time-series 7/14/30/90 " ,"add"],
+];
+const DATA_NAME = {
+  ru:{recovery:"Восстановление",sleep:"Сон",strain:"Нагрузка",workouts:"Тренировки",history:"История / тренды"},
+  uz:{recovery:"Tiklanish",sleep:"Uyqu",strain:"Yuklama",workouts:"Mashg‘ulotlar",history:"Tarix / tendensiyalar"}
+};
+const TAG = { ru:{have:"есть",add:"добавить"}, uz:{have:"bor",add:"qo‘shish"} };
+
+const PHASES = {
+  ru:[
+    ["Этап A","История и бэкенд","Тайм-серии + бэкфилл + эндпоинт истории. Снапшот остаётся для быстрой отдачи."],
+    ["Этап B","Обзор · Восстановление · Сон","Три ключевых экрана + переходы + пояснения к метрикам."],
+    ["Этап C","Нагрузка · Тренды · Тренировки","Гейдж нагрузки, зоны пульса, список тренировок, графики истории."],
+    ["Этап D","Локализация и полировка","uz-Latn / uz-Cyrl / en, форматы, анимации, тёмная тема."],
+  ],
+  uz:[
+    ["A bosqich","Tarix va backend","Vaqt qatorlari + backfill + tarix endpoint. Snapshot tez javob uchun qoladi."],
+    ["B bosqich","Umumiy · Tiklanish · Uyqu","Uchta asosiy ekran + o‘tishlar + ko‘rsatkich izohlari."],
+    ["C bosqich","Yuklama · Tendensiyalar · Mashg‘ulotlar","Yuklama geyji, puls zonalari, mashg‘ulotlar ro‘yxati, tarix grafiklari."],
+    ["D bosqich","Lokalizatsiya va sayqal","uz-Latn / uz-Cyrl / en, formatlar, animatsiyalar, tungi rejim."],
+  ]
+};
+
+// ---------------- sample data ----------------
+const SD = {
+  recovery: 47, hrv: 42, rhr: 58, spo2: 97, skin: 33.4, resp: 14.2,
+  sleepPerf: 81, sleepTotal: 432, sleepNeed: 485, deep: 88, rem: 111, light: 220, awake: 13,
+  eff: 91, cons: 74,
+  strain: 12.4, avgHr: 78, maxHr: 154, cal: 2140,
+  zones: [46, 62, 41, 22, 6], // minutes per zone
+  trends: {
+    rec:   [52,44,39,48,61,57,50,43,46,55,63,58,49,47],
+    hrv:   [38,35,33,37,44,41,39,34,36,40,45,43,41,42],
+    rhr:   [61,63,64,60,57,58,59,62,60,58,56,57,58,58],
+    strain:[10.1,14.2,15.8,9.4,8.1,12.6,13.9,16.2,11.0,9.8,7.9,13.1,14.7,12.4],
+    sleep: [74,68,62,79,88,84,80,70,76,85,90,86,79,81],
+  }
+};
+
+// ---------------- helpers ----------------
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a={}, kids=[]) => { const n=document.createElementNS(NS,t); for(const k in a) n.setAttribute(k,a[k]); (Array.isArray(kids)?kids:[kids]).forEach(c=>c&&n.appendChild(typeof c==="string"?document.createTextNode(c):c)); return n; };
+const div = (cls, html) => { const d=document.createElement("div"); if(cls) d.className=cls; if(html!=null) d.innerHTML=html; return d; };
+const recColor = s => s>=67?"var(--rec-hi)":s>=34?"var(--rec-mid)":"var(--rec-lo)";
+const fmtH = min => { const h=Math.floor(min/60), m=min%60; return h+"<span class='u'> "+L().h+" </span>"+String(m).padStart(2,"0")+"<span class='u'> "+L().m+"</span>"; };
+
+let LANG = "ru";
+const L = () => T[LANG];
+
+// ring gauge
+function ring(value, max, color, size, stroke, big, small) {
+  const r=(size-stroke)/2, c=2*Math.PI*r, off=c*(1-Math.min(value/max,1));
+  const svg=el("svg",{width:size,height:size,viewBox:`0 0 ${size} ${size}`});
+  svg.appendChild(el("circle",{cx:size/2,cy:size/2,r,fill:"none",stroke:"var(--hair)","stroke-width":stroke}));
+  const p=el("circle",{cx:size/2,cy:size/2,r,fill:"none",stroke:color,"stroke-width":stroke,"stroke-linecap":"round","stroke-dasharray":c,"stroke-dashoffset":c,transform:`rotate(-90 ${size/2} ${size/2})`});
+  p.style.transition="stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1)";
+  svg.appendChild(p);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>p.setAttribute("stroke-dashoffset",off)));
+  const wrap=div("");
+  wrap.style.cssText="position:relative;display:grid;place-items:center;width:"+size+"px;height:"+size+"px";
+  wrap.appendChild(svg);
+  const lab=div("");
+  lab.style.cssText="position:absolute;display:flex;flex-direction:column;align-items:center;line-height:1";
+  lab.innerHTML=`<div class="metric-big" style="font-size:${size*0.29}px;color:${color}">${big}</div>${small?`<div style="font-size:${size*0.11}px;color:var(--ink-3);font-weight:700;margin-top:2px">${small}</div>`:""}`;
+  wrap.appendChild(lab);
+  return wrap;
+}
+
+// arc gauge (strain 0..21)
+function arc(value, max, color, size) {
+  const stroke=10, r=(size-stroke)/2, cx=size/2, cy=size/2;
+  const a0=Math.PI*0.75, a1=Math.PI*2.25; // 270deg
+  const pt=(a)=>[cx+r*Math.cos(a), cy+r*Math.sin(a)];
+  const path=(s,e)=>{const [x0,y0]=pt(s),[x1,y1]=pt(e);const large=(e-s)>Math.PI?1:0;return `M${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}`;};
+  const svg=el("svg",{width:size,height:size*0.82,viewBox:`0 0 ${size} ${size*0.82}`});
+  svg.appendChild(el("path",{d:path(a0,a1),fill:"none",stroke:"var(--hair)","stroke-width":stroke,"stroke-linecap":"round"}));
+  const frac=Math.min(value/max,1), ae=a0+(a1-a0)*frac;
+  const p=el("path",{d:path(a0,ae),fill:"none",stroke:color,"stroke-width":stroke,"stroke-linecap":"round"});
+  const len=p.getTotalLength?0:0;
+  svg.appendChild(p);
+  return svg;
+}
+
+// line trend
+function trend(data, color, w, h, fill=true) {
+  const pad=6, min=Math.min(...data), max=Math.max(...data), span=(max-min)||1;
+  const x=i=>pad+i*(w-2*pad)/(data.length-1);
+  const y=v=>pad+(1-(v-min)/span)*(h-2*pad);
+  const svg=el("svg",{width:w,height:h,viewBox:`0 0 ${w} ${h}`});
+  // grid
+  for(let g=0; g<3; g++){const yy=pad+g*(h-2*pad)/2; svg.appendChild(el("line",{x1:pad,y1:yy,x2:w-pad,y2:yy,class:"axisline"}));}
+  const dLine=data.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ");
+  if(fill){
+    const dFill=dLine+` L ${x(data.length-1)} ${h-pad} L ${x(0)} ${h-pad} Z`;
+    const gid="g"+Math.random().toString(36).slice(2,7);
+    const defs=el("defs"); const lg=el("linearGradient",{id:gid,x1:0,y1:0,x2:0,y2:1});
+    lg.appendChild(el("stop",{offset:"0%","stop-color":color,"stop-opacity":"0.22"}));
+    lg.appendChild(el("stop",{offset:"100%","stop-color":color,"stop-opacity":"0"}));
+    defs.appendChild(lg); svg.appendChild(defs);
+    svg.appendChild(el("path",{d:dFill,fill:`url(#${gid})`,stroke:"none"}));
+  }
+  const path=el("path",{d:dLine,fill:"none",stroke:color,"stroke-width":2,"stroke-linecap":"round","stroke-linejoin":"round"});
+  if(path.getTotalLength){ const len=path.getTotalLength(); path.style.strokeDasharray=len; path.style.strokeDashoffset=len; path.style.transition="stroke-dashoffset 1.2s ease"; requestAnimationFrame(()=>requestAnimationFrame(()=>path.style.strokeDashoffset=0)); }
+  svg.appendChild(path);
+  // endpoint
+  const li=data.length-1;
+  svg.appendChild(el("circle",{cx:x(li),cy:y(data[li]),r:3.6,fill:"var(--card)",stroke:color,"stroke-width":2.2}));
+  return svg;
+}
+
+// ---------- screen builders ----------
+function statusbar(){ return div("statusbar",`<span>9:41</span><span class="dots">📶 &nbsp;🔋</span>`); }
+function head(title, sub, back=true){
+  const h=div("app-head");
+  h.innerHTML = `${back?'<div class="back">‹</div>':''}<div><h2>${title}</h2><div class="sub">${sub}</div></div>`;
+  return h;
+}
+function phone(children){
+  const p=div("phone"); const g=div("glass"); g.appendChild(statusbar()); children.forEach(c=>g.appendChild(c)); p.appendChild(g); return p;
+}
+function screenWrap(label, sub, node){
+  const box=div("");
+  const lab=div("screen-label"); lab.innerHTML=`<b>${label}</b><span>${sub}</span>`;
+  box.appendChild(lab); box.appendChild(node); return box;
+}
+
+function scOverview(){
+  const b=div("body");
+  b.appendChild(head(L().sc_over, L().now));
+  // hero recovery
+  const hero=div("card"); hero.style.cssText="display:flex;align-items:center;gap:16px";
+  hero.appendChild(ring(SD.recovery,100,recColor(SD.recovery),120,12,SD.recovery+"<span style='font-size:.5em'>%</span>",""));
+  const ht=div(""); ht.style.flex="1";
+  const rl = SD.recovery>=67?L().ready_hi:SD.recovery>=34?L().ready_mid:L().ready_lo;
+  ht.innerHTML=`<div class="lbl">${L().recovery}</div><div style="font-family:var(--num);font-size:19px;font-weight:700;letter-spacing:-.02em;margin:3px 0 6px;color:${recColor(SD.recovery)}">${rl}</div><div class="note">${L().recExplain}</div>`;
+  hero.appendChild(ht); b.appendChild(hero);
+  // strain + sleep mini
+  const two=div(""); two.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:12px";
+  const s1=div("card tight"); s1.style.textAlign="center";
+  s1.innerHTML=`<div class="lbl" style="text-align:center">${L().strain}</div>`;
+  const a=arc(SD.strain,21,"var(--strain)",120); s1.appendChild(a);
+  s1.insertAdjacentHTML("beforeend",`<div class="metric-big" style="font-size:24px;margin-top:-42px;color:var(--strain)">${SD.strain}</div><div style="height:20px"></div>`);
+  const s2=div("card tight");
+  s2.innerHTML=`<div class="lbl">${L().sleep}</div><div class="metric-big" style="font-size:30px;margin-top:6px">${SD.sleepPerf}<span class="u" style="font-size:15px;color:var(--ink-3)">%</span></div><div class="note" style="margin-top:2px">${fmtH(SD.sleepTotal)}</div>`;
+  const sb=div("seg-bar"); sb.style.marginTop="12px";
+  const stg=[["deep","var(--sleep)",SD.deep],["rem","#9d8bff",SD.rem],["light","#c3bcf5",SD.light],["awake","var(--hair)",SD.awake]];
+  const tot=stg.reduce((s,x)=>s+x[2],0);
+  stg.forEach(x=>{const i=document.createElement("i");i.style.background=x[1];i.style.width=(x[2]/tot*100)+"%";sb.appendChild(i);});
+  s2.appendChild(sb);
+  two.appendChild(s1); two.appendChild(s2); b.appendChild(two);
+  // vitals tiles
+  const tiles=div("tiles");
+  const mk=(k,v,u,color,spark)=>{const t=div("tile");t.innerHTML=`<div class="k">${k}</div><div class="v" style="color:${color}">${v}<span class="u">${u}</span></div>`;const sp=div("spark");sp.appendChild(trend(spark,color,120,26,false));t.appendChild(sp);return t;};
+  tiles.appendChild(mk(L().hrv,SD.hrv,L().ms,"var(--hrv)",SD.trends.hrv));
+  tiles.appendChild(mk(L().rhr,SD.rhr,L().bpm,"var(--rhr)",SD.trends.rhr));
+  b.appendChild(tiles);
+  return b;
+}
+
+function scRecovery(){
+  const b=div("body");
+  b.appendChild(head(L().sc_rec, L().sc_rec_sub));
+  const hero=div("card"); hero.style.cssText="display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:22px;padding-bottom:20px";
+  hero.appendChild(ring(SD.recovery,100,recColor(SD.recovery),160,14,SD.recovery+"<span style='font-size:.42em'>%</span>", (SD.recovery>=67?L().ready_hi:SD.recovery>=34?L().ready_mid:L().ready_lo)));
+  hero.insertAdjacentHTML("beforeend",`<div class="note" style="text-align:center;max-width:34ch;margin-top:4px">${L().recExplain}</div>`);
+  b.appendChild(hero);
+  const tiles=div("tiles");
+  const mk=(k,v,u,color,spark,base)=>{const t=div("tile");t.innerHTML=`<div class="k">${k}</div><div class="v" style="color:${color}">${v}<span class="u">${u}</span></div>${base?`<div style="font-size:10px;color:var(--ink-3);font-weight:600">${base}</div>`:""}`;const sp=div("spark");sp.appendChild(trend(spark,color,120,28,false));t.appendChild(sp);return t;};
+  tiles.appendChild(mk(L().hrv,SD.hrv,L().ms,"var(--hrv)",SD.trends.hrv,"↑ +4 "+L().vsBase));
+  tiles.appendChild(mk(L().rhr,SD.rhr,L().bpm,"var(--rhr)",SD.trends.rhr,L().baseline+" 57"));
+  tiles.appendChild(mk(L().spo2,SD.spo2,"%","var(--resp)",[96,97,97,96,98,97,97],""));
+  tiles.appendChild(mk(L().skin,SD.skin.toFixed(1),"°","var(--rec-mid)",[33.1,33.3,33.2,33.5,33.4,33.4,33.4],""));
+  b.appendChild(tiles);
+  // respiratory
+  const rc=div("card tight"); rc.style.cssText="display:flex;align-items:center;justify-content:space-between";
+  rc.innerHTML=`<div><div class="lbl">${L().resp}</div><div class="metric-big" style="font-size:26px;margin-top:2px">${SD.resp}<span class="u" style="font-size:12px;color:var(--ink-3)"> ${L().rpm}</span></div></div>`;
+  const spp=div(""); spp.appendChild(trend([14.0,14.3,14.1,14.2,14.0,14.4,14.2],"var(--resp)",120,40)); rc.appendChild(spp);
+  b.appendChild(rc);
+  return b;
+}
+
+function scSleep(){
+  const b=div("body");
+  b.appendChild(head(L().sc_sleep, L().sc_sleep_sub));
+  const hero=div("card");
+  hero.innerHTML=`<div class="kicker"><div class="lbl">${L().sleepPerf}</div><div class="chip">${L().efficiency} ${SD.eff}%</div></div>
+    <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px"><div class="metric-big" style="font-size:44px;color:var(--sleep)">${SD.sleepPerf}<span style="font-size:.4em;color:var(--ink-3)">%</span></div>
+    <div class="note">${fmtH(SD.sleepTotal)} / ${L().need} ${fmtH(SD.sleepNeed)}</div></div>`;
+  // need vs got bar
+  const nb=div(""); nb.style.marginTop="12px";
+  const barbg=div(""); barbg.style.cssText="height:10px;border-radius:999px;background:var(--hair);overflow:hidden";
+  const fillw=Math.round(SD.sleepTotal/SD.sleepNeed*100);
+  barbg.innerHTML=`<div style="height:100%;width:${fillw}%;background:var(--sleep);border-radius:999px"></div>`;
+  nb.appendChild(barbg);
+  nb.insertAdjacentHTML("beforeend",`<div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10.5px;color:var(--ink-3);font-weight:600"><span>${L().got} ${fillw}%</span><span>${L().debt} ${fmtH(SD.sleepNeed-SD.sleepTotal)}</span></div>`);
+  hero.appendChild(nb); b.appendChild(hero);
+  // stages
+  const sc=div("card");
+  sc.innerHTML=`<div class="lbl">${L().deep} · ${L().rem} · ${L().light} · ${L().awake}</div>`;
+  const sb=div("seg-bar"); sb.style.margin="12px 0 0";
+  const stg=[[L().deep,"var(--sleep)",SD.deep],[L().rem,"#9d8bff",SD.rem],[L().light,"#c3bcf5",SD.light],[L().awake,"var(--hair)",SD.awake]];
+  const tot=stg.reduce((s,x)=>s+x[2],0);
+  stg.forEach(x=>{const i=document.createElement("i");i.style.background=x[1];i.style.width=(x[2]/tot*100)+"%";sb.appendChild(i);});
+  sc.appendChild(sb);
+  const lg=div("legend");
+  stg.forEach(x=>{const s=document.createElement("span");s.innerHTML=`<span class="swatch" style="background:${x[1]}"></span>${x[0]} · ${fmtH(x[2]).replace(/<[^>]+>/g,"")}`;lg.appendChild(s);});
+  sc.appendChild(lg);
+  sc.insertAdjacentHTML("beforeend",`<div class="note" style="margin-top:10px">${L().sleepExplain}</div>`);
+  b.appendChild(sc);
+  // consistency + respiratory tiles
+  const tiles=div("tiles");
+  const mk=(k,v,u,color)=>{const t=div("tile");t.innerHTML=`<div class="k">${k}</div><div class="v" style="color:${color}">${v}<span class="u">${u}</span></div>`;return t;};
+  tiles.appendChild(mk(L().consistency,SD.cons,"%","var(--sleep)"));
+  tiles.appendChild(mk(L().resp,SD.resp,L().rpm,"var(--resp)"));
+  b.appendChild(tiles);
+  return b;
+}
+
+function scStrain(){
+  const b=div("body");
+  b.appendChild(head(L().sc_strain, L().sc_strain_sub));
+  const hero=div("card"); hero.style.textAlign="center";
+  hero.innerHTML=`<div class="lbl">${L().dayStrain}</div>`;
+  const a=arc(SD.strain,21,"var(--strain)",180); a.style.margin="4px auto -2px";
+  hero.appendChild(a);
+  hero.insertAdjacentHTML("beforeend",`<div class="metric-big" style="font-size:40px;margin-top:-70px;color:var(--strain)">${SD.strain}</div><div class="note" style="margin-top:36px;max-width:32ch;margin-left:auto;margin-right:auto">${L().strainExplain}</div>`);
+  b.appendChild(hero);
+  const tiles=div("tiles");
+  const mk=(k,v,u,color)=>{const t=div("tile");t.innerHTML=`<div class="k">${k}</div><div class="v" style="color:${color}">${v}<span class="u">${u}</span></div>`;return t;};
+  tiles.appendChild(mk(L().avgHr,SD.avgHr,L().bpm,"var(--rhr)"));
+  tiles.appendChild(mk(L().maxHr,SD.maxHr,L().bpm,"var(--brand)"));
+  tiles.appendChild(mk(L().cal,SD.cal.toLocaleString(),L().kcal,"var(--rec-mid)"));
+  tiles.appendChild(mk(L().sleep,SD.sleepPerf,"%","var(--sleep)"));
+  b.appendChild(tiles);
+  // hr zones
+  const zc=div("card"); zc.innerHTML=`<div class="lbl">${L().zones}</div>`;
+  const zw=div("zones"); zw.style.marginTop="10px";
+  const zc5=["#c3bcf5","#8fb3ff","var(--strain)","#ff9f5a","var(--brand)"];
+  const zmax=Math.max(...SD.zones);
+  SD.zones.forEach((v,i)=>{const z=div("zone");z.innerHTML=`<div class="zt">${L().zLbl[i]}</div><div class="zb"><i style="width:${v/zmax*100}%;background:${zc5[i]}"></i></div><div class="zv">${v} ${L().min}</div>`;zw.appendChild(z);});
+  zc.appendChild(zw); b.appendChild(zc);
+  // workout
+  const wc=div("card tight"); wc.style.cssText="display:flex;align-items:center;gap:12px";
+  wc.innerHTML=`<div style="width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--strain) 16%,transparent);display:grid;place-items:center;font-size:20px">🏃</div>
+  <div style="flex:1"><div style="font-family:var(--num);font-weight:700;font-size:14px">${L().run}</div><div class="note">42 ${L().min} · 410 ${L().kcal}</div></div>
+  <div class="metric-big" style="font-size:20px;color:var(--strain)">8.2</div>`;
+  b.appendChild(wc);
+  return b;
+}
+
+function scTrends(){
+  const b=div("body");
+  b.appendChild(head(L().sc_trend, L().sc_trend_sub));
+  const seg=div("seg"); seg.style.cssText="align-self:center;margin:0 auto";
+  seg.innerHTML=`<button aria-pressed="true">${L().last14}</button><button aria-pressed="false">${L().last30}</button><button aria-pressed="false">${L().last90}</button>`;
+  b.appendChild(seg);
+  const mk=(title,data,color,cur,unit,dir)=>{
+    const c=div("card trendcard");
+    const d = dir>0?`<span class="delta up">↑ ${Math.abs(dir)}</span>`:`<span class="delta down">↓ ${Math.abs(dir)}</span>`;
+    c.innerHTML=`<div class="kicker"><h4>${title}</h4><div class="meta"><span class="cur" style="color:${color}">${cur}<span style="font-size:.6em;color:var(--ink-3)">${unit}</span></span>${d}</div></div>`;
+    const holder=div(""); holder.style.marginTop="8px";
+    holder.appendChild(trend(data,color,268,72)); c.appendChild(holder);
+    return c;
+  };
+  b.appendChild(mk(L().trendRec,SD.trends.rec,recColor(SD.recovery),47,"%",-2));
+  b.appendChild(mk(L().trendHrv,SD.trends.hrv,"var(--hrv)",42,L().ms,4));
+  b.appendChild(mk(L().trendRhr,SD.trends.rhr,"var(--rhr)",58,L().bpm,1));
+  b.appendChild(mk(L().trendSleep,SD.trends.sleep,"var(--sleep)",81,"%",2));
+  const ins=div("card tight"); ins.style.cssText="display:flex;gap:10px;align-items:center;background:color-mix(in srgb,var(--hrv) 10%,transparent)";
+  ins.innerHTML=`<span style="font-size:18px">💡</span><div class="note" style="color:var(--ink)">${L().insight}</div>`;
+  b.appendChild(ins);
+  return b;
+}
+
+// ---------------- render ----------------
+const SCREENS=[
+  ["sc_over","sc_over_sub",scOverview],
+  ["sc_rec","sc_rec_sub",scRecovery],
+  ["sc_sleep","sc_sleep_sub",scSleep],
+  ["sc_strain","sc_strain_sub",scStrain],
+  ["sc_trend","sc_trend_sub",scTrends],
+];
+
+function renderAll(){
+  const host=document.getElementById("phones"); host.innerHTML="";
+  SCREENS.forEach(([lk,sk,fn])=>{
+    host.appendChild(screenWrap(L()[lk],L()[sk],phone([fn()])));
+  });
+  // static i18n
+  document.querySelectorAll("[data-i18n]").forEach(n=>{ const k=n.getAttribute("data-i18n"); if(L()[k]!=null) n.innerHTML=L()[k]; });
+  // data table
+  const dr=document.getElementById("datarows"); dr.innerHTML="";
+  DATA_ROWS.forEach(([id,fields,st])=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td><b>${DATA_NAME[LANG][id]}</b></td><td style="color:var(--ink-2);font-size:11.5px">${fields}</td><td><span class="tag ${st}">${TAG[LANG][st]}</span></td>`;
+    dr.appendChild(tr);
+  });
+  // phases
+  const ph=document.getElementById("phases"); ph.innerHTML="";
+  PHASES[LANG].forEach(([n,t,d])=>{
+    const row=div("phase"); row.innerHTML=`<div class="pn">${n}</div><div><b>${t}</b><p>${d}</p></div>`; ph.appendChild(row);
+  });
+}
+
+document.querySelectorAll("[data-lang]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    LANG=btn.getAttribute("data-lang");
+    document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed", b===btn?"true":"false"));
+    renderAll();
+  });
+});
+
+renderAll();
+</script>
