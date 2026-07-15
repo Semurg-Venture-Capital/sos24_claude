@@ -40,14 +40,31 @@ export interface SleepData {
   remMin: number | null;
   awakeMin: number | null;
   respiratoryRate: number | null;
+  needMin: number | null; // потребность в сне
+  efficiencyPct: number | null;
+  consistencyPct: number | null;
   at: Date | null;
 }
 
 export interface CycleData {
   strain: number | null;
+  kilojoule: number | null;
   avgHr: number | null;
   maxHr: number | null;
   at: Date | null;
+}
+
+export interface WorkoutData {
+  whoopId: string | null;
+  start: Date;
+  end: Date;
+  sport: string | null;
+  strain: number | null;
+  avgHr: number | null;
+  maxHr: number | null;
+  kilojoule: number | null;
+  distanceM: number | null;
+  zoneMin: number[] | null; // [z1..z5] минуты
 }
 
 export interface BodyData {
@@ -62,6 +79,7 @@ export interface WhoopProvider {
   fetchRecovery(accessToken: string): Promise<RecoveryData | null>;
   fetchSleep(accessToken: string): Promise<SleepData | null>;
   fetchCycle(accessToken: string): Promise<CycleData | null>;
+  fetchWorkouts(accessToken: string, limit?: number): Promise<WorkoutData[]>;
   fetchBody(accessToken: string): Promise<BodyData | null>;
 }
 
@@ -112,12 +130,29 @@ export class MockWhoopProvider implements WhoopProvider {
       remMin: 132,
       awakeMin: 18,
       respiratoryRate: 14.6,
+      needMin: 502,
+      efficiencyPct: 92,
+      consistencyPct: 74,
       at: new Date(),
     };
   }
 
   async fetchCycle(): Promise<CycleData> {
-    return { strain: 11.4, avgHr: 78, maxHr: 141, at: new Date() };
+    return { strain: 11.4, kilojoule: 8960, avgHr: 78, maxHr: 141, at: new Date() };
+  }
+
+  async fetchWorkouts(): Promise<WorkoutData[]> {
+    const now = Date.now();
+    return [
+      {
+        whoopId: 'mock-wo-1', start: new Date(now - 5 * 3600_000), end: new Date(now - 5 * 3600_000 + 42 * 60_000),
+        sport: 'Бег', strain: 8.2, avgHr: 152, maxHr: 176, kilojoule: 1715, distanceM: 6800, zoneMin: [4, 9, 16, 10, 3],
+      },
+      {
+        whoopId: 'mock-wo-2', start: new Date(now - 28 * 3600_000), end: new Date(now - 28 * 3600_000 + 55 * 60_000),
+        sport: 'Ходьба', strain: 4.6, avgHr: 108, maxHr: 128, kilojoule: 990, distanceM: 4200, zoneMin: [22, 25, 7, 1, 0],
+      },
+    ];
   }
 
   async fetchBody(): Promise<BodyData> {
@@ -208,7 +243,11 @@ export class RealWhoopProvider implements WhoopProvider {
   async fetchSleep(accessToken: string): Promise<SleepData | null> {
     const sl = this.latest(await this.get(accessToken, '/developer/v2/activity/sleep?limit=1'));
     const st = sl?.score?.stage_summary;
+    const need = sl?.score?.sleep_needed;
     if (!sl?.score) return null;
+    const needTotal = need
+      ? (need.baseline_milli ?? 0) + (need.need_from_sleep_debt_milli ?? 0) + (need.need_from_recent_strain_milli ?? 0) + (need.need_from_recent_nap_milli ?? 0)
+      : null;
     return {
       performance: sl.score.sleep_performance_percentage ?? null,
       totalMin: msToMin(
@@ -221,6 +260,9 @@ export class RealWhoopProvider implements WhoopProvider {
       remMin: msToMin(st?.total_rem_sleep_time_milli),
       awakeMin: msToMin(st?.total_awake_time_milli),
       respiratoryRate: sl.score.respiratory_rate ?? null,
+      needMin: needTotal != null ? msToMin(needTotal) : null,
+      efficiencyPct: sl.score.sleep_efficiency_percentage != null ? Math.round(sl.score.sleep_efficiency_percentage) : null,
+      consistencyPct: sl.score.sleep_consistency_percentage ?? null,
       at: sl?.end ? new Date(sl.end) : null,
     };
   }
@@ -230,10 +272,35 @@ export class RealWhoopProvider implements WhoopProvider {
     if (!c?.score) return null;
     return {
       strain: c.score.strain ?? null,
+      kilojoule: c.score.kilojoule ?? null,
       avgHr: c.score.average_heart_rate ?? null,
       maxHr: c.score.max_heart_rate ?? null,
       at: c?.start ? new Date(c.start) : null,
     };
+  }
+
+  async fetchWorkouts(accessToken: string, limit = 10): Promise<WorkoutData[]> {
+    const json = await this.get(accessToken, `/developer/v2/activity/workout?limit=${limit}`);
+    const arr: any[] = json?.records ?? (Array.isArray(json) ? json : []);
+    return arr
+      .filter((w) => w?.start && w?.end)
+      .map((w) => {
+        const sc = w.score ?? {};
+        const z = sc.zone_duration ?? {};
+        const zoneMin = ['zone_one_milli', 'zone_two_milli', 'zone_three_milli', 'zone_four_milli', 'zone_five_milli'].map((k) => msToMin(z[k]) ?? 0);
+        return {
+          whoopId: w.id != null ? String(w.id) : null,
+          start: new Date(w.start),
+          end: new Date(w.end),
+          sport: w.sport_name ?? (w.sport_id != null ? `Sport ${w.sport_id}` : null),
+          strain: sc.strain ?? null,
+          avgHr: sc.average_heart_rate ?? null,
+          maxHr: sc.max_heart_rate ?? null,
+          kilojoule: sc.kilojoule ?? null,
+          distanceM: sc.distance_meter ?? null,
+          zoneMin: zoneMin.some((v) => v > 0) ? zoneMin : null,
+        };
+      });
   }
 
   async fetchBody(accessToken: string): Promise<BodyData | null> {

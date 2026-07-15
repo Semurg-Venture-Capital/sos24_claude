@@ -156,6 +156,25 @@ export function StageBar({ segs }: { segs: { label: string; min: number; color: 
   );
 }
 
+// Зоны пульса (5 горизонтальных баров).
+const ZONE_COLORS = ['#C3BCF5', '#8FB3FF', W.strain, '#FF9F5A', '#E6483A'];
+export function HrZones({ zones }: { zones: number[] }) {
+  const max = Math.max(...zones, 1);
+  return (
+    <View style={{ gap: 7 }}>
+      {zones.map((v, i) => (
+        <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ width: 52, fontFamily: 'Manrope_700Bold', fontSize: 10.5, color: tokens.inkMuted }}>Зона {i + 1}</Text>
+          <View style={{ flex: 1, height: 8, borderRadius: 999, backgroundColor: tokens.hairline, overflow: 'hidden' }}>
+            <View style={{ height: '100%', width: `${(v / max) * 100}%`, backgroundColor: ZONE_COLORS[i], borderRadius: 999 }} />
+          </View>
+          <Text style={{ width: 42, textAlign: 'right', fontFamily: 'Manrope_700Bold', fontSize: 10.5, color: tokens.inkMuted }}>{v} мин</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 // Плитка-метрика (стекло) + опциональный спарклайн.
 export function Tile({ label, value, unit, color, spark, sub }: { label: string; value: string; unit?: string; color?: string; spark?: number[]; sub?: string }) {
   return (

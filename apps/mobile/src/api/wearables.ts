@@ -15,6 +15,9 @@ export interface WhoopRecovery {
 export interface WhoopSleep {
   performance: number | null;
   totalMinutes: number | null;
+  needMinutes: number | null;
+  consistency: number | null;
+  efficiency: number | null;
   stages: { lightMin: number | null; deepMin: number | null; remMin: number | null; awakeMin: number | null };
   respiratoryRate: number | null;
   at: string | null;
@@ -22,15 +25,31 @@ export interface WhoopSleep {
 
 export interface WhoopCycle {
   strain: number | null;
+  calories: number | null;
   avgHr: number | null;
   maxHr: number | null;
   at: string | null;
+}
+
+export interface WhoopWorkout {
+  id: string;
+  sport: string | null;
+  start: string;
+  durationMin: number;
+  strain: number | null;
+  avgHr: number | null;
+  maxHr: number | null;
+  calories: number | null;
+  distanceM: number | null;
+  zoneMin: number[] | null;
 }
 
 export interface WhoopMetrics {
   recovery: WhoopRecovery;
   sleep: WhoopSleep;
   cycle: WhoopCycle;
+  zones: number[] | null;
+  workouts: WhoopWorkout[];
 }
 
 export interface WearableStatus {

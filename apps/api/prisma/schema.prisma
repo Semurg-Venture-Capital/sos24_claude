@@ -785,13 +785,17 @@ model WhoopSnapshot {
   sleepRemMin       Int?
   sleepAwakeMin     Int?
   respiratoryRate   Float?
+  sleepNeedMin      Int? // потребность в сне
+  sleepConsistency  Int? // %
+  sleepEfficiency   Int? // %
   sleepAt           DateTime?
 
   // Сутки / нагрузка (Cycle)
-  dayStrain Float? // 0..21
-  avgHr     Int?
-  maxHr     Int?
-  cycleAt   DateTime?
+  dayStrain    Float? // 0..21
+  dayKilojoule Float? // энергозатраты за сутки
+  avgHr        Int?
+  maxHr        Int?
+  cycleAt      DateTime?
 
   updatedAt DateTime @updatedAt
 

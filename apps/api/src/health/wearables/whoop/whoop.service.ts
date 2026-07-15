@@ -168,10 +168,11 @@ export class WhoopService {
     if (!conn || conn.status !== 'CONNECTED') throw new BadRequestException('WHOOP не подключён');
 
     const access = await this.ensureAccessToken(conn);
-    const [rec, sleep, cycle, body] = await Promise.all([
+    const [rec, sleep, cycle, workouts, body] = await Promise.all([
       this.provider.fetchRecovery(access),
       this.provider.fetchSleep(access),
       this.provider.fetchCycle(access),
+      this.provider.fetchWorkouts(access),
       this.provider.fetchBody(access),
     ]);
 
@@ -190,8 +191,12 @@ export class WhoopService {
       sleepRemMin: sleep?.remMin ?? null,
       sleepAwakeMin: sleep?.awakeMin ?? null,
       respiratoryRate: sleep?.respiratoryRate ?? null,
+      sleepNeedMin: sleep?.needMin ?? null,
+      sleepConsistency: sleep?.consistencyPct ?? null,
+      sleepEfficiency: sleep?.efficiencyPct ?? null,
       sleepAt: sleep?.at ?? null,
       dayStrain: cycle?.strain ?? null,
+      dayKilojoule: cycle?.kilojoule ?? null,
       avgHr: cycle?.avgHr ?? null,
       maxHr: cycle?.maxHr ?? null,
       cycleAt: cycle?.at ?? null,
@@ -203,6 +208,11 @@ export class WhoopService {
     });
     // История (тайм-серии) — накапливаем по дням для графиков/трендов.
     await this.persistHistory(userId, rec, sleep, cycle);
+    // Тренировки — идемпотентно по времени старта.
+    for (const w of workouts) {
+      const data = { end: w.end, sport: w.sport, strain: w.strain, avgHr: w.avgHr, maxHr: w.maxHr, kilojoule: w.kilojoule, distanceM: w.distanceM, zoneMin: w.zoneMin ?? undefined, whoopId: w.whoopId };
+      await this.prisma.whoopWorkout.upsert({ where: { userId_start: { userId, start: w.start } }, create: { userId, start: w.start, ...data }, update: data });
+    }
     // В mock-режиме досеиваем ~14 дней истории, чтобы графики были наполнены на деве.
     if (effectiveWhoopMode() === 'mock') await this.backfillMockHistory(userId);
     await this.prisma.wearableConnection.update({ where: { id: conn.id }, data: { lastSyncAt: new Date() } });
@@ -340,6 +350,20 @@ export class WhoopService {
       return { connected: false, provider: 'WHOOP', mode, lastSyncAt: null, metrics: null };
     }
     const s = conn.snapshot;
+    // Последние тренировки + суммарные зоны пульса за последний день с тренировками.
+    const workouts = await this.prisma.whoopWorkout.findMany({ where: { userId }, orderBy: { start: 'desc' }, take: 10 });
+    const kcal = (kj: number | null | undefined) => (kj != null ? Math.round(kj / 4.184) : null);
+    let dayZones: number[] | null = null;
+    if (workouts.length) {
+      const day = this.startOfDay(workouts[0].start).getTime();
+      const todays = workouts.filter((w) => this.startOfDay(w.start).getTime() === day);
+      const acc = [0, 0, 0, 0, 0];
+      for (const w of todays) {
+        const z = (w.zoneMin as number[] | null) ?? [];
+        z.forEach((v, i) => { if (i < 5) acc[i] += v ?? 0; });
+      }
+      if (acc.some((v) => v > 0)) dayZones = acc;
+    }
     return {
       connected: true,
       provider: 'WHOOP',
@@ -351,11 +375,27 @@ export class WhoopService {
             sleep: {
               performance: s.sleepPerformance,
               totalMinutes: s.sleepTotalMinutes,
+              needMinutes: s.sleepNeedMin,
+              consistency: s.sleepConsistency,
+              efficiency: s.sleepEfficiency,
               stages: { lightMin: s.sleepLightMin, deepMin: s.sleepDeepMin, remMin: s.sleepRemMin, awakeMin: s.sleepAwakeMin },
               respiratoryRate: s.respiratoryRate,
               at: s.sleepAt,
             },
-            cycle: { strain: s.dayStrain, avgHr: s.avgHr, maxHr: s.maxHr, at: s.cycleAt },
+            cycle: { strain: s.dayStrain, calories: kcal(s.dayKilojoule), avgHr: s.avgHr, maxHr: s.maxHr, at: s.cycleAt },
+            zones: dayZones,
+            workouts: workouts.map((w) => ({
+              id: w.id,
+              sport: w.sport,
+              start: w.start,
+              durationMin: Math.round((w.end.getTime() - w.start.getTime()) / 60000),
+              strain: w.strain,
+              avgHr: w.avgHr,
+              maxHr: w.maxHr,
+              calories: kcal(w.kilojoule),
+              distanceM: w.distanceM,
+              zoneMin: w.zoneMin as number[] | null,
+            })),
           }
         : null,
     };
