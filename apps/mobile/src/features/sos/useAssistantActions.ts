@@ -8,6 +8,7 @@ import type { AssistantAction } from '../../api/assistant';
 type Nav = NativeStackNavigationProp<MainStackParamList, 'SosAssistant'>;
 
 const SOS_HOTLINE = '1024';
+const CALL_NUMBERS = new Set([SOS_HOTLINE, '101', '102', '103', '104']);
 
 // Исполнитель действий SOS-ассистента. Навигацию делает КЛИЕНТ по закрытому
 // набору (LLM только предлагает тип). См. docs/SOS_ASSISTANT_SPEC.md §4.4.
@@ -36,7 +37,8 @@ export function useAssistantActions() {
           nav.navigate('HealthSosActive');
           break;
         case 'emergency_call': {
-          const number = (action.hint || '').replace(/[^\d+]/g, '') || SOS_HOTLINE;
+          const num = (action.param || '').replace(/\D/g, '');
+          const number = CALL_NUMBERS.has(num) ? num : SOS_HOTLINE;
           Linking.openURL(`tel:${number}`).catch(() =>
             Alert.alert('Не удалось позвонить', `Наберите ${number} вручную.`),
           );

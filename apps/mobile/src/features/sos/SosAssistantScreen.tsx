@@ -118,7 +118,7 @@ export function SosAssistantScreen() {
           role: 'ai',
           text: 'Не удалось обработать запрос. Попробуйте ещё раз или позвоните диспетчеру 1024.',
           at: new Date().toISOString(),
-          actions: [{ type: 'emergency_call', label: 'Позвонить диспетчеру', hint: SOS_HOTLINE }],
+          actions: [{ type: 'emergency_call', label: 'Позвонить диспетчеру', hint: SOS_HOTLINE, param: SOS_HOTLINE }],
           quickReplies: [],
         },
         useAssistantStore.getState().sessionId ?? '',

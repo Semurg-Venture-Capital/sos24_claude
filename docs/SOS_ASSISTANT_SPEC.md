@@ -155,10 +155,12 @@ health_triage  → nav → HealthTriage
 buy_policy     → nav → Каталог (Purchase)
 support        → nav → SupportHub/NewTicket
 panic_alarm    → nav → HealthSosActive (гео+оповещение)
-emergency_call → Linking tel:1024
+emergency_call → Linking tel:<param>  // номер в action.param
 navigate       → whitelist(param): policies|garage|catalog|health|documents → соответств. раздел
 ```
 `urgency==='high'` → показать закреплённую плашку «Экстренный вызов 1024» вверху диалога.
+
+**Экстренные номера (emergency_call).** Номер набора — в `action.param` (не в `hint`), клиент валидирует по белому списку и при недопустимом значении набирает 1024. Разрешены: **1024** — диспетчер SOS24 (ВСЕГДА присутствует и первым среди звонков; приоритет), **101** пожарная, **102** полиция/ГАИ, **103** скорая, **104** аварийная газовая. Каждый номер — отдельное действие. Привязка по ситуации: мед → 1024+103, ДТП/кража/угон → 1024+102, пожар → 1024+101, газ → 1024+104. Приоритет 1024 гарантируется на сервере в `sanitize`/`prioritizeHotline` (страховка на случай, если LLM забудет).
 
 ### 4.5. Состояние и персист
 - `assistantStore` (Zustand + persist, как `triageStore`): `sessionId`, `messages`, `sending`.
