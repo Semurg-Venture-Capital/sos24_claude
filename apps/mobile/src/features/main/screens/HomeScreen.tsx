@@ -326,7 +326,7 @@ export function HomeScreen() {
 
           {/* SOS banner — экстренная помощь (отдельный модуль, в разработке) */}
           <View style={{ paddingHorizontal: 24 }}>
-            <SosBanner />
+            <SosBanner onPress={() => nav.getParent<RootNav>()?.navigate('SosAssistant')} />
           </View>
 
           {/* Quick actions 2x2 */}

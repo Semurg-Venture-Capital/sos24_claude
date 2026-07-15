@@ -9,6 +9,7 @@ import { EuroNavigator } from './EuroNavigator';
 import { GarageNavigator } from './GarageNavigator';
 import { HealthNavigator } from './HealthNavigator';
 import { HealthSosActiveScreen } from '../features/health/screens/HealthSosActiveScreen';
+import { SosAssistantScreen } from '../features/sos/SosAssistantScreen';
 import { HomeScreen } from '../features/main/screens/HomeScreen';
 import { NotificationsScreen } from '../features/notifications/screens/NotificationsScreen';
 import { PolicyQrFullscreenScreen } from '../features/policies/screens/PolicyQrFullscreenScreen';
@@ -175,6 +176,14 @@ export function MainNavigator() {
         component={HealthSosActiveScreen}
         options={
           Platform.OS === 'web' ? {} : { presentation: 'fullScreenModal', animation: 'fade' }
+        }
+      />
+      {/* SOS-ассистент — корневой модал поверх табов (вход с красной SOS-кнопки). */}
+      <Stack.Screen
+        name="SosAssistant"
+        component={SosAssistantScreen}
+        options={
+          Platform.OS === 'web' ? {} : { presentation: 'modal', animation: 'slide_from_bottom' }
         }
       />
       <Stack.Screen

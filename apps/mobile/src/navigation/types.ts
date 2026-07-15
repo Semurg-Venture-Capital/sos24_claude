@@ -116,6 +116,7 @@ export type MainStackParamList = {
   Notifications: undefined;
   PolicyQrFullscreen: { id: string }; // QR полиса на весь экран — корневой модал
   HealthSosActive: undefined; // M14.12 — экран ЧП/SOS, корневой модал (поверх табов)
+  SosAssistant: undefined; // SOS-ассистент (ИИ-роутер) — корневой модал, вход с SOS-кнопки
   // Профиль вынесен из нижнего меню в корневой стек — открывается с главного экрана.
   Profile:
     | undefined
