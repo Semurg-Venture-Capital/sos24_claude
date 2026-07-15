@@ -215,6 +215,12 @@ export class WhoopService {
     });
     // История (тайм-серии) — накапливаем по дням для графиков/трендов.
     await this.persistHistory(userId, rec, sleep, cycle);
+    // Самолечение: если истории мало (напр. подключились до появления бэкфилла) —
+    // ставим бэкфилл в фон, чтобы графики/тренды наполнились.
+    const histCount = await this.prisma.whoopRecoveryDay.count({ where: { userId } });
+    if (histCount < 7) {
+      await this.syncQueue.add('backfill', { userId }, { jobId: `whoop-backfill-${userId}`, removeOnComplete: true, removeOnFail: 100 });
+    }
     // Тренировки — идемпотентно по времени старта.
     for (const w of workouts) {
       const data = { end: w.end, sport: w.sport, strain: w.strain, avgHr: w.avgHr, maxHr: w.maxHr, kilojoule: w.kilojoule, distanceM: w.distanceM, zoneMin: w.zoneMin ?? undefined, whoopId: w.whoopId };
