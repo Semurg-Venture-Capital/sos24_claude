@@ -19,10 +19,10 @@ type Route = RouteProp<AdjusterStackParamList, 'AdjusterStatus'>;
 const DISPATCHER_PHONE = '+998712345600';
 
 const STEPS: { key: AdjusterStatus; label: string; desc: string }[] = [
-  { key: 'NEW', label: 'Заявка принята', desc: 'Ищем свободного аджастера' },
-  { key: 'ACCEPTED', label: 'Аджастер назначен', desc: 'Готовится к выезду' },
+  { key: 'NEW', label: 'Заявка принята', desc: 'Ищем свободного специалиста' },
+  { key: 'ACCEPTED', label: 'Специалист назначен', desc: 'Готовится к выезду' },
   { key: 'EN_ROUTE', label: 'В пути', desc: 'Едет к вам · ≈25–40 мин' },
-  { key: 'COMPLETED', label: 'Прибыл', desc: 'Аджастер на месте' },
+  { key: 'COMPLETED', label: 'Прибыл', desc: 'Специалист на месте' },
 ];
 
 const STATUS_ORDER: AdjusterStatus[] = ['NEW', 'ACCEPTED', 'EN_ROUTE', 'COMPLETED'];
@@ -220,7 +220,7 @@ export function AdjusterStatusScreen() {
               </Svg>
             </View>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center', lineHeight: 20 }}>
-              Заявка была отменена. Если вам нужна помощь, вызовите аджастера повторно.
+              Заявка была отменена. Если вам нужна помощь, вызовите её повторно.
             </Text>
           </View>
         )}
@@ -247,7 +247,7 @@ export function AdjusterStatusScreen() {
                 {req.adjusterDisplayName}
               </Text>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
-                {req.adjusterDisplayPhone ?? 'Аджастер назначен'}
+                {req.adjusterDisplayPhone ?? 'Специалист назначен'}
               </Text>
               {req.adjusterNote && (
                 <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted, marginTop: 2 }}>
@@ -313,7 +313,7 @@ export function AdjusterStatusScreen() {
         {req?.status !== 'COMPLETED' && (
           adjusterHasPhone ? (
             <RedButton trailing={false} onPress={handleCallAdjuster}>
-              Позвонить аджастеру
+              Позвонить специалисту
             </RedButton>
           ) : (
             <OutlineButton style={{ height: 52 }} onPress={handleCallDispatcher}>

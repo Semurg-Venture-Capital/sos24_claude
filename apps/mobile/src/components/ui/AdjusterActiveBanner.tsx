@@ -5,10 +5,10 @@ import type { AdjusterRequest, AdjusterStatus } from '../../api/adjuster';
 import { tokens } from '../../theme/colors';
 
 const STATUS_LABEL: Record<AdjusterStatus, string> = {
-  NEW: 'Ищем аджастера',
-  ACCEPTED: 'Аджастер назначен',
-  EN_ROUTE: 'Аджастер в пути',
-  COMPLETED: 'Аджастер прибыл',
+  NEW: 'Ищем специалиста',
+  ACCEPTED: 'Специалист назначен',
+  EN_ROUTE: 'Специалист в пути',
+  COMPLETED: 'Специалист прибыл',
   CANCELLED: 'Отменено',
 };
 

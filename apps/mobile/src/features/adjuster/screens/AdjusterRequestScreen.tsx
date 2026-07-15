@@ -118,7 +118,7 @@ export function AdjusterRequestScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 }}>
         <BackButton onPress={() => nav.goBack()} />
         <Text style={{ marginLeft: 12, fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink, letterSpacing: -0.09 }}>
-          Вызвать аджастера
+          Помощь на месте
         </Text>
       </View>
 
@@ -302,7 +302,7 @@ export function AdjusterRequestScreen() {
               <Text style={{ color: '#fff', fontFamily: 'Manrope_600SemiBold', fontSize: 16 }}>Отправляем...</Text>
             </View>
           ) : (
-            'Вызвать аджастера'
+            'Вызвать помощь'
           )}
         </RedButton>
       </View>

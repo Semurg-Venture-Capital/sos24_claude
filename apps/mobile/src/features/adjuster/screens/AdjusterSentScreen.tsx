@@ -87,7 +87,7 @@ export function AdjusterSentScreen() {
             textAlign: 'center',
             lineHeight: 22,
           }}>
-            Аджастер уже едет к вам.{'\n'}Среднее время прибытия — 25–40 минут.
+            Специалист уже едет к вам.{'\n'}Среднее время прибытия — 25–40 минут.
           </Text>
 
           {/* Dispatcher info */}

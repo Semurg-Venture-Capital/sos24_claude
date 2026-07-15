@@ -342,10 +342,10 @@ export function HomeScreen() {
                 />
                 <ActionTile
                   icon={<QuickIconAdjuster />}
-                  label="Аджастер"
+                  label={'Помощь\nна месте'}
                   activeDot={!!activeRequest}
                   sublabel={activeRequest ? (
-                    activeRequest.status === 'NEW' ? 'Ищем аджастера' :
+                    activeRequest.status === 'NEW' ? 'Ищем специалиста' :
                     activeRequest.status === 'ACCEPTED' ? 'Назначен' :
                     activeRequest.status === 'EN_ROUTE' ? 'В пути' : undefined
                   ) : undefined}
