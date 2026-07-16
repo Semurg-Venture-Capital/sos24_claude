@@ -18,6 +18,8 @@ interface Props {
   price: string;
   cta?: string;
   onPress?: () => void;
+  // «Скоро» — покупка полисов временно недоступна (нет финансов): бейдж + неактивная кнопка.
+  comingSoon?: boolean;
 }
 
 // Карточка продукта в каталоге M4.1: eyebrow + name + price + subtitle
@@ -31,6 +33,7 @@ export function ProductCard({
   price,
   cta = 'Рассчитать',
   onPress,
+  comingSoon = false,
 }: Props) {
   const dark = tone === 'dark';
   const ink = dark ? '#fff' : tokens.ink;
@@ -42,17 +45,41 @@ export function ProductCard({
       {/* Top — eyebrow + name (left) + price (right) */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <View style={{ flex: 1, gap: 4 }}>
-          <Text
-            style={{
-              fontFamily: 'Manrope_600SemiBold',
-              fontSize: 11,
-              color: eyebrowColor,
-              letterSpacing: 0.88,
-              textTransform: 'uppercase',
-            }}
-          >
-            {eyebrow}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <Text
+              style={{
+                fontFamily: 'Manrope_600SemiBold',
+                fontSize: 11,
+                color: eyebrowColor,
+                letterSpacing: 0.88,
+                textTransform: 'uppercase',
+              }}
+            >
+              {eyebrow}
+            </Text>
+            {comingSoon ? (
+              <View
+                style={{
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: 999,
+                  backgroundColor: dark ? 'rgba(255,255,255,0.14)' : 'rgba(230,20,40,0.12)',
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: 'Manrope_700Bold',
+                    fontSize: 10,
+                    letterSpacing: 0.5,
+                    textTransform: 'uppercase',
+                    color: dark ? '#fff' : tokens.red,
+                  }}
+                >
+                  Скоро
+                </Text>
+              </View>
+            ) : null}
+          </View>
           <Text
             style={{
               fontFamily: 'NeueMontreal-Medium',
@@ -124,40 +151,66 @@ export function ProductCard({
         ))}
       </View>
 
-      {/* CTA */}
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => ({
-          marginTop: 8,
-          height: 64,
-          borderRadius: 999,
-          backgroundColor: tokens.red,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 10,
-          shadowColor: tokens.red,
-          shadowOffset: { width: 0, height: 16 },
-          shadowOpacity: 0.5,
-          shadowRadius: 20,
-          elevation: 8,
-          opacity: pressed ? 0.9 : 1,
-        })}
-      >
-        <Text
+      {/* CTA — при comingSoon неактивна (покупка временно недоступна) */}
+      {comingSoon ? (
+        <View
           style={{
-            color: '#fff',
-            fontFamily: 'Manrope_700Bold',
-            fontSize: 16,
-            letterSpacing: -0.16,
+            marginTop: 8,
+            height: 64,
+            borderRadius: 999,
+            backgroundColor: dark ? 'rgba(255,255,255,0.10)' : 'rgba(20,20,20,0.08)',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
           }}
         >
-          {cta}
-        </Text>
-        <Svg width={7} height={10} viewBox="0 0 7 10" fill="#fff">
-          <Path d="M.833 0L0 .833 4.167 5 0 9.167.833 10l5-5z" />
-        </Svg>
-      </Pressable>
+          <Text
+            style={{
+              color: dark ? tokens.inkMutedDark : tokens.inkMuted,
+              fontFamily: 'Manrope_700Bold',
+              fontSize: 16,
+              letterSpacing: -0.16,
+            }}
+          >
+            {cta}
+          </Text>
+        </View>
+      ) : (
+        <Pressable
+          onPress={onPress}
+          style={({ pressed }) => ({
+            marginTop: 8,
+            height: 64,
+            borderRadius: 999,
+            backgroundColor: tokens.red,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            shadowColor: tokens.red,
+            shadowOffset: { width: 0, height: 16 },
+            shadowOpacity: 0.5,
+            shadowRadius: 20,
+            elevation: 8,
+            opacity: pressed ? 0.9 : 1,
+          })}
+        >
+          <Text
+            style={{
+              color: '#fff',
+              fontFamily: 'Manrope_700Bold',
+              fontSize: 16,
+              letterSpacing: -0.16,
+            }}
+          >
+            {cta}
+          </Text>
+          <Svg width={7} height={10} viewBox="0 0 7 10" fill="#fff">
+            <Path d="M.833 0L0 .833 4.167 5 0 9.167.833 10l5-5z" />
+          </Svg>
+        </Pressable>
+      )}
     </View>
   );
 

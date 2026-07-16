@@ -21,6 +21,10 @@ import { Tag } from '../../../components/ui/Tag';
 import { tokens } from '../../../theme/colors';
 import type { PurchaseStackParamList } from '../../../navigation/types';
 
+// Временно: покупка полисов недоступна (нет финансов) — карточки показывают
+// бейдж «Скоро» и неактивную кнопку. Вернуть покупку → false.
+const PURCHASE_COMING_SOON = true;
+
 type Nav = NativeStackNavigationProp<PurchaseStackParamList, 'CompanyProducts'>;
 type R = RouteProp<PurchaseStackParamList, 'CompanyProducts'>;
 
@@ -163,6 +167,7 @@ function ProductCardFromApi({ product, onPress }: { product: CompanyProduct; onP
       benefits={preset.benefits.map((b) => ({ icon: <b.Icon color={iconColor} />, label: b.label }))}
       price={product.fromPrice != null ? product.fromPrice.toLocaleString('ru-RU') : '—'}
       onPress={onPress}
+      comingSoon={PURCHASE_COMING_SOON}
     />
   );
 }
