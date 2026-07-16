@@ -10,7 +10,9 @@
     "save": "Сохранить",
     "cancel": "Отмена",
     "retry": "Повторить",
-    "loading": "Загрузка..."
+    "loading": "Загрузка...",
+    "seeAll": "Все",
+    "comingSoon": "Скоро"
   },
   "tabs": {
     "home": "Главная",
@@ -119,6 +121,37 @@
     "HEALTH": "Здоровье",
     "HOME": "Дом",
     "FINANCE": "Финансы"
+  },
+  "home": {
+    "greetingNight": "Доброй ночи",
+    "greetingMorning": "Доброе утро",
+    "greetingDay": "Добрый день",
+    "greetingEvening": "Добрый вечер",
+    "loadError": "Не удалось загрузить данные",
+    "loadErrorServer": "Сервер вернул ошибку ({{status}}). Попробуйте позже.",
+    "loadErrorNetwork": "Проверьте подключение к интернету и попробуйте снова.",
+    "loginAgain": "Войти заново",
+    "quickActions": "Быстрые действия",
+    "actionPolicy": "Страховой\nполис",
+    "actionOnsite": "Помощь\nна месте",
+    "actionPartners": "Партнёры",
+    "actionEuro": "Европротокол",
+    "onsiteSearching": "Ищем специалиста",
+    "onsiteAssigned": "Назначен",
+    "onsiteEnRoute": "В пути",
+    "partnersNearby": "Партнёры рядом",
+    "promos": "Акции",
+    "promoBadge": "Спецпредложение",
+    "promoTitle": "КАСКО со скидкой 15%\nпри продлении",
+    "promoValidUntil": "До 31 мая",
+    "menuDetails": "Подробнее",
+    "menuRenew": "Продлить",
+    "menuDownloadPdf": "Скачать PDF",
+    "menuFileClaim": "Заявить убыток",
+    "downloadPdfMsg": "Скачивание электронного полиса",
+    "fileClaimMsg": "Оформление страхового случая",
+    "weatherLoading": "Погода…",
+    "weatherRefresh": "Обновить погоду"
   },
   "errors": {
     "unknown": "Что-то пошло не так",

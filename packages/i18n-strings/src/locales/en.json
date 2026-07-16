@@ -10,7 +10,9 @@
     "save": "Save",
     "cancel": "Cancel",
     "retry": "Retry",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "seeAll": "All",
+    "comingSoon": "Coming soon"
   },
   "tabs": {
     "home": "Home",
@@ -119,6 +121,37 @@
     "HEALTH": "Health",
     "HOME": "Home",
     "FINANCE": "Finance"
+  },
+  "home": {
+    "greetingNight": "Good night",
+    "greetingMorning": "Good morning",
+    "greetingDay": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "loadError": "Failed to load data",
+    "loadErrorServer": "Server returned an error ({{status}}). Try again later.",
+    "loadErrorNetwork": "Check your internet connection and try again.",
+    "loginAgain": "Log in again",
+    "quickActions": "Quick actions",
+    "actionPolicy": "Insurance\npolicy",
+    "actionOnsite": "On-site\nhelp",
+    "actionPartners": "Partners",
+    "actionEuro": "Euro-protocol",
+    "onsiteSearching": "Finding a specialist",
+    "onsiteAssigned": "Assigned",
+    "onsiteEnRoute": "On the way",
+    "partnersNearby": "Partners nearby",
+    "promos": "Offers",
+    "promoBadge": "Special offer",
+    "promoTitle": "KASKO with 15% off\non renewal",
+    "promoValidUntil": "Until May 31",
+    "menuDetails": "Details",
+    "menuRenew": "Renew",
+    "menuDownloadPdf": "Download PDF",
+    "menuFileClaim": "File a claim",
+    "downloadPdfMsg": "Downloading the electronic policy",
+    "fileClaimMsg": "Filing an insurance claim",
+    "weatherLoading": "Weather…",
+    "weatherRefresh": "Refresh weather"
   },
   "errors": {
     "unknown": "Something went wrong",

@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -49,20 +50,12 @@ const PARTNER_TYPE_LABEL: Record<string, string> = {
   STO: 'СТО', CLINIC: 'Клиника', TOWING: 'Эвакуатор',
 };
 
-function greetingByHour(hour: number): string {
-  if (hour < 5) return 'Доброй ночи';
-  if (hour < 12) return 'Доброе утро';
-  if (hour < 18) return 'Добрый день';
-  return 'Добрый вечер';
+function greetingKeyByHour(hour: number): string {
+  if (hour < 5) return 'home.greetingNight';
+  if (hour < 12) return 'home.greetingMorning';
+  if (hour < 18) return 'home.greetingDay';
+  return 'home.greetingEvening';
 }
-
-const PRODUCT_LABEL: Record<Policy['type'], string> = {
-  OSAGO: 'ОСАГО',
-  KASKO: 'КАСКО',
-  HEALTH: 'Здоровье',
-  HOME: 'Дом',
-  FINANCE: 'Финансы',
-};
 
 function daysUntil(iso: string): number {
   return Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000));
@@ -77,7 +70,9 @@ function formatExpiry(iso: string): string {
 // + быстрые действия 2×2 + партнёры рядом + промо.
 // Эталон: SOS24/screens.jsx → ScreenHomeV2.
 export function HomeScreen() {
-  const greeting = greetingByHour(new Date().getHours());
+  const { t } = useTranslation();
+  const greeting = t(greetingKeyByHour(new Date().getHours()));
+  const productLabel = (ty: Policy['type']) => t(`productTypes.${ty}`);
   const nav = useNavigation<TabNav>();
   const insets = useSafeAreaInsets();
   const { data: me, isError: meIsError, error: meError, refetch: refetchMe } = useMe();
@@ -128,7 +123,7 @@ export function HomeScreen() {
       setRefreshing(false);
     }
   };
-  const displayName = me?.name ?? 'Гость';
+  const displayName = me?.name ?? t('profile.guest');
   const [menuPolicy, setMenuPolicy] = useState<Policy | null>(null);
 
   // Переход в профиль (вкладка Profile).
@@ -175,10 +170,10 @@ export function HomeScreen() {
 
   const menuItems = menuPolicy
     ? [
-        { label: 'Подробнее', icon: <DetailIcon />, onPress: () => openPolicyDetail(menuPolicy.id) },
-        { label: 'Продлить', icon: <RenewIcon />, onPress: openCatalog },
-        { label: 'Скачать PDF', icon: <PdfIcon />, onPress: () => Alert.alert('Скоро', 'Скачивание электронного полиса') },
-        { label: 'Заявить убыток', icon: <ClaimIcon />, onPress: () => Alert.alert('Скоро', 'Оформление страхового случая'), destructive: true },
+        { label: t('home.menuDetails'), icon: <DetailIcon />, onPress: () => openPolicyDetail(menuPolicy.id) },
+        { label: t('home.menuRenew'), icon: <RenewIcon />, onPress: openCatalog },
+        { label: t('home.menuDownloadPdf'), icon: <PdfIcon />, onPress: () => Alert.alert(t('common.comingSoon'), t('home.downloadPdfMsg')) },
+        { label: t('home.menuFileClaim'), icon: <ClaimIcon />, onPress: () => Alert.alert(t('common.comingSoon'), t('home.fileClaimMsg')), destructive: true },
       ]
     : [];
 
@@ -189,12 +184,12 @@ export function HomeScreen() {
       <PhoneFrame bottomSafeArea={false} topSafeArea={false}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 10 }}>
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink, textAlign: 'center' }}>
-            Не удалось загрузить данные
+            {t('home.loadError')}
           </Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center', lineHeight: 20 }}>
             {meErrStatus
-              ? `Сервер вернул ошибку (${meErrStatus}). Попробуйте позже.`
-              : 'Проверьте подключение к интернету и попробуйте снова.'}
+              ? t('home.loadErrorServer', { status: meErrStatus })
+              : t('home.loadErrorNetwork')}
           </Text>
           <Pressable
             onPress={() => void refetchMe()}
@@ -209,10 +204,10 @@ export function HomeScreen() {
               opacity: pressed ? 0.85 : 1,
             })}
           >
-            <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 15, color: '#fff' }}>Повторить</Text>
+            <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 15, color: '#fff' }}>{t('common.retry')}</Text>
           </Pressable>
           <Pressable onPress={() => void signOut()} style={({ pressed }) => ({ marginTop: 4, paddingVertical: 8, opacity: pressed ? 0.6 : 1 })}>
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkMuted }}>Войти заново</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkMuted }}>{t('home.loginAgain')}</Text>
           </Pressable>
         </View>
       </PhoneFrame>
@@ -224,7 +219,7 @@ export function HomeScreen() {
       <View style={{ flex: 1 }}>
         <PolicyContextMenu
           visible={menuPolicy !== null}
-          title={menuPolicy ? `${PRODUCT_LABEL[menuPolicy.type]} · ${menuPolicy.vehicle?.plate ?? ''}` : ''}
+          title={menuPolicy ? `${productLabel(menuPolicy.type)} · ${menuPolicy.vehicle?.plate ?? ''}` : ''}
           items={menuItems}
           onClose={() => setMenuPolicy(null)}
         />
@@ -279,9 +274,9 @@ export function HomeScreen() {
                       </Text>
                     </>
                   ) : weatherFetching ? (
-                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>Погода…</Text>
+                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>{t('home.weatherLoading')}</Text>
                   ) : (
-                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>Обновить погоду</Text>
+                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>{t('home.weatherRefresh')}</Text>
                   )}
                 </View>
               </GlassPill>
@@ -300,7 +295,7 @@ export function HomeScreen() {
 
           {/* Active policies */}
           <View style={{ gap: 12 }}>
-            <SectionRow title="Мои полисы" linkLabel="Все" onLinkPress={() => (nav as any).navigate('Policies', { screen: 'PoliciesList' })} />
+            <SectionRow title={t('policies.title')} linkLabel={t('common.seeAll')} onLinkPress={() => (nav as any).navigate('Policies', { screen: 'PoliciesList' })} />
             <HScroll>
               {policies?.map((p, idx) => {
                 const days = daysUntil(p.endDate);
@@ -308,8 +303,8 @@ export function HomeScreen() {
                   <PolicyCardActive
                     key={p.id}
                     tone={idx === 0 ? 'dark' : 'light'}
-                    type={PRODUCT_LABEL[p.type]}
-                    car={p.vehicle ? `${p.vehicle.brand} ${p.vehicle.model}` : PRODUCT_LABEL[p.type]}
+                    type={productLabel(p.type)}
+                    car={p.vehicle ? `${p.vehicle.brand} ${p.vehicle.model}` : productLabel(p.type)}
                     plate={p.vehicle?.plate ?? '—'}
                     daysLeft={days}
                     expiry={formatExpiry(p.endDate)}
@@ -331,30 +326,30 @@ export function HomeScreen() {
 
           {/* Quick actions 2x2 */}
           <View style={{ gap: 12 }}>
-            <SectionRow title="Быстрые действия" />
+            <SectionRow title={t('home.quickActions')} />
             <View style={{ paddingHorizontal: 24, gap: 10 }}>
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <ActionTile
                   dark
                   icon={<QuickIconPolicy />}
-                  label={'Страховой\nполис'}
+                  label={t('home.actionPolicy')}
                   onPress={openCatalog}
                 />
                 <ActionTile
                   icon={<QuickIconAdjuster />}
-                  label={'Помощь\nна месте'}
+                  label={t('home.actionOnsite')}
                   activeDot={!!activeRequest}
                   sublabel={activeRequest ? (
-                    activeRequest.status === 'NEW' ? 'Ищем специалиста' :
-                    activeRequest.status === 'ACCEPTED' ? 'Назначен' :
-                    activeRequest.status === 'EN_ROUTE' ? 'В пути' : undefined
+                    activeRequest.status === 'NEW' ? t('home.onsiteSearching') :
+                    activeRequest.status === 'ACCEPTED' ? t('home.onsiteAssigned') :
+                    activeRequest.status === 'EN_ROUTE' ? t('home.onsiteEnRoute') : undefined
                   ) : undefined}
                   onPress={openAdjuster}
                 />
               </View>
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <ActionTile icon={<QuickIconPartners />} label="Партнёры" onPress={openPartners} />
-                <ActionTile icon={<QuickIconEuroProtocol />} label="Европротокол" onPress={openEuro} />
+                <ActionTile icon={<QuickIconPartners />} label={t('home.actionPartners')} onPress={openPartners} />
+                <ActionTile icon={<QuickIconEuroProtocol />} label={t('home.actionEuro')} onPress={openEuro} />
               </View>
             </View>
           </View>
@@ -362,7 +357,7 @@ export function HomeScreen() {
           {/* Partners */}
           {partners.length > 0 && (
             <View style={{ gap: 12 }}>
-              <SectionRow title="Партнёры рядом" linkLabel="Все" onLinkPress={openPartners} />
+              <SectionRow title={t('home.partnersNearby')} linkLabel={t('common.seeAll')} onLinkPress={openPartners} />
               <HScroll>
                 {partners.map((p) => (
                   <Pressable key={p.id} onPress={() => openPartner(p.id)}>
@@ -382,12 +377,12 @@ export function HomeScreen() {
 
           {/* Promo */}
           <View style={{ gap: 12 }}>
-            <SectionRow title="Акции" linkLabel="Все" />
+            <SectionRow title={t('home.promos')} linkLabel={t('common.seeAll')} />
             <View style={{ paddingHorizontal: 24 }}>
               <PromoBanner
-                badge="Спецпредложение"
-                title={'КАСКО со скидкой 15%\nпри продлении'}
-                validUntil="До 31 мая"
+                badge={t('home.promoBadge')}
+                title={t('home.promoTitle')}
+                validUntil={t('home.promoValidUntil')}
               />
             </View>
           </View>

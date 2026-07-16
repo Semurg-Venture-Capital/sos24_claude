@@ -10,7 +10,9 @@
     "save": "Saqlash",
     "cancel": "Bekor qilish",
     "retry": "Qayta urinish",
-    "loading": "Yuklanmoqda..."
+    "loading": "Yuklanmoqda...",
+    "seeAll": "Barchasi",
+    "comingSoon": "Tez orada"
   },
   "tabs": {
     "home": "Asosiy",
@@ -119,6 +121,37 @@
     "HEALTH": "Salomatlik",
     "HOME": "Uy",
     "FINANCE": "Moliya"
+  },
+  "home": {
+    "greetingNight": "Xayrli tun",
+    "greetingMorning": "Xayrli tong",
+    "greetingDay": "Xayrli kun",
+    "greetingEvening": "Xayrli kech",
+    "loadError": "Maʼlumotlarni yuklab boʻlmadi",
+    "loadErrorServer": "Server xatolik qaytardi ({{status}}). Keyinroq urinib koʻring.",
+    "loadErrorNetwork": "Internet aloqasini tekshiring va qayta urinib koʻring.",
+    "loginAgain": "Qayta kirish",
+    "quickActions": "Tezkor amallar",
+    "actionPolicy": "Sugʻurta\npolisi",
+    "actionOnsite": "Joyida\nyordam",
+    "actionPartners": "Hamkorlar",
+    "actionEuro": "Yevroprotokol",
+    "onsiteSearching": "Mutaxassis qidirilmoqda",
+    "onsiteAssigned": "Tayinlandi",
+    "onsiteEnRoute": "Yoʻlda",
+    "partnersNearby": "Yaqin atrofdagi hamkorlar",
+    "promos": "Aksiyalar",
+    "promoBadge": "Maxsus taklif",
+    "promoTitle": "Uzaytirishda KASKO\n15% chegirma bilan",
+    "promoValidUntil": "31-maygacha",
+    "menuDetails": "Batafsil",
+    "menuRenew": "Uzaytirish",
+    "menuDownloadPdf": "PDF yuklab olish",
+    "menuFileClaim": "Zarar haqida ariza",
+    "downloadPdfMsg": "Elektron polisni yuklab olish",
+    "fileClaimMsg": "Sugʻurta hodisasini rasmiylashtirish",
+    "weatherLoading": "Ob-havo…",
+    "weatherRefresh": "Ob-havoni yangilash"
   },
   "errors": {
     "unknown": "Nimadir xato ketdi",

@@ -10,7 +10,9 @@
     "save": "Сақлаш",
     "cancel": "Бекор қилиш",
     "retry": "Қайта уриниш",
-    "loading": "Юкланмоқда..."
+    "loading": "Юкланмоқда...",
+    "seeAll": "Барчаси",
+    "comingSoon": "Тез орада"
   },
   "tabs": {
     "home": "Асосий",
@@ -119,6 +121,37 @@
     "HEALTH": "Саломатлик",
     "HOME": "Уй",
     "FINANCE": "Молия"
+  },
+  "home": {
+    "greetingNight": "Хайрли тун",
+    "greetingMorning": "Хайрли тонг",
+    "greetingDay": "Хайрли кун",
+    "greetingEvening": "Хайрли кеч",
+    "loadError": "Маълумотларни юклаб бўлмади",
+    "loadErrorServer": "Сервер хатолик қайтарди ({{status}}). Кейинроқ уриниб кўринг.",
+    "loadErrorNetwork": "Интернет алоқасини текширинг ва қайта уриниб кўринг.",
+    "loginAgain": "Қайта кириш",
+    "quickActions": "Тезкор амаллар",
+    "actionPolicy": "Суғурта\nполиси",
+    "actionOnsite": "Жойида\nёрдам",
+    "actionPartners": "Ҳамкорлар",
+    "actionEuro": "Европротокол",
+    "onsiteSearching": "Мутахассис қидирилмоқда",
+    "onsiteAssigned": "Тайинланди",
+    "onsiteEnRoute": "Йўлда",
+    "partnersNearby": "Яқин атрофдаги ҳамкорлар",
+    "promos": "Акциялар",
+    "promoBadge": "Махсус таклиф",
+    "promoTitle": "Узайтиришда КАСКО\n15% чегирма билан",
+    "promoValidUntil": "31-майгача",
+    "menuDetails": "Батафсил",
+    "menuRenew": "Узайтириш",
+    "menuDownloadPdf": "PDF юклаб олиш",
+    "menuFileClaim": "Зарар ҳақида ариза",
+    "downloadPdfMsg": "Электрон полисни юклаб олиш",
+    "fileClaimMsg": "Суғурта ҳодисасини расмийлаштириш",
+    "weatherLoading": "Об-ҳаво…",
+    "weatherRefresh": "Об-ҳавони янгилаш"
   },
   "errors": {
     "unknown": "Нимадир хато кетди",
