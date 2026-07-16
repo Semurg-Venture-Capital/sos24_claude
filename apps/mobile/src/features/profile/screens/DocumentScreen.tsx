@@ -10,7 +10,6 @@ import { uploadFileToS3 } from '../../../api/files';
 import { CalendarIcon } from '../../../components/icons/CalendarIcon';
 import { IconCamera } from '../../../components/icons/LineIcons';
 import { BackButton } from '../../../components/ui/BackButton';
-import { DismissKeyboardView } from '../../../components/ui/DismissKeyboardView';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
 import { RedButton } from '../../../components/ui/RedButton';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
@@ -171,7 +170,10 @@ export function DocumentScreen() {
 
   return (
     <PhoneFrame>
-      <DismissKeyboardView>
+      {/* Не оборачиваем в TouchableWithoutFeedback (DismissKeyboardView) — он
+          перехватывает жест скролла на не-инпут областях. Клавиатуру гасим
+          самим ScrollView: keyboardDismissMode="on-drag" + persistTaps="handled". */}
+      <View style={{ flex: 1 }}>
         <View
           style={{
             flexDirection: 'row',
@@ -189,6 +191,7 @@ export function DocumentScreen() {
           contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 140, gap: 20 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           automaticallyAdjustKeyboardInsets
         >
           {/* Title + status */}
@@ -336,7 +339,7 @@ export function DocumentScreen() {
             </RedButton>
           )}
         </View>
-      </DismissKeyboardView>
+      </View>
     </PhoneFrame>
   );
 }
