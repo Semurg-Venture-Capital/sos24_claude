@@ -1,5 +1,6 @@
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Line, Path, Stop } from 'react-native-svg';
 import { tokens } from '../../../theme/colors';
@@ -133,8 +134,9 @@ export function Sparkline({ data, color, width = 120, height = 26 }: { data: num
 
 // Стековый бар фаз сна (2px-зазоры).
 export function StageBar({ segs }: { segs: { label: string; min: number; color: string }[] }) {
+  const { t } = useTranslation();
   const total = segs.reduce((s, x) => s + x.min, 0) || 1;
-  const hm = (m: number) => `${Math.floor(m / 60)}ч ${String(m % 60).padStart(2, '0')}м`;
+  const hm = (m: number) => `${Math.floor(m / 60)}${t('healthCard.units.hourShort')} ${String(m % 60).padStart(2, '0')}${t('healthCard.units.minuteShort')}`;
   return (
     <View style={{ gap: 12 }}>
       <View style={{ flexDirection: 'row', height: 12, gap: 2 }}>
@@ -159,16 +161,17 @@ export function StageBar({ segs }: { segs: { label: string; min: number; color: 
 // Зоны пульса (5 горизонтальных баров).
 const ZONE_COLORS = ['#C3BCF5', '#8FB3FF', W.strain, '#FF9F5A', '#E6483A'];
 export function HrZones({ zones }: { zones: number[] }) {
+  const { t } = useTranslation();
   const max = Math.max(...zones, 1);
   return (
     <View style={{ gap: 7 }}>
       {zones.map((v, i) => (
         <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text style={{ width: 52, fontFamily: 'Manrope_700Bold', fontSize: 10.5, color: tokens.inkMuted }}>Зона {i + 1}</Text>
+          <Text style={{ width: 52, fontFamily: 'Manrope_700Bold', fontSize: 10.5, color: tokens.inkMuted }}>{t('healthCard.whoop.zone', { n: i + 1 })}</Text>
           <View style={{ flex: 1, height: 8, borderRadius: 999, backgroundColor: tokens.hairline, overflow: 'hidden' }}>
             <View style={{ height: '100%', width: `${(v / max) * 100}%`, backgroundColor: ZONE_COLORS[i], borderRadius: 999 }} />
           </View>
-          <Text style={{ width: 42, textAlign: 'right', fontFamily: 'Manrope_700Bold', fontSize: 10.5, color: tokens.inkMuted }}>{v} мин</Text>
+          <Text style={{ width: 42, textAlign: 'right', fontFamily: 'Manrope_700Bold', fontSize: 10.5, color: tokens.inkMuted }}>{v} {t('healthCard.units.min')}</Text>
         </View>
       ))}
     </View>

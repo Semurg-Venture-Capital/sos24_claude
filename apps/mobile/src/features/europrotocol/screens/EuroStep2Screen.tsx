@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import {
@@ -34,6 +35,7 @@ type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStep2'>;
 // B (второй участник: MyID-верификация + авто из НАПП по техпаспорту + полис).
 export function EuroStep2Screen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { data: vehicles, isLoading } = useVehicles();
   const { data: myPolicies } = usePolicies();
   const { data: myDocs } = useDocuments();
@@ -110,9 +112,9 @@ export function EuroStep2Screen() {
       const code = await runMyIdCode();
       const res = await stepUpMyId(code);
       if (res.ok) s.setSelfVerified(true);
-      else Alert.alert('Не совпало', 'Личность не совпала с владельцем аккаунта. Сторона A должна подтверждаться владельцем телефона.');
+      else Alert.alert(t('euro.step2.mismatchTitle'), t('euro.step2.mismatchMsg'));
     } catch (e) {
-      Alert.alert('MyID', (e as Error).message || 'Не удалось пройти верификацию.');
+      Alert.alert('MyID', (e as Error).message || t('euro.step2.verifySelfError'));
     } finally {
       setVerifyingSelf(false);
     }
@@ -150,7 +152,7 @@ export function EuroStep2Screen() {
         s.patch({ otherInsurer: 'SOS24 Sugʻurta' });
       }
     } catch (e) {
-      Alert.alert('MyID', (e as Error).message || 'Не удалось верифицировать участника.');
+      Alert.alert('MyID', (e as Error).message || t('euro.step2.verifyOtherError'));
     } finally {
       setVerifyingOther(false);
     }
@@ -159,7 +161,7 @@ export function EuroStep2Screen() {
   // ── НАПП: авто второго участника по техпаспорту ──
   const lookupOtherVehicle = async () => {
     setLookingUp(true);
-    setVehMsg('Ищем авто в госреестре…');
+    setVehMsg(t('euro.step2.vehSearching'));
     try {
       const info = await lookupVehicleByTechPassport({
         techPassportSeria: s.otherTpSeria.trim(),
@@ -167,10 +169,10 @@ export function EuroStep2Screen() {
         govNumber: s.otherGov.replace(/\s+/g, '').toUpperCase(),
       });
       s.setOtherVehicle(info);
-      setVehMsg('✓ Авто найдено и заполнено.');
+      setVehMsg(t('euro.step2.vehFound'));
     } catch (e) {
       s.setOtherVehicle(null);
-      setVehMsg((e as Error).message || 'Авто не найдено в реестре. Проверьте серию/номер техпаспорта и госномер.');
+      setVehMsg((e as Error).message || t('euro.step2.vehNotFound'));
     } finally {
       setLookingUp(false);
     }
@@ -179,14 +181,14 @@ export function EuroStep2Screen() {
   // ── НАПП: валидация полиса второго участника ──
   const checkPolicy = async () => {
     setCheckingPolicy(true);
-    setPolMsg('Проверяем полис в реестре…');
+    setPolMsg(t('euro.step2.polChecking'));
     try {
       const res = await validateOtherPolicy(s.otherPolicySeria.trim(), s.otherPolicyNumber.trim());
       s.setOtherPolicyValid(res.valid);
-      setPolMsg(res.valid ? '✓ Полис действителен.' : res.message || 'Полис не найден в реестре. Проверьте серию и номер.');
+      setPolMsg(res.valid ? t('euro.step2.polValid') : res.message || t('euro.step2.polNotFound'));
     } catch {
       s.setOtherPolicyValid(false);
-      setPolMsg('Не удалось проверить полис. Попробуйте ещё раз.');
+      setPolMsg(t('euro.step2.polError'));
     } finally {
       setCheckingPolicy(false);
     }
@@ -212,21 +214,21 @@ export function EuroStep2Screen() {
     <WizardFrame
       step={2}
       total={5}
-      eyebrow="Шаг 2 из 5 · Участники"
-      primary="Далее"
+      eyebrow={t('euro.step2.eyebrow')}
+      primary={t('common.next')}
       primaryEnabled={canNext}
       primaryAction={() => nav.navigate('EuroStep3')}
       onBack={() => nav.goBack()}
     >
-      <ScreenHeading title="Участники ДТП" subtitle="Оба участника подтверждаются через MyID" />
+      <ScreenHeading title={t('euro.step2.title')} subtitle={t('euro.step2.subtitle')} />
 
       {/* ─────────── Сторона A ─────────── */}
-      <SectionLabel badge="A" text="Вы (инициатор)" />
+      <SectionLabel badge="A" text={t('euro.step2.sideA')} />
       {s.selfVerified ? (
-        <VerifiedCard title="Личность подтверждена" subtitle="MyID · присутствие подтверждено" />
+        <VerifiedCard title={t('euro.step2.identityConfirmed')} subtitle={t('euro.step2.identityConfirmedSub')} />
       ) : (
         <VerifyButton
-          label="Подтвердить личность (MyID)"
+          label={t('euro.step2.verifySelf')}
           loading={verifyingSelf}
           onPress={verifySelf}
           onSimulate={__DEV__ ? () => s.setSelfVerified(true) : undefined}
@@ -234,14 +236,14 @@ export function EuroStep2Screen() {
       )}
 
       {!s.selfVerified ? (
-        <Text style={hintText}>Сначала подтвердите личность через MyID — затем появятся ваши авто и полисы.</Text>
+        <Text style={hintText}>{t('euro.step2.verifySelfHint')}</Text>
       ) : (
        <>
-      <Text style={subLabel}>Моё транспортное средство</Text>
+      <Text style={subLabel}>{t('euro.step2.myVehicle')}</Text>
       {isLoading ? (
         <ActivityIndicator color={tokens.red} style={{ marginVertical: 16 }} />
       ) : !vehicles || vehicles.length === 0 ? (
-        <Text style={hintText}>В гараже нет авто. Добавьте автомобиль, чтобы оформить европротокол.</Text>
+        <Text style={hintText}>{t('euro.step2.noVehicles')}</Text>
       ) : (
         <View style={{ gap: 10 }}>
           {vehicles.map((v) => (
@@ -262,13 +264,11 @@ export function EuroStep2Screen() {
       {/* Полис ОСАГО стороны A по выбранному авто */}
       {s.myVehicleId ? (
         <>
-          <Text style={subLabel}>Полис ОСАГО по этому авто</Text>
+          <Text style={subLabel}>{t('euro.step2.osagoForVehicle')}</Text>
           {!myPolicies ? (
-            <Text style={hintText}>Загружаем полисы…</Text>
+            <Text style={hintText}>{t('euro.step2.loadingPolicies')}</Text>
           ) : myVehiclePolicies.length === 0 ? (
-            <Text style={hintText}>
-              Действующий ОСАГО по выбранному авто не найден. Оформите ОСАГО или выберите другое авто — без полиса европротокол оформить нельзя.
-            </Text>
+            <Text style={hintText}>{t('euro.step2.noOsago')}</Text>
           ) : (
             <View style={{ gap: 8 }}>
               {myVehiclePolicies.map((p) => {
@@ -289,7 +289,7 @@ export function EuroStep2Screen() {
                       ОСАГО {p.policyNumber ?? p.id.slice(0, 8)}
                     </Text>
                     <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: active ? 'rgba(255,255,255,0.7)' : tokens.inkMuted, marginTop: 2 }}>
-                      статус: {p.status}
+                      {t('euro.step2.status')}: {p.status}
                     </Text>
                   </Pressable>
                 );
@@ -302,11 +302,11 @@ export function EuroStep2Screen() {
       {/* ВУ стороны A — только если в профиле нет водительского */}
       {s.myVehicleId && !hasLicenseA ? (
         <>
-          <Text style={subLabel}>Ваше водительское удостоверение</Text>
-          <Text style={hintText}>В профиле нет ВУ — заполните, оно попадёт в извещение и сохранится в профиль.</Text>
+          <Text style={subLabel}>{t('euro.step2.yourLicense')}</Text>
+          <Text style={hintText}>{t('euro.step2.noLicenseHint')}</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <TextField
-              label="Серия"
+              label={t('euro.step2.seria')}
               value={s.myDlSeria}
               onChangeText={(v) => s.patch({ myDlSeria: v.toUpperCase() })}
               autoCapitalize="characters"
@@ -315,7 +315,7 @@ export function EuroStep2Screen() {
               containerStyle={{ flex: 1 }}
             />
             <TextField
-              label="Номер"
+              label={t('euro.step2.number')}
               value={s.myDlNumber}
               onChangeText={(v) => s.patch({ myDlNumber: v.replace(/\D/g, '') })}
               keyboardType="number-pad"
@@ -326,7 +326,7 @@ export function EuroStep2Screen() {
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <TextField
-              label="Категории"
+              label={t('euro.step2.categories')}
               value={s.myDlCategories}
               onChangeText={(v) => s.patch({ myDlCategories: v.toUpperCase() })}
               autoCapitalize="characters"
@@ -335,7 +335,7 @@ export function EuroStep2Screen() {
               containerStyle={{ flex: 1 }}
             />
             <DateField
-              label="Дата выдачи"
+              label={t('euro.step2.issueDate')}
               value={s.myDlIssue}
               onChange={(v) => s.patch({ myDlIssue: v })}
               containerStyle={{ flex: 1 }}
@@ -348,17 +348,17 @@ export function EuroStep2Screen() {
 
       {/* ─────────── Сторона B ─────────── */}
       <View style={{ marginTop: 8 }}>
-        <SectionLabel badge="B" text="Второй участник" />
+        <SectionLabel badge="B" text={t('euro.step2.sideB')} />
       </View>
 
       {s.participant ? (
         <VerifiedCard
           title={participantFullName(s.participant)}
-          subtitle={`MyID · ПИНФЛ ${s.participant.pinfl}`}
+          subtitle={t('euro.step2.myidPinfl', { pinfl: s.participant.pinfl })}
         />
       ) : (
         <VerifyButton
-          label="Верифицировать участника (MyID)"
+          label={t('euro.step2.verifyOther')}
           loading={verifyingOther}
           onPress={verifyOther}
           onSimulate={__DEV__ ? () => s.setParticipant(MOCK_PARTICIPANT) : undefined}
@@ -370,8 +370,8 @@ export function EuroStep2Screen() {
         <>
           {bRegistered && bVehicles.length > 0 ? (
             <>
-              <Text style={subLabel}>Авто второго участника (из его профиля)</Text>
-              <Text style={hintText}>Участник найден в системе — выберите его авто.</Text>
+              <Text style={subLabel}>{t('euro.step2.otherVehicleFromProfile')}</Text>
+              <Text style={hintText}>{t('euro.step2.participantFoundPickVehicle')}</Text>
               <View style={{ gap: 8 }}>
                 {bVehicles.map((v) => {
                   const active = bVehicleId === v.id;
@@ -388,7 +388,7 @@ export function EuroStep2Screen() {
                       }}
                     >
                       <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: active ? '#fff' : tokens.inkDark }}>
-                        {`${v.brand ?? ''} ${v.model ?? ''}`.trim() || 'ТС'}{v.year ? `, ${v.year}` : ''}
+                        {`${v.brand ?? ''} ${v.model ?? ''}`.trim() || t('euro.common.vehicleShort')}{v.year ? `, ${v.year}` : ''}
                       </Text>
                       <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: active ? 'rgba(255,255,255,0.7)' : tokens.inkMuted, marginTop: 2 }}>
                         {v.plate ?? '—'}
@@ -400,15 +400,15 @@ export function EuroStep2Screen() {
             </>
           ) : (
             <>
-              <Text style={subLabel}>Авто второго участника (по техпаспорту)</Text>
+              <Text style={subLabel}>{t('euro.step2.otherVehicleByTechPassport')}</Text>
               {bRegistered ? (
-                <Text style={hintText}>У участника нет авто в системе — введите данные техпаспорта.</Text>
+                <Text style={hintText}>{t('euro.step2.noVehicleEnterTp')}</Text>
               ) : (
-                <Text style={hintText}>Участника нет в системе — найдём авто по техпаспорту в госреестре.</Text>
+                <Text style={hintText}>{t('euro.step2.notInSystemLookup')}</Text>
               )}
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <TextField
-                  label="Серия ТП"
+                  label={t('euro.step2.tpSeria')}
                   value={s.otherTpSeria}
                   onChangeText={(v) => s.setOtherField('otherTpSeria', v.toUpperCase())}
                   autoCapitalize="characters"
@@ -417,7 +417,7 @@ export function EuroStep2Screen() {
                   containerStyle={{ flex: 1 }}
                 />
                 <TextField
-                  label="Номер ТП"
+                  label={t('euro.step2.tpNumber')}
                   value={s.otherTpNumber}
                   onChangeText={(v) => s.setOtherField('otherTpNumber', v.replace(/\D/g, ''))}
                   keyboardType="number-pad"
@@ -427,7 +427,7 @@ export function EuroStep2Screen() {
                 />
               </View>
               <TextField
-                label="Госномер"
+                label={t('euro.step2.govNumber')}
                 value={s.otherGov}
                 onChangeText={(v) => s.setOtherField('otherGov', v.toUpperCase())}
                 autoCapitalize="characters"
@@ -435,7 +435,7 @@ export function EuroStep2Screen() {
                 maxLength={12}
               />
               <ActionButton
-                label={s.otherVehicle ? 'Найти заново' : 'Найти авто'}
+                label={s.otherVehicle ? t('euro.step2.findAgain') : t('euro.step2.findVehicle')}
                 loading={lookingUp}
                 disabled={!canLookupVehicle}
                 onPress={lookupOtherVehicle}
@@ -447,7 +447,7 @@ export function EuroStep2Screen() {
               ) : null}
               {s.otherVehicle && (
                 <VerifiedCard
-                  title={s.otherVehicle.modelName || 'ТС найдено'}
+                  title={s.otherVehicle.modelName || t('euro.step2.vehicleFound')}
                   subtitle={`${s.otherVehicle.govNumber} · ${s.otherVehicle.issueYear} · ${s.otherVehicle.vehicleColor || ''}`.trim()}
                 />
               )}
@@ -456,7 +456,7 @@ export function EuroStep2Screen() {
 
           {bRegistered && bVehicleId && bVehiclePolicies.length > 0 ? (
             <>
-              <Text style={subLabel}>Полис ОСАГО второго участника (из его профиля)</Text>
+              <Text style={subLabel}>{t('euro.step2.otherOsagoFromProfile')}</Text>
               <View style={{ gap: 8 }}>
                 {bVehiclePolicies.map((p) => {
                   const active = bPolicyId === p.id;
@@ -476,7 +476,7 @@ export function EuroStep2Screen() {
                         ОСАГО {p.policyNumber ?? p.id.slice(0, 8)}
                       </Text>
                       <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: active ? 'rgba(255,255,255,0.7)' : tokens.inkMuted, marginTop: 2 }}>
-                        статус: {p.status}
+                        {t('euro.step2.status')}: {p.status}
                       </Text>
                     </Pressable>
                   );
@@ -485,13 +485,13 @@ export function EuroStep2Screen() {
             </>
           ) : (
             <>
-              <Text style={subLabel}>Полис ОСАГО второго участника</Text>
+              <Text style={subLabel}>{t('euro.step2.otherOsago')}</Text>
               {bRegistered && bVehicleId ? (
-                <Text style={hintText}>По этому авто нет действующего ОСАГО в системе — введите данные полиса.</Text>
+                <Text style={hintText}>{t('euro.step2.noOsagoEnterManual')}</Text>
               ) : null}
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 <TextField
-                  label="Серия"
+                  label={t('euro.step2.seria')}
                   value={s.otherPolicySeria}
                   onChangeText={(v) => {
                     s.setOtherField('otherPolicySeria', v.toUpperCase());
@@ -504,7 +504,7 @@ export function EuroStep2Screen() {
                   containerStyle={{ flex: 1 }}
                 />
                 <TextField
-                  label="Номер"
+                  label={t('euro.step2.number')}
                   value={s.otherPolicyNumber}
                   onChangeText={(v) => {
                     s.setOtherField('otherPolicyNumber', v.replace(/\D/g, ''));
@@ -519,14 +519,14 @@ export function EuroStep2Screen() {
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <ActionButton
-                  label="Проверить полис"
+                  label={t('euro.step2.checkPolicy')}
                   loading={checkingPolicy}
                   disabled={!canCheckPolicy}
                   onPress={checkPolicy}
                   style={{ flex: 1 }}
                 />
-                {s.otherPolicyValid === true && <Tag tone="green">проверен</Tag>}
-                {s.otherPolicyValid === false && <Tag tone="red">не найден</Tag>}
+                {s.otherPolicyValid === true && <Tag tone="green">{t('euro.step2.verified')}</Tag>}
+                {s.otherPolicyValid === false && <Tag tone="red">{t('euro.step2.notFound')}</Tag>}
               </View>
               {polMsg ? (
                 <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: polMsg.startsWith('✓') ? tokens.green : tokens.inkMuted, paddingLeft: 2 }}>
@@ -537,20 +537,20 @@ export function EuroStep2Screen() {
           )}
 
           <TextField
-            label="Телефон второго участника"
+            label={t('euro.step2.otherPhone')}
             value={s.otherPhone}
             onChangeText={(v) => s.setOtherField('otherPhone', v)}
             keyboardType="phone-pad"
             placeholder="+998 90 123 45 67"
             maxLength={17}
             error={s.otherPhone.length > 0 && !phoneOk}
-            hint={s.otherPhone.length > 0 && !phoneOk ? 'Формат: +998 XX XXX XX XX' : undefined}
+            hint={s.otherPhone.length > 0 && !phoneOk ? t('euro.step2.phoneFormat') : undefined}
           />
 
-          <Text style={subLabel}>Водительское удостоверение «В»</Text>
+          <Text style={subLabel}>{t('euro.step2.licenseB')}</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <TextField
-              label="Серия"
+              label={t('euro.step2.seria')}
               value={s.otherDlSeria}
               onChangeText={(v) => s.patch({ otherDlSeria: v.toUpperCase() })}
               autoCapitalize="characters"
@@ -559,7 +559,7 @@ export function EuroStep2Screen() {
               containerStyle={{ flex: 1 }}
             />
             <TextField
-              label="Номер"
+              label={t('euro.step2.number')}
               value={s.otherDlNumber}
               onChangeText={(v) => s.patch({ otherDlNumber: v.replace(/\D/g, '') })}
               keyboardType="number-pad"
@@ -570,7 +570,7 @@ export function EuroStep2Screen() {
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <TextField
-              label="Категории"
+              label={t('euro.step2.categories')}
               value={s.otherDlCategories}
               onChangeText={(v) => s.patch({ otherDlCategories: v.toUpperCase() })}
               autoCapitalize="characters"
@@ -579,7 +579,7 @@ export function EuroStep2Screen() {
               containerStyle={{ flex: 1 }}
             />
             <DateField
-              label="Дата выдачи ВУ"
+              label={t('euro.step2.licenseIssueDate')}
               value={s.otherDlIssue}
               onChange={(v) => s.patch({ otherDlIssue: v })}
               containerStyle={{ flex: 1 }}
@@ -587,23 +587,23 @@ export function EuroStep2Screen() {
           </View>
 
           <TextField
-            label="Адрес владельца авто «В»"
+            label={t('euro.step2.ownerAddrB')}
             value={s.otherOwnerAddr}
             onChangeText={(v) => s.patch({ otherOwnerAddr: v })}
-            placeholder="Тошкент ш., Юнусобод…"
+            placeholder={t('euro.step2.addrPlaceholder')}
             maxLength={500}
           />
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <TextField
-              label="Страховщик «В»"
+              label={t('euro.step2.insurerB')}
               value={s.otherInsurer}
               onChangeText={(v) => s.patch({ otherInsurer: v })}
-              placeholder="Например: Гросс Иншуранс"
+              placeholder={t('euro.step2.insurerPlaceholder')}
               maxLength={150}
               containerStyle={{ flex: 1.4 }}
             />
             <DateField
-              label="Полис действует до"
+              label={t('euro.step2.policyValidUntil')}
               value={s.otherPolicyValidUntil}
               onChange={(v) => s.patch({ otherPolicyValidUntil: v })}
               containerStyle={{ flex: 1 }}
@@ -676,6 +676,7 @@ function VerifyButton({
   onPress: () => void;
   onSimulate?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={{ gap: 8 }}>
       <Pressable
@@ -695,13 +696,13 @@ function VerifyButton({
       >
         {loading ? <ActivityIndicator color={tokens.red} /> : <FaceIcon />}
         <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: tokens.red, letterSpacing: -0.08 }}>
-          {loading ? 'Верификация…' : label}
+          {loading ? t('euro.step2.verifying') : label}
         </Text>
       </Pressable>
       {onSimulate && (
         <Pressable onPress={onSimulate} style={{ alignSelf: 'center', padding: 4 }}>
           <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkSubtle }}>
-            Симулировать MyID (DEV)
+            {t('euro.step2.simulateMyid')}
           </Text>
         </Pressable>
       )}

@@ -1,6 +1,7 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -27,6 +28,7 @@ type R = RouteProp<PurchaseStackParamList, 'ProductDetail'>;
 // планами показываем выбор плана; для авто (COEFFICIENT) — сразу калькулятор.
 export function ProductDetailScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { productId } = useRoute<R>().params;
   const { data: product, isLoading, isError, refetch } = useInsuranceProduct(productId);
   const [planId, setPlanId] = useState<string | null>(null);
@@ -47,9 +49,9 @@ export function ProductDetailScreen() {
       <PhoneFrame>
         <Header onBack={() => nav.goBack()} />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 24 }}>
-          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 14, color: tokens.inkMuted }}>Не удалось загрузить продукт</Text>
+          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 14, color: tokens.inkMuted }}>{t('purchase.detail.loadError')}</Text>
           <Pressable onPress={() => refetch()} style={{ paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14, backgroundColor: tokens.red }}>
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>Повторить</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>{t('common.retry')}</Text>
           </Pressable>
         </View>
       </PhoneFrame>
@@ -97,7 +99,7 @@ export function ProductDetailScreen() {
 
         {/* Тарифные планы — для продуктов с планами */}
         {isPlans && product.plans.length > 0 ? (
-          <Section title="Выберите тариф">
+          <Section title={t('purchase.detail.selectPlan')}>
             <View style={{ gap: 10 }}>
               {product.plans.map((p) => (
                 <PlanCard key={p.id} plan={p} selected={planId === p.id} onPress={() => setPlanId(p.id)} />
@@ -107,7 +109,7 @@ export function ProductDetailScreen() {
         ) : null}
 
         {content.covers?.length ? (
-          <Section title="Что покрывает">
+          <Section title={t('purchase.detail.covers')}>
             {content.covers.map((c, i) => (
               <BenefitRow key={i} icon={<BenefitShield color={tokens.red} />} title={c.title} body={c.body} />
             ))}
@@ -115,7 +117,7 @@ export function ProductDetailScreen() {
         ) : null}
 
         {content.exceptions?.length ? (
-          <Section title="Что не покрывает">
+          <Section title={t('purchase.detail.exceptions')}>
             {content.exceptions.map((t, i) => (
               <ExceptionRow key={i} text={t} />
             ))}
@@ -123,7 +125,7 @@ export function ProductDetailScreen() {
         ) : null}
 
         {content.steps?.length ? (
-          <Section title="Как это работает">
+          <Section title={t('purchase.detail.howItWorks')}>
             {content.steps.map((s, i) => (
               <StepRow key={i} num={i + 1} title={s.title} body={s.body} />
             ))}
@@ -131,7 +133,7 @@ export function ProductDetailScreen() {
         ) : null}
 
         {content.faqs?.length ? (
-          <Section title="Вопросы и ответы">
+          <Section title={t('purchase.detail.faq')}>
             {content.faqs.map((f, i) => (
               <FaqRow key={i} question={f.question} answer={f.answer} defaultOpen={i === 0} />
             ))}
@@ -145,11 +147,11 @@ export function ProductDetailScreen() {
         <View style={{ paddingHorizontal: 24, paddingBottom: 32, paddingTop: 8, backgroundColor: 'rgba(228,228,228,0.95)' }}>
           {isPlans && !planId ? (
             <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12.5, color: tokens.inkMuted, textAlign: 'center', marginBottom: 8 }}>
-              Выберите тариф, чтобы продолжить
+              {t('purchase.detail.selectPlanHint')}
             </Text>
           ) : null}
           <RedButton onPress={proceed} disabled={!canProceed}>
-            {isPlans ? 'Оформить' : 'Рассчитать стоимость'}
+            {isPlans ? t('purchase.detail.checkout') : t('purchase.detail.calculate')}
           </RedButton>
         </View>
       </View>
@@ -166,6 +168,7 @@ function Header({ onBack }: { onBack: () => void }) {
 }
 
 function PlanCard({ plan, selected, onPress }: { plan: ProductPlan; selected: boolean; onPress: () => void }) {
+  const { t } = useTranslation();
   return (
     <Pressable
       onPress={onPress}
@@ -187,11 +190,11 @@ function PlanCard({ plan, selected, onPress }: { plan: ProductPlan; selected: bo
         ) : null}
       </View>
       <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 18, color: selected ? '#fff' : tokens.red }}>
-        {plan.price.toLocaleString('ru-RU')} сум
+        {plan.price.toLocaleString('ru-RU')} {t('purchase.common.sum')}
       </Text>
       {plan.coverageAmount ? (
         <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12.5, color: selected ? 'rgba(255,255,255,0.7)' : tokens.inkMuted }}>
-          Покрытие до {plan.coverageAmount.toLocaleString('ru-RU')} сум
+          {t('purchase.detail.coverageUpTo', { amount: plan.coverageAmount.toLocaleString('ru-RU') })}
         </Text>
       ) : null}
       {plan.features?.length ? (

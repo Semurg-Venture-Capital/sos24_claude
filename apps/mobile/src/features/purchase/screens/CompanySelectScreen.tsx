@@ -1,5 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useCompanies, type InsuranceCompany } from '../../../api/insurance';
@@ -14,6 +16,7 @@ type Nav = NativeStackNavigationProp<PurchaseStackParamList, 'CompanySelect'>;
 // Шаг 1 нового флоу — выбор страховой компании.
 export function CompanySelectScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { data: companies, isLoading, isError, refetch } = useCompanies();
 
   return (
@@ -27,17 +30,17 @@ export function CompanySelectScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40, gap: 20 }}
         showsVerticalScrollIndicator={false}
       >
-        <ScreenHeading title="Страховые компании" subtitle="Выберите компанию, чтобы посмотреть её продукты" />
+        <ScreenHeading title={t('purchase.company.title')} subtitle={t('purchase.company.subtitle')} />
 
         {isLoading ? (
           <View style={{ paddingVertical: 60, alignItems: 'center' }}>
             <ActivityIndicator color={tokens.red} />
           </View>
         ) : isError ? (
-          <ErrorState onRetry={() => refetch()} />
+          <ErrorState onRetry={() => refetch()} t={t} />
         ) : !companies?.length ? (
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center', paddingVertical: 40 }}>
-            Пока нет доступных компаний
+            {t('purchase.company.empty')}
           </Text>
         ) : (
           <View style={{ gap: 12 }}>
@@ -45,6 +48,7 @@ export function CompanySelectScreen() {
               <CompanyCard
                 key={c.id}
                 company={c}
+                t={t}
                 onPress={() => nav.navigate('CompanyProducts', { companyId: c.id, companyName: c.name })}
               />
             ))}
@@ -55,7 +59,7 @@ export function CompanySelectScreen() {
   );
 }
 
-function CompanyCard({ company, onPress }: { company: InsuranceCompany; onPress: () => void }) {
+function CompanyCard({ company, onPress, t }: { company: InsuranceCompany; onPress: () => void; t: TFunction }) {
   return (
     <Pressable
       onPress={onPress}
@@ -96,7 +100,13 @@ function CompanyCard({ company, onPress }: { company: InsuranceCompany; onPress:
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 17, color: tokens.inkDark }}>{company.name}</Text>
         <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12.5, color: tokens.inkMuted }}>
-          {company.productCount} {plural(company.productCount, 'продукт', 'продукта', 'продуктов')}
+          {company.productCount}{' '}
+          {plural(
+            company.productCount,
+            t('purchase.company.products.one'),
+            t('purchase.company.products.few'),
+            t('purchase.company.products.many'),
+          )}
         </Text>
       </View>
 
@@ -107,12 +117,12 @@ function CompanyCard({ company, onPress }: { company: InsuranceCompany; onPress:
   );
 }
 
-function ErrorState({ onRetry }: { onRetry: () => void }) {
+function ErrorState({ onRetry, t }: { onRetry: () => void; t: TFunction }) {
   return (
     <View style={{ paddingVertical: 40, alignItems: 'center', gap: 12 }}>
-      <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 14, color: tokens.inkMuted }}>Не удалось загрузить компании</Text>
+      <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 14, color: tokens.inkMuted }}>{t('purchase.company.loadError')}</Text>
       <Pressable onPress={onRetry} style={{ paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14, backgroundColor: tokens.red }}>
-        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>Повторить</Text>
+        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>{t('common.retry')}</Text>
       </Pressable>
     </View>
   );

@@ -3,6 +3,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Glass } from '../../../components/ui/Glass';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useCreatePolicy } from '../../../api/policies';
 import { useValidatePromo } from '../../../api/promo';
@@ -23,10 +25,9 @@ import type { PurchaseStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<PurchaseStackParamList, 'Checkout'>;
 
-const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-function pretty(iso: string): string {
+function pretty(iso: string, t: TFunction): string {
   const d = new Date(iso);
-  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  return `${d.getDate()} ${t(`purchase.months.${d.getMonth()}`)} ${d.getFullYear()}`;
 }
 
 const TYPE_TO_API: Record<ProductType, 'OSAGO' | 'KASKO' | 'HEALTH' | 'HOME' | 'FINANCE'> = {
@@ -37,16 +38,17 @@ const TYPE_TO_API: Record<ProductType, 'OSAGO' | 'KASKO' | 'HEALTH' | 'HOME' | '
   finance: 'FINANCE',
 };
 
-function formatExperience(d: Driver): string {
+function formatExperience(d: Driver, t: TFunction): string {
   const y = d.experienceYears;
-  if (y === 1) return `стаж 1 год`;
-  if (y >= 2 && y <= 4) return `стаж ${y} года`;
-  return `стаж ${y} лет`;
+  if (y === 1) return t('purchase.checkout.expOne', { years: y });
+  if (y >= 2 && y <= 4) return t('purchase.checkout.expFew', { years: y });
+  return t('purchase.checkout.expMany', { years: y });
 }
 
 // M6.1 — Чекаут: финальная проверка перед оплатой.
 export function CheckoutScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const state = usePurchaseStore();
   const setPromoCode = usePurchaseStore((s) => s.setPromoCode);
   const setDraftPolicyId = usePurchaseStore((s) => s.setDraftPolicyId);
@@ -80,7 +82,7 @@ export function CheckoutScreen() {
       setPromoCode(result.code);
       setPromoError(null);
     } catch {
-      setPromoError('Промокод не найден');
+      setPromoError(t('purchase.checkout.promoNotFound'));
     }
   };
   const removePromo = () => {
@@ -107,8 +109,8 @@ export function CheckoutScreen() {
       setDraftPolicyId(policy.id);
       nav.navigate('Payment');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Не удалось создать полис';
-      Alert.alert('Ошибка', msg);
+      const msg = err instanceof Error ? err.message : t('purchase.checkout.createError');
+      Alert.alert(t('purchase.common.error'), msg);
     }
   };
 
@@ -131,43 +133,43 @@ export function CheckoutScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 140, gap: 12 }}
         showsVerticalScrollIndicator={false}
       >
-        <ScreenHeading title="Оформление полиса" subtitle="Проверьте данные перед оплатой" />
+        <ScreenHeading title={t('purchase.checkout.title')} subtitle={t('purchase.checkout.subtitle')} />
 
         {isVehicleProduct && car && (
           <SummaryBlock
-            eyebrow="Автомобиль"
+            eyebrow={t('purchase.checkout.vehicle')}
             editable
             onEdit={() => nav.navigate('CalcVehicle')}
             rows={[
-              { label: 'Марка / модель', value: `${car.brand} ${car.model}` },
-              { label: 'Гос. номер', value: car.plate },
-              { label: 'Год · Двигатель', value: `${car.year} · ${car.engine ?? '—'}` },
+              { label: t('purchase.checkout.brandModel'), value: `${car.brand} ${car.model}` },
+              { label: t('purchase.checkout.plate'), value: car.plate },
+              { label: t('purchase.checkout.yearEngine'), value: `${car.year} · ${car.engine ?? '—'}` },
             ]}
           />
         )}
 
         {isVehicleProduct && (
           <SummaryBlock
-            eyebrow="Водители"
+            eyebrow={t('purchase.checkout.drivers')}
             editable
             onEdit={() => nav.navigate('CalcDrivers')}
             rows={
               state.driverLimit === 'unlimited'
-                ? [{ label: 'Без ограничений', value: '' }]
-                : selectedDrivers.map((d) => ({ label: d.name, value: formatExperience(d) }))
+                ? [{ label: t('purchase.calc.drivers.unlimited'), value: '' }]
+                : selectedDrivers.map((d) => ({ label: d.name, value: formatExperience(d, t) }))
             }
           />
         )}
 
         {isVehicleProduct && (
           <SummaryBlock
-            eyebrow="Период"
+            eyebrow={t('purchase.checkout.period')}
             editable
             onEdit={() => nav.navigate('CalcPeriod')}
             rows={[
-              { label: 'Срок', value: `${state.periodMonths} месяцев` },
-              { label: 'Начало', value: pretty(state.startDate) },
-              { label: 'Окончание', value: pretty(state.endDate) },
+              { label: t('purchase.checkout.term'), value: t('purchase.checkout.monthsValue', { months: state.periodMonths }) },
+              { label: t('purchase.checkout.start'), value: pretty(state.startDate, t) },
+              { label: t('purchase.checkout.end'), value: pretty(state.endDate, t) },
             ]}
           />
         )}
@@ -184,7 +186,7 @@ export function CheckoutScreen() {
               paddingLeft: 4,
             }}
           >
-            Промокод
+            {t('purchase.checkout.promo')}
           </Text>
           {appliedPromo ? (
             <View
@@ -205,12 +207,12 @@ export function CheckoutScreen() {
                   {appliedPromo} · −{appliedDiscountPct}%
                 </Text>
                 <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>
-                  Скидка {discount.toLocaleString('ru-RU')} сум применена
+                  {t('purchase.checkout.discountApplied', { amount: discount.toLocaleString('ru-RU') })}
                 </Text>
               </View>
               <Pressable onPress={removePromo} hitSlop={10}>
                 <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>
-                  Убрать
+                  {t('purchase.checkout.remove')}
                 </Text>
               </Pressable>
             </View>
@@ -232,11 +234,11 @@ export function CheckoutScreen() {
               >
                 <TextInput
                   value={promo}
-                  onChangeText={(t) => {
-                    setPromo(t);
+                  onChangeText={(text) => {
+                    setPromo(text);
                     if (promoError) setPromoError(null);
                   }}
-                  placeholder="Введите промокод"
+                  placeholder={t('purchase.checkout.promoPlaceholder')}
                   autoCapitalize="characters"
                   autoCorrect={false}
                   style={{
@@ -263,7 +265,7 @@ export function CheckoutScreen() {
                     <ActivityIndicator color="#fff" size="small" />
                   ) : (
                     <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>
-                      Применить
+                      {t('purchase.checkout.apply')}
                     </Text>
                   )}
                 </Pressable>
@@ -302,10 +304,10 @@ export function CheckoutScreen() {
                 textTransform: 'uppercase',
               }}
             >
-              Стоимость
+              {t('purchase.checkout.cost')}
             </Text>
             <Tag tone="green">
-              {productLabel} · {state.periodMonths} мес
+              {productLabel} · {state.periodMonths} {t('purchase.common.monthsShort')}
             </Tag>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
@@ -321,7 +323,7 @@ export function CheckoutScreen() {
               {finalTotal.toLocaleString('ru-RU')}
             </Text>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMutedDark }}>
-              сум
+              {t('purchase.common.sum')}
             </Text>
           </View>
           {appliedPromo && (
@@ -333,7 +335,7 @@ export function CheckoutScreen() {
               }}
             >
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMutedDark }}>
-                Без скидки
+                {t('purchase.checkout.withoutDiscount')}
               </Text>
               <Text
                 style={{
@@ -343,7 +345,7 @@ export function CheckoutScreen() {
                   textDecorationLine: 'line-through',
                 }}
               >
-                {calc.total.toLocaleString('ru-RU')} сум
+                {calc.total.toLocaleString('ru-RU')} {t('purchase.common.sum')}
               </Text>
             </View>
           )}
@@ -358,10 +360,10 @@ export function CheckoutScreen() {
             }}
           >
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMutedDark }}>
-              Способ оплаты
+              {t('purchase.common.paymentMethod')}
             </Text>
             <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: '#fff' }}>
-              {state.paymentPlan === 'oneTime' ? 'Единовременно' : 'Рассрочка'}
+              {state.paymentPlan === 'oneTime' ? t('purchase.common.oneTime') : t('purchase.common.installment')}
             </Text>
           </View>
         </View>
@@ -396,9 +398,9 @@ export function CheckoutScreen() {
                 letterSpacing: -0.065,
               }}
             >
-              Я ознакомился с{' '}
-              <Text style={{ color: tokens.inkDark, textDecorationLine: 'underline' }}>условиями оферты</Text>
-              {' '}и согласен на обработку персональных данных
+              {t('purchase.checkout.agreePre')}
+              <Text style={{ color: tokens.inkDark, textDecorationLine: 'underline' }}>{t('purchase.checkout.agreeLink')}</Text>
+              {t('purchase.checkout.agreePost')}
             </Text>
           </Glass>
         </View>
@@ -412,8 +414,8 @@ export function CheckoutScreen() {
             onPress={goToPayment}
           >
             {createPolicy.isPending
-              ? 'Создаём…'
-              : `Перейти к оплате · ${finalTotal.toLocaleString('ru-RU')} сум`}
+              ? t('purchase.checkout.creating')
+              : t('purchase.checkout.toPayment', { amount: finalTotal.toLocaleString('ru-RU') })}
           </RedButton>
         </View>
       </View>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useQueryClient } from '@tanstack/react-query';
@@ -73,6 +74,7 @@ function RefreshIcon({ size = 16, color = tokens.inkMuted }: { size?: number; co
 
 // Секция «Мои показатели» на хабе «Здоровье». Два состояния: подключить WHOOP / метрики.
 export function WhoopCard({ onOpenDetail }: { onOpenDetail?: () => void }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { data, isLoading } = useWearable();
   const connect = useConnectWhoop();
@@ -91,7 +93,7 @@ export function WhoopCard({ onOpenDetail }: { onOpenDetail?: () => void }) {
         await qc.invalidateQueries({ queryKey: ['health', 'wearable'] });
       }
     } catch {
-      Alert.alert('Не удалось подключить', 'Попробуйте ещё раз.');
+      Alert.alert(t('healthCard.whoop.connectFailTitle'), t('healthCard.whoop.connectFailMsg'));
     } finally {
       setConnecting(false);
     }
@@ -122,9 +124,9 @@ export function WhoopCard({ onOpenDetail }: { onOpenDetail?: () => void }) {
           <PulseIcon size={24} color="#fff" />
         </View>
         <View style={{ flex: 1, gap: 3 }}>
-          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 17, color: tokens.ink }}>Подключите WHOOP</Text>
+          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 17, color: tokens.ink }}>{t('healthCard.whoop.connectTitle')}</Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkMuted, lineHeight: 17 }}>
-            Восстановление, сон и пульс — всегда актуальны в приложении
+            {t('healthCard.whoop.connectSub')}
           </Text>
         </View>
         <Pressable
@@ -143,7 +145,7 @@ export function WhoopCard({ onOpenDetail }: { onOpenDetail?: () => void }) {
           {connecting ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13.5, color: '#fff' }}>Подключить</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13.5, color: '#fff' }}>{t('healthCard.whoop.connect')}</Text>
           )}
         </Pressable>
       </View>
@@ -158,7 +160,7 @@ export function WhoopCard({ onOpenDetail }: { onOpenDetail?: () => void }) {
     <Pressable onPress={onOpenDetail} style={[{ borderRadius: 28, padding: 18, gap: 16 }, medGlass]}>
       {/* Заголовок + обновлено + refresh */}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Text style={{ flex: 1, fontFamily: 'NeueMontreal-Medium', fontSize: 16, color: tokens.ink }}>Мои показатели</Text>
+        <Text style={{ flex: 1, fontFamily: 'NeueMontreal-Medium', fontSize: 16, color: tokens.ink }}>{t('healthCard.whoop.myMetrics')}</Text>
         {data.lastSyncAt ? (
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 11.5, color: tokens.inkMuted, marginRight: 10 }}>
             {timeAgo(data.lastSyncAt)}
@@ -179,14 +181,14 @@ export function WhoopCard({ onOpenDetail }: { onOpenDetail?: () => void }) {
         <RecoveryRing score={m?.recovery.score ?? null} />
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: tokens.inkMuted, letterSpacing: 0.3, textTransform: 'uppercase' }}>
-            Восстановление
+            {t('healthCard.whoop.recovery')}
           </Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkMuted, lineHeight: 17 }}>
             {m?.recovery.score != null && m.recovery.score >= 67
-              ? 'Организм хорошо восстановился — можно нагрузку'
+              ? t('healthCard.whoop.recDesc.high')
               : m?.recovery.score != null && m.recovery.score >= 34
-                ? 'Умеренное восстановление — без перегрузок'
-                : 'Низкое восстановление — отдохните сегодня'}
+                ? t('healthCard.whoop.recDesc.mid')
+                : t('healthCard.whoop.recDesc.low')}
           </Text>
         </View>
       </View>
@@ -194,12 +196,12 @@ export function WhoopCard({ onOpenDetail }: { onOpenDetail?: () => void }) {
       {/* Плитки */}
       <View style={{ gap: 10 }}>
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <MedVital label="ВСР" value={fmt(m?.recovery.hrvMs ?? null)} unit="мс" />
-          <MedVital label="Пульс покоя" value={fmt(m?.recovery.restingHr ?? null)} unit="уд/м" />
+          <MedVital label={t('healthCard.whoop.hrv')} value={fmt(m?.recovery.hrvMs ?? null)} unit={t('healthCard.units.ms')} />
+          <MedVital label={t('healthCard.whoop.restingHr')} value={fmt(m?.recovery.restingHr ?? null)} unit={t('healthCard.units.bpm')} />
         </View>
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <MedVital label="Сон" value={fmt(m?.sleep.performance ?? null)} unit="%" />
-          <MedVital label="Дыхание" value={fmt(m?.sleep.respiratoryRate ?? null, 1)} unit="вд/м" />
+          <MedVital label={t('healthCard.whoop.sleep')} value={fmt(m?.sleep.performance ?? null)} unit="%" />
+          <MedVital label={t('healthCard.whoop.respiration')} value={fmt(m?.sleep.respiratoryRate ?? null, 1)} unit={t('healthCard.units.brpm')} />
         </View>
       </View>
     </Pressable>

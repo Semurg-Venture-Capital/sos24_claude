@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { CoefRow } from '../../../components/ui/CoefRow';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
@@ -15,6 +16,7 @@ type Nav = NativeStackNavigationProp<PurchaseStackParamList, 'CalcResult'>;
 // M5.4 — Шаг 4: итоговая стоимость + выбор способа оплаты.
 export function CalcResultScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const state = usePurchaseStore();
   const calc = calculatePrice(state);
   const paymentIdx = state.paymentPlan === 'oneTime' ? 0 : 1;
@@ -24,12 +26,12 @@ export function CalcResultScreen() {
   return (
     <WizardFrame
       step={4}
-      eyebrow="Шаг 4 из 4 · Стоимость"
-      primary="Оформить полис"
+      eyebrow={t('purchase.calc.step4.eyebrow')}
+      primary={t('purchase.calc.result.submit')}
       primaryAction={() => nav.navigate('Checkout')}
       onBack={() => nav.goBack()}
     >
-      <ScreenHeading title="Стоимость полиса" subtitle={`Расчёт ${productLabel} на ${state.periodMonths} мес`} />
+      <ScreenHeading title={t('purchase.calc.result.title')} subtitle={t('purchase.calc.result.subtitle', { product: productLabel, months: state.periodMonths })} />
 
       {/* Big total card — dark */}
       <View
@@ -56,10 +58,10 @@ export function CalcResultScreen() {
               textTransform: 'uppercase',
             }}
           >
-            Итого
+            {t('purchase.calc.result.total')}
           </Text>
           <Tag tone="green">
-            {productLabel} · {state.periodMonths} мес
+            {productLabel} · {state.periodMonths} {t('purchase.common.monthsShort')}
           </Tag>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
@@ -75,7 +77,7 @@ export function CalcResultScreen() {
             {calc.total.toLocaleString('ru-RU')}
           </Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMutedDark }}>
-            сум
+            {t('purchase.common.sum')}
           </Text>
         </View>
         <View style={{ gap: 0, marginTop: 4 }}>
@@ -95,10 +97,10 @@ export function CalcResultScreen() {
             letterSpacing: -0.065,
           }}
         >
-          Способ оплаты
+          {t('purchase.common.paymentMethod')}
         </Text>
         <Segmented
-          options={['Единовременно', 'Рассрочка']}
+          options={[t('purchase.common.oneTime'), t('purchase.common.installment')]}
           active={paymentIdx}
           onChange={(i) => usePurchaseStore.getState().setPaymentPlan(i === 0 ? 'oneTime' : 'installment')}
         />
@@ -112,7 +114,7 @@ export function CalcResultScreen() {
               lineHeight: 18,
             }}
           >
-            {Math.round(calc.total / 12).toLocaleString('ru-RU')} сум × 12 месяцев. Первый платёж — сегодня.
+            {t('purchase.calc.result.installmentNote', { amount: Math.round(calc.total / 12).toLocaleString('ru-RU') })}
           </Text>
         )}
       </View>

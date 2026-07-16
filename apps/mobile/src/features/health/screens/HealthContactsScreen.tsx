@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Contacts from 'expo-contacts';
@@ -16,6 +17,7 @@ import { MedContactCard, MedSectionLabel, medGlass } from '../components';
 // M14.11 — Экстренные контакты. Реальный CRUD (лимит 3). SOS-настройки — локально.
 export function HealthContactsScreen() {
   const nav = useNavigation();
+  const { t } = useTranslation();
   const { data, isLoading } = useEmergencyContacts();
   const addContact = useAddContact();
   const deleteContact = useDeleteContact();
@@ -43,14 +45,14 @@ export function HealthContactsScreen() {
       setAdding(false);
     } catch (e: unknown) {
       const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg || 'Не удалось добавить контакт');
+      alert(msg || t('healthCard.contacts.addError'));
     }
   };
 
   const confirmDelete = (id: string, contactName: string) => {
-    Alert.alert('Удалить контакт?', contactName, [
-      { text: 'Отмена', style: 'cancel' },
-      { text: 'Удалить', style: 'destructive', onPress: () => deleteContact.mutate(id) },
+    Alert.alert(t('healthCard.contacts.deleteTitle'), contactName, [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('healthCard.common.delete'), style: 'destructive', onPress: () => deleteContact.mutate(id) },
     ]);
   };
 
@@ -66,10 +68,10 @@ export function HealthContactsScreen() {
       setRelation('');
       setAdding(true);
       if (!pickedPhone) {
-        Alert.alert('Нет номера', 'У выбранного контакта нет телефона — впишите его вручную.');
+        Alert.alert(t('healthCard.contacts.noNumberTitle'), t('healthCard.contacts.noNumberMsg'));
       }
     } catch {
-      Alert.alert('Ошибка', 'Не удалось открыть контакты.');
+      Alert.alert(t('healthCard.common.error'), t('healthCard.contacts.openError'));
     }
   };
 
@@ -85,15 +87,15 @@ export function HealthContactsScreen() {
       >
         <View style={{ gap: 8 }}>
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 28, letterSpacing: -0.28, color: tokens.ink, lineHeight: 32 }}>
-            Экстренные{'\n'}контакты
+            {t('healthCard.contacts.title')}
           </Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, lineHeight: 20 }}>
-            Кого оповестить при SOS — отправим сообщение и вашу геолокацию
+            {t('healthCard.contacts.subtitle')}
           </Text>
         </View>
 
         <View style={{ gap: 10 }}>
-          <MedSectionLabel>{`Контакты · ${contacts.length} из ${limit}`}</MedSectionLabel>
+          <MedSectionLabel>{t('healthCard.contacts.countLabel', { count: contacts.length, limit })}</MedSectionLabel>
 
           {isLoading ? (
             <ActivityIndicator color={tokens.red} style={{ marginTop: 8, alignSelf: 'flex-start' }} />
@@ -126,12 +128,12 @@ export function HealthContactsScreen() {
                 })}
               >
                 <UsersIcon size={17} color="#1a3577" />
-                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#1a3577' }}>Выбрать из контактов</Text>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#1a3577' }}>{t('healthCard.contacts.pick')}</Text>
               </Pressable>
-              <TextField label="Имя" value={name} onChangeText={setName} placeholder="Гулнора Каримова" />
-              <TextField label="Кем приходится" value={relation} onChangeText={setRelation} placeholder="Супруга" />
+              <TextField label={t('healthCard.contacts.name')} value={name} onChangeText={setName} placeholder={t('healthCard.contacts.namePh')} />
+              <TextField label={t('healthCard.contacts.relation')} value={relation} onChangeText={setRelation} placeholder={t('healthCard.contacts.relationPh')} />
               <TextField
-                label="Телефон"
+                label={t('healthCard.contacts.phone')}
                 value={phone}
                 onChangeText={setPhone}
                 placeholder="+998 90 234-56-78"
@@ -147,11 +149,11 @@ export function HealthContactsScreen() {
                   }}
                   style={({ pressed }) => ({ flex: 1, height: 52, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: tokens.glass, borderWidth: 1, borderColor: tokens.hairline, opacity: pressed ? 0.7 : 1 })}
                 >
-                  <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: tokens.inkDark }}>Отмена</Text>
+                  <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: tokens.inkDark }}>{t('common.cancel')}</Text>
                 </Pressable>
                 <View style={{ flex: 1 }}>
                   <RedButton trailing={false} onPress={submitAdd} disabled={!name.trim() || !phone.trim() || addContact.isPending} style={{ height: 52 }}>
-                    {addContact.isPending ? 'Добавляем…' : 'Добавить'}
+                    {addContact.isPending ? t('healthCard.contacts.adding') : t('healthCard.common.add')}
                   </RedButton>
                 </View>
               </View>
@@ -172,27 +174,27 @@ export function HealthContactsScreen() {
                 })}
               >
                 <UsersIcon size={18} color="#fff" />
-                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: '#fff' }}>Выбрать из контактов</Text>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: '#fff' }}>{t('healthCard.contacts.pick')}</Text>
               </Pressable>
-              <AddTile onPress={() => setAdding(true)}>Ввести вручную</AddTile>
+              <AddTile onPress={() => setAdding(true)}>{t('healthCard.contacts.manual')}</AddTile>
             </View>
           ) : (
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkMuted, paddingHorizontal: 4 }}>
-              Достигнут лимит в {limit} контакта. Удалите один, чтобы добавить другой.
+              {t('healthCard.contacts.limitReached', { limit })}
             </Text>
           )}
         </View>
 
         <View style={{ gap: 8 }}>
-          <MedSectionLabel>При срабатывании SOS</MedSectionLabel>
-          <SosToggleRow title="Авто-оповещение" sub="SMS + push близким контактам" value={autoNotify} onChange={setAutoNotify} />
-          <SosToggleRow title="Отправлять геолокацию" sub="Последняя точка на карте" value={sendGeo} onChange={setSendGeo} />
-          <SosToggleRow title="Звонок в службу 103" sub="После отправки оповещений" value={call103} onChange={setCall103} />
+          <MedSectionLabel>{t('healthCard.contacts.onSos')}</MedSectionLabel>
+          <SosToggleRow title={t('healthCard.contacts.autoNotify')} sub={t('healthCard.contacts.autoNotifySub')} value={autoNotify} onChange={setAutoNotify} />
+          <SosToggleRow title={t('healthCard.contacts.sendGeo')} sub={t('healthCard.contacts.sendGeoSub')} value={sendGeo} onChange={setSendGeo} />
+          <SosToggleRow title={t('healthCard.contacts.call103')} sub={t('healthCard.contacts.call103Sub')} value={call103} onChange={setCall103} />
         </View>
 
         <View style={{ flexDirection: 'row', gap: 10, padding: 14, borderRadius: 16, backgroundColor: 'rgba(230,20,40,0.07)' }}>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted, lineHeight: 17, flex: 1 }}>
-            Контакты получат сообщение только при активации SOS. Геолокация хранится защищённо и не передаётся третьим лицам.
+            {t('healthCard.contacts.footer')}
           </Text>
         </View>
       </ScrollView>

@@ -1,13 +1,13 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { WebView } from 'react-native-webview';
 import Svg, { Path } from 'react-native-svg';
 import {
-  EURO_STATUS_LABEL,
   participantFullName,
   useEuroProtocol,
   type EuroStatus,
@@ -24,8 +24,7 @@ import type { EuroStackParamList } from '../../../navigation/types';
 type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroDetail'>;
 type R = RouteProp<EuroStackParamList, 'EuroDetail'>;
 
-const SCHEME_LABEL: Record<string, string> = { rear: 'Наезд сзади', front: 'Лобовое', side: 'Боковое' };
-const STEPS = ['Подано', 'Принято в работу', 'На рассмотрении', 'Решение', 'Выплата'];
+const STEP_KEYS = ['submitted', 'accepted', 'review', 'decision', 'payment'] as const;
 // Индекс последнего ЗАВЕРШЁННОГО шага по статусу.
 const DONE_UP_TO: Record<EuroStatus, number> = {
   SUBMITTED: 0,
@@ -42,6 +41,7 @@ function formatDate(iso: string): string {
 }
 
 export function EuroDetailScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const { id } = useRoute<R>().params;
   const { data: p, isLoading } = useEuroProtocol(id);
@@ -60,7 +60,7 @@ export function EuroDetailScreen() {
       if (dl.status !== 200) throw new Error(String(dl.status));
       setPdfUri(dl.uri);
     } catch {
-      Alert.alert('PDF', 'Не удалось получить PDF. Попробуйте позже.');
+      Alert.alert('PDF', t('euroDocs.detail.pdfError'));
     } finally {
       setPdfBusy(false);
     }
@@ -79,7 +79,7 @@ export function EuroDetailScreen() {
           <BackButton onPress={() => nav.goBack()} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          {isLoading ? <ActivityIndicator color={tokens.red} /> : <Text style={{ color: tokens.inkMuted }}>Не найдено</Text>}
+          {isLoading ? <ActivityIndicator color={tokens.red} /> : <Text style={{ color: tokens.inkMuted }}>{t('euroDocs.detail.notFound')}</Text>}
         </View>
       </PhoneFrame>
     );
@@ -101,12 +101,12 @@ export function EuroDetailScreen() {
         <View style={{ padding: 22, borderRadius: 28, backgroundColor: tokens.inkDark, gap: 12 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, letterSpacing: 0.88, textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>
-              ДТП · Европротокол
+              {t('euroDocs.detail.heroEyebrow')}
             </Text>
             <EuroStatusBadge status={p.status} />
           </View>
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 22, color: '#fff', lineHeight: 27 }}>
-            {EURO_STATUS_LABEL[p.status]}
+            {t('euroDocs.status.' + p.status)}
           </Text>
           {p.adminNote ? (
             <View style={{ padding: 12, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.06)' }}>
@@ -138,52 +138,52 @@ export function EuroDetailScreen() {
             <Path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
           </Svg>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkDark }}>
-            {pdfBusy ? 'Готовим PDF…' : 'PDF извещения'}
+            {pdfBusy ? t('euroDocs.detail.pdfBusy') : t('euroDocs.detail.pdfButton')}
           </Text>
         </Pressable>
 
         {/* Трекер */}
         <View style={{ padding: 20, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: tokens.hairline }}>
-          {STEPS.map((label, i) => {
+          {STEP_KEYS.map((k, i) => {
             const state =
               rejected && i === 3 ? 'rejected' : i <= doneUpTo ? 'done' : i === doneUpTo + 1 && !rejected ? 'active' : 'pending';
-            return <TrackerStep key={label} label={label} state={state} last={i === STEPS.length - 1} />;
+            return <TrackerStep key={k} label={t('euroDocs.detail.steps.' + k)} state={state} last={i === STEP_KEYS.length - 1} />;
           })}
         </View>
 
         {/* Детали */}
         <SummaryBlock
-          eyebrow="Обстоятельства"
+          eyebrow={t('euroDocs.detail.summary.circumstances')}
           rows={[
-            { label: 'Дата и время', value: `${formatDate(p.incidentDate)} · ${p.incidentTime}` },
-            { label: 'Место', value: p.place || '—' },
-            { label: 'Схема', value: p.schemeType ? SCHEME_LABEL[p.schemeType] ?? p.schemeType : '—' },
+            { label: t('euroDocs.detail.row.dateTime'), value: `${formatDate(p.incidentDate)} · ${p.incidentTime}` },
+            { label: t('euroDocs.detail.row.place'), value: p.place || '—' },
+            { label: t('euroDocs.detail.row.scheme'), value: p.schemeType ? t('euroDocs.map.scheme.' + p.schemeType, { defaultValue: p.schemeType }) : '—' },
           ]}
         />
         <SummaryBlock
-          eyebrow="Сторона A · Вы"
+          eyebrow={t('euroDocs.detail.summary.sideA')}
           rows={[
-            { label: 'Авто', value: p.vehicle ? `${p.vehicle.brand} ${p.vehicle.model}` : '—' },
-            { label: 'Госномер', value: p.vehicle?.plate ?? '—' },
-            { label: 'MyID', value: p.selfVerified ? 'Подтверждён' : '—' },
+            { label: t('euroDocs.detail.row.car'), value: p.vehicle ? `${p.vehicle.brand} ${p.vehicle.model}` : '—' },
+            { label: t('euroDocs.detail.row.plate'), value: p.vehicle?.plate ?? '—' },
+            { label: 'MyID', value: p.selfVerified ? t('euroDocs.detail.myidConfirmed') : '—' },
           ]}
         />
         <SummaryBlock
-          eyebrow="Сторона B · Второй участник"
+          eyebrow={t('euroDocs.detail.summary.sideB')}
           rows={[
-            { label: 'Участник', value: p.participant ? participantFullName(p.participant) : '—' },
-            { label: 'Госномер', value: p.otherGov ?? '—' },
+            { label: t('euroDocs.detail.row.participant'), value: p.participant ? participantFullName(p.participant) : '—' },
+            { label: t('euroDocs.detail.row.plate'), value: p.otherGov ?? '—' },
             {
-              label: 'Полис',
+              label: t('euroDocs.detail.row.policy'),
               value:
                 p.otherPolicySeria || p.otherPolicyNumber
                   ? `${p.otherPolicySeria ?? ''} ${p.otherPolicyNumber ?? ''}`.trim() + (p.otherPolicyValid ? ' ✓' : '')
                   : '—',
             },
-            { label: 'Подпись', value: p.participant ? 'MyID ✓' : '—' },
+            { label: t('euroDocs.detail.row.signature'), value: p.participant ? 'MyID ✓' : '—' },
           ]}
         />
-        {p.description ? <SummaryBlock eyebrow="Описание" rows={[{ label: '', value: p.description }]} /> : null}
+        {p.description ? <SummaryBlock eyebrow={t('euroDocs.detail.summary.description')} rows={[{ label: '', value: p.description }]} /> : null}
       </ScrollView>
 
       {/* Превью PDF (quick view) + кнопка «Поделиться» */}
@@ -202,11 +202,11 @@ export function EuroDetailScreen() {
             }}
           >
             <Pressable onPress={() => setPdfUri(null)} hitSlop={8}>
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.inkDark }}>Закрыть</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.inkDark }}>{t('euroDocs.detail.close')}</Text>
             </Pressable>
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: tokens.ink }}>PDF извещения</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: tokens.ink }}>{t('euroDocs.detail.pdfButton')}</Text>
             <Pressable onPress={sharePdf} hitSlop={8}>
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>Поделиться</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>{t('euroDocs.detail.share')}</Text>
             </Pressable>
           </View>
           {pdfUri ? <WebView source={{ uri: pdfUri }} style={{ flex: 1 }} originWhitelist={['*']} /> : null}

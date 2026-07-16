@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -16,9 +17,10 @@ type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthDoctors'>;
 type Rt = RouteProp<HealthStackParamList, 'HealthDoctors'>;
 
 const ALL = '__all';
-const money = (n: number | null) => (n != null ? `${n.toLocaleString('ru-RU')} сум` : '—');
 
 export function HealthDoctorsScreen() {
+  const { t } = useTranslation();
+  const money = (n: number | null) => (n != null ? `${n.toLocaleString('ru-RU')} ${t('health.currency')}` : '—');
   const nav = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
   const [headerH, setHeaderH] = useState(insets.top + 54);
@@ -74,7 +76,7 @@ export function HealthDoctorsScreen() {
             <TextInput
               value={q}
               onChangeText={setQ}
-              placeholder="Врач, специальность, клиника"
+              placeholder={t('health.doctors.searchPlaceholder')}
               placeholderTextColor={tokens.inkMuted}
               style={{ flex: 1, fontFamily: 'Manrope_400Regular', fontSize: 15, color: tokens.ink }}
             />
@@ -84,13 +86,13 @@ export function HealthDoctorsScreen() {
         {/* [1] Липкие чипы — полупрозрачное стекло, контент виден под ними */}
         <Glass intensity={26} tint="light" style={{ paddingBottom: 6 }}>
           <LiquidGlassChips
-            items={[{ key: ALL, label: 'Все области' }, ...regions.map((r) => ({ key: r, label: r }))]}
+            items={[{ key: ALL, label: t('health.doctors.allRegions') }, ...regions.map((r) => ({ key: r, label: r }))]}
             selectedKey={region ?? ALL}
             onSelect={(k) => pickRegion(k === ALL ? null : k)}
           />
           <View style={{ paddingTop: 4 }}>
             <LiquidGlassChips
-              items={[{ key: ALL, label: 'Все' }, ...specialties.map((s) => ({ key: s, label: s }))]}
+              items={[{ key: ALL, label: t('health.doctors.allSpecialties') }, ...specialties.map((s) => ({ key: s, label: s }))]}
               selectedKey={specialty ?? ALL}
               onSelect={(k) => setSpecialty(k === ALL ? null : k)}
             />
@@ -102,7 +104,7 @@ export function HealthDoctorsScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <MapPinIcon size={13} />
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkMuted }}>
-            {region ? `Область: ${region}` : 'Все области'} · {doctors.length} врачей
+            {region ? t('health.doctors.regionLabel', { region }) : t('health.doctors.allRegions')} · {t('health.doctors.doctorsCount', { count: doctors.length })}
           </Text>
         </View>
 
@@ -110,7 +112,7 @@ export function HealthDoctorsScreen() {
           <MedCardSkeletonList count={5} />
         ) : doctors.length === 0 ? (
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, marginTop: 16 }}>
-            Никого не нашли. Измените запрос или фильтр.
+            {t('health.doctors.empty')}
           </Text>
         ) : (
           doctors.map((d: DoctorCard) => (
@@ -118,9 +120,9 @@ export function HealthDoctorsScreen() {
               key={d.id}
               name={d.fullName}
               specialty={d.specialty}
-              experience={d.experienceY != null ? `${d.experienceY} лет` : undefined}
+              experience={d.experienceY != null ? t('health.doctor.years', { count: d.experienceY }) : undefined}
               rating={d.rating.toFixed(1)}
-              reviews={`${d.reviewCount} отзывов`}
+              reviews={t('health.doctor.reviews', { count: d.reviewCount })}
               price={money(d.pricePrimary)}
               video={d.videoEnabled}
               verified={d.verified}
@@ -141,9 +143,9 @@ export function HealthDoctorsScreen() {
         <Glass intensity={26} tint="light">
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 24, paddingTop: insets.top + 8, paddingBottom: 10 }}>
             <BackButton onPress={() => nav.goBack()} />
-            <Text style={{ flex: 1, fontFamily: 'Manrope_600SemiBold', fontSize: 18, color: tokens.ink }}>Врачи</Text>
+            <Text style={{ flex: 1, fontFamily: 'Manrope_600SemiBold', fontSize: 18, color: tokens.ink }}>{t('health.doctors.title')}</Text>
             <Pressable onPress={() => nav.navigate('HealthClinics')} hitSlop={8} style={{ paddingVertical: 7, paddingHorizontal: 14, borderRadius: 999, backgroundColor: tokens.glass, borderWidth: 1, borderColor: tokens.hairline }}>
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkDark }}>Клиники →</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkDark }}>{t('health.doctors.clinics')} →</Text>
             </Pressable>
           </View>
         </Glass>

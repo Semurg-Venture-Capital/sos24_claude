@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { Image, Pressable, Text, TextInput, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { IconPencil } from '../../../components/icons/LineIcons';
@@ -20,6 +21,7 @@ type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStep3'>;
 // M9.3 шаг 3 — схема ДТП на карте (машины + точка удара) + описание обстоятельств.
 export function EuroStep3Screen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const s = useEuroStore();
   const { description, setDescription, patch, toggleCircumstance } = s;
 
@@ -27,15 +29,15 @@ export function EuroStep3Screen() {
     <WizardFrame
       step={3}
       total={5}
-      eyebrow="Шаг 3 из 5 · Схема"
-      primary="Далее"
+      eyebrow={t('euro.step3.eyebrow')}
+      primary={t('common.next')}
       primaryEnabled={!!s.driverRole && s.canMove !== null}
       primaryAction={() => nav.navigate('EuroStep4')}
       onBack={() => nav.goBack()}
     >
-      <ScreenHeading title="Схема столкновения" subtitle="Отметьте на карте, как стояли машины, и опишите, как произошло ДТП" />
+      <ScreenHeading title={t('euro.step3.title')} subtitle={t('euro.step3.subtitle')} />
 
-      <SchemeCard uri={s.schemeImageUri} onOpen={() => nav.navigate('EuroSchemeMap')} onClear={() => s.setSchemeImage(null)} />
+      <SchemeCard t={t} uri={s.schemeImageUri} onOpen={() => nav.navigate('EuroSchemeMap')} onClear={() => s.setSchemeImage(null)} />
 
       <View
         style={{
@@ -48,13 +50,14 @@ export function EuroStep3Screen() {
         }}
       >
         <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: tokens.red, lineHeight: 17 }}>
-          ⚠️ Укажите место ДТП и положение машин точно. При неверных данных страховая компания может отказать в выплате.
+          {'⚠️ '}
+          {t('euro.step3.accuracyWarning')}
         </Text>
       </View>
 
       <View style={{ gap: 10, marginTop: 4 }}>
         <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.07 }}>
-          Описание обстоятельств
+          {t('euro.step3.descriptionLabel')}
         </Text>
         <VoiceRemarks
           audioAttached={!!s.descAudioKey}
@@ -65,7 +68,7 @@ export function EuroStep3Screen() {
             <TextInput
               value={description}
               onChangeText={setDescription}
-              placeholder="Опишите, как произошло ДТП: направление движения, кто кого ударил, погодные условия…"
+              placeholder={t('euro.step3.descriptionPlaceholder')}
               placeholderTextColor="rgba(20,20,20,0.4)"
               multiline
               style={{
@@ -84,15 +87,15 @@ export function EuroStep3Screen() {
           </Glass>
         </View>
         <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 17, paddingLeft: 4 }}>
-          Текст войдёт в извещение о ДТП. Чем точнее — тем быстрее рассмотрят выплату.
+          {t('euro.step3.descriptionHint')}
         </Text>
       </View>
 
       {/* Обстоятельства ДТП (22 пункта) — отметьте для А (вы) и В (второй) */}
       <View style={{ gap: 8, marginTop: 4 }}>
-        <SectionLabel>Обстоятельства ДТП</SectionLabel>
+        <SectionLabel>{t('euro.step3.circumstances')}</SectionLabel>
         <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 16, paddingLeft: 2 }}>
-          Отметьте подходящие пункты для «А» (вы) и «В» (второй участник).
+          {t('euro.step3.circumstancesHint')}
         </Text>
         <View style={{ borderRadius: 16, borderWidth: 1, borderColor: tokens.hairline, overflow: 'hidden' }}>
           {EURO_CIRCUMSTANCES.map((text, i) => (
@@ -104,6 +107,7 @@ export function EuroStep3Screen() {
               b={!!s.circumstancesB[i]}
               onToggleA={() => toggleCircumstance('a', i)}
               onToggleB={() => toggleCircumstance('b', i)}
+              t={t}
               last={i === EURO_CIRCUMSTANCES.length - 1}
             />
           ))}
@@ -112,51 +116,51 @@ export function EuroStep3Screen() {
 
       {/* Зона первого удара */}
       <View style={{ gap: 12, marginTop: 4 }}>
-        <SectionLabel>Зона первого удара</SectionLabel>
+        <SectionLabel>{t('euro.step3.impactZone')}</SectionLabel>
         <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 16, paddingLeft: 2 }}>
-          Нажмите на место, куда пришёлся первый удар.
+          {t('euro.step3.impactZoneHint')}
         </Text>
-        <ImpactZonePicker label="Ваше авто (А)" value={s.impactZoneA} onChange={(v) => patch({ impactZoneA: v })} />
-        <ImpactZonePicker label="Авто «В»" value={s.impactZoneB} onChange={(v) => patch({ impactZoneB: v })} />
+        <ImpactZonePicker label={t('euro.step3.yourCar')} value={s.impactZoneA} onChange={(v) => patch({ impactZoneA: v })} />
+        <ImpactZonePicker label={t('euro.step3.carB')} value={s.impactZoneB} onChange={(v) => patch({ impactZoneB: v })} />
       </View>
 
       {/* Повреждения и возражения */}
       <View style={{ gap: 12, marginTop: 4 }}>
-        <SectionLabel>Повреждения авто</SectionLabel>
+        <SectionLabel>{t('euro.step3.damage')}</SectionLabel>
         <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 16, paddingLeft: 2 }}>
-          Отметьте повреждённые детали на схеме. Список попадёт в извещение.
+          {t('euro.step3.damageHint')}
         </Text>
-        <DamagePartsPicker label="Ваше авто (А)" value={s.damagePartsA} onChange={(v) => patch({ damagePartsA: v })} />
-        <FieldInput label="Уточнение по повреждениям (А)" value={s.damageDescA} onChangeText={(v) => patch({ damageDescA: v })} placeholder="Напр.: вмятина на двери, разбита фара…" multiline maxLength={1000} />
-        <DamagePartsPicker label="Авто «В»" value={s.damagePartsB} onChange={(v) => patch({ damagePartsB: v })} />
-        <FieldInput label="Уточнение по повреждениям (В)" value={s.damageDescB} onChangeText={(v) => patch({ damageDescB: v })} placeholder="Напр.: задний бампер, левая дверь…" multiline maxLength={1000} />
-        <FieldInput label="Возражения (А) — если есть" value={s.objectionsA} onChangeText={(v) => patch({ objectionsA: v })} placeholder="Возражения, если есть…" maxLength={1000} />
-        <FieldInput label="Возражения (В) — если есть" value={s.objectionsB} onChangeText={(v) => patch({ objectionsB: v })} placeholder="Возражения, если есть…" maxLength={1000} />
+        <DamagePartsPicker label={t('euro.step3.yourCar')} value={s.damagePartsA} onChange={(v) => patch({ damagePartsA: v })} />
+        <FieldInput label={t('euro.step3.damageDetailA')} value={s.damageDescA} onChangeText={(v) => patch({ damageDescA: v })} placeholder={t('euro.step3.damageDetailAPlaceholder')} multiline maxLength={1000} />
+        <DamagePartsPicker label={t('euro.step3.carB')} value={s.damagePartsB} onChange={(v) => patch({ damagePartsB: v })} />
+        <FieldInput label={t('euro.step3.damageDetailB')} value={s.damageDescB} onChangeText={(v) => patch({ damageDescB: v })} placeholder={t('euro.step3.damageDetailBPlaceholder')} multiline maxLength={1000} />
+        <FieldInput label={t('euro.step3.objectionsA')} value={s.objectionsA} onChangeText={(v) => patch({ objectionsA: v })} placeholder={t('euro.step3.objectionsPlaceholder')} maxLength={1000} />
+        <FieldInput label={t('euro.step3.objectionsB')} value={s.objectionsB} onChangeText={(v) => patch({ objectionsB: v })} placeholder={t('euro.step3.objectionsPlaceholder')} maxLength={1000} />
       </View>
 
       {/* Оборот бланка */}
       <View style={{ gap: 12, marginTop: 4 }}>
-        <SectionLabel>Дополнительно (оборотная сторона)</SectionLabel>
+        <SectionLabel>{t('euro.step3.additionalBack')}</SectionLabel>
         <Segmented
-          label="Кто управлял вашим ТС?"
+          label={t('euro.step3.whoDrove')}
           value={s.driverRole}
           options={[
-            { key: 'owner', label: 'Я — владелец' },
-            { key: 'other', label: 'По доверенности' },
+            { key: 'owner', label: t('euro.step3.driverOwner') },
+            { key: 'other', label: t('euro.step3.driverProxy') },
           ]}
           onChange={(v) => patch({ driverRole: v })}
         />
         {s.driverRole === 'other' ? (
           <FieldInput
-            label="Документ о праве владения (доверенность/договор)"
+            label={t('euro.step3.ownershipDoc')}
             value={s.ownershipDocA}
             onChangeText={(v) => patch({ ownershipDocA: v })}
-            placeholder="Серия/номер доверенности или договора"
+            placeholder={t('euro.step3.ownershipDocPlaceholder')}
             maxLength={200}
           />
         ) : null}
         <YesNoToggle
-          label="ТС может двигаться самостоятельно?"
+          label={t('euro.step3.canMove')}
           value={s.canMove}
           onChange={(v) =>
             // При «Нет» местоположение ТС = адрес ДТП с шага 1 (GPS), отдельно не спрашиваем.
@@ -165,9 +169,9 @@ export function EuroStep3Screen() {
         />
         {s.canMove === false ? (
           <View style={{ gap: 6, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: tokens.hairline, backgroundColor: 'rgba(255,255,255,0.4)' }}>
-            <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>Местоположение ТС (с шага 1, GPS)</Text>
+            <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkMuted }}>{t('euro.step3.vehicleLocation')}</Text>
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, lineHeight: 19, color: tokens.inkDark }}>
-              {s.place || 'Адрес не определён на шаге 1'}
+              {s.place || t('euro.step3.addressNotSet')}
             </Text>
           </View>
         ) : null}
@@ -177,10 +181,10 @@ export function EuroStep3Screen() {
             onResult={(r) => patch({ remarks: r.normalized, remarksAudioKey: r.audioKey, remarksRaw: r.transcript })}
           />
           <FieldInput
-            label="Замечания (Изоҳ)"
+            label={t('euro.step3.remarks')}
             value={s.remarks}
             onChangeText={(v) => patch({ remarks: v })}
-            placeholder="Продиктуйте голосом или введите текст…"
+            placeholder={t('euro.step3.remarksPlaceholder')}
             multiline
             maxLength={2000}
           />
@@ -198,6 +202,7 @@ function CircumstanceRow({
   b,
   onToggleA,
   onToggleB,
+  t,
   last,
 }: {
   index: number;
@@ -206,6 +211,7 @@ function CircumstanceRow({
   b: boolean;
   onToggleA: () => void;
   onToggleB: () => void;
+  t: (key: string) => string;
   last: boolean;
 }) {
   return (
@@ -222,9 +228,9 @@ function CircumstanceRow({
       }}
     >
       <Text style={{ width: 18, fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: tokens.inkSubtle }}>{index + 1}</Text>
-      <SideBox label="А" active={a} onPress={onToggleA} />
+      <SideBox label={t('euro.common.markA')} active={a} onPress={onToggleA} />
       <Text style={{ flex: 1, fontFamily: 'Manrope_500Medium', fontSize: 11.5, lineHeight: 15, color: tokens.inkDark }}>{text}</Text>
-      <SideBox label="В" active={b} onPress={onToggleB} />
+      <SideBox label={t('euro.common.markB')} active={b} onPress={onToggleB} />
     </View>
   );
 }
@@ -250,7 +256,7 @@ function SideBox({ label, active, onPress }: { label: string; active: boolean; o
 }
 
 // Карточка схемы ДТП: пустая (кнопка «Открыть карту») или с превью готового рисунка.
-function SchemeCard({ uri, onOpen, onClear }: { uri: string | null; onOpen: () => void; onClear: () => void }) {
+function SchemeCard({ t, uri, onOpen, onClear }: { t: (key: string) => string; uri: string | null; onOpen: () => void; onClear: () => void }) {
   if (uri) {
     return (
       <View style={{ gap: 8 }}>
@@ -263,13 +269,13 @@ function SchemeCard({ uri, onOpen, onClear }: { uri: string | null; onOpen: () =
             style={{ flex: 1, height: 44, borderRadius: 14, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: tokens.inkDark }}
           >
             <IconPencil size={16} color="#fff" />
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#fff' }}>Изменить</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#fff' }}>{t('euro.step3.edit')}</Text>
           </Pressable>
           <Pressable
             onPress={onClear}
             style={{ height: 44, paddingHorizontal: 18, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(20,20,20,0.06)', borderWidth: 1, borderColor: tokens.hairline }}
           >
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkMuted }}>Убрать</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkMuted }}>{t('euro.step3.remove')}</Text>
           </Pressable>
         </View>
       </View>
@@ -297,9 +303,9 @@ function SchemeCard({ uri, onOpen, onClear }: { uri: string | null; onOpen: () =
           <Circle cx={12} cy={10} r={3} />
         </Svg>
       </View>
-      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: tokens.inkDark }}>Открыть карту</Text>
+      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: tokens.inkDark }}>{t('euro.step3.openMap')}</Text>
       <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkSubtle, textAlign: 'center', lineHeight: 17 }}>
-        Поставьте две машины на карте текущего места и укажите точку удара
+        {t('euro.step3.openMapHint')}
       </Text>
     </Pressable>
   );

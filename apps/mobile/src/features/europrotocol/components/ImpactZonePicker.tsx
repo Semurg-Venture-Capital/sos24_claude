@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Image, Pressable, Text, View } from 'react-native';
 import Svg, { G, Line, Path } from 'react-native-svg';
 import { tokens } from '../../../theme/colors';
@@ -61,6 +62,11 @@ export function ImpactZonePicker({
   value: string[];
   onChange: (next: string[]) => void;
 }) {
+  const { t } = useTranslation();
+  // Локализованная сводка выбранных зон удара — в порядке диаграммы.
+  const selectedText = ZONE_ORDER.filter((z) => value.includes(z))
+    .map((z) => t('euroDocs.map.impactZone.' + z))
+    .join(', ');
   const toggle = (zone: ImpactZone) =>
     onChange(value.includes(zone) ? value.filter((z) => z !== zone) : [...value, zone]);
   const cell = (zone: ImpactZone) => <ZoneCell zone={zone} active={value.includes(zone)} onPress={() => toggle(zone)} />;
@@ -102,7 +108,7 @@ export function ImpactZonePicker({
       </View>
       {/* Текстовая сводка выбранных зон */}
       <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12.5, color: value.length ? tokens.inkDark : tokens.inkSubtle, paddingLeft: 2 }}>
-        {value.length ? `Удар: ${zonesText(value)}` : 'Зона не выбрана'}
+        {value.length ? t('euroDocs.zones.summary', { list: selectedText }) : t('euroDocs.zones.empty')}
       </Text>
     </View>
   );

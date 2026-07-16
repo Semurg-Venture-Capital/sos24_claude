@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
@@ -14,15 +15,16 @@ import { MedChip, MedSectionLabel, medGlass } from '../components';
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthDiagnosis'>;
 type Rt = RouteProp<HealthStackParamList, 'HealthDiagnosis'>;
 
-const URGENCY: Record<Urgency, { label: string; bg: string; fg: string }> = {
-  low: { label: 'Срочность низкая', bg: 'rgba(245,200,80,0.85)', fg: '#503a07' },
-  medium: { label: 'Срочность средняя', bg: 'rgba(255,150,60,0.9)', fg: '#5c2c00' },
-  high: { label: 'Срочность высокая', bg: '#E61428', fg: '#fff' },
+const URGENCY: Record<Urgency, { bg: string; fg: string }> = {
+  low: { bg: 'rgba(245,200,80,0.85)', fg: '#503a07' },
+  medium: { bg: 'rgba(255,150,60,0.9)', fg: '#5c2c00' },
+  high: { bg: '#E61428', fg: '#fff' },
 };
 
 // M14.3 — Предварительный диагноз. Вердикт mock-триажа: срочность, уверенность,
 // симптомы, рекомендации + CTA записи к профильному врачу.
 export function HealthDiagnosisScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const { params } = useRoute<Rt>();
   const [d, setD] = useState<TriageDiagnosis | null>(null);
@@ -59,14 +61,14 @@ export function HealthDiagnosisScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 12 }}>
         <BackButton onPress={() => nav.goBack()} />
-        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 18, color: tokens.ink }}>Результат анализа</Text>
+        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 18, color: tokens.ink }}>{t('health.diagnosis.title')}</Text>
       </View>
 
       {loading ? (
         <ActivityIndicator color={tokens.red} style={{ marginTop: 48 }} />
       ) : error || !d ? (
         <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center', marginTop: 40, paddingHorizontal: 24 }}>
-          Не удалось получить результат. Вернитесь и попробуйте ещё раз.
+          {t('health.diagnosis.error')}
         </Text>
       ) : (
         <>
@@ -75,11 +77,11 @@ export function HealthDiagnosisScreen() {
             <View style={{ backgroundColor: tokens.inkDark, borderRadius: 30, padding: 22, gap: 16 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: tokens.inkMutedDark, letterSpacing: 1, textTransform: 'uppercase' }}>
-                  Предварительно
+                  {t('health.diagnosis.preliminary')}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 5, paddingHorizontal: 11, borderRadius: 999, backgroundColor: u.bg }}>
                   <View style={{ width: 6, height: 6, borderRadius: 999, backgroundColor: u.fg }} />
-                  <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 11, color: u.fg }}>{u.label}</Text>
+                  <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 11, color: u.fg }}>{t('health.urgency.' + d.urgency)}</Text>
                 </View>
               </View>
               <View style={{ gap: 6 }}>
@@ -89,7 +91,7 @@ export function HealthDiagnosisScreen() {
               {/* Уверенность */}
               <View style={{ gap: 6 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 11, color: tokens.inkMutedDark }}>Уверенность модели</Text>
+                  <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 11, color: tokens.inkMutedDark }}>{t('health.diagnosis.confidence')}</Text>
                   <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#fff' }}>{d.confidence}%</Text>
                 </View>
                 <View style={{ height: 6, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
@@ -101,7 +103,7 @@ export function HealthDiagnosisScreen() {
             {/* Симптомы */}
             {d.symptoms.length > 0 ? (
               <View style={{ gap: 10 }}>
-                <MedSectionLabel>Вы сообщили</MedSectionLabel>
+                <MedSectionLabel>{t('health.diagnosis.youReported')}</MedSectionLabel>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {d.symptoms.map((s, i) => (
                     <MedChip key={`${s}-${i}`} tone={i === d.symptoms.length - 1 ? 'ink' : 'red'}>
@@ -115,7 +117,7 @@ export function HealthDiagnosisScreen() {
             {/* Рекомендации */}
             {d.recommendations.length > 0 ? (
               <View style={{ gap: 10 }}>
-                <MedSectionLabel>Что рекомендуем</MedSectionLabel>
+                <MedSectionLabel>{t('health.diagnosis.recommendations')}</MedSectionLabel>
                 {d.recommendations.map((r, i) => (
                   <View key={i} style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 14, borderRadius: 18 }, medGlass]}>
                     <View style={{ width: 34, height: 34, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: r.tone === 'red' ? 'rgba(230,20,40,0.1)' : 'rgba(20,20,20,0.06)' }}>
@@ -141,7 +143,7 @@ export function HealthDiagnosisScreen() {
               trailing={false}
               onPress={() => nav.navigate('HealthDoctors', d.suggestedSpecialty ? { specialty: d.suggestedSpecialty } : undefined)}
             >
-              {d.suggestedSpecialty ? `Записаться к врачу · ${d.suggestedSpecialty}` : 'Записаться к врачу'}
+              {d.suggestedSpecialty ? t('health.diagnosis.bookWithSpecialty', { specialty: d.suggestedSpecialty }) : t('health.diagnosis.book')}
             </RedButton>
           </View>
         </>

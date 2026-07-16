@@ -156,5 +156,1001 @@
   "errors": {
     "unknown": "Something went wrong",
     "offline": "No internet connection"
+  },
+  "euro": {
+    "common": {
+      "errorTitle": "Error",
+      "markA": "A",
+      "markB": "B",
+      "vehicleShort": "Vehicle"
+    },
+    "start": {
+      "title": "Had an accident?",
+      "subtitle": "We'll help — file everything right in the app",
+      "whatToDoNow": "What to do right now",
+      "step1": "Make sure everyone is safe",
+      "step2": "Record the scene without leaving it",
+      "step3": "Choose how to file below",
+      "euroEyebrow": "no injuries",
+      "euroName": "Electronic Europrotocol",
+      "euroDesc": "If both drivers agree and there are no injuries",
+      "euroCta": "File",
+      "inspectorEyebrow": "online · ~20 min",
+      "inspectorName": "Call an inspector",
+      "inspectorDesc": "Our specialist will come to the scene and help",
+      "inspectorCta": "Call",
+      "inspectorStatus": "Available now",
+      "regularClaim": "Submit a regular claim",
+      "regularClaimSoon": "Regular insurance claim application (M9.4)."
+    },
+    "step1": {
+      "eyebrow": "Step 1 of 5 · Details",
+      "title": "When and where",
+      "subtitle": "Time is recorded automatically, location is detected by GPS",
+      "date": "Date",
+      "time": "Time",
+      "vehicleCount": "Vehicles",
+      "euroTag": "europrotocol",
+      "place": "Accident location",
+      "detecting": "Detecting…",
+      "detectAgain": "Detect again",
+      "detect": "Detect location",
+      "additional": "Additional",
+      "medCheck": "Medical examination passed (within 4 hours)",
+      "witnesses": "Witnesses (full name, phone) — if any",
+      "witnessesPlaceholder": "Olimov J., +998 90 111 22 33",
+      "officialRegistered": "Registered by a ГАИ officer?",
+      "officerBadge": "Officer badge №",
+      "geoOffTitle": "Geolocation is off",
+      "geoOffMsg": "To record the accident location, allow location access in Settings.",
+      "openSettings": "Open Settings",
+      "geoError": "Could not detect location. Please try again."
+    },
+    "step2": {
+      "eyebrow": "Step 2 of 5 · Participants",
+      "title": "Accident participants",
+      "subtitle": "Both participants are verified via MyID",
+      "sideA": "You (initiator)",
+      "identityConfirmed": "Identity confirmed",
+      "identityConfirmedSub": "MyID · presence confirmed",
+      "verifySelf": "Confirm identity (MyID)",
+      "verifySelfHint": "First confirm your identity via MyID — then your vehicles and policies will appear.",
+      "myVehicle": "My vehicle",
+      "noVehicles": "No cars in the garage. Add a vehicle to file a europrotocol.",
+      "osagoForVehicle": "OSAGO policy for this vehicle",
+      "loadingPolicies": "Loading policies…",
+      "noOsago": "No active OSAGO found for the selected vehicle. Get OSAGO or pick another vehicle — a europrotocol cannot be filed without a policy.",
+      "status": "status",
+      "yourLicense": "Your driver's license",
+      "noLicenseHint": "No license in the profile — fill it in; it will be included in the notice and saved to the profile.",
+      "seria": "Series",
+      "number": "Number",
+      "categories": "Categories",
+      "issueDate": "Issue date",
+      "sideB": "Second participant",
+      "myidPinfl": "MyID · PINFL {{pinfl}}",
+      "verifyOther": "Verify participant (MyID)",
+      "otherVehicleFromProfile": "Second participant's vehicle (from their profile)",
+      "participantFoundPickVehicle": "Participant found in the system — select their vehicle.",
+      "otherVehicleByTechPassport": "Second participant's vehicle (by tech passport)",
+      "noVehicleEnterTp": "The participant has no vehicle in the system — enter the tech passport details.",
+      "notInSystemLookup": "The participant is not in the system — we'll find the vehicle by tech passport in the state registry.",
+      "tpSeria": "Tech passport series",
+      "tpNumber": "Tech passport number",
+      "govNumber": "Plate number",
+      "findAgain": "Find again",
+      "findVehicle": "Find vehicle",
+      "vehSearching": "Searching for the vehicle in the state registry…",
+      "vehFound": "✓ Vehicle found and filled in.",
+      "vehNotFound": "Vehicle not found in the registry. Check the tech passport series/number and plate number.",
+      "vehicleFound": "Vehicle found",
+      "otherOsagoFromProfile": "Second participant's OSAGO policy (from their profile)",
+      "otherOsago": "Second participant's OSAGO policy",
+      "noOsagoEnterManual": "No active OSAGO for this vehicle in the system — enter the policy details.",
+      "checkPolicy": "Check policy",
+      "polChecking": "Checking the policy in the registry…",
+      "polValid": "✓ Policy is valid.",
+      "polNotFound": "Policy not found in the registry. Check the series and number.",
+      "polError": "Could not check the policy. Please try again.",
+      "verified": "verified",
+      "notFound": "not found",
+      "otherPhone": "Second participant's phone",
+      "phoneFormat": "Format: +998 XX XXX XX XX",
+      "licenseB": "Driver's license «B»",
+      "licenseIssueDate": "License issue date",
+      "ownerAddrB": "Owner's address of vehicle «B»",
+      "addrPlaceholder": "Tashkent, Yunusabad…",
+      "insurerB": "Insurer «B»",
+      "insurerPlaceholder": "e.g. Gross Insurance",
+      "policyValidUntil": "Policy valid until",
+      "verifying": "Verifying…",
+      "simulateMyid": "Simulate MyID (DEV)",
+      "verifySelfError": "Verification failed.",
+      "verifyOtherError": "Could not verify the participant.",
+      "mismatchTitle": "No match",
+      "mismatchMsg": "Identity did not match the account owner. Party A must be verified by the phone owner."
+    },
+    "step3": {
+      "eyebrow": "Step 3 of 5 · Diagram",
+      "title": "Collision diagram",
+      "subtitle": "Mark on the map how the cars stood and describe how the accident happened",
+      "accuracyWarning": "Specify the accident location and the cars' positions accurately. With incorrect data, the insurer may deny the payout.",
+      "descriptionLabel": "Description of circumstances",
+      "descriptionPlaceholder": "Describe how the accident happened: direction of travel, who hit whom, weather conditions…",
+      "descriptionHint": "The text goes into the accident notice. The more precise it is, the faster the payout is reviewed.",
+      "circumstances": "Accident circumstances",
+      "circumstancesHint": "Mark the applicable items for «A» (you) and «B» (the second participant).",
+      "impactZone": "First impact zone",
+      "impactZoneHint": "Tap the spot where the first impact occurred.",
+      "yourCar": "Your car (A)",
+      "carB": "Car «B»",
+      "damage": "Vehicle damage",
+      "damageHint": "Mark the damaged parts on the diagram. The list will be included in the notice.",
+      "damageDetailA": "Damage details (A)",
+      "damageDetailAPlaceholder": "e.g. dent on the door, broken headlight…",
+      "damageDetailB": "Damage details (B)",
+      "damageDetailBPlaceholder": "e.g. rear bumper, left door…",
+      "objectionsA": "Objections (A) — if any",
+      "objectionsB": "Objections (B) — if any",
+      "objectionsPlaceholder": "Objections, if any…",
+      "additionalBack": "Additional (reverse side)",
+      "whoDrove": "Who was driving your vehicle?",
+      "driverOwner": "I'm the owner",
+      "driverProxy": "By power of attorney",
+      "ownershipDoc": "Ownership document (power of attorney/contract)",
+      "ownershipDocPlaceholder": "Series/number of the power of attorney or contract",
+      "canMove": "Can the vehicle move on its own?",
+      "vehicleLocation": "Vehicle location (from step 1, GPS)",
+      "addressNotSet": "Address not detected in step 1",
+      "remarks": "Remarks",
+      "remarksPlaceholder": "Dictate by voice or type text…",
+      "edit": "Edit",
+      "remove": "Remove",
+      "openMap": "Open map",
+      "openMapHint": "Place two cars on the map of the current location and mark the impact point"
+    },
+    "step4": {
+      "eyebrow": "Step 4 of 5 · Photo capture",
+      "toSigning": "To signing",
+      "title": "Photograph the scene",
+      "subtitle": "At least 3 shots. Shoot without moving the cars",
+      "cameraOnlyBanner": "Camera capture only. Uploading from the gallery is disabled.",
+      "videoOptional": "Video (optional)",
+      "recordVideo": "Record video",
+      "fromGallery": "From gallery",
+      "videoItem": "Video {{num}} · {{at}}",
+      "remove": "Remove",
+      "skipPhotos": "Skip photos (DEV)",
+      "captured": "CAPTURED",
+      "takePhoto": "Take a photo",
+      "requiredSuffix": " · required",
+      "galleryTitle": "Gallery",
+      "galleryPermission": "Allow access to the media library.",
+      "cameraTitle": "Camera",
+      "cameraPermission": "Allow camera access.",
+      "cameraPermissionPhoto": "Allow camera access to take a photo.",
+      "captureUnavailable": "Capture is unavailable. On the simulator use «Simulate».",
+      "videoTitle": "Video",
+      "recordUnavailable": "Recording is unavailable.",
+      "tiles": {
+        "overview": "Overview",
+        "myCar": "My car",
+        "otherCar": "Other car",
+        "scene": "Scene (opt.)"
+      }
+    },
+    "step5": {
+      "eyebrow": "Step 5 of 5 · Confirmation",
+      "signSubmit": "Sign and submit",
+      "title": "Check the details",
+      "subtitle": "Before submitting, make sure everything is correct",
+      "phaseUpload": "Uploading media…",
+      "phaseSubmit": "Submitting…",
+      "submitError": "Could not submit the europrotocol. Please try again.",
+      "circumstances": "Circumstances",
+      "dateTime": "Date and time",
+      "place": "Location",
+      "scheme": "Diagram",
+      "onMap": "on map ✓",
+      "photoVideo": "Photo / video",
+      "photoVideoValue": "{{done}} of {{total}} · {{videos}} video",
+      "markedCount": "marked: {{count}}",
+      "sideA": "Party A · You",
+      "vehicle": "Car",
+      "govNumber": "Plate number",
+      "license": "License",
+      "fromProfile": "from profile",
+      "confirmed": "Confirmed",
+      "no": "No",
+      "sideB": "Party B · Second participant",
+      "participant": "Participant",
+      "policy": "Policy",
+      "phone": "Phone",
+      "signature": "Signature",
+      "description": "Description",
+      "otherSignature": "Second participant's signature",
+      "signatureConfirmed": "✓ Confirmed via MyID — this counts as the second participant's signature and consent.",
+      "confirmCheckbox": "I confirm that all details are correct and both participants agree with the circumstances of the accident",
+      "footerNote": "Both identities are verified via MyID. After submission, the notice goes into review — track its status in the «Claims» section."
+    },
+    "success": {
+      "title": "Notice submitted",
+      "subtitle": "Europrotocol filed. Track the payout status in the «Claims» section.",
+      "noticeNumber": "Notice №",
+      "medReminder": "Within 4 hours, both drivers must undergo a medical examination at a narcology clinic.",
+      "goHome": "To home",
+      "myEuroProtocols": "My europrotocols"
+    }
+  },
+  "euroDocs": {
+    "common": {
+      "accident": "Accident",
+      "done": "Done",
+      "error": "Error"
+    },
+    "status": {
+      "SUBMITTED": "Submitted",
+      "REVIEW": "Under review",
+      "NEED_INFO": "Information required",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "PAID": "Paid"
+    },
+    "map": {
+      "scheme": {
+        "rear": "Rear-end collision",
+        "front": "Head-on",
+        "side": "Side"
+      },
+      "part": {
+        "front-bumper": "Front bumper",
+        "hood": "Hood",
+        "front-left-fender": "Front left fender",
+        "front-right-fender": "Front right fender",
+        "windshield": "Windshield",
+        "front-left-door": "Front left door",
+        "front-right-door": "Front right door",
+        "left-mirror": "Left mirror",
+        "right-mirror": "Right mirror",
+        "roof": "Roof",
+        "rear-left-door": "Rear left door",
+        "rear-right-door": "Rear right door",
+        "rear-window": "Rear window",
+        "rear-left-fender": "Rear left fender",
+        "rear-right-fender": "Rear right fender",
+        "trunk": "Trunk lid",
+        "rear-bumper": "Rear bumper"
+      },
+      "impactZone": {
+        "front": "front",
+        "rear": "rear",
+        "left": "left side",
+        "right": "right side",
+        "front-left": "front-left",
+        "front-right": "front-right",
+        "rear-left": "rear-left",
+        "rear-right": "rear-right"
+      }
+    },
+    "check": {
+      "title": "Is europrotocol suitable?",
+      "subtitle": "Confirm all conditions. If at least one is not met — an inspector or ГАИ is required",
+      "warning": "Not all conditions are confirmed yet. If any is not met, filing via europrotocol is not possible — call an inspector.",
+      "callInspector": "Call an inspector",
+      "conditions": {
+        "twoVehicles": "Only 2 vehicles are involved in the accident",
+        "noInjured": "No injured or deceased",
+        "noThirdParty": "No third-party property damaged",
+        "agree": "Both drivers agree on the circumstances",
+        "bothOsago": "Both drivers have a valid ОСАГО policy"
+      }
+    },
+    "detail": {
+      "notFound": "Not found",
+      "pdfError": "Couldn't get the PDF. Please try again later.",
+      "pdfBusy": "Preparing PDF…",
+      "pdfButton": "Notice PDF",
+      "heroEyebrow": "Accident · Europrotocol",
+      "close": "Close",
+      "share": "Share",
+      "myidConfirmed": "Confirmed",
+      "steps": {
+        "submitted": "Submitted",
+        "accepted": "Accepted for processing",
+        "review": "Under review",
+        "decision": "Decision",
+        "payment": "Payment"
+      },
+      "summary": {
+        "circumstances": "Circumstances",
+        "sideA": "Side A · You",
+        "sideB": "Side B · Other party",
+        "description": "Description"
+      },
+      "row": {
+        "dateTime": "Date and time",
+        "place": "Place",
+        "scheme": "Scheme",
+        "car": "Car",
+        "plate": "Plate number",
+        "participant": "Participant",
+        "policy": "Policy",
+        "signature": "Signature"
+      }
+    },
+    "list": {
+      "title": "Europrotocols",
+      "searchPlaceholder": "Number, make or plate",
+      "tabActive": "Active · {{n}}",
+      "tabArchive": "Archive",
+      "nothingFound": "Nothing found",
+      "archiveEmpty": "Archive is empty",
+      "noActive": "No active europrotocols",
+      "emptyTitle": "No europrotocols yet",
+      "emptySubtitle": "File an accident notice — both parties are confirmed via MyID",
+      "emptyCta": "File a europrotocol",
+      "cardFallback": "Accident · europrotocol"
+    },
+    "scheme": {
+      "title": "Accident scheme",
+      "subtitle": "Transparent car — where you came from, solid — the point of impact. The arrow shows the direction.",
+      "warning": "⚠️ Mark the accident location and the cars' positions accurately. With incorrect data the insurer may deny the payout.",
+      "carA": "Car A",
+      "carB": "Car B",
+      "dragHint": "Drag both points. Rotate car «{{car}}» to its position after the impact:",
+      "captureFailTitle": "Failed",
+      "captureFailMsg": "Couldn't capture the scheme. Please try again.",
+      "geoDeniedTitle": "No location access",
+      "geoDeniedMsg": "Allow location access to mark the accident place on the map.",
+      "openSettings": "Open Settings",
+      "geoErrorMsg": "Couldn't determine the location. Please try again."
+    },
+    "fields": {
+      "pickDate": "Select a date",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "parts": {
+      "summary": "Damage: {{list}}",
+      "empty": "Mark the damaged parts"
+    },
+    "zones": {
+      "summary": "Impact: {{list}}",
+      "empty": "No zone selected"
+    },
+    "voice": {
+      "micDeniedTitle": "No microphone access",
+      "micDeniedMsg": "Allow microphone access in settings to record a remark by voice.",
+      "startFailMsg": "Couldn't start recording.",
+      "saveFailMsg": "Couldn't save the recording. Please try again.",
+      "reRecordTitle": "Re-record?",
+      "reRecordMsg": "The recorded message will be deleted. Re-records left: {{left}}.",
+      "reRecord": "Re-record",
+      "reRecordLimit": "Re-record limit",
+      "recognizeFailTitle": "Couldn't recognize",
+      "recognizeFailMsg": "Please try again or enter the remark manually.",
+      "processing": "Recognizing voice…",
+      "recordingTime": "Recording · {{time}}",
+      "playing": "Playing…",
+      "recordedHint": "Recording ready — listen",
+      "recognize": "Recognize voice → text",
+      "doneOk": "Voice recognized ✓",
+      "startIdle": "Record by voice (uz/ru)",
+      "startAgain": "Record again by voice",
+      "attached": "🎙 attached"
+    }
+  },
+  "health": {
+    "currency": "UZS",
+    "hub": {
+      "subtitle": "Help nearby when you need it",
+      "aiDiagnosis": "AI diagnosis",
+      "aiDiagnosisSub": "Describe or say your symptoms — we'll tell you what to do",
+      "tileMedCard": "Medical card",
+      "tileMedCardSub": "Blood type, allergies, contacts",
+      "tileAmbulance": "Ambulance",
+      "tileAmbulanceSub": "Call the dispatcher · {{num}}",
+      "tileFindDoctor": "Find a doctor",
+      "tileFindDoctorSub": "Therapist, ENT, cardiologist",
+      "tileContacts": "Emergency contacts",
+      "tileContactsSub": "2 close contacts set up",
+      "allDoctors": "All doctors",
+      "nearbyDoctors": "Doctors nearby",
+      "sosTitle": "Emergency help",
+      "sosHint": "Press and hold the button for 1 second",
+      "sosSub": "Hold — we'll alert your contacts and send your location"
+    },
+    "doctor": {
+      "years": "{{count}} yrs",
+      "reviews": "{{count}} reviews",
+      "book": "Book",
+      "call": "Call",
+      "videoVisit": "Video visit",
+      "visitLabel": "visit",
+      "experiencePrefix": "exp."
+    },
+    "triage": {
+      "sendError": "Couldn't send. Check your connection or start a new chat.",
+      "restartTitle": "Start a new chat?",
+      "restartMsg": "The current conversation will be deleted.",
+      "restartConfirm": "Start over",
+      "headerTitle": "SOS24 · Medical AI",
+      "analyzing": "analyzing symptoms",
+      "showResult": "Show result",
+      "showPrelimResult": "Show preliminary result",
+      "inputPlaceholder": "Describe your symptoms…"
+    },
+    "urgency": {
+      "low": "Low urgency",
+      "medium": "Medium urgency",
+      "high": "High urgency"
+    },
+    "diagnosis": {
+      "title": "Analysis result",
+      "error": "Couldn't get the result. Go back and try again.",
+      "preliminary": "Preliminary",
+      "confidence": "Model confidence",
+      "youReported": "You reported",
+      "recommendations": "What we recommend",
+      "bookWithSpecialty": "Book a doctor · {{specialty}}",
+      "book": "Book a doctor"
+    },
+    "doctors": {
+      "searchPlaceholder": "Doctor, specialty, clinic",
+      "allRegions": "All regions",
+      "allSpecialties": "All",
+      "regionLabel": "Region: {{region}}",
+      "doctorsCount": "{{count}} doctors",
+      "empty": "No one found. Change your query or filter.",
+      "title": "Doctors",
+      "clinics": "Clinics"
+    },
+    "doctorProfile": {
+      "partnerBadge": "SOS24 partner",
+      "experienceLabel": "experience",
+      "clinicFallback": "clinic",
+      "workplaceLabel": "workplace",
+      "about": "About the doctor",
+      "services": "Services and prices",
+      "bookInPerson": "Book in person"
+    },
+    "booking": {
+      "title": "Book an appointment",
+      "createError": "Couldn't create the appointment",
+      "date": "Date",
+      "time": "Time",
+      "noSlots": "The doctor is not available on this day",
+      "reason": "Reason for visit",
+      "reasonPlaceholder": "Describe your symptoms…",
+      "submitting": "Creating…",
+      "submit": "Confirm appointment"
+    },
+    "bookingDone": {
+      "title": "You're booked",
+      "subtitle": "In-person visit · confirmed",
+      "note": "We'll remind you a day and an hour before. You can cancel or reschedule in “My appointments”.",
+      "done": "Done",
+      "backToHealth": "Back to Health"
+    },
+    "videoCall": {
+      "title": "Video consultation",
+      "subtitle": "Video visit — coming soon"
+    },
+    "date": {
+      "weekdayShort": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      },
+      "weekdayAbbr": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      },
+      "monthShort": {
+        "0": "Jan",
+        "1": "Feb",
+        "2": "Mar",
+        "3": "Apr",
+        "4": "May",
+        "5": "Jun",
+        "6": "Jul",
+        "7": "Aug",
+        "8": "Sep",
+        "9": "Oct",
+        "10": "Nov",
+        "11": "Dec"
+      },
+      "monthLong": {
+        "0": "January",
+        "1": "February",
+        "2": "March",
+        "3": "April",
+        "4": "May",
+        "5": "June",
+        "6": "July",
+        "7": "August",
+        "8": "September",
+        "9": "October",
+        "10": "November",
+        "11": "December"
+      }
+    }
+  },
+  "healthCard": {
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "medcard": {
+      "badge": "MEDICAL ID",
+      "edit": "Edit",
+      "patient": "Patient",
+      "noName": "No name",
+      "noData": "No data provided",
+      "lockInfo": "Available from the lock screen for emergency doctors. During SOS it is sent together with your location."
+    },
+    "empty": {
+      "title": "Medical card not filled in yet",
+      "subtitle": "Blood type, allergies and chronic conditions will help emergency doctors in a critical situation.",
+      "fill": "Fill in medical card"
+    },
+    "rows": {
+      "organDonor": "Organ donor",
+      "pregnancy": "Pregnancy",
+      "dmsPolicy": "Health insurance policy",
+      "doctor": "Attending doctor"
+    },
+    "common": {
+      "yes": "Yes",
+      "no": "No",
+      "delete": "Delete",
+      "add": "Add",
+      "error": "Error",
+      "call": "Call",
+      "close": "Close"
+    },
+    "vital": {
+      "blood": "Blood",
+      "height": "Height",
+      "weight": "Weight"
+    },
+    "units": {
+      "cm": "cm",
+      "kg": "kg",
+      "sum": "UZS",
+      "ms": "ms",
+      "bpm": "bpm",
+      "brpm": "br/min",
+      "kcal": "kcal",
+      "min": "min",
+      "hourShort": "h",
+      "minuteShort": "m"
+    },
+    "section": {
+      "allergies": "Allergies",
+      "chronic": "Chronic conditions",
+      "medications": "Regular medications",
+      "data": "Details",
+      "contacts": "Emergency contacts"
+    },
+    "action": {
+      "change": "Edit",
+      "add": "Add"
+    },
+    "contacts": {
+      "emptyHint": "No contacts added. Add your loved ones — they'll be alerted during SOS.",
+      "addError": "Couldn't add the contact",
+      "deleteTitle": "Delete contact?",
+      "noNumberTitle": "No number",
+      "noNumberMsg": "The selected contact has no phone number — enter it manually.",
+      "openError": "Couldn't open contacts.",
+      "title": "Emergency\ncontacts",
+      "subtitle": "Who to alert during SOS — we'll send a message and your location",
+      "countLabel": "Contacts · {{count}} of {{limit}}",
+      "pick": "Choose from contacts",
+      "name": "Name",
+      "namePh": "Gulnora Karimova",
+      "relation": "Relationship",
+      "relationPh": "Spouse",
+      "phone": "Phone",
+      "adding": "Adding…",
+      "manual": "Enter manually",
+      "limitReached": "You've reached the limit of {{limit}} contacts. Delete one to add another.",
+      "onSos": "When SOS is triggered",
+      "autoNotify": "Auto-notify",
+      "autoNotifySub": "SMS + push to close contacts",
+      "sendGeo": "Send location",
+      "sendGeoSub": "Last point on the map",
+      "call103": "Call 103",
+      "call103Sub": "After notifications are sent",
+      "footer": "Contacts receive a message only when SOS is activated. Your location is stored securely and not shared with third parties."
+    },
+    "edit": {
+      "unavailableTitle": "Unavailable",
+      "iphoneOnly": "The Health app is available only on iPhone.",
+      "imp": {
+        "bloodType": "blood type",
+        "height": "height {{value}} cm",
+        "weight": "weight {{value}} kg"
+      },
+      "bloodNote": {
+        "notSet": "Blood type isn't filled in the Health app. Add it in Health → Medical Data (or Summary → Medical Data → Blood Type) and try again — or enter it manually below.",
+        "denied": "No access to blood type. Allow it in Settings → Privacy → Health → SOS24 → Blood Type, then try again."
+      },
+      "importedTitle": "Data imported",
+      "noDataTitle": "No data",
+      "importedIntro": "Filled in from Health:",
+      "importedNote": "Values are taken from the most recent measurement — check and correct them if needed before saving.",
+      "noImportData": "The Health app has no data available to import.",
+      "readError": "Couldn't read data from the Health app.",
+      "saveError": "Couldn't save the medical card",
+      "title": "Medical card",
+      "importCta": "Fill in from the Health app",
+      "importSub": "Blood type, height and weight — from Apple Health",
+      "prefilledNote": "Full name, date of birth and gender are filled from your profile — check and change if needed.",
+      "fullName": "Full name",
+      "fullNamePh": "Aziz Karimov",
+      "birthDate": "Date of birth",
+      "gender": "Gender",
+      "male": "Male",
+      "female": "Female",
+      "bloodType": "Blood type",
+      "rhPos": "Rh+ positive",
+      "rhNeg": "Rh− negative",
+      "heightLabel": "Height, cm",
+      "weightLabel": "Weight, kg",
+      "allergies": "Allergies",
+      "addAllergen": "Add allergen",
+      "chronic": "Chronic conditions",
+      "chronicPh": "Bronchial asthma (mild)",
+      "medications": "Regular medications",
+      "medicationsPh": "Salbutamol — as needed",
+      "organDonor": "Organ donor",
+      "organDonorSub": "Show to emergency doctors",
+      "pregnancy": "Pregnancy",
+      "pregnancySub": "Currently relevant",
+      "dmsPolicy": "Health insurance policy",
+      "dmsPolicyPh": "SOS24 VHI · until 12.2026",
+      "doctor": "Attending doctor",
+      "doctorPh": "Malika Sodiqova · therapist",
+      "consent": "I consent to the processing and storage of medical data. The data is encrypted and available only to me and to emergency doctors during SOS.",
+      "saving": "Saving…"
+    },
+    "clinics": {
+      "title": "Clinics",
+      "searchPh": "Clinic, address",
+      "allRegions": "All regions",
+      "empty": "No clinics found. Change the region or your query.",
+      "doctorsCount": "{{count}} doctors",
+      "about": "About the clinic",
+      "doctorsTitle": "Clinic doctors · {{count}}",
+      "reviews": "{{count}} reviews",
+      "yearsExp": "{{years}} yrs"
+    },
+    "sos": {
+      "header": "SOS · EMERGENCY CALL",
+      "failed": "Couldn't send",
+      "sending": "Sending help…",
+      "errorSub": "Check your connection and try again, or call 103.",
+      "sendingSub": "Notifying your loved ones and sending your location to the dispatcher",
+      "locating": "Locating…",
+      "failedNotify": "not delivered",
+      "notified": "notified",
+      "noContacts": "No emergency contacts added — the dispatcher has been notified anyway.",
+      "call103": "Call 103",
+      "cancelAlarm": "Cancel alarm"
+    },
+    "whoop": {
+      "tabs": {
+        "overview": "Overview",
+        "recovery": "Recovery",
+        "sleep": "Sleep",
+        "strain": "Strain",
+        "trends": "Trends"
+      },
+      "disconnectTitle": "Disconnect WHOOP?",
+      "disconnectMsg": "Metrics will stop updating. The data in your medical card will remain.",
+      "disconnect": "Disconnect",
+      "disconnectBtn": "Disconnect WHOOP",
+      "screenTitle": "WHOOP metrics",
+      "updated": "Updated {{ago}}",
+      "demoSuffix": " · demo",
+      "refresh": "Refresh",
+      "notConnected": "WHOOP isn't connected. Go back to the Health screen and tap Connect.",
+      "disclaimer": "Wearable data is for information only and is not a medical diagnosis.",
+      "ready": {
+        "high": "High readiness",
+        "mid": "Medium readiness",
+        "low": "Low readiness"
+      },
+      "recovery": "Recovery",
+      "strain": "Strain",
+      "sleep": "Sleep",
+      "hrv": "HRV",
+      "restingHr": "Resting HR",
+      "oxygen": "Oxygen",
+      "skinTemp": "Skin temp",
+      "overviewRecoveryNote": "How well your body has recovered and is ready for strain — based on HRV, resting HR and last night's sleep.",
+      "recoveryNote": "Recovery is calculated from heart rate variability (HRV), resting HR, sleep quality and last night's respiration.",
+      "sleepQuality": "Sleep quality",
+      "gotPct": "Got {{pct}}%",
+      "debt": "Sleep debt {{value}}",
+      "sleepStages": "Sleep stages",
+      "sleepStagesNote": "Deep sleep restores the body, REM restores the brain and memory. The more deep and REM sleep, the better the recovery.",
+      "consistency": "Consistency",
+      "efficiency": "Efficiency",
+      "respiration": "Respiration",
+      "totalSleep": "Total sleep",
+      "dayStrain": "Daily strain",
+      "strainNote": "Total strain on the heart for the day (0–21). Compare it with recovery: high readiness → you can push harder.",
+      "avgHr": "Avg HR",
+      "maxHr": "Max HR",
+      "calories": "Calories",
+      "hrZones": "HR zones (for the day)",
+      "workouts": "Workouts",
+      "workout": "Workout",
+      "zone": "Zone {{n}}",
+      "days": "{{count}} days",
+      "hrvNight": "HRV (at night)",
+      "myMetrics": "My metrics",
+      "recDesc": {
+        "high": "Well recovered — ready for a workout",
+        "mid": "Moderate recovery — avoid overload",
+        "low": "Low recovery — rest today"
+      },
+      "stage": {
+        "deep": "Deep",
+        "light": "Light",
+        "awakeShort": "Awake",
+        "awake": "Awake"
+      },
+      "connectFailTitle": "Couldn't connect",
+      "connectFailMsg": "Try again.",
+      "connectTitle": "Connect WHOOP",
+      "connectSub": "Recovery, sleep and heart rate — always up to date in the app",
+      "connect": "Connect"
+    },
+    "stub": {
+      "inDev": "Screen in development"
+    },
+    "days": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    }
+  },
+  "purchase": {
+    "common": {
+      "sum": "sum",
+      "monthsShort": "mo",
+      "paymentMethod": "Payment method",
+      "oneTime": "One-time",
+      "installment": "Installments",
+      "error": "Error"
+    },
+    "months": {
+      "0": "January",
+      "1": "February",
+      "2": "March",
+      "3": "April",
+      "4": "May",
+      "5": "June",
+      "6": "July",
+      "7": "August",
+      "8": "September",
+      "9": "October",
+      "10": "November",
+      "11": "December"
+    },
+    "company": {
+      "title": "Insurance companies",
+      "subtitle": "Choose a company to see its products",
+      "empty": "No companies available yet",
+      "loadError": "Failed to load companies",
+      "products": {
+        "one": "product",
+        "few": "products",
+        "many": "products"
+      }
+    },
+    "products": {
+      "title": "Insurance",
+      "subtitle": "Choose a product and get a policy online",
+      "empty": "This company has no products yet",
+      "loadError": "Failed to load products",
+      "eyebrow": {
+        "OSAGO": "Mandatory",
+        "KASKO": "Full coverage",
+        "HEALTH": "Life and health",
+        "HOME": "Property",
+        "FINANCE": "Financial protection",
+        "LIFE": "Life",
+        "TRAVEL": "Travel",
+        "OTHER": "Insurance"
+      },
+      "benefits": {
+        "OSAGO": {
+          "0": "Instant electronic policy",
+          "1": "Valid across Uzbekistan",
+          "2": "Online, no office visit"
+        },
+        "KASKO": {
+          "0": "Theft and third-party damage",
+          "1": "Inspector call-out 24/7",
+          "2": "Network of partner service stations"
+        },
+        "HEALTH": {
+          "0": "Hospitalization and outpatient care",
+          "1": "Clinic network across Uzbekistan",
+          "2": "Payouts up to 50,000,000 sum"
+        },
+        "HOME": {
+          "0": "Fire, flooding, natural disasters",
+          "1": "Burglary and robbery",
+          "2": "Liability to neighbors"
+        },
+        "FINANCE": {
+          "0": "Loan payment coverage",
+          "1": "Payout on job loss",
+          "2": "Legal support"
+        },
+        "LIFE": {
+          "0": "Payout to family in case of accident",
+          "1": "Support for serious illnesses",
+          "2": "Quick online sign-up"
+        },
+        "TRAVEL": {
+          "0": "Medical care abroad",
+          "1": "Baggage and trip cancellation cover",
+          "2": "Visa policy in a minute"
+        },
+        "OTHER": {
+          "0": "Reliable protection",
+          "1": "Across Uzbekistan",
+          "2": "Online sign-up"
+        }
+      }
+    },
+    "detail": {
+      "loadError": "Failed to load product",
+      "selectPlan": "Choose a plan",
+      "covers": "What's covered",
+      "exceptions": "What's not covered",
+      "howItWorks": "How it works",
+      "faq": "Questions and answers",
+      "selectPlanHint": "Choose a plan to continue",
+      "checkout": "Get policy",
+      "calculate": "Calculate price",
+      "coverageUpTo": "Coverage up to {{amount}} sum"
+    },
+    "calc": {
+      "step1": {
+        "eyebrow": "Step 1 of 4 · Vehicle"
+      },
+      "step2": {
+        "eyebrow": "Step 2 of 4 · Drivers"
+      },
+      "step3": {
+        "eyebrow": "Step 3 of 4 · Period"
+      },
+      "step4": {
+        "eyebrow": "Step 4 of 4 · Price"
+      },
+      "vehicle": {
+        "title": "Choose your car",
+        "subtitle": "Which car is the policy for",
+        "addCar": "Add a new car"
+      },
+      "drivers": {
+        "title": "Who will drive",
+        "subtitle": "The number of drivers affects the price",
+        "limited": "Limited list",
+        "unlimited": "Unlimited",
+        "addDriver": "Add a driver",
+        "warning": "\"Unlimited\" costs about 25% more but lets any licensed driver drive.",
+        "noLicense": "License not specified",
+        "license": "License {{series}} {{number}}",
+        "expYears": {
+          "one": "{{years}} yr",
+          "few": "{{years}} yrs",
+          "many": "{{years}} yrs"
+        }
+      },
+      "period": {
+        "title": "Insurance period",
+        "subtitle": "The longer the term, the better the monthly rate",
+        "m3": "3 months",
+        "m6": "6 months",
+        "m12": "12 months",
+        "best": "best",
+        "startDate": "Start date",
+        "endDate": "End date"
+      },
+      "result": {
+        "title": "Policy price",
+        "subtitle": "{{product}} calculation for {{months}} mo",
+        "submit": "Get policy",
+        "total": "Total",
+        "installmentNote": "{{amount}} sum × 12 months. First payment today."
+      }
+    },
+    "checkout": {
+      "title": "Policy checkout",
+      "subtitle": "Review the details before paying",
+      "vehicle": "Vehicle",
+      "brandModel": "Make / model",
+      "plate": "Plate number",
+      "yearEngine": "Year · Engine",
+      "drivers": "Drivers",
+      "period": "Period",
+      "term": "Term",
+      "monthsValue": "{{months}} months",
+      "start": "Start",
+      "end": "End",
+      "promo": "Promo code",
+      "promoPlaceholder": "Enter promo code",
+      "apply": "Apply",
+      "remove": "Remove",
+      "discountApplied": "Discount of {{amount}} sum applied",
+      "promoNotFound": "Promo code not found",
+      "cost": "Cost",
+      "withoutDiscount": "Without discount",
+      "agreePre": "I have read the ",
+      "agreeLink": "offer terms",
+      "agreePost": " and agree to the processing of personal data",
+      "creating": "Creating…",
+      "toPayment": "Proceed to payment · {{amount}} sum",
+      "createError": "Failed to create policy",
+      "expOne": "{{years}} yr experience",
+      "expFew": "{{years}} yrs experience",
+      "expMany": "{{years}} yrs experience"
+    },
+    "payment": {
+      "toPay": "To pay",
+      "allCards": "All cards",
+      "viaBrowser": "Payment via browser",
+      "secureNote": "Payment is secure. Card details are not stored on our server.",
+      "pay": "Pay {{amount}} sum",
+      "browserReturn": "After paying, return to the app — the status will update automatically.",
+      "failed": "Payment failed",
+      "declined": "Payment declined"
+    },
+    "cards": {
+      "title": "My cards",
+      "subtitle": "Manage saved payment methods",
+      "empty": "No saved cards",
+      "add": "Add card",
+      "info": "Uzcard and Humo cards are supported. Visa and Mastercard coming soon.\nHold a card to delete it.",
+      "last4Label": "Last 4 digits",
+      "expiryLabel": "Expiry (MM/YY)",
+      "saving": "Saving...",
+      "deleteTitle": "Delete card",
+      "deleteMessage": "Card •••• {{last4}} will be deleted",
+      "delete": "Delete",
+      "addError": "Failed to add card"
+    },
+    "success": {
+      "title": "Policy issued!",
+      "activeFrom": " is valid from ",
+      "activeTo": " to ",
+      "activated": "Policy activated",
+      "myPolicies": "My policies",
+      "downloadPdf": "Download PDF",
+      "pdfSoon": "Downloading the PDF policy will be available in the next update.",
+      "toHome": "To home"
+    }
   }
 }

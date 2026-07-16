@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Image, Pressable, Text, View } from 'react-native';
 import { tokens } from '../../../theme/colors';
 
@@ -57,8 +58,13 @@ export function DamagePartsPicker({
   value: string[];
   onChange: (next: string[]) => void;
 }) {
+  const { t } = useTranslation();
   const toggle = (code: string) =>
     onChange(value.includes(code) ? value.filter((c) => c !== code) : [...value, code]);
+  // Читаемая (локализованная) сводка выбранных деталей — в порядке диаграммы.
+  const selectedText = DAMAGE_PARTS.filter((p) => value.includes(p.code))
+    .map((p) => t('euroDocs.map.part.' + p.code))
+    .join(', ');
 
   return (
     <View style={{ gap: 8 }}>
@@ -106,7 +112,7 @@ export function DamagePartsPicker({
         })}
       </View>
       <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12.5, color: value.length ? tokens.inkDark : tokens.inkSubtle, paddingLeft: 2 }}>
-        {value.length ? `Повреждения: ${damagePartsText(value)}` : 'Отметьте повреждённые детали'}
+        {value.length ? t('euroDocs.parts.summary', { list: selectedText }) : t('euroDocs.parts.empty')}
       </Text>
     </View>
   );

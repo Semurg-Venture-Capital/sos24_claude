@@ -1,4 +1,5 @@
 import { CommonActions, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { usePolicy } from '../../../api/policies';
 import { CloseIcon } from '../../../components/icons/CloseIcon';
@@ -24,6 +25,7 @@ function ddmmyyyy(iso: string): string {
 // M7.2 — Успешная оплата.
 export function SuccessScreen() {
   const nav = useNavigation();
+  const { t } = useTranslation();
   const state = usePurchaseStore();
   const policyId = state.draftPolicyId;
   const { data: policy } = usePolicy(policyId ?? undefined);
@@ -105,7 +107,7 @@ export function SuccessScreen() {
               lineHeight: 33,
             }}
           >
-            Полис оформлен!
+            {t('purchase.success.title')}
           </Text>
           <Text
             style={{
@@ -118,11 +120,12 @@ export function SuccessScreen() {
               lineHeight: 22,
             }}
           >
-            {productLabel} действует с{' '}
+            {productLabel}
+            {t('purchase.success.activeFrom')}
             <Text style={{ color: tokens.inkDark, fontFamily: 'Manrope_600SemiBold' }}>
               {ddmmyyyy(startDate)}
-            </Text>{' '}
-            по{' '}
+            </Text>
+            {t('purchase.success.activeTo')}
             <Text style={{ color: tokens.inkDark, fontFamily: 'Manrope_600SemiBold' }}>
               {ddmmyyyy(endDate)}
             </Text>
@@ -161,7 +164,7 @@ export function SuccessScreen() {
                   textTransform: 'uppercase',
                 }}
               >
-                {productLabel} · {periodMonths} мес
+                {productLabel} · {periodMonths} {t('purchase.common.monthsShort')}
               </Text>
               <Text
                 style={{
@@ -175,7 +178,7 @@ export function SuccessScreen() {
                 {isVehicleProduct ? (car?.plate ?? '—') : productLabel}
               </Text>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMutedDark, marginTop: 4 }}>
-                {isVehicleProduct ? (car ? `${car.brand} ${car.model}` : '—') : 'Полис активирован'}
+                {isVehicleProduct ? (car ? `${car.brand} ${car.model}` : '—') : t('purchase.success.activated')}
               </Text>
             </View>
             <PolicyQR value={qrValue} size={64} padding={6} />
@@ -185,16 +188,16 @@ export function SuccessScreen() {
 
       {/* Action buttons */}
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36, gap: 10 }}>
-        <RedButton onPress={() => closeAndGo('Policies')}>Мои полисы</RedButton>
+        <RedButton onPress={() => closeAndGo('Policies')}>{t('purchase.success.myPolicies')}</RedButton>
         <OutlineButton
           onPress={() =>
-            Alert.alert('Скоро', 'Скачивание PDF-полиса будет доступно в следующем обновлении.')
+            Alert.alert(t('common.comingSoon'), t('purchase.success.pdfSoon'))
           }
         >
-          ↓ Скачать PDF
+          ↓ {t('purchase.success.downloadPdf')}
         </OutlineButton>
         <View style={{ alignItems: 'center', marginTop: 8 }}>
-          <TextLink onPress={() => closeAndGo('Home')}>На главную</TextLink>
+          <TextLink onPress={() => closeAndGo('Home')}>{t('purchase.success.toHome')}</TextLink>
         </View>
       </View>
     </PhoneFrame>

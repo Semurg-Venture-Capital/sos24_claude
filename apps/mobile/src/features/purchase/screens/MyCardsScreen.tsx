@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { Glass } from '../../../components/ui/Glass';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -29,6 +30,7 @@ import { tokens } from '../../../theme/colors';
 // M7.3 — Управление сохранёнными картами.
 export function MyCardsScreen() {
   const nav = useNavigation();
+  const { t } = useTranslation();
   const { data: cards, isLoading } = useCards();
   const { data: me } = useMe();
   const deleteCard = useDeleteCard();
@@ -45,10 +47,10 @@ export function MyCardsScreen() {
       : '—';
 
   const handleDelete = (id: string, last4: string) => {
-    Alert.alert('Удалить карту', `Карта •••• ${last4} будет удалена`, [
-      { text: 'Отмена', style: 'cancel' },
+    Alert.alert(t('purchase.cards.deleteTitle'), t('purchase.cards.deleteMessage', { last4 }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Удалить',
+        text: t('purchase.cards.delete'),
         style: 'destructive',
         onPress: () => deleteCard.mutate(id),
       },
@@ -64,7 +66,7 @@ export function MyCardsScreen() {
       setAddExpiry('');
       setAddBrand('UZCARD');
     } catch {
-      Alert.alert('Ошибка', 'Не удалось добавить карту');
+      Alert.alert(t('purchase.common.error'), t('purchase.cards.addError'));
     }
   };
 
@@ -88,7 +90,7 @@ export function MyCardsScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40, gap: 14 }}
         showsVerticalScrollIndicator={false}
       >
-        <ScreenHeading title="Мои карты" subtitle="Управление сохранёнными способами оплаты" />
+        <ScreenHeading title={t('purchase.cards.title')} subtitle={t('purchase.cards.subtitle')} />
 
         {isLoading ? (
           <View style={{ paddingTop: 40, alignItems: 'center' }}>
@@ -122,13 +124,13 @@ export function MyCardsScreen() {
                     textAlign: 'center',
                   }}
                 >
-                  Нет сохранённых карт
+                  {t('purchase.cards.empty')}
                 </Text>
               </View>
             )}
 
             <View style={{ marginTop: 6 }}>
-              <AddTile onPress={() => setShowAddModal(true)}>Добавить карту</AddTile>
+              <AddTile onPress={() => setShowAddModal(true)}>{t('purchase.cards.add')}</AddTile>
             </View>
 
             <View style={{ borderRadius: 20, overflow: 'hidden', marginTop: 6 }}>
@@ -168,7 +170,7 @@ export function MyCardsScreen() {
                     lineHeight: 18,
                   }}
                 >
-                  Поддерживаются карты Uzcard и Humo. Visa и Mastercard скоро.{'\n'}Удержите карту для удаления.
+                  {t('purchase.cards.info')}
                 </Text>
               </Glass>
             </View>
@@ -200,7 +202,7 @@ export function MyCardsScreen() {
                 color: tokens.ink,
               }}
             >
-              Добавить карту
+              {t('purchase.cards.add')}
             </Text>
 
             <Segmented
@@ -210,7 +212,7 @@ export function MyCardsScreen() {
             />
 
             <TextField
-              label="Последние 4 цифры"
+              label={t('purchase.cards.last4Label')}
               value={addLast4}
               onChangeText={setAddLast4}
               placeholder="1234"
@@ -219,7 +221,7 @@ export function MyCardsScreen() {
             />
 
             <TextField
-              label="Срок действия (ММ/ГГ)"
+              label={t('purchase.cards.expiryLabel')}
               value={addExpiry}
               onChangeText={setAddExpiry}
               placeholder="08/27"
@@ -231,7 +233,7 @@ export function MyCardsScreen() {
                 onPress={handleAddCard}
                 disabled={addLast4.length < 4 || addExpiry.length < 5 || createCard.isPending}
               >
-                {createCard.isPending ? 'Сохранение...' : 'Сохранить'}
+                {createCard.isPending ? t('purchase.cards.saving') : t('common.save')}
               </RedButton>
             </View>
 
@@ -244,7 +246,7 @@ export function MyCardsScreen() {
                   fontSize: 14,
                 }}
               >
-                Отмена
+                {t('common.cancel')}
               </Text>
             </Pressable>
           </View>

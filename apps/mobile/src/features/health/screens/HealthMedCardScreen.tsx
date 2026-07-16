@@ -1,5 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,12 +16,14 @@ import { MedCardRow, MedChip, MedContactCard, MedSectionLabel, MedVital, medGlas
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthMedCard'>;
 
-const genderLabel = (g: string | null) => (g === 'M' ? 'Мужчина' : g === 'F' ? 'Женщина' : null);
+const genderLabel = (g: string | null, t: TFunction) =>
+  g === 'M' ? t('healthCard.gender.male') : g === 'F' ? t('healthCard.gender.female') : null;
 
 // M14.9 — Мед.карта (Medical ID). Данные с бэкенда (чувствительные поля
 // расшифровываются на сервере при чтении владельцем). Фаза E.
 export function HealthMedCardScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { data, isLoading } = useMedicalProfile();
   const { data: contactsData } = useEmergencyContacts();
 
@@ -63,7 +67,7 @@ export function HealthMedCardScreen() {
             >
               <MedCrossIcon size={14} color="#fff" />
               <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 12, color: '#fff', letterSpacing: 0.4 }}>
-                МЕД.КАРТА
+                {t('healthCard.medcard.badge')}
               </Text>
             </View>
             <Pressable
@@ -78,20 +82,20 @@ export function HealthMedCardScreen() {
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>Ред.</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>{t('healthCard.medcard.edit')}</Text>
             </Pressable>
           </View>
 
           {/* Идентификация */}
           {filled ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 20 }}>
-              <Avatar name={data!.profile!.fullName || 'Пациент'} size={72} />
+              <Avatar name={data!.profile!.fullName || t('healthCard.medcard.patient')} size={72} />
               <View style={{ gap: 4, flex: 1 }}>
                 <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 24, color: '#fff', letterSpacing: -0.24 }}>
-                  {data!.profile!.fullName || 'Без имени'}
+                  {data!.profile!.fullName || t('healthCard.medcard.noName')}
                 </Text>
                 <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13.5, color: 'rgba(255,255,255,0.85)' }}>
-                  {[genderLabel(data!.profile!.gender), data!.profile!.birthDate].filter(Boolean).join(' · ') || 'Данные не заполнены'}
+                  {[genderLabel(data!.profile!.gender, t), data!.profile!.birthDate].filter(Boolean).join(' · ') || t('healthCard.medcard.noData')}
                 </Text>
               </View>
             </View>
@@ -115,20 +119,21 @@ export function HealthMedCardScreen() {
 }
 
 function EmptyState({ onFill }: { onFill: () => void }) {
+  const { t } = useTranslation();
   return (
     <View style={{ paddingHorizontal: 24, paddingTop: 40, alignItems: 'center', gap: 12 }}>
       <View style={{ width: 72, height: 72, borderRadius: 999, backgroundColor: 'rgba(230,20,40,0.1)', alignItems: 'center', justifyContent: 'center' }}>
         <MedCrossIcon size={28} color={tokens.red} />
       </View>
       <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink, textAlign: 'center' }}>
-        Мед.карта ещё не заполнена
+        {t('healthCard.empty.title')}
       </Text>
       <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center', lineHeight: 20, maxWidth: 300 }}>
-        Группа крови, аллергии и хронические заболевания помогут врачам скорой при экстренной ситуации.
+        {t('healthCard.empty.subtitle')}
       </Text>
       <View style={{ width: '100%', marginTop: 12 }}>
         <RedButton trailing={false} onPress={onFill}>
-          Заполнить мед.карту
+          {t('healthCard.empty.fill')}
         </RedButton>
       </View>
     </View>
@@ -152,28 +157,29 @@ function FilledCard({
   contacts: EmergencyContact[];
   onEditContacts: () => void;
 }) {
+  const { t } = useTranslation();
   const hasVitals = p.bloodType || p.heightCm != null || p.weightKg != null;
   const dataRows: { label: string; value: string; color?: string }[] = [];
-  if (p.organDonor != null) dataRows.push({ label: 'Донор органов', value: p.organDonor ? 'Да' : 'Нет', color: p.organDonor ? '#0a3a26' : tokens.inkMuted });
-  if (p.pregnancy != null) dataRows.push({ label: 'Беременность', value: p.pregnancy ? 'Да' : '—', color: tokens.inkMuted });
-  if (p.dmsPolicy) dataRows.push({ label: 'Полис ДМС', value: p.dmsPolicy });
-  if (p.doctorName) dataRows.push({ label: 'Лечащий врач', value: p.doctorName });
+  if (p.organDonor != null) dataRows.push({ label: t('healthCard.rows.organDonor'), value: p.organDonor ? t('healthCard.common.yes') : t('healthCard.common.no'), color: p.organDonor ? '#0a3a26' : tokens.inkMuted });
+  if (p.pregnancy != null) dataRows.push({ label: t('healthCard.rows.pregnancy'), value: p.pregnancy ? t('healthCard.common.yes') : '—', color: tokens.inkMuted });
+  if (p.dmsPolicy) dataRows.push({ label: t('healthCard.rows.dmsPolicy'), value: p.dmsPolicy });
+  if (p.doctorName) dataRows.push({ label: t('healthCard.rows.doctor'), value: p.doctorName });
 
   return (
     <>
       {/* Виталы */}
       {hasVitals ? (
         <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 24, marginTop: -34 }}>
-          <MedVital label="Кровь" value={p.bloodType || '—'} accent icon={<BloodDropIcon size={13} />} />
-          <MedVital label="Рост" value={p.heightCm != null ? String(p.heightCm) : '—'} unit={p.heightCm != null ? 'см' : undefined} />
-          <MedVital label="Вес" value={p.weightKg != null ? String(p.weightKg) : '—'} unit={p.weightKg != null ? 'кг' : undefined} />
+          <MedVital label={t('healthCard.vital.blood')} value={p.bloodType || '—'} accent icon={<BloodDropIcon size={13} />} />
+          <MedVital label={t('healthCard.vital.height')} value={p.heightCm != null ? String(p.heightCm) : '—'} unit={p.heightCm != null ? t('healthCard.units.cm') : undefined} />
+          <MedVital label={t('healthCard.vital.weight')} value={p.weightKg != null ? String(p.weightKg) : '—'} unit={p.weightKg != null ? t('healthCard.units.kg') : undefined} />
         </View>
       ) : null}
 
       <View style={{ paddingHorizontal: 24, paddingTop: 24, gap: 18 }}>
         {p.allergies.length > 0 ? (
           <View style={{ gap: 10 }}>
-            <MedSectionLabel>Аллергии</MedSectionLabel>
+            <MedSectionLabel>{t('healthCard.section.allergies')}</MedSectionLabel>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {p.allergies.map((a, i) => (
                 <MedChip key={`${a}-${i}`} tone="red">
@@ -186,21 +192,21 @@ function FilledCard({
 
         {p.chronic ? (
           <View style={{ gap: 10 }}>
-            <MedSectionLabel>Хронические заболевания</MedSectionLabel>
+            <MedSectionLabel>{t('healthCard.section.chronic')}</MedSectionLabel>
             <TextCard text={p.chronic} />
           </View>
         ) : null}
 
         {p.medications ? (
           <View style={{ gap: 10 }}>
-            <MedSectionLabel>Постоянные лекарства</MedSectionLabel>
+            <MedSectionLabel>{t('healthCard.section.medications')}</MedSectionLabel>
             <TextCard text={p.medications} />
           </View>
         ) : null}
 
         {dataRows.length > 0 ? (
           <View style={{ gap: 10 }}>
-            <MedSectionLabel>Данные</MedSectionLabel>
+            <MedSectionLabel>{t('healthCard.section.data')}</MedSectionLabel>
             {dataRows.map((r) => (
               <MedCardRow key={r.label} label={r.label} value={r.value} valueColor={r.color} />
             ))}
@@ -209,8 +215,8 @@ function FilledCard({
 
         {/* Экстренные контакты (реальные, из API) */}
         <View style={{ gap: 10 }}>
-          <MedSectionLabel action={contacts.length ? 'Изменить' : 'Добавить'} onAction={onEditContacts}>
-            Экстренные контакты
+          <MedSectionLabel action={contacts.length ? t('healthCard.action.change') : t('healthCard.action.add')} onAction={onEditContacts}>
+            {t('healthCard.section.contacts')}
           </MedSectionLabel>
           {contacts.length > 0 ? (
             contacts.map((c) => (
@@ -225,7 +231,7 @@ function FilledCard({
               ]}
             >
               <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13.5, color: tokens.inkMuted, textAlign: 'center' }}>
-                Контакты не добавлены. Укажите близких — их оповестят при SOS.
+                {t('healthCard.contacts.emptyHint')}
               </Text>
             </Pressable>
           )}
@@ -233,7 +239,7 @@ function FilledCard({
 
         <View style={{ flexDirection: 'row', gap: 10, padding: 14, borderRadius: 16, backgroundColor: 'rgba(20,20,20,0.04)' }}>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted, lineHeight: 17, flex: 1 }}>
-            Доступно с экрана блокировки для врачей скорой. При SOS отправляется вместе с геолокацией.
+            {t('healthCard.medcard.lockInfo')}
           </Text>
         </View>
       </View>

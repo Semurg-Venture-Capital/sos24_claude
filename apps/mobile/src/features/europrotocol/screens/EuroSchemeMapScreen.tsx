@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -84,6 +85,7 @@ function useDraggable(onSelect: () => void, onEnd: () => void) {
 // Полноэкранный редактор схемы ДТП: карта + по 2 точки на авто (старт-призрак → финиш-удар)
 // со стрелкой направления. «Готово» снимает карту с машинами и сохраняет рисунок в стор.
 export function EuroSchemeMapScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const s = useEuroStore();
   const mapRef = useRef<MapView>(null);
@@ -184,7 +186,7 @@ export function EuroSchemeMapScreen() {
       s.setSchemeImage(out);
       nav.goBack();
     } catch {
-      Alert.alert('Не получилось', 'Не удалось снять схему. Попробуйте ещё раз.');
+      Alert.alert(t('euroDocs.scheme.captureFailTitle'), t('euroDocs.scheme.captureFailMsg'));
       setMapShot(null);
     } finally {
       mapLoaded.current = null;
@@ -204,11 +206,11 @@ export function EuroSchemeMapScreen() {
       }
       if (status !== 'granted') {
         Alert.alert(
-          'Нет доступа к геолокации',
-          'Разрешите доступ к местоположению, чтобы отметить место ДТП на карте.',
+          t('euroDocs.scheme.geoDeniedTitle'),
+          t('euroDocs.scheme.geoDeniedMsg'),
           [
-            { text: 'Отмена', style: 'cancel' },
-            { text: 'Открыть Настройки', onPress: () => void Linking.openURL('app-settings:') },
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('euroDocs.scheme.openSettings'), onPress: () => void Linking.openURL('app-settings:') },
           ],
         );
         return;
@@ -223,7 +225,7 @@ export function EuroSchemeMapScreen() {
       regionRef.current = region;
       mapRef.current?.animateToRegion(region, 500);
     } catch {
-      Alert.alert('Ошибка', 'Не удалось определить местоположение. Попробуйте ещё раз.');
+      Alert.alert(t('euroDocs.common.error'), t('euroDocs.scheme.geoErrorMsg'));
     } finally {
       setLocating(false);
     }
@@ -235,9 +237,9 @@ export function EuroSchemeMapScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.inkDark }} edges={['top']}>
       {/* Заголовок */}
       <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
-        <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 18, color: '#fff' }}>Схема ДТП</Text>
+        <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 18, color: '#fff' }}>{t('euroDocs.scheme.title')}</Text>
         <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>
-          Прозрачная машина — откуда ехали, сплошная — место удара. Стрелка показывает направление.
+          {t('euroDocs.scheme.subtitle')}
         </Text>
       </View>
 
@@ -254,7 +256,7 @@ export function EuroSchemeMapScreen() {
         }}
       >
         <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: '#fff', lineHeight: 17 }}>
-          ⚠️ Укажите место ДТП и положение машин точно. При неверных данных страховая компания может отказать в выплате.
+          {t('euroDocs.scheme.warning')}
         </Text>
       </View>
 
@@ -365,13 +367,13 @@ export function EuroSchemeMapScreen() {
       {/* Панель инструментов */}
       <View style={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}>
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <ToolTab label="Машина А" active={tool === 'A'} dot={tokens.red} onPress={() => setTool('A')} />
-          <ToolTab label="Машина В" active={tool === 'B'} dot="#1f2430" onPress={() => setTool('B')} />
+          <ToolTab label={t('euroDocs.scheme.carA')} active={tool === 'A'} dot={tokens.red} onPress={() => setTool('A')} />
+          <ToolTab label={t('euroDocs.scheme.carB')} active={tool === 'B'} dot="#1f2430" onPress={() => setTool('B')} />
         </View>
 
         <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
           <Text style={{ flex: 1, fontFamily: 'Manrope_400Regular', fontSize: 12, color: 'rgba(255,255,255,0.75)', lineHeight: 16 }}>
-            Перетащите обе точки. Доверните машину «{tool}» в положение после удара:
+            {t('euroDocs.scheme.dragHint', { car: tool })}
           </Text>
           <RoundBtn label="↺ 15°" onPress={() => rotate(-15)} />
           <RoundBtn label="15° ↻" onPress={() => rotate(15)} />
@@ -382,7 +384,7 @@ export function EuroSchemeMapScreen() {
             onPress={() => nav.goBack()}
             style={{ flex: 1, height: 50, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)' }}
           >
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: '#fff' }}>Отмена</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: '#fff' }}>{t('common.cancel')}</Text>
           </Pressable>
           <Pressable
             onPress={done}
@@ -392,7 +394,7 @@ export function EuroSchemeMapScreen() {
             {busy ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 15, color: '#fff' }}>Готово</Text>
+              <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 15, color: '#fff' }}>{t('euroDocs.common.done')}</Text>
             )}
           </Pressable>
         </View>

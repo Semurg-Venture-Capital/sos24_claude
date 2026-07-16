@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { OutlineButton } from '../../../components/ui/OutlineButton';
 import { PhoneFrame } from '../../../components/ui/PhoneFrame';
@@ -14,6 +15,7 @@ type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroSuccess'>;
 // Экран успеха европротокола — № извещения + дальнейшие шаги.
 export function EuroSuccessScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const number = useEuroStore((s) => s.submittedNumber);
   const reset = useEuroStore((s) => s.reset);
 
@@ -38,7 +40,7 @@ export function EuroSuccessScreen() {
               textAlign: 'center',
             }}
           >
-            Извещение отправлено
+            {t('euro.success.title')}
           </Text>
           <Text
             style={{
@@ -50,7 +52,7 @@ export function EuroSuccessScreen() {
               maxWidth: 300,
             }}
           >
-            Европротокол оформлен. Следите за статусом выплаты в разделе «Заявления».
+            {t('euro.success.subtitle')}
           </Text>
         </View>
 
@@ -76,7 +78,7 @@ export function EuroSuccessScreen() {
               color: tokens.inkMuted,
             }}
           >
-            № извещения
+            {t('euro.success.noticeNumber')}
           </Text>
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, letterSpacing: 0.5, color: tokens.ink }}>
             {number ?? '—'}
@@ -96,21 +98,21 @@ export function EuroSuccessScreen() {
         >
           <Text style={{ fontSize: 16 }}>⏱️</Text>
           <Text style={{ flex: 1, fontFamily: 'Manrope_500Medium', fontSize: 12, lineHeight: 17, color: '#503a07' }}>
-            В течение 4 часов оба водителя должны пройти медосвидетельствование в наркодиспансере.
+            {t('euro.success.medReminder')}
           </Text>
         </View>
       </View>
 
       {/* Действия */}
       <View style={{ paddingHorizontal: 24, paddingBottom: 32, gap: 10 }}>
-        <RedButton onPress={goHome}>На главную</RedButton>
+        <RedButton onPress={goHome}>{t('euro.success.goHome')}</RedButton>
         <OutlineButton
           onPress={() => {
             reset();
             nav.navigate('EuroList');
           }}
         >
-          Мои европротоколы
+          {t('euro.success.myEuroProtocols')}
         </OutlineButton>
       </View>
     </PhoneFrame>

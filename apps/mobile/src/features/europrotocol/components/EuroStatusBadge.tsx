@@ -1,5 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
-import { EURO_STATUS_LABEL, EURO_STATUS_TONE, type EuroStatus } from '../../../api/europrotocol';
+import { EURO_STATUS_TONE, type EuroStatus } from '../../../api/europrotocol';
 import { tokens } from '../../../theme/colors';
 
 const PALETTE = {
@@ -11,11 +12,12 @@ const PALETTE = {
 } as const;
 
 export function EuroStatusBadge({ status }: { status: EuroStatus }) {
+  const { t } = useTranslation();
   const p = PALETTE[EURO_STATUS_TONE[status]];
   return (
     <View style={{ paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, backgroundColor: p.bg }}>
       <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: p.fg, letterSpacing: 0.2 }}>
-        {EURO_STATUS_LABEL[status]}
+        {t('euroDocs.status.' + status)}
       </Text>
     </View>
   );

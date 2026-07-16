@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Animated, Easing, Linking, Pressable, ScrollView, Text, View } from 'react-native';
@@ -13,14 +14,14 @@ import { MedDoctorCard, MedQuickTile, MedSectionLabel, WhoopCard } from '../comp
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthHub'>;
 
-const money = (n: number | null) => (n != null ? `${n.toLocaleString('ru-RU')} сум` : '—');
-
 // Короткий номер экстренной службы SOS24 (диспетчер 24/7). Поменять здесь.
 const SOS_HOTLINE = '1024';
 
 // M14.1 — Хаб раздела «Здоровье» (Фаза C · собран на медкомпонентах Фазы B).
 // SOS-герой, вход в ИИ-диагноз, быстрые плитки, «врачи рядом».
 export function HealthHubScreen() {
+  const { t } = useTranslation();
+  const money = (n: number | null) => (n != null ? `${n.toLocaleString('ru-RU')} ${t('health.currency')}` : '—');
   const nav = useNavigation<Nav>();
   const openSos = () => nav.getParent()?.navigate('HealthSosActive' as never);
   const { data } = useDoctors({});
@@ -41,10 +42,10 @@ export function HealthHubScreen() {
         >
           <View style={{ gap: 4 }}>
             <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 28, letterSpacing: -0.28, color: tokens.ink }}>
-              Здоровье
+              {t('productTypes.HEALTH')}
             </Text>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
-              Помощь рядом, когда нужна
+              {t('health.hub.subtitle')}
             </Text>
           </View>
           <Pressable
@@ -91,9 +92,9 @@ export function HealthHubScreen() {
               <StethoscopeIcon size={22} color="#fff" />
             </LinearGradient>
             <View style={{ flex: 1, gap: 3 }}>
-              <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: '#fff' }}>ИИ-диагноз</Text>
+              <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: '#fff' }}>{t('health.hub.aiDiagnosis')}</Text>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkMutedDark, lineHeight: 17 }}>
-                Опишите или наговорите симптомы — подскажем, что делать
+                {t('health.hub.aiDiagnosisSub')}
               </Text>
             </View>
             <ChevronRightThin size={16} color="rgba(255,255,255,0.5)" />
@@ -107,15 +108,15 @@ export function HealthHubScreen() {
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <MedQuickTile
                 tone="red"
-                title="Мед.карта"
-                sub="Группа крови, аллергии, контакты"
+                title={t('health.hub.tileMedCard')}
+                sub={t('health.hub.tileMedCardSub')}
                 icon={(c) => <MedCrossIcon size={20} color={c} />}
                 onPress={() => nav.navigate('HealthMedCard')}
               />
               <MedQuickTile
                 tone="red"
-                title="Скорая помощь"
-                sub={`Звонок диспетчеру · ${SOS_HOTLINE}`}
+                title={t('health.hub.tileAmbulance')}
+                sub={t('health.hub.tileAmbulanceSub', { num: SOS_HOTLINE })}
                 icon={(c) => <PhoneFillIcon size={20} color={c} />}
                 onPress={() => Linking.openURL(`tel:${SOS_HOTLINE}`)}
               />
@@ -123,15 +124,15 @@ export function HealthHubScreen() {
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <MedQuickTile
                 tone="glass"
-                title="Найти врача"
-                sub="Терапевт, ЛОР, кардиолог"
+                title={t('health.hub.tileFindDoctor')}
+                sub={t('health.hub.tileFindDoctorSub')}
                 icon={(c) => <StethoscopeIcon size={20} color={c} />}
                 onPress={() => nav.navigate('HealthDoctors')}
               />
               <MedQuickTile
                 tone="glass"
-                title="Контакты ЧП"
-                sub="2 близких настроены"
+                title={t('health.hub.tileContacts')}
+                sub={t('health.hub.tileContactsSub')}
                 icon={(c) => <UsersIcon size={20} color={c} />}
                 onPress={() => nav.navigate('HealthContacts')}
               />
@@ -140,17 +141,17 @@ export function HealthHubScreen() {
 
           {/* Врачи рядом */}
           <View style={{ gap: 12 }}>
-            <MedSectionLabel action="Все врачи" onAction={() => nav.navigate('HealthDoctors')}>
-              Врачи рядом
+            <MedSectionLabel action={t('health.hub.allDoctors')} onAction={() => nav.navigate('HealthDoctors')}>
+              {t('health.hub.nearbyDoctors')}
             </MedSectionLabel>
             {nearby.map((d) => (
               <MedDoctorCard
                 key={d.id}
                 name={d.fullName}
                 specialty={d.specialty}
-                experience={d.experienceY != null ? `${d.experienceY} лет` : undefined}
+                experience={d.experienceY != null ? t('health.doctor.years', { count: d.experienceY }) : undefined}
                 rating={d.rating.toFixed(1)}
-                reviews={`${d.reviewCount} отзывов`}
+                reviews={t('health.doctor.reviews', { count: d.reviewCount })}
                 price={money(d.pricePrimary)}
                 video={d.videoEnabled}
                 verified={d.verified}
@@ -173,6 +174,7 @@ const HOLD_MS = 1000; // сколько удерживать для актива
 // SOS-герой с активацией удержанием: заполнение-прогресс при зажатии,
 // срабатывание по long-press; короткий тап показывает подсказку.
 function SosHero({ onActivate }: { onActivate: () => void }) {
+  const { t } = useTranslation();
   const fill = useRef(new Animated.Value(0)).current;
   const [hint, setHint] = useState(false);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -234,11 +236,9 @@ function SosHero({ onActivate }: { onActivate: () => void }) {
           <Text style={{ fontFamily: 'NeueMontreal-Bold', fontSize: 18, letterSpacing: 0.4, color: '#fff' }}>SOS</Text>
         </View>
         <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: '#fff' }}>Экстренная помощь</Text>
+          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: '#fff' }}>{t('health.hub.sosTitle')}</Text>
           <Text style={{ fontFamily: hint ? 'Manrope_600SemiBold' : 'Manrope_400Regular', fontSize: 12.5, color: '#fff', lineHeight: 17 }}>
-            {hint
-              ? 'Нажмите и удерживайте кнопку 1 секунду'
-              : 'Удерживайте — оповестим близких и отправим геолокацию'}
+            {hint ? t('health.hub.sosHint') : t('health.hub.sosSub')}
           </Text>
         </View>
       </LinearGradient>

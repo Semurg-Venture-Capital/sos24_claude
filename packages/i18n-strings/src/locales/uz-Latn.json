@@ -156,5 +156,1001 @@
   "errors": {
     "unknown": "Nimadir xato ketdi",
     "offline": "Internet aloqasi yoʻq"
+  },
+  "euro": {
+    "common": {
+      "errorTitle": "Xatolik",
+      "markA": "A",
+      "markB": "B",
+      "vehicleShort": "TV"
+    },
+    "start": {
+      "title": "YTH sodir boʻldimi?",
+      "subtitle": "Yordam beramiz — hammasini ilovada rasmiylashtiramiz",
+      "whatToDoNow": "Hoziroq nima qilish kerak",
+      "step1": "Hammaning xavfsizligiga ishonch hosil qiling",
+      "step2": "Voqea joyidan ketmasdan holatni qayd eting",
+      "step3": "Quyida rasmiylashtirish turini tanlang",
+      "euroEyebrow": "jabrlanganlarsiz",
+      "euroName": "Elektron yevroprotokol",
+      "euroDesc": "Agar ikkala haydovchi rozi boʻlsa va jabrlanganlar boʻlmasa",
+      "euroCta": "Rasmiylashtirish",
+      "inspectorEyebrow": "onlayn · ~20 daq",
+      "inspectorName": "Inspektor chaqirish",
+      "inspectorDesc": "Mutaxassisimiz voqea joyiga yetib borib yordam beradi",
+      "inspectorCta": "Chaqirish",
+      "inspectorStatus": "Hozir mavjud",
+      "regularClaim": "Oddiy ariza topshirish",
+      "regularClaimSoon": "Sugʻurta hodisasi boʻyicha oddiy ariza (M9.4)."
+    },
+    "step1": {
+      "eyebrow": "1-qadam / 5 · Holatlar",
+      "title": "Qachon va qayerda",
+      "subtitle": "Vaqt avtomatik qayd etiladi, joy geolokatsiya orqali aniqlanadi",
+      "date": "Sana",
+      "time": "Vaqt",
+      "vehicleCount": "TV soni",
+      "euroTag": "yevroprotokol",
+      "place": "YTH joyi",
+      "detecting": "Aniqlanmoqda…",
+      "detectAgain": "Qayta aniqlash",
+      "detect": "Joylashuvni aniqlash",
+      "additional": "Qoʻshimcha",
+      "medCheck": "Tibbiy koʻrikdan oʻtildi (4 soat ichida)",
+      "witnesses": "Guvohlar (F.I.Sh., telefon) — agar boʻlsa",
+      "witnessesPlaceholder": "Olimov J., +998 90 111 22 33",
+      "officialRegistered": "ГАИ xodimi tomonidan rasmiylashtirilganmi?",
+      "officerBadge": "Xodim koʻkrak nishoni №",
+      "geoOffTitle": "Geolokatsiya oʻchirilgan",
+      "geoOffMsg": "YTH joyini qayd etish uchun Sozlamalarda geolokatsiyaga ruxsat bering.",
+      "openSettings": "Sozlamalarni ochish",
+      "geoError": "Joylashuvni aniqlab boʻlmadi. Qayta urinib koʻring."
+    },
+    "step2": {
+      "eyebrow": "2-qadam / 5 · Ishtirokchilar",
+      "title": "YTH ishtirokchilari",
+      "subtitle": "Ikkala ishtirokchi MyID orqali tasdiqlanadi",
+      "sideA": "Siz (tashabbuskor)",
+      "identityConfirmed": "Shaxs tasdiqlandi",
+      "identityConfirmedSub": "MyID · ishtirok tasdiqlandi",
+      "verifySelf": "Shaxsni tasdiqlash (MyID)",
+      "verifySelfHint": "Avval MyID orqali shaxsingizni tasdiqlang — soʻng avtolaringiz va polislaringiz koʻrinadi.",
+      "myVehicle": "Mening transport vositam",
+      "noVehicles": "Garajda avto yoʻq. Yevroprotokol rasmiylashtirish uchun avtomobil qoʻshing.",
+      "osagoForVehicle": "Ushbu avto boʻyicha OSAGO polisi",
+      "loadingPolicies": "Polislar yuklanmoqda…",
+      "noOsago": "Tanlangan avto boʻyicha amaldagi OSAGO topilmadi. OSAGO rasmiylashtiring yoki boshqa avto tanlang — polissiz yevroprotokolni rasmiylashtirib boʻlmaydi.",
+      "status": "holat",
+      "yourLicense": "Sizning haydovchilik guvohnomangiz",
+      "noLicenseHint": "Profilda haydovchilik guvohnomasi yoʻq — toʻldiring, u xabarnomaga kiradi va profilga saqlanadi.",
+      "seria": "Seriya",
+      "number": "Raqam",
+      "categories": "Toifalar",
+      "issueDate": "Berilgan sana",
+      "sideB": "Ikkinchi ishtirokchi",
+      "myidPinfl": "MyID · JSHSHIR {{pinfl}}",
+      "verifyOther": "Ishtirokchini tekshirish (MyID)",
+      "otherVehicleFromProfile": "Ikkinchi ishtirokchi avtosi (uning profilidan)",
+      "participantFoundPickVehicle": "Ishtirokchi tizimda topildi — uning avtosini tanlang.",
+      "otherVehicleByTechPassport": "Ikkinchi ishtirokchi avtosi (texpasport boʻyicha)",
+      "noVehicleEnterTp": "Ishtirokchining tizimda avtosi yoʻq — texpasport maʼlumotlarini kiriting.",
+      "notInSystemLookup": "Ishtirokchi tizimda yoʻq — avtoni texpasport boʻyicha davlat reyestridan topamiz.",
+      "tpSeria": "TP seriyasi",
+      "tpNumber": "TP raqami",
+      "govNumber": "Davlat raqami",
+      "findAgain": "Qayta topish",
+      "findVehicle": "Avtoni topish",
+      "vehSearching": "Avto davlat reyestridan qidirilmoqda…",
+      "vehFound": "✓ Avto topildi va toʻldirildi.",
+      "vehNotFound": "Avto reyestrda topilmadi. Texpasport seriyasi/raqami va davlat raqamini tekshiring.",
+      "vehicleFound": "TV topildi",
+      "otherOsagoFromProfile": "Ikkinchi ishtirokchining OSAGO polisi (uning profilidan)",
+      "otherOsago": "Ikkinchi ishtirokchining OSAGO polisi",
+      "noOsagoEnterManual": "Ushbu avto boʻyicha tizimda amaldagi OSAGO yoʻq — polis maʼlumotlarini kiriting.",
+      "checkPolicy": "Polisni tekshirish",
+      "polChecking": "Polis reyestrda tekshirilmoqda…",
+      "polValid": "✓ Polis amal qiladi.",
+      "polNotFound": "Polis reyestrda topilmadi. Seriya va raqamni tekshiring.",
+      "polError": "Polisni tekshirib boʻlmadi. Qayta urinib koʻring.",
+      "verified": "tekshirildi",
+      "notFound": "topilmadi",
+      "otherPhone": "Ikkinchi ishtirokchi telefoni",
+      "phoneFormat": "Format: +998 XX XXX XX XX",
+      "licenseB": "«B» haydovchilik guvohnomasi",
+      "licenseIssueDate": "Guvohnoma berilgan sana",
+      "ownerAddrB": "«B» avto egasining manzili",
+      "addrPlaceholder": "Toshkent sh., Yunusobod…",
+      "insurerB": "«B» sugʻurtachisi",
+      "insurerPlaceholder": "Masalan: Gross Insurance",
+      "policyValidUntil": "Polis amal qiladi (sana)",
+      "verifying": "Tekshirilmoqda…",
+      "simulateMyid": "MyID simulyatsiyasi (DEV)",
+      "verifySelfError": "Tekshiruvdan oʻtib boʻlmadi.",
+      "verifyOtherError": "Ishtirokchini tekshirib boʻlmadi.",
+      "mismatchTitle": "Mos kelmadi",
+      "mismatchMsg": "Shaxs hisob egasiga mos kelmadi. A tomoni telefon egasi tomonidan tasdiqlanishi kerak."
+    },
+    "step3": {
+      "eyebrow": "3-qadam / 5 · Sxema",
+      "title": "Toʻqnashuv sxemasi",
+      "subtitle": "Xaritada avtomobillar qanday turganini belgilang va YTH qanday sodir boʻlganini yozing",
+      "accuracyWarning": "YTH joyi va avtomobillar holatini aniq koʻrsating. Notoʻgʻri maʼlumotlarda sugʻurta kompaniyasi toʻlovni rad etishi mumkin.",
+      "descriptionLabel": "Holatlar tavsifi",
+      "descriptionPlaceholder": "YTH qanday sodir boʻlganini yozing: harakat yoʻnalishi, kim kimni urgani, ob-havo sharoiti…",
+      "descriptionHint": "Matn YTH xabarnomasiga kiradi. Qanchalik aniq boʻlsa — toʻlov shunchalik tez koʻrib chiqiladi.",
+      "circumstances": "YTH holatlari",
+      "circumstancesHint": "«A» (siz) va «B» (ikkinchi ishtirokchi) uchun mos bandlarni belgilang.",
+      "impactZone": "Birinchi zarba zonasi",
+      "impactZoneHint": "Birinchi zarba tekkan joyni bosing.",
+      "yourCar": "Sizning avtongiz (A)",
+      "carB": "«B» avto",
+      "damage": "Avto shikastlari",
+      "damageHint": "Sxemada shikastlangan qismlarni belgilang. Roʻyxat xabarnomaga kiradi.",
+      "damageDetailA": "Shikastlar boʻyicha izoh (A)",
+      "damageDetailAPlaceholder": "Mas.: eshikda botiq, faralar singan…",
+      "damageDetailB": "Shikastlar boʻyicha izoh (B)",
+      "damageDetailBPlaceholder": "Mas.: orqa bamper, chap eshik…",
+      "objectionsA": "Eʼtirozlar (A) — agar boʻlsa",
+      "objectionsB": "Eʼtirozlar (B) — agar boʻlsa",
+      "objectionsPlaceholder": "Eʼtirozlar, agar boʻlsa…",
+      "additionalBack": "Qoʻshimcha (orqa tomoni)",
+      "whoDrove": "Transport vositangizni kim boshqargan?",
+      "driverOwner": "Men — egasiman",
+      "driverProxy": "Ishonchnoma boʻyicha",
+      "ownershipDoc": "Egalik huquqi hujjati (ishonchnoma/shartnoma)",
+      "ownershipDocPlaceholder": "Ishonchnoma yoki shartnoma seriyasi/raqami",
+      "canMove": "Transport vositasi mustaqil harakatlana oladimi?",
+      "vehicleLocation": "Transport vositasi joylashuvi (1-qadamdan, GPS)",
+      "addressNotSet": "Manzil 1-qadamda aniqlanmagan",
+      "remarks": "Izohlar",
+      "remarksPlaceholder": "Ovoz bilan ayting yoki matn kiriting…",
+      "edit": "Oʻzgartirish",
+      "remove": "Olib tashlash",
+      "openMap": "Xaritani ochish",
+      "openMapHint": "Joriy joy xaritasida ikkita mashinani joylashtiring va zarba nuqtasini belgilang"
+    },
+    "step4": {
+      "eyebrow": "4-qadam / 5 · Foto qayd",
+      "toSigning": "Imzolashga",
+      "title": "Voqea joyini suratga oling",
+      "subtitle": "Kamida 3 ta kadr. Avtomobillarni surmasdan suratga oling",
+      "cameraOnlyBanner": "Faqat kameradan suratga olish. Galereyadan yuklash oʻchirilgan.",
+      "videoOptional": "Video (ixtiyoriy)",
+      "recordVideo": "Video olish",
+      "fromGallery": "Galereyadan",
+      "videoItem": "Video {{num}} · {{at}}",
+      "remove": "Oʻchirish",
+      "skipPhotos": "Fotoni oʻtkazib yuborish (DEV)",
+      "captured": "OLINDI",
+      "takePhoto": "Suratga olish",
+      "requiredSuffix": " · majburiy",
+      "galleryTitle": "Galereya",
+      "galleryPermission": "Media kutubxonasiga ruxsat bering.",
+      "cameraTitle": "Kamera",
+      "cameraPermission": "Kameraga ruxsat bering.",
+      "cameraPermissionPhoto": "Surat olish uchun kameraga ruxsat bering.",
+      "captureUnavailable": "Suratga olish mavjud emas. Simulyatorda «Simulyatsiya» dan foydalaning.",
+      "videoTitle": "Video",
+      "recordUnavailable": "Yozib olish mavjud emas.",
+      "tiles": {
+        "overview": "Umumiy koʻrinish",
+        "myCar": "Mening avtom",
+        "otherCar": "Ikkinchi avto",
+        "scene": "Joy (qoʻsh.)"
+      }
+    },
+    "step5": {
+      "eyebrow": "5-qadam / 5 · Tasdiqlash",
+      "signSubmit": "Imzolash va yuborish",
+      "title": "Maʼlumotlarni tekshiring",
+      "subtitle": "Yuborishdan oldin hammasi toʻgʻriligiga ishonch hosil qiling",
+      "phaseUpload": "Media yuklanmoqda…",
+      "phaseSubmit": "Yuborilmoqda…",
+      "submitError": "Yevroprotokolni yuborib boʻlmadi. Qayta urinib koʻring.",
+      "circumstances": "Holatlar",
+      "dateTime": "Sana va vaqt",
+      "place": "Joy",
+      "scheme": "Sxema",
+      "onMap": "xaritada ✓",
+      "photoVideo": "Foto / video",
+      "photoVideoValue": "{{total}} dan {{done}} · {{videos}} video",
+      "markedCount": "belgilangan: {{count}}",
+      "sideA": "A tomoni · Siz",
+      "vehicle": "Avto",
+      "govNumber": "Davlat raqami",
+      "license": "Guvohnoma",
+      "fromProfile": "profildan",
+      "confirmed": "Tasdiqlangan",
+      "no": "Yoʻq",
+      "sideB": "B tomoni · Ikkinchi ishtirokchi",
+      "participant": "Ishtirokchi",
+      "policy": "Polis",
+      "phone": "Telefon",
+      "signature": "Imzo",
+      "description": "Tavsif",
+      "otherSignature": "Ikkinchi ishtirokchi imzosi",
+      "signatureConfirmed": "✓ MyID orqali tasdiqlandi — bu ikkinchi ishtirokchining imzosi va roziligi hisoblanadi.",
+      "confirmCheckbox": "Barcha maʼlumotlar toʻgʻri va ikkala ishtirokchi YTH holatlariga rozi ekanligini tasdiqlayman",
+      "footerNote": "Ikkala shaxs MyID orqali tasdiqlangan. Yuborilgach, xabarnoma koʻrib chiqishga tushadi — holatini «Arizalar» boʻlimida kuzatib boring."
+    },
+    "success": {
+      "title": "Xabarnoma yuborildi",
+      "subtitle": "Yevroprotokol rasmiylashtirildi. Toʻlov holatini «Arizalar» boʻlimida kuzatib boring.",
+      "noticeNumber": "Xabarnoma №",
+      "medReminder": "4 soat ichida ikkala haydovchi narkologiya dispanserida tibbiy koʻrikdan oʻtishi shart.",
+      "goHome": "Bosh sahifaga",
+      "myEuroProtocols": "Mening yevroprotokollarim"
+    }
+  },
+  "euroDocs": {
+    "common": {
+      "accident": "YTH",
+      "done": "Tayyor",
+      "error": "Xatolik"
+    },
+    "status": {
+      "SUBMITTED": "Topshirilgan",
+      "REVIEW": "Koʻrib chiqilmoqda",
+      "NEED_INFO": "Maʼlumot talab qilinadi",
+      "APPROVED": "Tasdiqlangan",
+      "REJECTED": "Rad etilgan",
+      "PAID": "Toʻlangan"
+    },
+    "map": {
+      "scheme": {
+        "rear": "Orqadan urilish",
+        "front": "Peshma-pesh",
+        "side": "Yon tomondan"
+      },
+      "part": {
+        "front-bumper": "Oldingi bamper",
+        "hood": "Kapot",
+        "front-left-fender": "Oldingi chap qanot",
+        "front-right-fender": "Oldingi oʻng qanot",
+        "windshield": "Old oyna",
+        "front-left-door": "Oldingi chap eshik",
+        "front-right-door": "Oldingi oʻng eshik",
+        "left-mirror": "Chap koʻzgu",
+        "right-mirror": "Oʻng koʻzgu",
+        "roof": "Tom",
+        "rear-left-door": "Orqa chap eshik",
+        "rear-right-door": "Orqa oʻng eshik",
+        "rear-window": "Orqa oyna",
+        "rear-left-fender": "Orqa chap qanot",
+        "rear-right-fender": "Orqa oʻng qanot",
+        "trunk": "Bagaj qopqogʻi",
+        "rear-bumper": "Orqa bamper"
+      },
+      "impactZone": {
+        "front": "old",
+        "rear": "orqa",
+        "left": "chap tomon",
+        "right": "oʻng tomon",
+        "front-left": "old-chap",
+        "front-right": "old-oʻng",
+        "rear-left": "orqa-chap",
+        "rear-right": "orqa-oʻng"
+      }
+    },
+    "check": {
+      "title": "Yevroprotokol mos keladimi?",
+      "subtitle": "Barcha shartlarni tasdiqlang. Agar hech boʻlmaganda bittasi bajarilmasa — inspektor yoki ГАИ kerak",
+      "warning": "Hozircha barcha shartlar tasdiqlanmagan. Biror shart bajarilmasa — yevroprotokol boʻyicha rasmiylashtirib boʻlmaydi, inspektor chaqiring.",
+      "callInspector": "Inspektor chaqirish",
+      "conditions": {
+        "twoVehicles": "YTHda faqat 2 ta transport vositasi ishtirok etadi",
+        "noInjured": "Jarohatlanganlar va halok boʻlganlar yoʻq",
+        "noThirdParty": "Uchinchi shaxslar mulkiga zarar yetmagan",
+        "agree": "Ikkala haydovchi holatlarga rozi",
+        "bothOsago": "Ikkala haydovchida amaldagi ОСАГО polisi bor"
+      }
+    },
+    "detail": {
+      "notFound": "Topilmadi",
+      "pdfError": "PDFni olishning iloji boʻlmadi. Keyinroq urinib koʻring.",
+      "pdfBusy": "PDF tayyorlanmoqda…",
+      "pdfButton": "Xabarnoma PDF",
+      "heroEyebrow": "YTH · Yevroprotokol",
+      "close": "Yopish",
+      "share": "Ulashish",
+      "myidConfirmed": "Tasdiqlangan",
+      "steps": {
+        "submitted": "Topshirilgan",
+        "accepted": "Ishga qabul qilindi",
+        "review": "Koʻrib chiqilmoqda",
+        "decision": "Qaror",
+        "payment": "Toʻlov"
+      },
+      "summary": {
+        "circumstances": "Holatlar",
+        "sideA": "A tomoni · Siz",
+        "sideB": "B tomoni · Ikkinchi ishtirokchi",
+        "description": "Tavsif"
+      },
+      "row": {
+        "dateTime": "Sana va vaqt",
+        "place": "Joy",
+        "scheme": "Sxema",
+        "car": "Avto",
+        "plate": "Davlat raqami",
+        "participant": "Ishtirokchi",
+        "policy": "Polis",
+        "signature": "Imzo"
+      }
+    },
+    "list": {
+      "title": "Yevroprotokollar",
+      "searchPlaceholder": "Raqam, marka yoki davlat raqami",
+      "tabActive": "Faol · {{n}}",
+      "tabArchive": "Arxiv",
+      "nothingFound": "Hech narsa topilmadi",
+      "archiveEmpty": "Arxiv boʻsh",
+      "noActive": "Faol yevroprotokollar yoʻq",
+      "emptyTitle": "Hozircha yevroprotokollar yoʻq",
+      "emptySubtitle": "YTH haqida xabarnoma rasmiylashtiring — ikkala ishtirokchi MyID orqali tasdiqlanadi",
+      "emptyCta": "Yevroprotokol rasmiylashtirish",
+      "cardFallback": "YTH · yevroprotokol"
+    },
+    "scheme": {
+      "title": "YTH sxemasi",
+      "subtitle": "Shaffof mashina — qayerdan kelgan, toʻq rangli — urilish joyi. Strelka yoʻnalishni koʻrsatadi.",
+      "warning": "⚠️ YTH joyi va mashinalar holatini aniq koʻrsating. Notoʻgʻri maʼlumotlarda sugʻurta kompaniyasi toʻlovni rad etishi mumkin.",
+      "carA": "A mashina",
+      "carB": "B mashina",
+      "dragHint": "Ikkala nuqtani suring. «{{car}}» mashinani urilishdan keyingi holatga burang:",
+      "captureFailTitle": "Boʻlmadi",
+      "captureFailMsg": "Sxemani suratga olishning iloji boʻlmadi. Yana urinib koʻring.",
+      "geoDeniedTitle": "Geolokatsiyaga ruxsat yoʻq",
+      "geoDeniedMsg": "YTH joyini xaritada belgilash uchun joylashuvga ruxsat bering.",
+      "openSettings": "Sozlamalarni ochish",
+      "geoErrorMsg": "Joylashuvni aniqlashning iloji boʻlmadi. Yana urinib koʻring."
+    },
+    "fields": {
+      "pickDate": "Sanani tanlang",
+      "yes": "Ha",
+      "no": "Yoʻq"
+    },
+    "parts": {
+      "summary": "Shikastlar: {{list}}",
+      "empty": "Shikastlangan qismlarni belgilang"
+    },
+    "zones": {
+      "summary": "Zarba: {{list}}",
+      "empty": "Zona tanlanmagan"
+    },
+    "voice": {
+      "micDeniedTitle": "Mikrofonga ruxsat yoʻq",
+      "micDeniedMsg": "Izohni ovoz orqali yozib olish uchun sozlamalarda mikrofonga ruxsat bering.",
+      "startFailMsg": "Yozishni boshlashning iloji boʻlmadi.",
+      "saveFailMsg": "Yozuvni saqlashning iloji boʻlmadi. Yana urinib koʻring.",
+      "reRecordTitle": "Qayta yozilsinmi?",
+      "reRecordMsg": "Yozilgan xabar oʻchiriladi. Qolgan qayta yozishlar: {{left}}.",
+      "reRecord": "Qayta yozish",
+      "reRecordLimit": "Qayta yozish limiti",
+      "recognizeFailTitle": "Aniqlab boʻlmadi",
+      "recognizeFailMsg": "Yana urinib koʻring yoki izohni qoʻlda kiriting.",
+      "processing": "Ovoz aniqlanmoqda…",
+      "recordingTime": "Yozilmoqda · {{time}}",
+      "playing": "Ijro etilmoqda…",
+      "recordedHint": "Yozuv tayyor — tinglang",
+      "recognize": "Ovozni matnga aylantirish",
+      "doneOk": "Ovoz aniqlandi ✓",
+      "startIdle": "Ovoz orqali yozish (oʻzb/rus)",
+      "startAgain": "Ovoz orqali qayta yozish",
+      "attached": "🎙 biriktirilgan"
+    }
+  },
+  "health": {
+    "currency": "soʻm",
+    "hub": {
+      "subtitle": "Kerak boʻlganda yordam yoningizda",
+      "aiDiagnosis": "AI-tashxis",
+      "aiDiagnosisSub": "Simptomlaringizni yozing yoki gapiring — nima qilishni aytamiz",
+      "tileMedCard": "Tibbiy karta",
+      "tileMedCardSub": "Qon guruhi, allergiyalar, kontaktlar",
+      "tileAmbulance": "Tez yordam",
+      "tileAmbulanceSub": "Dispecherga qoʻngʻiroq · {{num}}",
+      "tileFindDoctor": "Shifokor topish",
+      "tileFindDoctorSub": "Terapevt, LOR, kardiolog",
+      "tileContacts": "Favqulodda kontaktlar",
+      "tileContactsSub": "2 ta yaqin kishi sozlangan",
+      "allDoctors": "Barcha shifokorlar",
+      "nearbyDoctors": "Yaqin atrofdagi shifokorlar",
+      "sosTitle": "Favqulodda yordam",
+      "sosHint": "Tugmani bosib, 1 soniya ushlab turing",
+      "sosSub": "Ushlab turing — yaqinlaringizni ogohlantiramiz va joylashuvni yuboramiz"
+    },
+    "doctor": {
+      "years": "{{count}} yil",
+      "reviews": "{{count}} ta sharh",
+      "book": "Yozilish",
+      "call": "Qoʻngʻiroq qilish",
+      "videoVisit": "Video-qabul",
+      "visitLabel": "qabul",
+      "experiencePrefix": "tajriba"
+    },
+    "triage": {
+      "sendError": "Yuborib boʻlmadi. Aloqani tekshiring yoki yangi suhbat boshlang.",
+      "restartTitle": "Yangi suhbat boshlansinmi?",
+      "restartMsg": "Joriy yozishmalar oʻchiriladi.",
+      "restartConfirm": "Boshidan boshlash",
+      "headerTitle": "SOS24 · Tibbiy AI",
+      "analyzing": "simptomlarni tahlil qilmoqda",
+      "showResult": "Natijani koʻrsatish",
+      "showPrelimResult": "Dastlabki natijani koʻrsatish",
+      "inputPlaceholder": "Simptomlarni yozing…"
+    },
+    "urgency": {
+      "low": "Shoshilinchlik past",
+      "medium": "Shoshilinchlik oʻrtacha",
+      "high": "Shoshilinchlik yuqori"
+    },
+    "diagnosis": {
+      "title": "Tahlil natijasi",
+      "error": "Natijani olib boʻlmadi. Ortga qaytib, qayta urinib koʻring.",
+      "preliminary": "Dastlabki",
+      "confidence": "Model ishonchi",
+      "youReported": "Siz bildirdingiz",
+      "recommendations": "Tavsiyalarimiz",
+      "bookWithSpecialty": "Shifokorga yozilish · {{specialty}}",
+      "book": "Shifokorga yozilish"
+    },
+    "doctors": {
+      "searchPlaceholder": "Shifokor, mutaxassislik, klinika",
+      "allRegions": "Barcha viloyatlar",
+      "allSpecialties": "Barchasi",
+      "regionLabel": "Viloyat: {{region}}",
+      "doctorsCount": "{{count}} ta shifokor",
+      "empty": "Hech kim topilmadi. Soʻrov yoki filtrni oʻzgartiring.",
+      "title": "Shifokorlar",
+      "clinics": "Klinikalar"
+    },
+    "doctorProfile": {
+      "partnerBadge": "SOS24 hamkori",
+      "experienceLabel": "tajriba",
+      "clinicFallback": "klinika",
+      "workplaceLabel": "ish joyi",
+      "about": "Shifokor haqida",
+      "services": "Xizmatlar va narxlar",
+      "bookInPerson": "Shaxsan yozilish"
+    },
+    "booking": {
+      "title": "Qabulga yozilish",
+      "createError": "Yozuvni yaratib boʻlmadi",
+      "date": "Sana",
+      "time": "Vaqt",
+      "noSlots": "Bu kuni shifokor qabul qilmaydi",
+      "reason": "Murojaat sababi",
+      "reasonPlaceholder": "Simptomlarni yozing…",
+      "submitting": "Yaratilmoqda…",
+      "submit": "Yozuvni tasdiqlash"
+    },
+    "bookingDone": {
+      "title": "Siz yozildingiz",
+      "subtitle": "Shaxsiy qabul · tasdiqlandi",
+      "note": "Qabuldan bir kun va bir soat oldin eslatamiz. «Mening yozuvlarim» boʻlimida bekor qilish yoki koʻchirish mumkin.",
+      "done": "Tayyor",
+      "backToHealth": "«Salomatlik» boʻlimiga qaytish"
+    },
+    "videoCall": {
+      "title": "Video-konsultatsiya",
+      "subtitle": "Video-qabul — tez orada"
+    },
+    "date": {
+      "weekdayShort": {
+        "0": "Yak",
+        "1": "Dush",
+        "2": "Sesh",
+        "3": "Chor",
+        "4": "Pay",
+        "5": "Jum",
+        "6": "Shan"
+      },
+      "weekdayAbbr": {
+        "0": "yak",
+        "1": "dush",
+        "2": "sesh",
+        "3": "chor",
+        "4": "pay",
+        "5": "jum",
+        "6": "shan"
+      },
+      "monthShort": {
+        "0": "yan",
+        "1": "fev",
+        "2": "mar",
+        "3": "apr",
+        "4": "may",
+        "5": "iyn",
+        "6": "iyl",
+        "7": "avg",
+        "8": "sen",
+        "9": "okt",
+        "10": "noy",
+        "11": "dek"
+      },
+      "monthLong": {
+        "0": "yanvar",
+        "1": "fevral",
+        "2": "mart",
+        "3": "aprel",
+        "4": "may",
+        "5": "iyun",
+        "6": "iyul",
+        "7": "avgust",
+        "8": "sentabr",
+        "9": "oktabr",
+        "10": "noyabr",
+        "11": "dekabr"
+      }
+    }
+  },
+  "healthCard": {
+    "gender": {
+      "male": "Erkak",
+      "female": "Ayol"
+    },
+    "medcard": {
+      "badge": "TIBBIY KARTA",
+      "edit": "Tahr.",
+      "patient": "Bemor",
+      "noName": "Ismsiz",
+      "noData": "Maʼlumotlar toʻldirilmagan",
+      "lockInfo": "Tez yordam shifokorlari uchun qulflangan ekrandan koʻrinadi. SOS paytida geolokatsiya bilan birga yuboriladi."
+    },
+    "empty": {
+      "title": "Tibbiy karta hali toʻldirilmagan",
+      "subtitle": "Qon guruhi, allergiya va surunkali kasalliklar favqulodda vaziyatda tez yordam shifokorlariga yordam beradi.",
+      "fill": "Tibbiy kartani toʻldirish"
+    },
+    "rows": {
+      "organDonor": "Aʼzo donori",
+      "pregnancy": "Homiladorlik",
+      "dmsPolicy": "DMS polisi",
+      "doctor": "Davolovchi shifokor"
+    },
+    "common": {
+      "yes": "Ha",
+      "no": "Yoʻq",
+      "delete": "Oʻchirish",
+      "add": "Qoʻshish",
+      "error": "Xatolik",
+      "call": "Qoʻngʻiroq qilish",
+      "close": "Yopish"
+    },
+    "vital": {
+      "blood": "Qon",
+      "height": "Boʻy",
+      "weight": "Vazn"
+    },
+    "units": {
+      "cm": "sm",
+      "kg": "kg",
+      "sum": "soʻm",
+      "ms": "ms",
+      "bpm": "zarba/daq",
+      "brpm": "nafas/daq",
+      "kcal": "kkal",
+      "min": "daq",
+      "hourShort": "s",
+      "minuteShort": "d"
+    },
+    "section": {
+      "allergies": "Allergiya",
+      "chronic": "Surunkali kasalliklar",
+      "medications": "Doimiy dorilar",
+      "data": "Maʼlumotlar",
+      "contacts": "Favqulodda kontaktlar"
+    },
+    "action": {
+      "change": "Oʻzgartirish",
+      "add": "Qoʻshish"
+    },
+    "contacts": {
+      "emptyHint": "Kontaktlar qoʻshilmagan. Yaqinlaringizni koʻrsating — SOS paytida ular xabardor qilinadi.",
+      "addError": "Kontaktni qoʻshib boʻlmadi",
+      "deleteTitle": "Kontakt oʻchirilsinmi?",
+      "noNumberTitle": "Raqam yoʻq",
+      "noNumberMsg": "Tanlangan kontaktda telefon raqami yoʻq — uni qoʻlda kiriting.",
+      "openError": "Kontaktlarni ochib boʻlmadi.",
+      "title": "Favqulodda\nkontaktlar",
+      "subtitle": "SOS paytida kimni xabardor qilishni koʻrsating — xabar va geolokatsiyani yuboramiz",
+      "countLabel": "Kontaktlar · {{limit}} tadan {{count}} ta",
+      "pick": "Kontaktlardan tanlash",
+      "name": "Ism",
+      "namePh": "Gulnora Karimova",
+      "relation": "Kimligi",
+      "relationPh": "Turmush oʻrtogʻi",
+      "phone": "Telefon",
+      "adding": "Qoʻshilmoqda…",
+      "manual": "Qoʻlda kiritish",
+      "limitReached": "{{limit}} ta kontakt chekloviga yetdingiz. Boshqasini qoʻshish uchun bittasini oʻchiring.",
+      "onSos": "SOS ishga tushganda",
+      "autoNotify": "Avtomatik xabar",
+      "autoNotifySub": "Yaqinlarga SMS + push",
+      "sendGeo": "Geolokatsiyani yuborish",
+      "sendGeoSub": "Xaritadagi oxirgi nuqta",
+      "call103": "103 xizmatiga qoʻngʻiroq",
+      "call103Sub": "Xabarlar yuborilgach",
+      "footer": "Kontaktlar faqat SOS faollashtirilganda xabar oladi. Geolokatsiya xavfsiz saqlanadi va uchinchi shaxslarga berilmaydi."
+    },
+    "edit": {
+      "unavailableTitle": "Mavjud emas",
+      "iphoneOnly": "«Salomatlik» ilovasi faqat iPhone’da mavjud.",
+      "imp": {
+        "bloodType": "qon guruhi",
+        "height": "boʻyi {{value}} sm",
+        "weight": "vazni {{value}} kg"
+      },
+      "bloodNote": {
+        "notSet": "Qon guruhi «Salomatlik» ilovasida toʻldirilmagan. Uni Salomatlik → Tibbiy maʼlumotlar (yoki Umumiy → Tibbiy maʼlumotlar → Qon guruhi) boʻlimiga qoʻshing va qayta urinib koʻring — yoki quyida qoʻlda kiriting.",
+        "denied": "Qon guruhiga ruxsat yoʻq. Sozlamalar → Maxfiylik → Salomatlik → SOS24 → Qon guruhi boʻlimida ruxsat bering va qayta urinib koʻring."
+      },
+      "importedTitle": "Maʼlumotlar import qilindi",
+      "noDataTitle": "Maʼlumot yoʻq",
+      "importedIntro": "«Salomatlik»dan toʻldirildi:",
+      "importedNote": "Qiymatlar eng soʻnggi oʻlchovdan olinadi — saqlashdan oldin tekshiring va kerak boʻlsa tuzating.",
+      "noImportData": "«Salomatlik» ilovasida import qilish uchun maʼlumot yoʻq.",
+      "readError": "«Salomatlik» ilovasidan maʼlumotlarni oʻqib boʻlmadi.",
+      "saveError": "Tibbiy kartani saqlab boʻlmadi",
+      "title": "Tibbiy karta",
+      "importCta": "«Salomatlik» ilovasidan toʻldirish",
+      "importSub": "Qon guruhi, boʻy va vazn — Apple Health’dan",
+      "prefilledNote": "F.I.Sh., tugʻilgan sana va jins profilingizdan toʻldirildi — tekshiring va kerak boʻlsa oʻzgartiring.",
+      "fullName": "F.I.Sh.",
+      "fullNamePh": "Aziz Karimov",
+      "birthDate": "Tugʻilgan sana",
+      "gender": "Jins",
+      "male": "Erkak",
+      "female": "Ayol",
+      "bloodType": "Qon guruhi",
+      "rhPos": "Rh+ musbat",
+      "rhNeg": "Rh− manfiy",
+      "heightLabel": "Boʻy, sm",
+      "weightLabel": "Vazn, kg",
+      "allergies": "Allergiya",
+      "addAllergen": "Allergen qoʻshish",
+      "chronic": "Surunkali kasalliklar",
+      "chronicPh": "Bronxial astma (yengil)",
+      "medications": "Doimiy dorilar",
+      "medicationsPh": "Salbutamol — ehtiyojga koʻra",
+      "organDonor": "Aʼzo donori",
+      "organDonorSub": "Tez yordam shifokorlariga koʻrsatish",
+      "pregnancy": "Homiladorlik",
+      "pregnancySub": "Hozir dolzarb",
+      "dmsPolicy": "OMS / DMS polisi",
+      "dmsPolicyPh": "SOS24 DMS · 12.2026 gacha",
+      "doctor": "Davolovchi shifokor",
+      "doctorPh": "Malika Sodiqova · terapevt",
+      "consent": "Tibbiy maʼlumotlarni qayta ishlash va saqlashga roziman. Maʼlumotlar shifrlanadi va faqat menga hamda SOS paytida tez yordam shifokorlariga koʻrinadi.",
+      "saving": "Saqlanmoqda…"
+    },
+    "clinics": {
+      "title": "Klinikalar",
+      "searchPh": "Klinika, manzil",
+      "allRegions": "Barcha viloyatlar",
+      "empty": "Klinika topilmadi. Viloyat yoki soʻrovni oʻzgartiring.",
+      "doctorsCount": "{{count}} shifokor",
+      "about": "Klinika haqida",
+      "doctorsTitle": "Klinika shifokorlari · {{count}}",
+      "reviews": "{{count}} sharh",
+      "yearsExp": "{{years}} yil"
+    },
+    "sos": {
+      "header": "SOS · FAVQULODDA CHAQIRUV",
+      "failed": "Yuborib boʻlmadi",
+      "sending": "Yordam yuborilmoqda…",
+      "errorSub": "Ulanishni tekshiring va qayta urinib koʻring yoki 103 ga qoʻngʻiroq qiling.",
+      "sendingSub": "Yaqinlaringizni xabardor qilamiz va geolokatsiyani dispetcherga uzatamiz",
+      "locating": "Geolokatsiya aniqlanmoqda…",
+      "failedNotify": "yetkazilmadi",
+      "notified": "xabar berildi",
+      "noContacts": "Favqulodda kontaktlar qoʻshilmagan — dispetcher baribir xabardor qilindi.",
+      "call103": "103 ga qoʻngʻiroq",
+      "cancelAlarm": "Signalni bekor qilish"
+    },
+    "whoop": {
+      "tabs": {
+        "overview": "Umumiy",
+        "recovery": "Tiklanish",
+        "sleep": "Uyqu",
+        "strain": "Yuklama",
+        "trends": "Trendlar"
+      },
+      "disconnectTitle": "WHOOP uzilsinmi?",
+      "disconnectMsg": "Koʻrsatkichlar yangilanishdan toʻxtaydi. Tibbiy kartadagi maʼlumotlar saqlanib qoladi.",
+      "disconnect": "Uzish",
+      "disconnectBtn": "WHOOP’ni uzish",
+      "screenTitle": "WHOOP koʻrsatkichlari",
+      "updated": "Yangilandi {{ago}}",
+      "demoSuffix": " · demo",
+      "refresh": "Yangilash",
+      "notConnected": "WHOOP ulanmagan. «Salomatlik» ekraniga qayting va «Ulash» tugmasini bosing.",
+      "disclaimer": "Kiyiladigan qurilma maʼlumotlari maʼlumot uchun boʻlib, tibbiy tashxis emas.",
+      "ready": {
+        "high": "Yuqori tayyorlik",
+        "mid": "Oʻrtacha tayyorlik",
+        "low": "Past tayyorlik"
+      },
+      "recovery": "Tiklanish",
+      "strain": "Yuklama",
+      "sleep": "Uyqu",
+      "hrv": "HRV",
+      "restingHr": "Tinch puls",
+      "oxygen": "Kislorod",
+      "skinTemp": "Teri harorati",
+      "overviewRecoveryNote": "Organizm qanchalik tiklangan va yuklamaga tayyor — HRV, tinch puls va tungi uyquga koʻra.",
+      "recoveryNote": "Tiklanish yurak urishi oʻzgaruvchanligi (HRV), tinch puls, uyqu sifati va tungi nafasga koʻra hisoblanadi.",
+      "sleepQuality": "Uyqu sifati",
+      "gotPct": "Olindi {{pct}}%",
+      "debt": "Uyqu yetishmovchiligi {{value}}",
+      "sleepStages": "Uyqu bosqichlari",
+      "sleepStagesNote": "Chuqur uyqu tanani, REM esa miya va xotirani tiklaydi. Chuqur va REM qancha koʻp boʻlsa, tiklanish shuncha yaxshi.",
+      "consistency": "Muntazamlik",
+      "efficiency": "Samaradorlik",
+      "respiration": "Nafas",
+      "totalSleep": "Jami uyqu",
+      "dayStrain": "Kunlik yuklama",
+      "strainNote": "Kun davomida yurakka tushgan umumiy yuklama (0–21). Tiklanish bilan solishtiring: yuqori tayyorlik → koʻproq yuklama mumkin.",
+      "avgHr": "Oʻrtacha puls",
+      "maxHr": "Maksimal puls",
+      "calories": "Kaloriya",
+      "hrZones": "Puls zonalari (kun boʻyi)",
+      "workouts": "Mashgʻulotlar",
+      "workout": "Mashgʻulot",
+      "zone": "{{n}}-zona",
+      "days": "{{count}} kun",
+      "hrvNight": "HRV (tunda)",
+      "myMetrics": "Mening koʻrsatkichlarim",
+      "recDesc": {
+        "high": "Organizm yaxshi tiklandi — yuklama mumkin",
+        "mid": "Oʻrtacha tiklanish — ortiqcha yuklamasiz",
+        "low": "Past tiklanish — bugun dam oling"
+      },
+      "stage": {
+        "deep": "Chuqur",
+        "light": "Yengil",
+        "awakeShort": "Uygʻoq",
+        "awake": "Uygʻoqlik"
+      },
+      "connectFailTitle": "Ulab boʻlmadi",
+      "connectFailMsg": "Qayta urinib koʻring.",
+      "connectTitle": "WHOOP’ni ulang",
+      "connectSub": "Tiklanish, uyqu va puls — ilovada doim dolzarb",
+      "connect": "Ulash"
+    },
+    "stub": {
+      "inDev": "Ekran ishlab chiqilmoqda"
+    },
+    "days": {
+      "mon": "Du",
+      "tue": "Se",
+      "wed": "Cho",
+      "thu": "Pa",
+      "fri": "Ju",
+      "sat": "Sha",
+      "sun": "Ya"
+    }
+  },
+  "purchase": {
+    "common": {
+      "sum": "soʻm",
+      "monthsShort": "oy",
+      "paymentMethod": "Toʻlov usuli",
+      "oneTime": "Bir marta",
+      "installment": "Boʻlib toʻlash",
+      "error": "Xatolik"
+    },
+    "months": {
+      "0": "yanvar",
+      "1": "fevral",
+      "2": "mart",
+      "3": "aprel",
+      "4": "may",
+      "5": "iyun",
+      "6": "iyul",
+      "7": "avgust",
+      "8": "sentabr",
+      "9": "oktabr",
+      "10": "noyabr",
+      "11": "dekabr"
+    },
+    "company": {
+      "title": "Sugʻurta kompaniyalari",
+      "subtitle": "Mahsulotlarini koʻrish uchun kompaniyani tanlang",
+      "empty": "Hozircha mavjud kompaniyalar yoʻq",
+      "loadError": "Kompaniyalarni yuklab boʻlmadi",
+      "products": {
+        "one": "mahsulot",
+        "few": "mahsulot",
+        "many": "mahsulot"
+      }
+    },
+    "products": {
+      "title": "Sugʻurta",
+      "subtitle": "Mahsulotni tanlang va polisni onlayn rasmiylashtiring",
+      "empty": "Kompaniyada hozircha mahsulotlar yoʻq",
+      "loadError": "Mahsulotlarni yuklab boʻlmadi",
+      "eyebrow": {
+        "OSAGO": "Majburiy",
+        "KASKO": "Toʻliq qamrov",
+        "HEALTH": "Hayot va salomatlik",
+        "HOME": "Mulk",
+        "FINANCE": "Moliyaviy himoya",
+        "LIFE": "Hayot",
+        "TRAVEL": "Sayohat",
+        "OTHER": "Sugʻurta"
+      },
+      "benefits": {
+        "OSAGO": {
+          "0": "Elektron polis bir zumda",
+          "1": "Butun Oʻzbekiston boʻylab amal qiladi",
+          "2": "Onlayn rasmiylashtirish, ofissiz"
+        },
+        "KASKO": {
+          "0": "Oʻgʻirlik va uchinchi shaxslardan zarar",
+          "1": "Inspektorni chaqirish 24/7",
+          "2": "Hamkor avtoservislar tarmogʻi"
+        },
+        "HEALTH": {
+          "0": "Statsionar va ambulator davolash",
+          "1": "Butun Oʻzbekiston boʻylab klinikalar tarmogʻi",
+          "2": "50 000 000 soʻmgacha toʻlovlar"
+        },
+        "HOME": {
+          "0": "Yongʻin, suv toshqini, tabiiy ofatlar",
+          "1": "Buzib oʻgʻirlash va talonchilik",
+          "2": "Qoʻshnilar oldida javobgarlik"
+        },
+        "FINANCE": {
+          "0": "Kredit toʻlovlarini qoplash",
+          "1": "Ishdan ayrilganda toʻlov",
+          "2": "Yuridik yordam"
+        },
+        "LIFE": {
+          "0": "Baxtsiz hodisada yaqinlarga toʻlov",
+          "1": "Ogʻir kasalliklarda yordam",
+          "2": "Onlayn tez rasmiylashtirish"
+        },
+        "TRAVEL": {
+          "0": "Chet elda tibbiy yordam",
+          "1": "Bagaj va sayohat bekor qilinishi sugʻurtasi",
+          "2": "Viza uchun polis bir daqiqada"
+        },
+        "OTHER": {
+          "0": "Ishonchli himoya",
+          "1": "Butun Oʻzbekiston boʻylab",
+          "2": "Onlayn rasmiylashtirish"
+        }
+      }
+    },
+    "detail": {
+      "loadError": "Mahsulotni yuklab boʻlmadi",
+      "selectPlan": "Tarifni tanlang",
+      "covers": "Nimani qoplaydi",
+      "exceptions": "Nimani qoplamaydi",
+      "howItWorks": "Bu qanday ishlaydi",
+      "faq": "Savol-javoblar",
+      "selectPlanHint": "Davom etish uchun tarifni tanlang",
+      "checkout": "Rasmiylashtirish",
+      "calculate": "Narxni hisoblash",
+      "coverageUpTo": "{{amount}} soʻmgacha qamrov"
+    },
+    "calc": {
+      "step1": {
+        "eyebrow": "1/4-qadam · Avtomobil"
+      },
+      "step2": {
+        "eyebrow": "2/4-qadam · Haydovchilar"
+      },
+      "step3": {
+        "eyebrow": "3/4-qadam · Muddat"
+      },
+      "step4": {
+        "eyebrow": "4/4-qadam · Narx"
+      },
+      "vehicle": {
+        "title": "Avtomobilni tanlang",
+        "subtitle": "Polis qaysi avtomobilga rasmiylashtiriladi",
+        "addCar": "Yangi avtomobil qoʻshish"
+      },
+      "drivers": {
+        "title": "Kim boshqaradi",
+        "subtitle": "Haydovchilar soni narxga taʼsir qiladi",
+        "limited": "Cheklangan doira",
+        "unlimited": "Cheklovsiz",
+        "addDriver": "Haydovchi qoʻshish",
+        "warning": "«Cheklovsiz» ~25% qimmatroq, ammo guvohnomasi bor har qanday haydovchiga boshqarishga ruxsat beradi.",
+        "noLicense": "HG koʻrsatilmagan",
+        "license": "HG {{series}} {{number}}",
+        "expYears": {
+          "one": "{{years}} yil",
+          "few": "{{years}} yil",
+          "many": "{{years}} yil"
+        }
+      },
+      "period": {
+        "title": "Sugʻurta muddati",
+        "subtitle": "Muddat qancha uzoq boʻlsa, oyiga hisoblaganda shuncha foydali",
+        "m3": "3 oy",
+        "m6": "6 oy",
+        "m12": "12 oy",
+        "best": "eng yaxshi",
+        "startDate": "Boshlanish sanasi",
+        "endDate": "Tugash sanasi"
+      },
+      "result": {
+        "title": "Polis narxi",
+        "subtitle": "{{product}} {{months}} oyga hisob-kitob",
+        "submit": "Polisni rasmiylashtirish",
+        "total": "Jami",
+        "installmentNote": "{{amount}} soʻm × 12 oy. Birinchi toʻlov — bugun."
+      }
+    },
+    "checkout": {
+      "title": "Polisni rasmiylashtirish",
+      "subtitle": "Toʻlovdan oldin maʼlumotlarni tekshiring",
+      "vehicle": "Avtomobil",
+      "brandModel": "Marka / model",
+      "plate": "Davlat raqami",
+      "yearEngine": "Yil · Dvigatel",
+      "drivers": "Haydovchilar",
+      "period": "Muddat",
+      "term": "Muddat",
+      "monthsValue": "{{months}} oy",
+      "start": "Boshlanish",
+      "end": "Tugash",
+      "promo": "Promokod",
+      "promoPlaceholder": "Promokodni kiriting",
+      "apply": "Qoʻllash",
+      "remove": "Olib tashlash",
+      "discountApplied": "{{amount}} soʻm chegirma qoʻllanildi",
+      "promoNotFound": "Promokod topilmadi",
+      "cost": "Narx",
+      "withoutDiscount": "Chegirmasiz",
+      "agreePre": "Men ",
+      "agreeLink": "oferta shartlari",
+      "agreePost": " bilan tanishdim va shaxsiy maʼlumotlarni qayta ishlashga roziman",
+      "creating": "Yaratilmoqda…",
+      "toPayment": "Toʻlovga oʻtish · {{amount}} soʻm",
+      "createError": "Polisni yaratib boʻlmadi",
+      "expOne": "staj {{years}} yil",
+      "expFew": "staj {{years}} yil",
+      "expMany": "staj {{years}} yil"
+    },
+    "payment": {
+      "toPay": "Toʻlash uchun",
+      "allCards": "Barcha kartalar",
+      "viaBrowser": "Brauzer orqali toʻlov",
+      "secureNote": "Toʻlov himoyalangan. Karta maʼlumotlari serverimizda saqlanmaydi.",
+      "pay": "{{amount}} soʻm toʻlash",
+      "browserReturn": "Toʻlovdan soʻng ilovaga qayting — holat avtomatik yangilanadi.",
+      "failed": "Toʻlov amalga oshmadi",
+      "declined": "Toʻlov rad etildi"
+    },
+    "cards": {
+      "title": "Mening kartalarim",
+      "subtitle": "Saqlangan toʻlov usullarini boshqarish",
+      "empty": "Saqlangan kartalar yoʻq",
+      "add": "Karta qoʻshish",
+      "info": "Uzcard va Humo kartalari qoʻllab-quvvatlanadi. Visa va Mastercard tez orada.\nOʻchirish uchun kartani bosib turing.",
+      "last4Label": "Oxirgi 4 raqam",
+      "expiryLabel": "Amal qilish muddati (OO/YY)",
+      "saving": "Saqlanmoqda...",
+      "deleteTitle": "Kartani oʻchirish",
+      "deleteMessage": "•••• {{last4}} karta oʻchiriladi",
+      "delete": "Oʻchirish",
+      "addError": "Kartani qoʻshib boʻlmadi"
+    },
+    "success": {
+      "title": "Polis rasmiylashtirildi!",
+      "activeFrom": " amal qiladi: ",
+      "activeTo": " — ",
+      "activated": "Polis faollashtirildi",
+      "myPolicies": "Mening polislarim",
+      "downloadPdf": "PDF yuklab olish",
+      "pdfSoon": "PDF-polisni yuklab olish keyingi yangilanishda mavjud boʻladi.",
+      "toHome": "Bosh sahifaga"
+    }
   }
 }

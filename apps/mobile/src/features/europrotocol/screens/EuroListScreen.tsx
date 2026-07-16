@@ -1,6 +1,8 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { TFunction } from 'i18next';
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import {
@@ -23,8 +25,6 @@ import type { EuroStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroList'>;
 
-const SCHEME_LABEL: Record<string, string> = { rear: 'Наезд сзади', front: 'Лобовое', side: 'Боковое' };
-
 // 5 сегментов прогресса по статусу (M10.1).
 const PROGRESS: Record<EuroStatus, number> = {
   SUBMITTED: 1,
@@ -45,6 +45,7 @@ function formatDate(iso: string): string {
 
 // M10.1 — список оформленных европротоколов пользователя.
 export function EuroListScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const { data, isLoading, refetch } = useMyEuroProtocols();
   const [tab, setTab] = useState(0); // 0 — активные, 1 — архив
@@ -101,7 +102,7 @@ export function EuroListScreen() {
           <Text
             style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 26, letterSpacing: -0.26, color: tokens.ink }}
           >
-            Европротоколы
+            {t('euroDocs.list.title')}
           </Text>
         </View>
         {hasAny && (
@@ -123,13 +124,13 @@ export function EuroListScreen() {
           <ActivityIndicator color={tokens.red} />
         </View>
       ) : !hasAny ? (
-        <EmptyState onCreate={() => nav.navigate('EuroStart')} />
+        <EmptyState t={t} onCreate={() => nav.navigate('EuroStart')} />
       ) : (
         <>
           <View style={{ paddingHorizontal: 24, gap: 12 }}>
             {searching && (
               <TextField
-                placeholder="Номер, марка или госномер"
+                placeholder={t('euroDocs.list.searchPlaceholder')}
                 value={query}
                 onChangeText={setQuery}
                 autoFocus
@@ -137,7 +138,7 @@ export function EuroListScreen() {
               />
             )}
             <Segmented
-              options={[`Активные · ${activeCount}`, 'Архив']}
+              options={[t('euroDocs.list.tabActive', { n: activeCount }), t('euroDocs.list.tabArchive')]}
               active={tab}
               onChange={setTab}
             />
@@ -154,10 +155,10 @@ export function EuroListScreen() {
                 }}
               >
                 {query.trim()
-                  ? 'Ничего не найдено'
+                  ? t('euroDocs.list.nothingFound')
                   : tab === 1
-                    ? 'Архив пуст'
-                    : 'Нет активных европротоколов'}
+                    ? t('euroDocs.list.archiveEmpty')
+                    : t('euroDocs.list.noActive')}
               </Text>
             </View>
           ) : (
@@ -167,7 +168,7 @@ export function EuroListScreen() {
               showsVerticalScrollIndicator={false}
             >
               {filtered.map((p) => (
-                <EuroCard key={p.id} item={p} onPress={() => nav.navigate('EuroDetail', { id: p.id })} />
+                <EuroCard key={p.id} t={t} item={p} onPress={() => nav.navigate('EuroDetail', { id: p.id })} />
               ))}
             </ScrollView>
           )}
@@ -179,23 +180,23 @@ export function EuroListScreen() {
   );
 }
 
-function EmptyState({ onCreate }: { onCreate: () => void }) {
+function EmptyState({ t, onCreate }: { t: TFunction; onCreate: () => void }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 8 }}>
       <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink, textAlign: 'center' }}>
-        Пока нет европротоколов
+        {t('euroDocs.list.emptyTitle')}
       </Text>
       <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center' }}>
-        Оформите извещение о ДТП — оба участника подтверждаются через MyID
+        {t('euroDocs.list.emptySubtitle')}
       </Text>
       <View style={{ width: 260, marginTop: 12 }}>
-        <RedButton onPress={onCreate}>Оформить европротокол</RedButton>
+        <RedButton onPress={onCreate}>{t('euroDocs.list.emptyCta')}</RedButton>
       </View>
     </View>
   );
 }
 
-function EuroCard({ item, onPress }: { item: EuroProtocolRecord; onPress: () => void }) {
+function EuroCard({ t, item, onPress }: { t: TFunction; item: EuroProtocolRecord; onPress: () => void }) {
   const progress = PROGRESS[item.status];
   return (
     <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 24, overflow: 'hidden', opacity: pressed ? 0.7 : 1 })}>
@@ -213,18 +214,18 @@ function EuroCard({ item, onPress }: { item: EuroProtocolRecord; onPress: () => 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
           <View style={{ gap: 6, flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Tag tone="ink">ДТП</Tag>
+              <Tag tone="ink">{t('euroDocs.common.accident')}</Tag>
               <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 11, color: tokens.inkMuted, letterSpacing: 0.4 }}>
                 {item.number}
               </Text>
             </View>
             <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 15, color: tokens.ink }}>
-              {item.vehicle ? `${item.vehicle.brand} ${item.vehicle.model}` : 'ДТП · европротокол'}
+              {item.vehicle ? `${item.vehicle.brand} ${item.vehicle.model}` : t('euroDocs.list.cardFallback')}
             </Text>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted, letterSpacing: 0.2 }}>
               {item.vehicle?.plate ? `${item.vehicle.plate} · ` : ''}
               {formatDate(item.incidentDate)} · {item.incidentTime}
-              {item.schemeType ? ` · ${SCHEME_LABEL[item.schemeType] ?? ''}` : ''}
+              {item.schemeType ? ` · ${t('euroDocs.map.scheme.' + item.schemeType, { defaultValue: '' })}` : ''}
             </Text>
           </View>
           <EuroStatusBadge status={item.status} />

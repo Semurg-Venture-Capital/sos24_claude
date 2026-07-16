@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { BackButton } from '../../../components/ui/BackButton';
 import { Checkbox } from '../../../components/ui/Checkbox';
@@ -15,16 +16,17 @@ import type { EuroStackParamList, MainStackParamList } from '../../../navigation
 
 type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroCheck'>;
 
-const CONDITIONS: { key: keyof EuroScreening; text: string }[] = [
-  { key: 'twoVehicles', text: 'В ДТП участвуют только 2 транспортных средства' },
-  { key: 'noInjured', text: 'Нет пострадавших и погибших' },
-  { key: 'noThirdParty', text: 'Не повреждено имущество третьих лиц' },
-  { key: 'agree', text: 'Оба водителя согласны с обстоятельствами' },
-  { key: 'bothOsago', text: 'У обоих водителей действующий полис ОСАГО' },
+const CONDITIONS: { key: keyof EuroScreening }[] = [
+  { key: 'twoVehicles' },
+  { key: 'noInjured' },
+  { key: 'noThirdParty' },
+  { key: 'agree' },
+  { key: 'bothOsago' },
 ];
 
 // M9.2 — скрининг применимости европротокола. Все 5 условий → «Продолжить».
 export function EuroCheckScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const screening = useEuroStore((s) => s.screening);
   const setScreening = useEuroStore((s) => s.setScreening);
@@ -52,8 +54,8 @@ export function EuroCheckScreen() {
         showsVerticalScrollIndicator={false}
       >
         <ScreenHeading
-          title="Подходит ли европротокол?"
-          subtitle="Подтвердите все условия. Если хотя бы одно не выполняется — нужен инспектор или ГАИ"
+          title={t('euroDocs.check.title')}
+          subtitle={t('euroDocs.check.subtitle')}
         />
 
         <View style={{ gap: 10 }}>
@@ -86,7 +88,7 @@ export function EuroCheckScreen() {
                     letterSpacing: -0.07,
                   }}
                 >
-                  {c.text}
+                  {t('euroDocs.check.conditions.' + c.key)}
                 </Text>
               </Pressable>
             );
@@ -94,7 +96,7 @@ export function EuroCheckScreen() {
         </View>
 
         {!passed && (
-          <WarningBox text="Пока подтверждены не все условия. Если какое-то не выполняется — оформление по европротоколу невозможно, вызовите инспектора." />
+          <WarningBox text={t('euroDocs.check.warning')} />
         )}
       </ScrollView>
 
@@ -103,10 +105,10 @@ export function EuroCheckScreen() {
         <LinearGradient colors={['rgba(228,228,228,0)', 'rgba(228,228,228,0.95)']} style={{ height: 24 }} />
         <View style={{ paddingHorizontal: 24, paddingBottom: 32, paddingTop: 8, backgroundColor: 'rgba(228,228,228,0.95)', gap: 10 }}>
           <RedButton disabled={!passed} onPress={proceed}>
-            Продолжить
+            {t('common.continue')}
           </RedButton>
           <OutlineButton tone="dark" style={{ height: 52 }} onPress={callInspector}>
-            Вызвать инспектора
+            {t('euroDocs.check.callInspector')}
           </OutlineButton>
         </View>
       </View>

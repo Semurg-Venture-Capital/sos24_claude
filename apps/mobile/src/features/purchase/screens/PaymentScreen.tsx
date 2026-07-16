@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useCards, type CardApi } from '../../../api/cards';
 import { useInitClick, useInitPayme, usePayPolicy } from '../../../api/payments';
@@ -33,6 +34,7 @@ const BRAND_MAP: Record<CardApi['brand'], CardBrand> = {
 // M7.1 — Оплата.
 export function PaymentScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const state = usePurchaseStore();
   const policyId = state.draftPolicyId;
 
@@ -65,7 +67,7 @@ export function PaymentScreen() {
       if (selectedMethod === 'payme') {
         const { redirectUrl } = await paymeMutation.mutateAsync(policyId);
         await Linking.openURL(redirectUrl);
-        Alert.alert('Payme', 'После оплаты вернитесь в приложение — статус обновится автоматически.', [
+        Alert.alert('Payme', t('purchase.payment.browserReturn'), [
           { text: 'OK', onPress: () => nav.navigate('Success') },
         ]);
         return;
@@ -73,7 +75,7 @@ export function PaymentScreen() {
       if (selectedMethod === 'click') {
         const { redirectUrl } = await clickMutation.mutateAsync(policyId);
         await Linking.openURL(redirectUrl);
-        Alert.alert('Click', 'После оплаты вернитесь в приложение — статус обновится автоматически.', [
+        Alert.alert('Click', t('purchase.payment.browserReturn'), [
           { text: 'OK', onPress: () => nav.navigate('Success') },
         ]);
         return;
@@ -85,8 +87,8 @@ export function PaymentScreen() {
       );
       nav.navigate('Success');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Оплата не прошла';
-      Alert.alert('Платёж отклонён', msg);
+      const msg = err instanceof Error ? err.message : t('purchase.payment.failed');
+      Alert.alert(t('purchase.payment.declined'), msg);
     }
   };
 
@@ -112,7 +114,7 @@ export function PaymentScreen() {
               textTransform: 'uppercase',
             }}
           >
-            К оплате
+            {t('purchase.payment.toPay')}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
             <Text
@@ -127,12 +129,12 @@ export function PaymentScreen() {
               {total.toLocaleString('ru-RU')}
             </Text>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 16, color: tokens.inkMuted }}>
-              сум
+              {t('purchase.common.sum')}
             </Text>
           </View>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
             {isVehicleProduct
-              ? `${productLabel} · ${car ? `${car.brand} ${car.model}` : '—'} · ${state.periodMonths} мес`
+              ? `${productLabel} · ${car ? `${car.brand} ${car.model}` : '—'} · ${state.periodMonths} ${t('purchase.common.monthsShort')}`
               : productLabel}
           </Text>
         </View>
@@ -148,9 +150,9 @@ export function PaymentScreen() {
                 letterSpacing: -0.065,
               }}
             >
-              Способ оплаты
+              {t('purchase.common.paymentMethod')}
             </Text>
-            <TextLink onPress={() => nav.navigate('MyCards')}>Все карты</TextLink>
+            <TextLink onPress={() => nav.navigate('MyCards')}>{t('purchase.payment.allCards')}</TextLink>
           </View>
 
           <View style={{ gap: 10 }}>
@@ -193,7 +195,7 @@ export function PaymentScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>Payme</Text>
-                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>Оплата через браузер</Text>
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>{t('purchase.payment.viaBrowser')}</Text>
               </View>
               {selectedMethod === 'payme' && (
                 <View style={{ width: 18, height: 18, borderRadius: 999, backgroundColor: '#00AAFF', alignItems: 'center', justifyContent: 'center' }}>
@@ -223,7 +225,7 @@ export function PaymentScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>Click</Text>
-                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>Оплата через браузер</Text>
+                <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>{t('purchase.payment.viaBrowser')}</Text>
               </View>
               {selectedMethod === 'click' && (
                 <View style={{ width: 18, height: 18, borderRadius: 999, backgroundColor: '#FF6B00', alignItems: 'center', justifyContent: 'center' }}>
@@ -233,7 +235,7 @@ export function PaymentScreen() {
             </Pressable>
           </View>
 
-          <SecureNote text="Платёж защищён. Данные карты не сохраняются на нашем сервере." />
+          <SecureNote text={t('purchase.payment.secureNote')} />
         </View>
       </ScrollView>
 
@@ -245,7 +247,7 @@ export function PaymentScreen() {
               <ActivityIndicator color="#fff" />
             ) : (
               <>
-                <PayLockIcon color="#fff" />{'  '}Оплатить {total.toLocaleString('ru-RU')} сум
+                <PayLockIcon color="#fff" />{'  '}{t('purchase.payment.pay', { amount: total.toLocaleString('ru-RU') })}
               </>
             )}
           </RedButton>

@@ -1,6 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 import { useDrivers, type Driver } from '../../../api/drivers';
 import { AddTile } from '../../../components/ui/AddTile';
@@ -15,20 +17,22 @@ import type { PurchaseStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<PurchaseStackParamList, 'CalcDrivers'>;
 
-function formatLicense(d: Driver): string {
-  if (d.licenseSeries && d.licenseNumber) return `ВУ ${d.licenseSeries} ${d.licenseNumber}`;
-  return 'ВУ не указано';
+function formatLicense(d: Driver, t: TFunction): string {
+  if (d.licenseSeries && d.licenseNumber)
+    return t('purchase.calc.drivers.license', { series: d.licenseSeries, number: d.licenseNumber });
+  return t('purchase.calc.drivers.noLicense');
 }
 
-function formatExperience(years: number): string {
-  if (years === 1) return '1 год';
-  if (years >= 2 && years <= 4) return `${years} года`;
-  return `${years} лет`;
+function formatExperience(years: number, t: TFunction): string {
+  if (years === 1) return t('purchase.calc.drivers.expYears.one', { years });
+  if (years >= 2 && years <= 4) return t('purchase.calc.drivers.expYears.few', { years });
+  return t('purchase.calc.drivers.expYears.many', { years });
 }
 
 // M5.2 — Шаг 2: водители + лимит.
 export function CalcDriversScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const driverLimit = usePurchaseStore((s) => s.driverLimit);
   const driverIds = usePurchaseStore((s) => s.driverIds);
   const setDriverLimit = usePurchaseStore((s) => s.setDriverLimit);
@@ -50,15 +54,15 @@ export function CalcDriversScreen() {
   return (
     <WizardFrame
       step={2}
-      eyebrow="Шаг 2 из 4 · Водители"
-      primary="Далее"
+      eyebrow={t('purchase.calc.step2.eyebrow')}
+      primary={t('common.next')}
       primaryEnabled={ok}
       primaryAction={() => nav.navigate('CalcPeriod')}
       onBack={() => nav.goBack()}
     >
-      <ScreenHeading title="Кто будет управлять" subtitle="Количество водителей влияет на стоимость" />
+      <ScreenHeading title={t('purchase.calc.drivers.title')} subtitle={t('purchase.calc.drivers.subtitle')} />
       <Segmented
-        options={['Ограниченный круг', 'Без ограничений']}
+        options={[t('purchase.calc.drivers.limited'), t('purchase.calc.drivers.unlimited')]}
         active={limitedIdx}
         onChange={(i) => setDriverLimit(i === 0 ? 'limited' : 'unlimited')}
       />
@@ -74,17 +78,17 @@ export function CalcDriversScreen() {
                 <DriverCard
                   key={d.id}
                   name={d.name}
-                  doc={formatLicense(d)}
-                  experience={formatExperience(d.experienceYears)}
+                  doc={formatLicense(d, t)}
+                  experience={formatExperience(d.experienceYears, t)}
                   onRemove={() => toggleDriver(d.id)}
                 />
               ))}
-              <AddTile>Добавить водителя</AddTile>
+              <AddTile>{t('purchase.calc.drivers.addDriver')}</AddTile>
             </View>
           )}
         </>
       )}
-      <WarningBox text="«Без ограничений» дороже на ~25%, но позволяет управлять любому водителю с правами." />
+      <WarningBox text={t('purchase.calc.drivers.warning')} />
     </WizardFrame>
   );
 }

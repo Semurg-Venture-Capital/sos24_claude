@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, Text, View } from 'react-native';
 import { QuickIconAdjuster, QuickIconEuroProtocol } from '../../../components/icons/QuickActionIcons';
 import { BackButton } from '../../../components/ui/BackButton';
@@ -19,6 +20,7 @@ type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStart'>;
 //   • Подать обычное заявление → позже (M9.4)
 export function EuroStartScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
 
   const openEuroWizard = () => {
     nav.navigate('EuroCheck');
@@ -30,7 +32,7 @@ export function EuroStartScreen() {
   };
 
   const openRegularClaim = () => {
-    Alert.alert('Скоро', 'Обычное заявление о страховом случае (M9.4).');
+    Alert.alert(t('common.comingSoon'), t('euro.start.regularClaimSoon'));
   };
 
   return (
@@ -44,7 +46,7 @@ export function EuroStartScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40, gap: 20 }}
         showsVerticalScrollIndicator={false}
       >
-        <ScreenHeading title="Произошло ДТП?" subtitle="Мы поможем — оформим всё прямо в приложении" />
+        <ScreenHeading title={t('euro.start.title')} subtitle={t('euro.start.subtitle')} />
 
         {/* Инструкция «что сделать сейчас» */}
         <View style={{ borderRadius: 24, overflow: 'hidden' }}>
@@ -68,11 +70,11 @@ export function EuroStartScreen() {
                 color: tokens.inkMuted,
               }}
             >
-              Что сделать прямо сейчас
+              {t('euro.start.whatToDoNow')}
             </Text>
-            <Step num="1" text="Убедитесь, что все в безопасности" />
-            <Step num="2" text="Зафиксируйте обстоятельства, не уезжая" />
-            <Step num="3" text="Выберите формат оформления ниже" />
+            <Step num="1" text={t('euro.start.step1')} />
+            <Step num="2" text={t('euro.start.step2')} />
+            <Step num="3" text={t('euro.start.step3')} />
           </Glass>
         </View>
 
@@ -80,27 +82,27 @@ export function EuroStartScreen() {
         <View style={{ gap: 12 }}>
           <ChoiceCard
             tone="light"
-            eyebrow="без пострадавших"
-            name="Электронный европротокол"
-            desc="Если оба водителя согласны и нет пострадавших"
-            cta="Оформить"
+            eyebrow={t('euro.start.euroEyebrow')}
+            name={t('euro.start.euroName')}
+            desc={t('euro.start.euroDesc')}
+            cta={t('euro.start.euroCta')}
             icon={<QuickIconEuroProtocol size={28} color={tokens.red} />}
             onPress={openEuroWizard}
           />
           <ChoiceCard
             tone="dark"
-            eyebrow="онлайн · ~20 мин"
-            name="Вызвать инспектора"
-            desc="Наш специалист приедет на место и поможет"
-            cta="Вызвать"
-            status="Доступен сейчас"
+            eyebrow={t('euro.start.inspectorEyebrow')}
+            name={t('euro.start.inspectorName')}
+            desc={t('euro.start.inspectorDesc')}
+            cta={t('euro.start.inspectorCta')}
+            status={t('euro.start.inspectorStatus')}
             icon={<QuickIconAdjuster size={28} color="#fff" />}
             onPress={callInspector}
           />
 
           <View style={{ alignItems: 'center', marginTop: 4 }}>
             <TextLink color={tokens.inkSubtle} onPress={openRegularClaim}>
-              Подать обычное заявление
+              {t('euro.start.regularClaim')}
             </TextLink>
           </View>
         </View>

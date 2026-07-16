@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useVehicles } from '../../../api/vehicles';
 import { usePolicies } from '../../../api/policies';
@@ -29,6 +30,7 @@ function formatDate(iso: string): string {
 // M9.3 шаг 5 — итоговый просмотр + подтверждение + отправка.
 export function EuroStep5Screen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const s = useEuroStore();
   const { data: vehicles } = useVehicles();
   const { data: myPolicies } = usePolicies();
@@ -71,7 +73,7 @@ export function EuroStep5Screen() {
   const submit = async () => {
     setBusy(true);
     try {
-      setPhase('Загрузка медиа…');
+      setPhase(t('euro.step5.phaseUpload'));
       const photos = await uploadMedia();
 
       // Рисунок схемы ДТП (карта + машины) → MinIO; ключ попадёт в PDF бланка.
@@ -100,7 +102,7 @@ export function EuroStep5Screen() {
         }
       }
 
-      setPhase('Отправка…');
+      setPhase(t('euro.step5.phaseSubmit'));
       const res = await submitMutation.mutateAsync({
         incidentDate: s.date,
         incidentTime: s.time,
@@ -162,7 +164,7 @@ export function EuroStep5Screen() {
       s.setSubmittedNumber(res.number);
       nav.navigate('EuroSuccess');
     } catch {
-      Alert.alert('Ошибка', 'Не удалось отправить европротокол. Попробуйте ещё раз.');
+      Alert.alert(t('euro.common.errorTitle'), t('euro.step5.submitError'));
     } finally {
       setBusy(false);
       setPhase('');
@@ -173,70 +175,70 @@ export function EuroStep5Screen() {
     <WizardFrame
       step={5}
       total={5}
-      eyebrow="Шаг 5 из 5 · Подтверждение"
-      primary={busy ? phase || 'Отправка…' : 'Подписать и отправить'}
+      eyebrow={t('euro.step5.eyebrow')}
+      primary={busy ? phase || t('euro.step5.phaseSubmit') : t('euro.step5.signSubmit')}
       primaryEnabled={confirmed && !busy}
       primaryAction={submit}
       onBack={() => nav.goBack()}
     >
-      <ScreenHeading title="Проверьте данные" subtitle="Перед отправкой убедитесь, что всё верно" />
+      <ScreenHeading title={t('euro.step5.title')} subtitle={t('euro.step5.subtitle')} />
 
       <SummaryBlock
-        eyebrow="Обстоятельства"
+        eyebrow={t('euro.step5.circumstances')}
         rows={[
-          { label: 'Дата и время', value: `${formatDate(s.date)} · ${s.time}` },
-          { label: 'Место', value: s.place || '—' },
-          { label: 'Схема', value: s.schemeImageUri ? 'на карте ✓' : '—' },
-          { label: 'Фото / видео', value: `${photosCount} из ${REQUIRED_PHOTOS.length} · ${s.videos.length} видео` },
-          { label: 'Обстоятельства', value: circCount ? `отмечено ${circCount}` : '—' },
+          { label: t('euro.step5.dateTime'), value: `${formatDate(s.date)} · ${s.time}` },
+          { label: t('euro.step5.place'), value: s.place || '—' },
+          { label: t('euro.step5.scheme'), value: s.schemeImageUri ? t('euro.step5.onMap') : '—' },
+          { label: t('euro.step5.photoVideo'), value: t('euro.step5.photoVideoValue', { done: photosCount, total: REQUIRED_PHOTOS.length, videos: s.videos.length }) },
+          { label: t('euro.step5.circumstances'), value: circCount ? t('euro.step5.markedCount', { count: circCount }) : '—' },
         ]}
       />
 
       <SummaryBlock
-        eyebrow="Сторона A · Вы"
+        eyebrow={t('euro.step5.sideA')}
         rows={[
-          { label: 'Авто', value: myVehicle ? `${myVehicle.brand} ${myVehicle.model}` : '—' },
-          { label: 'Госномер', value: myVehicle?.plate ?? '—' },
+          { label: t('euro.step5.vehicle'), value: myVehicle ? `${myVehicle.brand} ${myVehicle.model}` : '—' },
+          { label: t('euro.step5.govNumber'), value: myVehicle?.plate ?? '—' },
           { label: 'ОСАГО', value: myPolicy ? `${myPolicy.policyNumber ?? myPolicy.id.slice(0, 8)}` : '—' },
-          { label: 'ВУ', value: s.myDlNumber ? `${s.myDlSeria} ${s.myDlNumber}`.trim() : 'из профиля' },
-          { label: 'MyID', value: s.selfVerified ? 'Подтверждён' : 'Нет' },
+          { label: t('euro.step5.license'), value: s.myDlNumber ? `${s.myDlSeria} ${s.myDlNumber}`.trim() : t('euro.step5.fromProfile') },
+          { label: 'MyID', value: s.selfVerified ? t('euro.step5.confirmed') : t('euro.step5.no') },
         ]}
       />
 
       <SummaryBlock
-        eyebrow="Сторона B · Второй участник"
+        eyebrow={t('euro.step5.sideB')}
         rows={[
-          { label: 'Участник', value: s.participant ? participantFullName(s.participant) : '—' },
-          { label: 'Авто', value: s.otherVehicle?.modelName ?? '—' },
-          { label: 'Госномер', value: s.otherVehicle?.govNumber ?? s.otherGov ?? '—' },
+          { label: t('euro.step5.participant'), value: s.participant ? participantFullName(s.participant) : '—' },
+          { label: t('euro.step5.vehicle'), value: s.otherVehicle?.modelName ?? '—' },
+          { label: t('euro.step5.govNumber'), value: s.otherVehicle?.govNumber ?? s.otherGov ?? '—' },
           {
-            label: 'Полис',
+            label: t('euro.step5.policy'),
             value:
               s.otherPolicySeria || s.otherPolicyNumber
                 ? `${s.otherPolicySeria} ${s.otherPolicyNumber}`.trim() + (s.otherPolicyValid ? ' ✓' : '')
                 : '—',
           },
-          { label: 'Телефон', value: s.otherPhone || '—' },
+          { label: t('euro.step5.phone'), value: s.otherPhone || '—' },
           {
-            label: 'ВУ',
+            label: t('euro.step5.license'),
             value: s.otherDlSeria || s.otherDlNumber ? `${s.otherDlSeria} ${s.otherDlNumber}`.trim() : '—',
           },
-          { label: 'Подпись', value: s.participant ? 'MyID ✓' : '—' },
+          { label: t('euro.step5.signature'), value: s.participant ? 'MyID ✓' : '—' },
         ]}
       />
 
       {s.description ? (
-        <SummaryBlock eyebrow="Описание" rows={[{ label: '', value: s.description }]} />
+        <SummaryBlock eyebrow={t('euro.step5.description')} rows={[{ label: '', value: s.description }]} />
       ) : null}
 
       {/* Подпись стороны «В» по OTP */}
       {s.participant ? (
         <View style={{ gap: 6 }}>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.07 }}>
-            Подпись второго участника
+            {t('euro.step5.otherSignature')}
           </Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 16 }}>
-            ✓ Подтверждено через MyID — это считается подписью и согласием второго участника.
+            {t('euro.step5.signatureConfirmed')}
           </Text>
         </View>
       ) : null}
@@ -258,12 +260,12 @@ export function EuroStep5Screen() {
       >
         <Checkbox checked={confirmed} onChange={() => setConfirmed((v) => !v)} />
         <Text style={{ flex: 1, fontFamily: 'Manrope_500Medium', fontSize: 14, lineHeight: 19, color: tokens.ink }}>
-          Подтверждаю, что все данные верны и оба участника согласны с обстоятельствами ДТП
+          {t('euro.step5.confirmCheckbox')}
         </Text>
       </Pressable>
 
       <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 17, paddingHorizontal: 4 }}>
-        Обе личности подтверждены через MyID. После отправки извещение поступит в обработку — следите за статусом в разделе «Заявления».
+        {t('euro.step5.footerNote')}
       </Text>
     </WizardFrame>
   );

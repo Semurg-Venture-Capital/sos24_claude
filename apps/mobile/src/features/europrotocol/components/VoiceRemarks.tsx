@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import {
@@ -38,6 +39,7 @@ export function VoiceRemarks({
   onResult: (r: { normalized: string; transcript: string; audioKey: string }) => void;
   maxReRecords?: number; // лимит перезаписей — защита от лишних запросов к ИИ
 }) {
+  const { t } = useTranslation();
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recState = useAudioRecorderState(recorder);
   const player = useAudioPlayer();
@@ -60,7 +62,7 @@ export function VoiceRemarks({
     try {
       const perm = await AudioModule.requestRecordingPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('Нет доступа к микрофону', 'Разрешите доступ к микрофону в настройках, чтобы записать замечание голосом.');
+        Alert.alert(t('euroDocs.voice.micDeniedTitle'), t('euroDocs.voice.micDeniedMsg'));
         return;
       }
       if (playStatus.playing) player.pause();
@@ -72,7 +74,7 @@ export function VoiceRemarks({
       clearTimer();
       timer.current = setInterval(() => setSecs((v) => v + 1), 1000);
     } catch {
-      Alert.alert('Ошибка', 'Не удалось начать запись.');
+      Alert.alert(t('euroDocs.common.error'), t('euroDocs.voice.startFailMsg'));
     }
   };
 
@@ -86,7 +88,7 @@ export function VoiceRemarks({
       setAudioUri(uri);
       setPhase('recorded');
     } catch {
-      Alert.alert('Ошибка', 'Не удалось сохранить запись. Попробуйте ещё раз.');
+      Alert.alert(t('euroDocs.common.error'), t('euroDocs.voice.saveFailMsg'));
       setPhase('idle');
     }
   };
@@ -103,10 +105,10 @@ export function VoiceRemarks({
   // Перезаписать — с подтверждением (удаляет текущую запись). Лимит перезаписей.
   const confirmReRecord = () => {
     if (!canReRecord) return;
-    Alert.alert('Перезаписать?', `Записанное сообщение будет удалено. Осталось перезаписей: ${maxReRecords - reRecords}.`, [
-      { text: 'Отмена', style: 'cancel' },
+    Alert.alert(t('euroDocs.voice.reRecordTitle'), t('euroDocs.voice.reRecordMsg', { left: maxReRecords - reRecords }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Перезаписать',
+        text: t('euroDocs.voice.reRecord'),
         style: 'destructive',
         onPress: () => {
           setReRecords((n) => n + 1);
@@ -126,7 +128,7 @@ export function VoiceRemarks({
       onResult({ normalized: r.normalized || r.transcript, transcript: r.transcript, audioKey: media.key });
       setPhase('done'); // запись оставляем — чтобы можно было переслушать
     } catch {
-      Alert.alert('Не удалось распознать', 'Попробуйте ещё раз или введите замечание вручную.');
+      Alert.alert(t('euroDocs.voice.recognizeFailTitle'), t('euroDocs.voice.recognizeFailMsg'));
       setPhase('recorded');
     }
   };
@@ -155,7 +157,7 @@ export function VoiceRemarks({
       style={{ paddingHorizontal: 14, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.06)', opacity: canReRecord ? 1 : 0.4 }}
     >
       <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: tokens.inkDark }}>
-        {canReRecord ? 'Перезаписать' : 'Лимит перезаписей'}
+        {canReRecord ? t('euroDocs.voice.reRecord') : t('euroDocs.voice.reRecordLimit')}
       </Text>
     </Pressable>
   );
@@ -165,7 +167,7 @@ export function VoiceRemarks({
     return (
       <View style={row(tokens.hairline, 'rgba(255,255,255,0.5)')}>
         <ActivityIndicator color={tokens.red} />
-        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13.5, color: tokens.inkMuted }}>Распознаём голос…</Text>
+        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13.5, color: tokens.inkMuted }}>{t('euroDocs.voice.processing')}</Text>
       </View>
     );
   }
@@ -175,7 +177,7 @@ export function VoiceRemarks({
     return (
       <Pressable onPress={stopRecording} style={bar(tokens.red)}>
         <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#fff' }} />
-        <Text style={{ flex: 1, fontFamily: 'Manrope_600SemiBold', fontSize: 13.5, color: '#fff' }}>Идёт запись · {mmss(secs)}</Text>
+        <Text style={{ flex: 1, fontFamily: 'Manrope_600SemiBold', fontSize: 13.5, color: '#fff' }}>{t('euroDocs.voice.recordingTime', { time: mmss(secs) })}</Text>
         <View style={{ width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.2)' }}>
           <Svg width={14} height={14} viewBox="0 0 24 24">
             <Rect x={6} y={6} width={12} height={12} rx={2} fill="#fff" />
@@ -192,12 +194,12 @@ export function VoiceRemarks({
         <View style={row(tokens.hairline, 'rgba(255,255,255,0.5)')}>
           <PlayBtn />
           <Text style={{ flex: 1, fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkDark }}>
-            {playStatus.playing ? 'Воспроизведение…' : 'Запись готова — послушайте'}
+            {playStatus.playing ? t('euroDocs.voice.playing') : t('euroDocs.voice.recordedHint')}
           </Text>
           <ReRecordBtn />
         </View>
         <Pressable onPress={process} style={bar(tokens.red)}>
-          <Text style={{ flex: 1, textAlign: 'center', fontFamily: 'Manrope_700Bold', fontSize: 14, color: '#fff' }}>Распознать голос → текст</Text>
+          <Text style={{ flex: 1, textAlign: 'center', fontFamily: 'Manrope_700Bold', fontSize: 14, color: '#fff' }}>{t('euroDocs.voice.recognize')}</Text>
         </Pressable>
       </View>
     );
@@ -209,7 +211,7 @@ export function VoiceRemarks({
       <View style={row('rgba(22,163,74,0.35)', 'rgba(22,163,74,0.08)')}>
         <PlayBtn />
         <Text style={{ flex: 1, fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkDark }}>
-          {playStatus.playing ? 'Воспроизведение…' : 'Голос распознан ✓'}
+          {playStatus.playing ? t('euroDocs.voice.playing') : t('euroDocs.voice.doneOk')}
         </Text>
         <ReRecordBtn />
       </View>
@@ -221,9 +223,9 @@ export function VoiceRemarks({
     <Pressable onPress={start} style={bar(tokens.inkDark)}>
       <MicIcon />
       <Text style={{ flex: 1, fontFamily: 'Manrope_600SemiBold', fontSize: 13.5, color: '#fff' }}>
-        {audioAttached ? 'Записать заново голосом' : 'Записать голосом (узб/рус)'}
+        {audioAttached ? t('euroDocs.voice.startAgain') : t('euroDocs.voice.startIdle')}
       </Text>
-      {audioAttached ? <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 11.5, color: 'rgba(255,255,255,0.7)' }}>🎙 прикреплено</Text> : null}
+      {audioAttached ? <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 11.5, color: 'rgba(255,255,255,0.7)' }}>{t('euroDocs.voice.attached')}</Text> : null}
     </Pressable>
   );
 }

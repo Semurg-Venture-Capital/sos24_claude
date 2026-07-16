@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
@@ -13,18 +14,18 @@ import { WhoopOverviewTab, WhoopRecoveryTab, WhoopSleepTab, WhoopStrainTab, Whoo
 
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthWearable'>;
 
-const TABS = [
-  { key: 'overview', label: 'Обзор' },
-  { key: 'recovery', label: 'Восстановление' },
-  { key: 'sleep', label: 'Сон' },
-  { key: 'strain', label: 'Нагрузка' },
-  { key: 'trends', label: 'Тренды' },
-];
-
 // Экран показателей WHOOP: липкий стеклянный хедер + Liquid Glass табы + контент.
 export function HealthWearableScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const TABS = [
+    { key: 'overview', label: t('healthCard.whoop.tabs.overview') },
+    { key: 'recovery', label: t('healthCard.whoop.tabs.recovery') },
+    { key: 'sleep', label: t('healthCard.whoop.tabs.sleep') },
+    { key: 'strain', label: t('healthCard.whoop.tabs.strain') },
+    { key: 'trends', label: t('healthCard.whoop.tabs.trends') },
+  ];
   const { data, isLoading } = useWearable();
   const sync = useSyncWhoop();
   const disconnect = useDisconnectWhoop();
@@ -34,9 +35,9 @@ export function HealthWearableScreen() {
   const m = data?.metrics ?? null;
 
   const onDisconnect = () => {
-    Alert.alert('Отключить WHOOP?', 'Показатели перестанут обновляться. Данные в мед.карте останутся.', [
-      { text: 'Отмена', style: 'cancel' },
-      { text: 'Отключить', style: 'destructive', onPress: () => disconnect.mutate(undefined, { onSuccess: () => nav.goBack() }) },
+    Alert.alert(t('healthCard.whoop.disconnectTitle'), t('healthCard.whoop.disconnectMsg'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('healthCard.whoop.disconnect'), style: 'destructive', onPress: () => disconnect.mutate(undefined, { onSuccess: () => nav.goBack() }) },
     ]);
   };
 
@@ -47,10 +48,10 @@ export function HealthWearableScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingBottom: 8 }}>
             <BackButton onPress={() => nav.goBack()} />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 19, letterSpacing: -0.3, color: tokens.ink }}>Показатели WHOOP</Text>
+              <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 19, letterSpacing: -0.3, color: tokens.ink }}>{t('healthCard.whoop.screenTitle')}</Text>
               {data?.lastSyncAt ? (
                 <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 11, color: tokens.inkMuted }}>
-                  Обновлено {timeAgo(data.lastSyncAt)}{data.mode === 'mock' ? ' · демо' : ''}
+                  {t('healthCard.whoop.updated', { ago: timeAgo(data.lastSyncAt) })}{data.mode === 'mock' ? t('healthCard.whoop.demoSuffix') : ''}
                 </Text>
               ) : null}
             </View>
@@ -60,7 +61,7 @@ export function HealthWearableScreen() {
               hitSlop={8}
               style={{ paddingHorizontal: 14, height: 32, borderRadius: 999, backgroundColor: tokens.glass, borderWidth: 1, borderColor: tokens.hairline, alignItems: 'center', justifyContent: 'center' }}
             >
-              {sync.isPending ? <ActivityIndicator size="small" color={tokens.inkMuted} /> : <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: tokens.inkDark }}>Обновить</Text>}
+              {sync.isPending ? <ActivityIndicator size="small" color={tokens.inkMuted} /> : <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: tokens.inkDark }}>{t('healthCard.whoop.refresh')}</Text>}
             </Pressable>
           </View>
           {withTabs ? (
@@ -86,7 +87,7 @@ export function HealthWearableScreen() {
       <View style={{ flex: 1, backgroundColor: tokens.pageBg }}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, paddingTop: insets.top + 80 }}>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center', lineHeight: 20 }}>
-            WHOOP не подключён. Вернитесь на экран «Здоровье» и нажмите «Подключить».
+            {t('healthCard.whoop.notConnected')}
           </Text>
         </View>
         {header(false)}
@@ -105,10 +106,10 @@ export function HealthWearableScreen() {
           {tab === 'trends' ? <WhoopTrendsTab range={range} onRange={setRange} /> : null}
 
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 11, color: tokens.inkMuted, textAlign: 'center', lineHeight: 16, marginTop: 6 }}>
-            Данные носимого устройства информативны и не являются медицинским диагнозом.
+            {t('healthCard.whoop.disclaimer')}
           </Text>
           <Pressable onPress={onDisconnect} style={{ alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 20 }}>
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red }}>Отключить WHOOP</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red }}>{t('healthCard.whoop.disconnectBtn')}</Text>
           </Pressable>
         </ScrollView>
       </View>

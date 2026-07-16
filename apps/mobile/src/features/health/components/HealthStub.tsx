@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackButton } from '../../../components/ui/BackButton';
@@ -18,6 +19,7 @@ export function HealthStub({
   showBack?: boolean;
 }) {
   const nav = useNavigation();
+  const { t } = useTranslation();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
       {showBack ? (
@@ -48,7 +50,7 @@ export function HealthStub({
           </Text>
         ) : null}
         <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkSubtle, marginTop: 8 }}>
-          Экран в разработке
+          {t('healthCard.stub.inDev')}
         </Text>
       </View>
     </SafeAreaView>

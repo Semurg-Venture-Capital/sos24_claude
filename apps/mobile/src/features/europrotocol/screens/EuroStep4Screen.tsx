@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { Alert, Image, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ScreenHeading } from '../../../components/ui/ScreenHeading';
@@ -10,11 +11,11 @@ import type { EuroStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStep4'>;
 
-const TILES: { key: PhotoKey; label: string; required: boolean }[] = [
-  { key: 'overview', label: 'Общий план', required: true },
-  { key: 'myCar', label: 'Моё авто', required: true },
-  { key: 'otherCar', label: 'Второе авто', required: true },
-  { key: 'scene', label: 'Место (доп.)', required: false },
+const TILES: { key: PhotoKey; required: boolean }[] = [
+  { key: 'overview', required: true },
+  { key: 'myCar', required: true },
+  { key: 'otherCar', required: true },
+  { key: 'scene', required: false },
 ];
 
 function nowHHMM(): string {
@@ -25,6 +26,7 @@ function nowHHMM(): string {
 // M9.3 шаг 4 — направляемая фотофиксация. Только камера (антифрод), без галереи.
 export function EuroStep4Screen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { photos, setPhoto, videos, addVideo, removeVideo } = useEuroStore();
 
   const captureVideo = async (fromLibrary: boolean) => {
@@ -33,7 +35,7 @@ export function EuroStep4Screen() {
       if (fromLibrary) {
         const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!perm.granted) {
-          Alert.alert('Галерея', 'Разрешите доступ к медиатеке.');
+          Alert.alert(t('euro.step4.galleryTitle'), t('euro.step4.galleryPermission'));
           return;
         }
         const res = await ImagePicker.launchImageLibraryAsync({
@@ -44,7 +46,7 @@ export function EuroStep4Screen() {
       } else {
         const perm = await ImagePicker.requestCameraPermissionsAsync();
         if (!perm.granted) {
-          Alert.alert('Камера', 'Разрешите доступ к камере.');
+          Alert.alert(t('euro.step4.cameraTitle'), t('euro.step4.cameraPermission'));
           return;
         }
         const res = await ImagePicker.launchCameraAsync({
@@ -55,7 +57,7 @@ export function EuroStep4Screen() {
         if (!res.canceled && res.assets[0]) addVideo({ uri: res.assets[0].uri, at: nowHHMM() });
       }
     } catch (e) {
-      Alert.alert('Видео', (e as Error).message || 'Запись недоступна.');
+      Alert.alert(t('euro.step4.videoTitle'), (e as Error).message || t('euro.step4.recordUnavailable'));
     }
   };
 
@@ -65,7 +67,7 @@ export function EuroStep4Screen() {
       const ImagePicker = await import('expo-image-picker');
       const perm = await ImagePicker.requestCameraPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('Камера', 'Разрешите доступ к камере, чтобы сделать фото.');
+        Alert.alert(t('euro.step4.cameraTitle'), t('euro.step4.cameraPermissionPhoto'));
         return;
       }
       const res = await ImagePicker.launchCameraAsync({
@@ -77,7 +79,7 @@ export function EuroStep4Screen() {
         setPhoto(key, { uri: res.assets[0].uri, at: nowHHMM() });
       }
     } catch (e) {
-      Alert.alert('Камера', (e as Error).message || 'Съёмка недоступна. На симуляторе используйте «Симулировать».');
+      Alert.alert(t('euro.step4.cameraTitle'), (e as Error).message || t('euro.step4.captureUnavailable'));
     }
   };
 
@@ -87,13 +89,13 @@ export function EuroStep4Screen() {
     <WizardFrame
       step={4}
       total={5}
-      eyebrow="Шаг 4 из 5 · Фотофиксация"
-      primary="К подписанию"
+      eyebrow={t('euro.step4.eyebrow')}
+      primary={t('euro.step4.toSigning')}
       primaryEnabled={allRequired}
       primaryAction={() => nav.navigate('EuroStep5')}
       onBack={() => nav.goBack()}
     >
-      <ScreenHeading title="Сфотографируйте место" subtitle="Минимум 3 кадра. Снимайте, не перемещая автомобили" />
+      <ScreenHeading title={t('euro.step4.title')} subtitle={t('euro.step4.subtitle')} />
 
       {/* Антифрод-баннер */}
       <View
@@ -121,20 +123,20 @@ export function EuroStep4Screen() {
           </Svg>
         </View>
         <Text style={{ flex: 1, fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: tokens.red, lineHeight: 17 }}>
-          Только съёмка с камеры. Загрузка из галереи отключена.
+          {t('euro.step4.cameraOnlyBanner')}
         </Text>
       </View>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-        {TILES.map((t) => (
+        {TILES.map((tile) => (
           <CaptureTile
-            key={t.key}
-            label={t.label}
-            required={t.required}
-            photo={photos[t.key]}
-            onCapture={() => capture(t.key)}
+            key={tile.key}
+            label={t('euro.step4.tiles.' + tile.key)}
+            required={tile.required}
+            photo={photos[tile.key]}
+            onCapture={() => capture(tile.key)}
             onSimulate={
-              __DEV__ ? () => setPhoto(t.key, { uri: '', at: nowHHMM() }) : undefined
+              __DEV__ ? () => setPhoto(tile.key, { uri: '', at: nowHHMM() }) : undefined
             }
           />
         ))}
@@ -143,11 +145,11 @@ export function EuroStep4Screen() {
       {/* Видео (опционально) */}
       <View style={{ gap: 10, marginTop: 4 }}>
         <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.07 }}>
-          Видео (опционально)
+          {t('euro.step4.videoOptional')}
         </Text>
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <VideoButton label="Снять видео" onPress={() => captureVideo(false)} />
-          <VideoButton label="Из галереи" onPress={() => captureVideo(true)} />
+          <VideoButton label={t('euro.step4.recordVideo')} onPress={() => captureVideo(false)} />
+          <VideoButton label={t('euro.step4.fromGallery')} onPress={() => captureVideo(true)} />
         </View>
         {videos.map((v, i) => (
           <View
@@ -167,10 +169,10 @@ export function EuroStep4Screen() {
               <Svg width={14} height={14} viewBox="0 0 24 24" fill={tokens.red}><Path d="M8 5v14l11-7z" /></Svg>
             </View>
             <Text style={{ flex: 1, fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkDark }}>
-              Видео {i + 1} · {v.at}
+              {t('euro.step4.videoItem', { num: i + 1, at: v.at })}
             </Text>
             <Pressable onPress={() => removeVideo(i)} hitSlop={8}>
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red }}>Удалить</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red }}>{t('euro.step4.remove')}</Text>
             </Pressable>
           </View>
         ))}
@@ -179,7 +181,7 @@ export function EuroStep4Screen() {
       {__DEV__ ? (
         <Pressable onPress={() => nav.navigate('EuroStep5')} style={{ alignSelf: 'center', paddingVertical: 8, marginTop: 2 }}>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkSubtle }}>
-            Пропустить фото (DEV)
+            {t('euro.step4.skipPhotos')}
           </Text>
         </Pressable>
       ) : null}
@@ -221,6 +223,7 @@ function CaptureTile({
   onCapture: () => void;
   onSimulate?: () => void;
 }) {
+  const { t } = useTranslation();
   const filled = !!photo;
   return (
     <Pressable
@@ -263,7 +266,7 @@ function CaptureTile({
           >
             <View style={{ width: 6, height: 6, borderRadius: 999, backgroundColor: tokens.red }} />
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 9, color: '#fff', letterSpacing: 0.4 }}>
-              ЗАСНЯТО
+              {t('euro.step4.captured')}
             </Text>
           </View>
           <View
@@ -298,11 +301,11 @@ function CaptureTile({
             <CameraIcon />
           </View>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: tokens.inkDark, letterSpacing: -0.06 }}>
-            Сфотографировать
+            {t('euro.step4.takePhoto')}
           </Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 10, color: tokens.inkMuted }}>
             {label}
-            {required ? ' · обязательно' : ''}
+            {required ? t('euro.step4.requiredSuffix') : ''}
           </Text>
         </>
       )}

@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Linking, Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { Glass } from '../../../components/ui/Glass';
@@ -24,6 +25,7 @@ function formatDate(iso: string): string {
 // (read-only, антифрод), место — определяется по GPS по кнопке.
 export function EuroStep1Screen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { date, time, place, vehicleCount, setLocation, medCheck, witnesses, officialRegistered, officerBadgeNo, patch } =
     useEuroStore();
   const [geoLoading, setGeoLoading] = useState(false);
@@ -34,11 +36,11 @@ export function EuroStep1Screen() {
       const { status } = await Location.getForegroundPermissionsAsync();
       if (status === 'denied') {
         Alert.alert(
-          'Геолокация отключена',
-          'Чтобы зафиксировать место ДТП, разрешите доступ к геопозиции в Настройках.',
+          t('euro.step1.geoOffTitle'),
+          t('euro.step1.geoOffMsg'),
           [
-            { text: 'Отмена', style: 'cancel' },
-            { text: 'Открыть Настройки', onPress: () => void Linking.openURL('app-settings:') },
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('euro.step1.openSettings'), onPress: () => void Linking.openURL('app-settings:') },
           ],
         );
         return;
@@ -55,7 +57,7 @@ export function EuroStep1Screen() {
         : `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
       setLocation(addr || `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`, latitude, longitude);
     } catch {
-      Alert.alert('Ошибка', 'Не удалось определить местоположение. Попробуйте ещё раз.');
+      Alert.alert(t('euro.common.errorTitle'), t('euro.step1.geoError'));
     } finally {
       setGeoLoading(false);
     }
@@ -69,13 +71,13 @@ export function EuroStep1Screen() {
     <WizardFrame
       step={1}
       total={5}
-      eyebrow="Шаг 1 из 5 · Обстоятельства"
-      primary="Далее"
+      eyebrow={t('euro.step1.eyebrow')}
+      primary={t('common.next')}
       primaryEnabled={place.trim().length > 0}
       primaryAction={next}
       onBack={() => nav.goBack()}
     >
-      <ScreenHeading title="Когда и где" subtitle="Время фиксируется автоматически, место определяется по геопозиции" />
+      <ScreenHeading title={t('euro.step1.title')} subtitle={t('euro.step1.subtitle')} />
 
       {/* Дата / время / кол-во ТС — read-only, авто */}
       <View style={{ borderRadius: 24, overflow: 'hidden' }}>
@@ -90,16 +92,16 @@ export function EuroStep1Screen() {
             gap: 2,
           }}
         >
-          <ReadonlyRow label="Дата" value={formatDate(date)} auto />
-          <ReadonlyRow label="Время" value={time} auto />
-          <ReadonlyRow label="Кол-во ТС" value={vehicleCount} trailing={<Tag tone="green">европротокол</Tag>} last />
+          <ReadonlyRow label={t('euro.step1.date')} value={formatDate(date)} auto />
+          <ReadonlyRow label={t('euro.step1.time')} value={time} auto />
+          <ReadonlyRow label={t('euro.step1.vehicleCount')} value={vehicleCount} trailing={<Tag tone="green">{t('euro.step1.euroTag')}</Tag>} last />
         </Glass>
       </View>
 
       {/* Место ДТП — определяется по GPS, read-only */}
       <View style={{ gap: 10 }}>
         <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.07 }}>
-          Место ДТП
+          {t('euro.step1.place')}
         </Text>
 
         {place ? (
@@ -154,35 +156,35 @@ export function EuroStep1Screen() {
               letterSpacing: -0.08,
             }}
           >
-            {geoLoading ? 'Определяем…' : place ? 'Определить заново' : 'Определить местоположение'}
+            {geoLoading ? t('euro.step1.detecting') : place ? t('euro.step1.detectAgain') : t('euro.step1.detect')}
           </Text>
         </Pressable>
       </View>
 
       {/* Дополнительно (пп. 4–6 бланка) */}
       <View style={{ gap: 12, marginTop: 4 }}>
-        <SectionLabel>Дополнительно</SectionLabel>
+        <SectionLabel>{t('euro.step1.additional')}</SectionLabel>
         <YesNoToggle
-          label="Медосвидетельствование пройдено (в течение 4 часов)"
+          label={t('euro.step1.medCheck')}
           value={medCheck}
           onChange={(v) => patch({ medCheck: v })}
         />
         <FieldInput
-          label="Свидетели (ФИО, телефон) — если есть"
+          label={t('euro.step1.witnesses')}
           value={witnesses}
           onChangeText={(v) => patch({ witnesses: v })}
-          placeholder="Олимов Ж., +998 90 111 22 33"
+          placeholder={t('euro.step1.witnessesPlaceholder')}
           multiline
           maxLength={300}
         />
         <YesNoToggle
-          label="Оформлено сотрудником ГАИ?"
+          label={t('euro.step1.officialRegistered')}
           value={officialRegistered}
           onChange={(v) => patch({ officialRegistered: v })}
         />
         {officialRegistered === true ? (
           <FieldInput
-            label="№ нагрудного знака сотрудника"
+            label={t('euro.step1.officerBadge')}
             value={officerBadgeNo}
             onChangeText={(v) => patch({ officerBadgeNo: v })}
             placeholder="0000000"

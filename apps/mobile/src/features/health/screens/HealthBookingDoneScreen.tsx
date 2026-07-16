@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Pressable, Text, View } from 'react-native';
@@ -12,21 +14,19 @@ import { medGlass } from '../components';
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthBookingDone'>;
 type Rt = RouteProp<HealthStackParamList, 'HealthBookingDone'>;
 
-const WEEKDAY = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
-const MONTH = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-
-function formatDate(iso: string) {
+function formatDate(iso: string, t: TFunction) {
   const d = new Date(iso);
-  const day = `${WEEKDAY[d.getDay()]}, ${d.getDate()} ${MONTH[d.getMonth()]}`;
+  const day = `${t('health.date.weekdayAbbr.' + d.getDay())}, ${d.getDate()} ${t('health.date.monthLong.' + d.getMonth())}`;
   const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   return { day, time };
 }
 
 export function HealthBookingDoneScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const { params } = useRoute<Rt>();
   const { doctorName, specialty, clinicName, scheduledAt } = params;
-  const { day, time } = formatDate(scheduledAt);
+  const { day, time } = formatDate(scheduledAt, t);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
@@ -47,10 +47,10 @@ export function HealthBookingDoneScreen() {
             <Text style={{ fontSize: 38, color: '#0a3a26', lineHeight: 42 }}>✓</Text>
           </View>
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 24, letterSpacing: -0.24, color: tokens.ink }}>
-            Вы записаны
+            {t('health.bookingDone.title')}
           </Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
-            Очный приём · подтверждён
+            {t('health.bookingDone.subtitle')}
           </Text>
         </View>
 
@@ -78,7 +78,7 @@ export function HealthBookingDoneScreen() {
 
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 16, padding: 14, borderRadius: 16, backgroundColor: 'rgba(20,20,20,0.04)' }}>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted, lineHeight: 17, flex: 1 }}>
-            Напомним о приёме за день и за час. Отменить или перенести можно в разделе «Мои записи».
+            {t('health.bookingDone.note')}
           </Text>
         </View>
       </View>
@@ -86,10 +86,10 @@ export function HealthBookingDoneScreen() {
       {/* CTA */}
       <View style={{ paddingHorizontal: 24, paddingBottom: 32, gap: 12 }}>
         <RedButton trailing={false} onPress={() => nav.navigate('HealthHub')}>
-          Готово
+          {t('health.bookingDone.done')}
         </RedButton>
         <Pressable onPress={() => nav.navigate('HealthHub')} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, alignItems: 'center', paddingVertical: 8 })}>
-          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkMuted }}>Вернуться в раздел «Здоровье»</Text>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkMuted }}>{t('health.bookingDone.backToHealth')}</Text>
         </Pressable>
       </View>
     </SafeAreaView>

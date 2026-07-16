@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -14,14 +15,12 @@ import { medGlass } from '../components';
 type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthBooking'>;
 type Rt = RouteProp<HealthStackParamList, 'HealthBooking'>;
 
-const WEEKDAY_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-const MONTH_SHORT = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-
 function dateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export function HealthBookingScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const { params } = useRoute<Rt>();
   const { doctorId } = params;
@@ -76,7 +75,7 @@ export function HealthBookingScreen() {
       });
     } catch (e: unknown) {
       const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg || 'Не удалось создать запись');
+      alert(msg || t('health.booking.createError'));
     } finally {
       setSubmitting(false);
     }
@@ -86,7 +85,7 @@ export function HealthBookingScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 12 }}>
         <BackButton onPress={() => nav.goBack()} />
-        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 18, color: tokens.ink }}>Запись на приём</Text>
+        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 18, color: tokens.ink }}>{t('health.booking.title')}</Text>
       </View>
 
       <ScrollView
@@ -111,7 +110,7 @@ export function HealthBookingScreen() {
 
         {/* Дата */}
         <View style={{ gap: 10 }}>
-          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>Дата</Text>
+          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>{t('health.booking.date')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
             {days.map((d) => {
               const on = dateKey(d) === dateKey(date);
@@ -131,11 +130,11 @@ export function HealthBookingScreen() {
                   }}
                 >
                   <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 11, color: on ? 'rgba(255,255,255,0.7)' : tokens.inkMuted }}>
-                    {WEEKDAY_SHORT[d.getDay()]}
+                    {t('health.date.weekdayShort.' + d.getDay())}
                   </Text>
                   <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: on ? '#fff' : tokens.ink }}>{d.getDate()}</Text>
                   <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 10, color: on ? 'rgba(255,255,255,0.7)' : tokens.inkMuted }}>
-                    {MONTH_SHORT[d.getMonth()]}
+                    {t('health.date.monthShort.' + d.getMonth())}
                   </Text>
                 </Pressable>
               );
@@ -145,12 +144,12 @@ export function HealthBookingScreen() {
 
         {/* Время */}
         <View style={{ gap: 10 }}>
-          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>Время</Text>
+          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>{t('health.booking.time')}</Text>
           {loadingSlots ? (
             <ActivityIndicator color={tokens.red} style={{ alignSelf: 'flex-start' }} />
           ) : slots.length === 0 ? (
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
-              В этот день врач не принимает
+              {t('health.booking.noSlots')}
             </Text>
           ) : (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -190,12 +189,12 @@ export function HealthBookingScreen() {
 
         {/* Причина обращения */}
         <View style={{ gap: 10 }}>
-          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>Причина обращения</Text>
+          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>{t('health.booking.reason')}</Text>
           <View style={{ backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: tokens.hairline, padding: 14, minHeight: 80 }}>
             <TextInput
               value={reason}
               onChangeText={setReason}
-              placeholder="Опишите симптомы…"
+              placeholder={t('health.booking.reasonPlaceholder')}
               placeholderTextColor={tokens.inkMuted}
               multiline
               style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.ink }}
@@ -219,7 +218,7 @@ export function HealthBookingScreen() {
         }}
       >
         <RedButton trailing={false} onPress={submit} disabled={!canSubmit}>
-          {submitting ? 'Создаём…' : 'Подтвердить запись'}
+          {submitting ? t('health.booking.submitting') : t('health.booking.submit')}
         </RedButton>
       </View>
     </SafeAreaView>

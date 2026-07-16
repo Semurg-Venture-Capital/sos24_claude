@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -27,6 +28,7 @@ type Nav = NativeStackNavigationProp<HealthStackParamList, 'HealthTriage'>;
 // M14.2 — ИИ-триаж (чат). Сессия на бэкенде (mock-провайдер), уточняющие
 // вопросы + быстрые ответы. По готовности → предв. диагноз (M14.3).
 export function HealthTriageScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const scrollRef = useRef<ScrollView>(null);
 
@@ -85,7 +87,7 @@ export function HealthTriageScreen() {
     } catch {
       const cur = useTriageStore.getState();
       cur.setTurn({
-        messages: [...cur.messages, { role: 'assistant', text: 'Не удалось отправить. Проверьте соединение или начните новый диалог.', at: new Date().toISOString() }],
+        messages: [...cur.messages, { role: 'assistant', text: t('health.triage.sendError'), at: new Date().toISOString() }],
         quickReplies: [],
         canFinalize: cur.canFinalize,
       });
@@ -96,10 +98,10 @@ export function HealthTriageScreen() {
 
   // «Начать сначала» — с подтверждением (переписка удаляется).
   const restart = () => {
-    Alert.alert('Начать новый диалог?', 'Текущая переписка будет удалена.', [
-      { text: 'Отмена', style: 'cancel' },
+    Alert.alert(t('health.triage.restartTitle'), t('health.triage.restartMsg'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Начать сначала',
+        text: t('health.triage.restartConfirm'),
         style: 'destructive',
         onPress: () => {
           useTriageStore.getState().reset();
@@ -123,10 +125,10 @@ export function HealthTriageScreen() {
           <StethoscopeIcon size={18} color="#fff" />
         </LinearGradient>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>SOS24 · Медицинский ИИ</Text>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>{t('health.triage.headerTitle')}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             <View style={{ width: 6, height: 6, borderRadius: 999, backgroundColor: tokens.green }} />
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#0a3a26' }}>анализирует симптомы</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#0a3a26' }}>{t('health.triage.analyzing')}</Text>
           </View>
         </View>
       </View>
@@ -148,7 +150,7 @@ export function HealthTriageScreen() {
           <View style={{ paddingHorizontal: 16, gap: 10 }}>
             {hasResult ? (
               <RedButton trailing={false} onPress={() => sessionId && nav.navigate('HealthDiagnosis', { sessionId })}>
-                {diagnosis ? 'Показать результат' : 'Показать предварительный результат'}
+                {diagnosis ? t('health.triage.showResult') : t('health.triage.showPrelimResult')}
               </RedButton>
             ) : quickReplies.length > 0 ? (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
@@ -165,7 +167,7 @@ export function HealthTriageScreen() {
             ) : null}
             {messages.length > 1 ? (
               <Pressable onPress={restart} hitSlop={8} style={{ alignSelf: 'center', paddingVertical: 4, paddingHorizontal: 12 }}>
-                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: tokens.inkMuted }}>↺ Начать сначала</Text>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: tokens.inkMuted }}>↺ {t('health.triage.restartConfirm')}</Text>
               </Pressable>
             ) : null}
           </View>
@@ -181,7 +183,7 @@ export function HealthTriageScreen() {
               <TextInput
                 value={input}
                 onChangeText={setInput}
-                placeholder="Опишите симптомы…"
+                placeholder={t('health.triage.inputPlaceholder')}
                 placeholderTextColor={tokens.inkMuted}
                 onSubmitEditing={() => send(input)}
                 returnKeyType="send"

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { Avatar } from '../../../components/ui/Avatar';
 import { StarIcon } from '../../../components/icons/StarIcon';
@@ -45,6 +46,7 @@ export function MedDoctorCard({
   onBook,
   onCall,
 }: MedDoctorCardProps) {
+  const { t } = useTranslation();
   const hasPrice = !!price && price !== '—';
   return (
     <Pressable
@@ -81,7 +83,7 @@ export function MedDoctorCard({
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.ink }}>{name}</Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
             {specialty}
-            {experience ? ` · стаж ${experience}` : ''}
+            {experience ? ` · ${t('health.doctor.experiencePrefix')} ${experience}` : ''}
           </Text>
           {bookingEnabled ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 2 }}>
@@ -123,13 +125,13 @@ export function MedDoctorCard({
               }}
             >
               <VideoIcon size={13} color="#1a3577" />
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#1a3577' }}>Видео-приём</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#1a3577' }}>{t('health.doctor.videoVisit')}</Text>
             </View>
           ) : null}
           <View style={{ flex: 1 }} />
           {hasPrice ? (
             <>
-              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>приём</Text>
+              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>{t('health.doctor.visitLabel')}</Text>
               <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 15, color: tokens.ink }}>{price}</Text>
             </>
           ) : null}
@@ -141,7 +143,7 @@ export function MedDoctorCard({
           onPress={onBook ?? onPress}
           style={({ pressed }) => ({ height: 46, borderRadius: 999, backgroundColor: tokens.inkDark, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: pressed ? 0.85 : 1 })}
         >
-          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#fff' }}>Записаться</Text>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#fff' }}>{t('health.doctor.book')}</Text>
           <ChevronRight size={12} color="rgba(255,255,255,0.6)" />
         </Pressable>
       ) : (
@@ -150,7 +152,7 @@ export function MedDoctorCard({
           style={({ pressed }) => ({ height: 46, borderRadius: 999, backgroundColor: tokens.red, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: pressed ? 0.85 : 1 })}
         >
           <PhoneFillIcon size={15} color="#fff" />
-          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#fff' }}>Позвонить</Text>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: '#fff' }}>{t('health.doctor.call')}</Text>
         </Pressable>
       )}
     </Pressable>

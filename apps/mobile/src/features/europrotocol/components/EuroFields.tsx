@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, Platform, Pressable, Text, TextInput, View, type KeyboardTypeOptions, type ViewStyle } from 'react-native';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { tokens } from '../../../theme/colors';
@@ -86,7 +87,7 @@ export function DateField({
   label,
   value,
   onChange,
-  placeholder = 'Выберите дату',
+  placeholder,
   containerStyle,
 }: {
   label?: string;
@@ -95,6 +96,8 @@ export function DateField({
   placeholder?: string;
   containerStyle?: ViewStyle;
 }) {
+  const { t } = useTranslation();
+  const ph = placeholder ?? t('euroDocs.fields.pickDate');
   const [open, setOpen] = useState(false);
   const valid = /^\d{4}-\d{2}-\d{2}$/.test(value);
   const dateVal = valid ? new Date(`${value}T00:00:00`) : new Date(2000, 0, 1);
@@ -127,7 +130,7 @@ export function DateField({
         }}
       >
         <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 15, color: display ? tokens.inkDark : 'rgba(20,20,20,0.35)' }}>
-          {display || placeholder}
+          {display || ph}
         </Text>
       </Pressable>
 
@@ -140,7 +143,7 @@ export function DateField({
                 onPress={() => setOpen(false)}
                 style={{ alignSelf: 'flex-end', paddingHorizontal: 18, paddingVertical: 10 }}
               >
-                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>Готово</Text>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>{t('euroDocs.common.done')}</Text>
               </Pressable>
             </Pressable>
           </Pressable>
@@ -153,16 +156,7 @@ export function DateField({
 }
 
 // Селектор зоны первого удара (8 зон). Хранит код зоны.
-export const IMPACT_ZONES: { key: string; label: string }[] = [
-  { key: 'front', label: 'Перёд' },
-  { key: 'rear', label: 'Зад' },
-  { key: 'left', label: 'Левый бок' },
-  { key: 'right', label: 'Правый бок' },
-  { key: 'front-left', label: 'Перёд-лево' },
-  { key: 'front-right', label: 'Перёд-право' },
-  { key: 'rear-left', label: 'Зад-лево' },
-  { key: 'rear-right', label: 'Зад-право' },
-];
+export const IMPACT_ZONE_KEYS = ['front', 'rear', 'left', 'right', 'front-left', 'front-right', 'rear-left', 'rear-right'] as const;
 
 export function ZoneSelect({
   label,
@@ -173,16 +167,18 @@ export function ZoneSelect({
   value: string | null;
   onChange: (v: string) => void;
 }) {
-  return <Segmented label={label} value={value} options={IMPACT_ZONES} onChange={onChange} />;
+  const { t } = useTranslation();
+  const options = IMPACT_ZONE_KEYS.map((key) => ({ key, label: t('euroDocs.map.impactZone.' + key) }));
+  return <Segmented label={label} value={value} options={options} onChange={onChange} />;
 }
 
-// Переключатель Ҳа/Йўқ (value: true | false | null).
+// Переключатель Да/Нет (value: true | false | null).
 export function YesNoToggle({
   label,
   value,
   onChange,
-  yes = 'Ҳа',
-  no = 'Йўқ',
+  yes,
+  no,
 }: {
   label?: string;
   value: boolean | null;
@@ -190,14 +186,15 @@ export function YesNoToggle({
   yes?: string;
   no?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={{ gap: 6 }}>
       {label ? (
         <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12.5, color: tokens.inkMuted, paddingLeft: 2 }}>{label}</Text>
       ) : null}
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <Pill active={value === true} label={yes} onPress={() => onChange(true)} />
-        <Pill active={value === false} label={no} onPress={() => onChange(false)} />
+        <Pill active={value === true} label={yes ?? t('euroDocs.fields.yes')} onPress={() => onChange(true)} />
+        <Pill active={value === false} label={no ?? t('euroDocs.fields.no')} onPress={() => onChange(false)} />
       </View>
     </View>
   );

@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 import { useVehicles } from '../../../api/vehicles';
 import { AddTile } from '../../../components/ui/AddTile';
@@ -16,6 +17,7 @@ type Nav = NativeStackNavigationProp<PurchaseStackParamList, 'CalcVehicle'>;
 // M5.1 — Шаг 1: выбор автомобиля.
 export function CalcVehicleScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const carId = usePurchaseStore((s) => s.carId);
   const setCar = usePurchaseStore((s) => s.setCar);
   const { data: vehicles, isLoading } = useVehicles();
@@ -30,13 +32,13 @@ export function CalcVehicleScreen() {
   return (
     <WizardFrame
       step={1}
-      eyebrow="Шаг 1 из 4 · Автомобиль"
-      primary="Далее"
+      eyebrow={t('purchase.calc.step1.eyebrow')}
+      primary={t('common.next')}
       primaryEnabled={!!carId}
       primaryAction={() => nav.navigate('CalcDrivers')}
       onBack={() => nav.goBack()}
     >
-      <ScreenHeading title="Выберите автомобиль" subtitle="На какое авто оформляем полис" />
+      <ScreenHeading title={t('purchase.calc.vehicle.title')} subtitle={t('purchase.calc.vehicle.subtitle')} />
       {isLoading ? (
         <View style={{ paddingVertical: 32, alignItems: 'center' }}>
           <ActivityIndicator color={tokens.red} />
@@ -56,7 +58,7 @@ export function CalcVehicleScreen() {
             />
           ))}
           <AddTile onPress={() => nav.navigate('GarageEdit', {})}>
-            Добавить новый автомобиль
+            {t('purchase.calc.vehicle.addCar')}
           </AddTile>
         </View>
       )}

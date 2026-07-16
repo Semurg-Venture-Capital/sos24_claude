@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Animated, Easing, Linking, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -14,6 +15,7 @@ type Phase = 'locating' | 'active' | 'error';
 // (POST /health/sos/trigger), показывает оповещённые контакты. Фаза F.
 export function HealthSosActiveScreen() {
   const nav = useNavigation();
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>('locating');
   const [alertId, setAlertId] = useState<string | null>(null);
   const [contacts, setContacts] = useState<SosContact[]>([]);
@@ -98,7 +100,7 @@ export function HealthSosActiveScreen() {
         {/* Заголовок */}
         <View style={{ alignItems: 'center', paddingTop: 16 }}>
           <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 13, color: '#fff', letterSpacing: 1.8 }}>
-            SOS · ЭКСТРЕННЫЙ ВЫЗОВ
+            {t('healthCard.sos.header')}
           </Text>
         </View>
 
@@ -137,12 +139,10 @@ export function HealthSosActiveScreen() {
 
           <View style={{ alignItems: 'center', gap: 6 }}>
             <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 22, color: '#fff' }}>
-              {phase === 'error' ? 'Не удалось отправить' : 'Отправляем помощь…'}
+              {phase === 'error' ? t('healthCard.sos.failed') : t('healthCard.sos.sending')}
             </Text>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13.5, color: 'rgba(255,255,255,0.6)', textAlign: 'center', lineHeight: 19, maxWidth: 280 }}>
-              {phase === 'error'
-                ? 'Проверьте соединение и попробуйте ещё раз или позвоните 103.'
-                : 'Оповещаем близких и передаём геолокацию диспетчеру'}
+              {phase === 'error' ? t('healthCard.sos.errorSub') : t('healthCard.sos.sendingSub')}
             </Text>
           </View>
 
@@ -162,7 +162,7 @@ export function HealthSosActiveScreen() {
           ) : phase === 'locating' ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <ActivityIndicator color="rgba(255,255,255,0.6)" />
-              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>Определяем геолокацию…</Text>
+              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>{t('healthCard.sos.locating')}</Text>
             </View>
           ) : null}
 
@@ -177,14 +177,14 @@ export function HealthSosActiveScreen() {
                     {c.relation ? ` · ${c.relation}` : ''}
                   </Text>
                   <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: c.notifyStatus === 'FAILED' ? '#ff8a8a' : tokens.green }}>
-                    {c.notifyStatus === 'FAILED' ? 'не доставлено' : 'оповещён'}
+                    {c.notifyStatus === 'FAILED' ? t('healthCard.sos.failedNotify') : t('healthCard.sos.notified')}
                   </Text>
                 </View>
               ))}
             </View>
           ) : phase === 'active' ? (
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
-              Экстренные контакты не добавлены — диспетчер всё равно уведомлён.
+              {t('healthCard.sos.noContacts')}
             </Text>
           ) : null}
         </View>
@@ -196,14 +196,14 @@ export function HealthSosActiveScreen() {
             style={({ pressed }) => ({ height: 60, borderRadius: 999, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: pressed ? 0.9 : 1 })}
           >
             <PhoneFillIcon size={17} color={tokens.red} />
-            <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 15, color: tokens.inkDark }}>Позвонить 103</Text>
+            <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 15, color: tokens.inkDark }}>{t('healthCard.sos.call103')}</Text>
           </Pressable>
           <Pressable
             onPress={close}
             style={({ pressed }) => ({ height: 52, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}
           >
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>
-              {phase === 'error' ? 'Закрыть' : 'Отменить тревогу'}
+              {phase === 'error' ? t('healthCard.common.close') : t('healthCard.sos.cancelAlarm')}
             </Text>
           </Pressable>
         </View>

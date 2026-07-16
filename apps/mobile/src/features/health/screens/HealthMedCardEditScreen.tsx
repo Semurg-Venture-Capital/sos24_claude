@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tokens } from '../../../theme/colors';
@@ -29,6 +30,7 @@ function parseBlood(bt: string | null): { group: string | null; rh: '+' | '-' | 
 // шифруются на сервере. Первое сохранение требует согласия.
 export function HealthMedCardEditScreen() {
   const nav = useNavigation();
+  const { t } = useTranslation();
   const { data } = useMedicalProfile();
   const save = useSaveMedicalProfile();
 
@@ -98,7 +100,7 @@ export function HealthMedCardEditScreen() {
     try {
       const res = await importFromHealth();
       if (!res) {
-        Alert.alert('Недоступно', 'Приложение «Здоровье» доступно только на iPhone.');
+        Alert.alert(t('healthCard.edit.unavailableTitle'), t('healthCard.edit.iphoneOnly'));
         return;
       }
       const filled: string[] = [];
@@ -106,33 +108,33 @@ export function HealthMedCardEditScreen() {
         const b = parseBlood(res.bloodType);
         setGroup(b.group);
         setRh(b.rh);
-        filled.push('группа крови');
+        filled.push(t('healthCard.edit.imp.bloodType'));
       }
       if (res.heightCm != null) {
         setHeight(String(res.heightCm));
-        filled.push(`рост ${res.heightCm} см${res.heightMeta ? ` (${res.heightMeta})` : ''}`);
+        filled.push(`${t('healthCard.edit.imp.height', { value: res.heightCm })}${res.heightMeta ? ` (${res.heightMeta})` : ''}`);
       }
       if (res.weightKg != null) {
         setWeight(String(res.weightKg));
-        filled.push(`вес ${res.weightKg} кг${res.weightMeta ? ` (${res.weightMeta})` : ''}`);
+        filled.push(`${t('healthCard.edit.imp.weight', { value: res.weightKg })}${res.weightMeta ? ` (${res.weightMeta})` : ''}`);
       }
 
       // Отдельно поясняем судьбу группы крови (частый вопрос).
       let bloodNote = '';
       if (res.bloodTypeStatus === 'notSet') {
-        bloodNote = '\n\nГруппа крови не заполнена в приложении «Здоровье». Добавьте её в Здоровье → Медданные (или Обзор → Медданные → Группа крови) и повторите — либо введите вручную ниже.';
+        bloodNote = `\n\n${t('healthCard.edit.bloodNote.notSet')}`;
       } else if (res.bloodTypeStatus === 'denied') {
-        bloodNote = '\n\nНет доступа к группе крови. Разрешите в Настройки → Конфиденциальность → Здоровье → SOS24 → Группа крови, затем повторите.';
+        bloodNote = `\n\n${t('healthCard.edit.bloodNote.denied')}`;
       }
 
       Alert.alert(
-        filled.length ? 'Данные импортированы' : 'Нет данных',
+        filled.length ? t('healthCard.edit.importedTitle') : t('healthCard.edit.noDataTitle'),
         (filled.length
-          ? `Заполнено из «Здоровья»:\n• ${filled.join('\n• ')}\n\nЗначения берутся из самого свежего замера — проверьте и при необходимости исправьте перед сохранением.`
-          : 'В приложении «Здоровье» нет доступных данных для импорта.') + bloodNote,
+          ? `${t('healthCard.edit.importedIntro')}\n• ${filled.join('\n• ')}\n\n${t('healthCard.edit.importedNote')}`
+          : t('healthCard.edit.noImportData')) + bloodNote,
       );
     } catch {
-      Alert.alert('Ошибка', 'Не удалось прочитать данные из приложения «Здоровье».');
+      Alert.alert(t('healthCard.common.error'), t('healthCard.edit.readError'));
     } finally {
       setImporting(false);
     }
@@ -162,7 +164,7 @@ export function HealthMedCardEditScreen() {
       nav.goBack();
     } catch (e: unknown) {
       const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg || 'Не удалось сохранить мед.карту');
+      alert(msg || t('healthCard.edit.saveError'));
     }
   };
 
@@ -170,7 +172,7 @@ export function HealthMedCardEditScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.pageBg }} edges={['top']}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 12 }}>
         <BackButton onPress={() => nav.goBack()} />
-        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 18, color: tokens.ink }}>Медкарта</Text>
+        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 18, color: tokens.ink }}>{t('healthCard.edit.title')}</Text>
       </View>
 
       <ScrollView
@@ -191,8 +193,8 @@ export function HealthMedCardEditScreen() {
               <HeartFillIcon size={20} color={tokens.red} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>Заполнить из приложения «Здоровье»</Text>
-              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>Группа крови, рост и вес — из Apple Health</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>{t('healthCard.edit.importCta')}</Text>
+              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>{t('healthCard.edit.importSub')}</Text>
             </View>
             {importing ? <ActivityIndicator color={tokens.red} /> : <Text style={{ fontFamily: 'Manrope_700Bold', fontSize: 18, color: tokens.inkSubtle }}>›</Text>}
           </Pressable>
@@ -201,21 +203,21 @@ export function HealthMedCardEditScreen() {
         {prefilled ? (
           <View style={{ flexDirection: 'row', gap: 10, padding: 12, borderRadius: 14, backgroundColor: 'rgba(86,140,255,0.1)' }}>
             <Text style={{ flex: 1, fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: '#1a3577', lineHeight: 17 }}>
-              ФИО, дата рождения и пол заполнены из вашего профиля — проверьте и при необходимости измените.
+              {t('healthCard.edit.prefilledNote')}
             </Text>
           </View>
         ) : null}
 
-        <TextField label="ФИО" value={fullName} onChangeText={setFullName} placeholder="Азиз Каримов" />
+        <TextField label={t('healthCard.edit.fullName')} value={fullName} onChangeText={setFullName} placeholder={t('healthCard.edit.fullNamePh')} />
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <TextField label="Дата рождения" value={birthDate} onChangeText={setBirthDate} placeholder="15.03.1994" />
+            <TextField label={t('healthCard.edit.birthDate')} value={birthDate} onChangeText={setBirthDate} placeholder="15.03.1994" />
           </View>
           <View style={{ flex: 1, gap: 6 }}>
-            <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>Пол</Text>
+            <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>{t('healthCard.edit.gender')}</Text>
             <Segmented
-              options={['Муж', 'Жен']}
+              options={[t('healthCard.edit.male'), t('healthCard.edit.female')]}
               active={gender === 'F' ? 1 : 0}
               onChange={(i) => setGender(i === 1 ? 'F' : 'M')}
             />
@@ -224,7 +226,7 @@ export function HealthMedCardEditScreen() {
 
         {/* Группа крови */}
         <View style={{ gap: 8 }}>
-          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>Группа крови</Text>
+          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>{t('healthCard.edit.bloodType')}</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
             {BLOOD_GROUPS.map((g) => {
               const on = group === g;
@@ -266,7 +268,7 @@ export function HealthMedCardEditScreen() {
                   }}
                 >
                   <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: on ? '#fff' : tokens.inkDark }}>
-                    {sign === '+' ? 'Rh+ положительный' : 'Rh− отрицательный'}
+                    {sign === '+' ? t('healthCard.edit.rhPos') : t('healthCard.edit.rhNeg')}
                   </Text>
                 </Pressable>
               );
@@ -276,16 +278,16 @@ export function HealthMedCardEditScreen() {
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <TextField label="Рост, см" value={height} onChangeText={setHeight} keyboardType="number-pad" placeholder="178" />
+            <TextField label={t('healthCard.edit.heightLabel')} value={height} onChangeText={setHeight} keyboardType="number-pad" placeholder="178" />
           </View>
           <View style={{ flex: 1 }}>
-            <TextField label="Вес, кг" value={weight} onChangeText={setWeight} keyboardType="number-pad" placeholder="74" />
+            <TextField label={t('healthCard.edit.weightLabel')} value={weight} onChangeText={setWeight} keyboardType="number-pad" placeholder="74" />
           </View>
         </View>
 
         {/* Аллергии */}
         <View style={{ gap: 10 }}>
-          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>Аллергии</Text>
+          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>{t('healthCard.edit.allergies')}</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {allergies.map((a, i) => (
               <Pressable
@@ -305,7 +307,7 @@ export function HealthMedCardEditScreen() {
               <TextField
                 value={newAllergy}
                 onChangeText={setNewAllergy}
-                placeholder="Добавить аллерген"
+                placeholder={t('healthCard.edit.addAllergen')}
                 onSubmitEditing={addAllergy}
                 returnKeyType="done"
               />
@@ -319,24 +321,24 @@ export function HealthMedCardEditScreen() {
           </View>
         </View>
 
-        <TextField label="Хронические заболевания" value={chronic} onChangeText={setChronic} placeholder="Бронхиальная астма (лёгкая)" />
-        <TextField label="Постоянные лекарства" value={medications} onChangeText={setMedications} placeholder="Сальбутамол — по потребности" />
+        <TextField label={t('healthCard.edit.chronic')} value={chronic} onChangeText={setChronic} placeholder={t('healthCard.edit.chronicPh')} />
+        <TextField label={t('healthCard.edit.medications')} value={medications} onChangeText={setMedications} placeholder={t('healthCard.edit.medicationsPh')} />
 
         {/* Тумблеры */}
         <View style={{ gap: 8 }}>
-          <ToggleRow title="Донор органов" sub="Показывать врачам скорой" value={organDonor} onChange={setOrganDonor} />
-          <ToggleRow title="Беременность" sub="Актуально сейчас" value={pregnancy} onChange={setPregnancy} />
+          <ToggleRow title={t('healthCard.edit.organDonor')} sub={t('healthCard.edit.organDonorSub')} value={organDonor} onChange={setOrganDonor} />
+          <ToggleRow title={t('healthCard.edit.pregnancy')} sub={t('healthCard.edit.pregnancySub')} value={pregnancy} onChange={setPregnancy} />
         </View>
 
-        <TextField label="Полис ОМС / ДМС" value={dmsPolicy} onChangeText={setDmsPolicy} placeholder="SOS24 ДМС · до 12.2026" />
-        <TextField label="Лечащий врач" value={doctorName} onChangeText={setDoctorName} placeholder="Малика Содиқова · терапевт" />
+        <TextField label={t('healthCard.edit.dmsPolicy')} value={dmsPolicy} onChangeText={setDmsPolicy} placeholder={t('healthCard.edit.dmsPolicyPh')} />
+        <TextField label={t('healthCard.edit.doctor')} value={doctorName} onChangeText={setDoctorName} placeholder={t('healthCard.edit.doctorPh')} />
 
         {/* Согласие (только при первом заполнении) */}
         {!alreadyConsented ? (
           <Pressable onPress={() => setConsent((v) => !v)} style={[{ flexDirection: 'row', gap: 12, padding: 14, borderRadius: 16 }, medGlass]}>
             <Checkbox checked={consent} onChange={setConsent} />
             <Text style={{ flex: 1, fontFamily: 'Manrope_400Regular', fontSize: 12.5, color: tokens.inkMuted, lineHeight: 18 }}>
-              Согласен на обработку и хранение медицинских данных. Данные шифруются и доступны только мне и врачам скорой при SOS.
+              {t('healthCard.edit.consent')}
             </Text>
           </Pressable>
         ) : null}
@@ -357,7 +359,7 @@ export function HealthMedCardEditScreen() {
         }}
       >
         <RedButton trailing={false} onPress={onSave} disabled={!canSave}>
-          {save.isPending ? 'Сохраняем…' : 'Сохранить'}
+          {save.isPending ? t('healthCard.edit.saving') : t('common.save')}
         </RedButton>
       </View>
     </SafeAreaView>

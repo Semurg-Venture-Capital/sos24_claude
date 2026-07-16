@@ -1,6 +1,7 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { ComponentType } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import {
   BenefitBolt,
@@ -32,78 +33,79 @@ type IconComp = ComponentType<{ color?: string }>;
 
 // Пресеты оформления карточки по типу продукта (как в дизайне старого каталога):
 // тон, eyebrow и 3 преимущества с иконками. Список с бэка не отдаёт benefits,
-// поэтому держим их здесь по типу страхования.
-const PRESET: Record<ApiProductType, { tone: 'light' | 'dark'; eyebrow: string; benefits: { Icon: IconComp; label: string }[] }> = {
+// поэтому держим их здесь по типу страхования. Тексты — через i18n
+// (ключи purchase.products.eyebrow.* и purchase.products.benefits.*).
+const PRESET: Record<ApiProductType, { tone: 'light' | 'dark'; key: string; benefits: { Icon: IconComp; idx: number }[] }> = {
   OSAGO: {
     tone: 'light',
-    eyebrow: 'Обязательное',
+    key: 'OSAGO',
     benefits: [
-      { Icon: BenefitBolt, label: 'Электронный полис мгновенно' },
-      { Icon: BenefitMap, label: 'Действует по всему Узбекистану' },
-      { Icon: BenefitShield, label: 'Онлайн-оформление, без офиса' },
+      { Icon: BenefitBolt, idx: 0 },
+      { Icon: BenefitMap, idx: 1 },
+      { Icon: BenefitShield, idx: 2 },
     ],
   },
   KASKO: {
     tone: 'dark',
-    eyebrow: 'Полное покрытие',
+    key: 'KASKO',
     benefits: [
-      { Icon: BenefitCarLock, label: 'Угон и ущерб от третьих лиц' },
-      { Icon: BenefitCommissar, label: 'Вызов инспектора 24/7' },
-      { Icon: BenefitWrench, label: 'Сеть партнёрских СТО' },
+      { Icon: BenefitCarLock, idx: 0 },
+      { Icon: BenefitCommissar, idx: 1 },
+      { Icon: BenefitWrench, idx: 2 },
     ],
   },
   HEALTH: {
     tone: 'light',
-    eyebrow: 'Жизнь и здоровье',
+    key: 'HEALTH',
     benefits: [
-      { Icon: BenefitHospital, label: 'Госпитализация и амбулаторное лечение' },
-      { Icon: BenefitMap, label: 'Сеть клиник по всему Узбекистану' },
-      { Icon: BenefitShield, label: 'Выплаты до 50 000 000 сум' },
+      { Icon: BenefitHospital, idx: 0 },
+      { Icon: BenefitMap, idx: 1 },
+      { Icon: BenefitShield, idx: 2 },
     ],
   },
   HOME: {
     tone: 'light',
-    eyebrow: 'Имущество',
+    key: 'HOME',
     benefits: [
-      { Icon: BenefitProperty, label: 'Пожар, залив, стихийные бедствия' },
-      { Icon: BenefitCarLock, label: 'Кража со взломом и грабёж' },
-      { Icon: BenefitShield, label: 'Ответственность перед соседями' },
+      { Icon: BenefitProperty, idx: 0 },
+      { Icon: BenefitCarLock, idx: 1 },
+      { Icon: BenefitShield, idx: 2 },
     ],
   },
   FINANCE: {
     tone: 'light',
-    eyebrow: 'Финансовая защита',
+    key: 'FINANCE',
     benefits: [
-      { Icon: BenefitShield, label: 'Покрытие кредитных платежей' },
-      { Icon: BenefitBolt, label: 'Выплата при потере работы' },
-      { Icon: BenefitWrench, label: 'Юридическое сопровождение' },
+      { Icon: BenefitShield, idx: 0 },
+      { Icon: BenefitBolt, idx: 1 },
+      { Icon: BenefitWrench, idx: 2 },
     ],
   },
   LIFE: {
     tone: 'light',
-    eyebrow: 'Жизнь',
+    key: 'LIFE',
     benefits: [
-      { Icon: BenefitShield, label: 'Выплата близким при несчастном случае' },
-      { Icon: BenefitHospital, label: 'Поддержка при тяжёлых заболеваниях' },
-      { Icon: BenefitBolt, label: 'Быстрое оформление онлайн' },
+      { Icon: BenefitShield, idx: 0 },
+      { Icon: BenefitHospital, idx: 1 },
+      { Icon: BenefitBolt, idx: 2 },
     ],
   },
   TRAVEL: {
     tone: 'light',
-    eyebrow: 'Путешествия',
+    key: 'TRAVEL',
     benefits: [
-      { Icon: BenefitMap, label: 'Медпомощь за рубежом' },
-      { Icon: BenefitShield, label: 'Страховка багажа и отмены поездки' },
-      { Icon: BenefitBolt, label: 'Полис для визы за минуту' },
+      { Icon: BenefitMap, idx: 0 },
+      { Icon: BenefitShield, idx: 1 },
+      { Icon: BenefitBolt, idx: 2 },
     ],
   },
   OTHER: {
     tone: 'light',
-    eyebrow: 'Страхование',
+    key: 'OTHER',
     benefits: [
-      { Icon: BenefitShield, label: 'Надёжная защита' },
-      { Icon: BenefitMap, label: 'По всему Узбекистану' },
-      { Icon: BenefitBolt, label: 'Оформление онлайн' },
+      { Icon: BenefitShield, idx: 0 },
+      { Icon: BenefitMap, idx: 1 },
+      { Icon: BenefitBolt, idx: 2 },
     ],
   },
 };
@@ -111,6 +113,7 @@ const PRESET: Record<ApiProductType, { tone: 'light' | 'dark'; eyebrow: string; 
 // Шаг 2 нового флоу — продукты выбранной компании (дизайн карточек как в каталоге).
 export function CompanyProductsScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { companyId, companyName } = useRoute<R>().params;
   const { data: products, isLoading, isError, refetch } = useCompanyProducts(companyId);
 
@@ -126,7 +129,7 @@ export function CompanyProductsScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40, gap: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        <ScreenHeading title="Страхование" subtitle="Выберите продукт и оформите полис онлайн" />
+        <ScreenHeading title={t('purchase.products.title')} subtitle={t('purchase.products.subtitle')} />
 
         {isLoading ? (
           <View style={{ paddingVertical: 60, alignItems: 'center' }}>
@@ -134,14 +137,14 @@ export function CompanyProductsScreen() {
           </View>
         ) : isError ? (
           <View style={{ paddingVertical: 40, alignItems: 'center', gap: 12 }}>
-            <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 14, color: tokens.inkMuted }}>Не удалось загрузить продукты</Text>
+            <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 14, color: tokens.inkMuted }}>{t('purchase.products.loadError')}</Text>
             <Pressable onPress={() => refetch()} style={{ paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14, backgroundColor: tokens.red }}>
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>Повторить</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>{t('common.retry')}</Text>
             </Pressable>
           </View>
         ) : !products?.length ? (
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center', paddingVertical: 40 }}>
-            У компании пока нет продуктов
+            {t('purchase.products.empty')}
           </Text>
         ) : (
           <View style={{ gap: 12 }}>
@@ -156,15 +159,16 @@ export function CompanyProductsScreen() {
 }
 
 function ProductCardFromApi({ product, onPress }: { product: CompanyProduct; onPress: () => void }) {
+  const { t } = useTranslation();
   const preset = PRESET[product.type] ?? PRESET.OTHER;
   const iconColor = preset.tone === 'dark' ? '#fff' : tokens.red;
   return (
     <ProductCard
       tone={preset.tone}
-      eyebrow={preset.eyebrow}
+      eyebrow={t(`purchase.products.eyebrow.${preset.key}`)}
       name={product.name}
       subtitle={product.shortDescription ?? ''}
-      benefits={preset.benefits.map((b) => ({ icon: <b.Icon color={iconColor} />, label: b.label }))}
+      benefits={preset.benefits.map((b) => ({ icon: <b.Icon color={iconColor} />, label: t(`purchase.products.benefits.${preset.key}.${b.idx}`) }))}
       price={product.fromPrice != null ? product.fromPrice.toLocaleString('ru-RU') : '—'}
       onPress={onPress}
       comingSoon={PURCHASE_COMING_SOON}
