@@ -928,6 +928,31 @@ model AiUsageLog {
   @@map("ai_usage_logs")
 }
 
+// Тест с алкотестера Alcostop 8000S (сетевой, шлёт SOAP AddData). Пред-/послерейсовый
+// осмотр водителей. См. память project-alcostop-integration.
+model AlcoTest {
+  id            String    @id @default(cuid())
+  deviceType    String? // модель прибора (8000S)
+  carLicense    String? // госномер авто
+  checkValue    String? // сырое значение: "0.000" или "Нет алкоголя"
+  checkValueNum Float? // распарсенное число (если числовое)
+  positive      Boolean   @default(false) // обнаружен алкоголь (> 0)
+  checkDateTime DateTime? // время теста
+  uploadTime    DateTime? // время отправки прибором
+  driverName    String?
+  officerName   String?
+  officerId     String?
+  officerUnit   String?
+  address       String?
+  photoKey      String? // ключ фото испытуемого в MinIO
+  raw           String?   @db.Text // сырой SOAP (на случай доразбора)
+  createdAt     DateTime  @default(now())
+
+  @@index([checkDateTime])
+  @@index([createdAt])
+  @@map("alco_tests")
+}
+
 // Врач при клинике-партнёре (M14 · раздел «Здоровье»). Запись к врачу —
 // поверх PartnerBooking (см. поле doctorId ниже), максимум переиспользования.
 model Doctor {

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NappReferenceService } from '../napp/napp-reference.service';
+import { MinioService } from '../files/minio.service';
 import { estimateCostUsd } from '../llm/ai-pricing';
 import type { CreateUserDto, UpdateUserDto } from './dto/user-management.dto';
 
@@ -10,7 +11,45 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly references: NappReferenceService,
+    private readonly minio: MinioService,
   ) {}
+
+  // Записи алкотестера Alcostop: список с presigned-фото + агрегаты (всего/положительных).
+  async getAlcoTests(params: { page?: number; limit?: number; positive?: boolean }) {
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 50));
+    const where = params.positive !== undefined ? { positive: params.positive } : {};
+    const [rows, total, positiveCount] = await Promise.all([
+      this.prisma.alcoTest.findMany({
+        where,
+        orderBy: { checkDateTime: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.alcoTest.count({ where }),
+      this.prisma.alcoTest.count({ where: { positive: true } }),
+    ]);
+    const items = await Promise.all(
+      rows.map(async (r) => ({
+        id: r.id,
+        deviceType: r.deviceType,
+        carLicense: r.carLicense,
+        checkValue: r.checkValue,
+        checkValueNum: r.checkValueNum,
+        positive: r.positive,
+        checkDateTime: r.checkDateTime,
+        uploadTime: r.uploadTime,
+        driverName: r.driverName,
+        officerName: r.officerName,
+        officerId: r.officerId,
+        officerUnit: r.officerUnit,
+        address: r.address,
+        photoUrl: r.photoKey ? await this.minio.presignedGetUrl(r.photoKey, 600).catch(() => null) : null,
+        createdAt: r.createdAt,
+      })),
+    );
+    return { items, total, page, limit, summary: { total: await this.prisma.alcoTest.count(), positive: positiveCount } };
+  }
 
   // Лог использования ИИ (Gemini): список запросов + агрегаты по токенам и фичам.
   async getAiUsage(params: { page?: number; limit?: number; feature?: string }) {

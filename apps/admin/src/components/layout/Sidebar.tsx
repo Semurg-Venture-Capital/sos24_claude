@@ -23,6 +23,7 @@ import {
   MessageCircle,
   Phone,
   HeartPulse,
+  Wind,
   Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -41,6 +42,7 @@ const NAV = [
   { href: '/call-center', label: 'Колл-центр', icon: Phone },
   { href: '/partners', label: 'Партнёры', icon: Handshake },
   { href: '/health', label: 'Здоровье', icon: HeartPulse },
+  { href: '/alcotests', label: 'Алкотесты', icon: Wind },
   { href: '/ai-usage', label: 'AI-лог', icon: Sparkles },
   { href: '/notifications', label: 'Уведомления', icon: Bell },
   { href: '/myid-test', label: 'MyID данные', icon: Fingerprint },

@@ -53,6 +53,42 @@ export function useAiUsage(page = 1, feature = '') {
   });
 }
 
+// ── Алкотестер Alcostop ──
+export interface AlcoTestItem {
+  id: string;
+  deviceType: string | null;
+  carLicense: string | null;
+  checkValue: string | null;
+  checkValueNum: number | null;
+  positive: boolean;
+  checkDateTime: string | null;
+  uploadTime: string | null;
+  driverName: string | null;
+  officerName: string | null;
+  officerId: string | null;
+  officerUnit: string | null;
+  address: string | null;
+  photoUrl: string | null;
+  createdAt: string;
+}
+export interface AlcoTestResponse {
+  items: AlcoTestItem[];
+  total: number;
+  page: number;
+  limit: number;
+  summary: { total: number; positive: number };
+}
+
+export function useAlcoTests(page = 1, positive = '') {
+  return useQuery({
+    queryKey: ['admin', 'alcotests', page, positive],
+    queryFn: () =>
+      api
+        .get<AlcoTestResponse>('/admin/alcotests', { params: { page, positive: positive || undefined } })
+        .then((r) => r.data),
+  });
+}
+
 export function useUsers(page = 1, limit = 20, search = '', verified = '', role = '') {
   return useQuery({
     queryKey: ['admin', 'users', page, search, verified, role],

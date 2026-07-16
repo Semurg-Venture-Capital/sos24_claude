@@ -1,12 +1,17 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { text } from 'express';
 import { AppModule } from './app.module';
 import { RedisIoAdapter } from './support/redis-io.adapter';
 
 async function bootstrap() {
   // rawBody: true — сохраняет сырое тело запроса (нужно для проверки HMAC-подписи вебхуков WHOOP).
   const app = await NestFactory.create(AppModule, { rawBody: true });
+
+  // Алкотестер Alcostop 8000S шлёт SOAP (text/xml) с фото (base64) — тело до сотен КБ.
+  // Разбираем text/xml в строку с увеличенным лимитом (дефолтные 100 КБ малы).
+  app.use(text({ type: ['text/xml', 'application/xml', 'application/soap+xml'], limit: '15mb' }));
 
   app.enableCors({ origin: true, credentials: true });
 

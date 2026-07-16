@@ -5,6 +5,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { AdminModule } from './admin/admin.module';
 import { AdjusterModule } from './adjuster/adjuster.module';
 import { AssistantModule } from './assistant/assistant.module';
+import { AlcoTestModule } from './alcotest/alcotest.module';
 import { AuthModule } from './auth/auth.module';
 import { PartnersModule } from './partners/partners.module';
 import { PartnerPortalModule } from './partner-portal/partner-portal.module';
@@ -64,6 +65,7 @@ import { WalletModule } from './wallet/wallet.module';
     AdminModule,
     AdjusterModule,
     AssistantModule,
+    AlcoTestModule,
     PartnersModule,
     PartnerPortalModule,
     EuroprotocolModule,

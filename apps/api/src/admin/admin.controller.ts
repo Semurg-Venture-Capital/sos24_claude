@@ -24,6 +24,20 @@ export class AdminController {
     return this.adminService.getAiUsage({ page: +page, limit: +limit, feature });
   }
 
+  @Get('alcotests')
+  @ApiOperation({ summary: 'Записи с алкотестера Alcostop: список + фото + агрегаты.' })
+  getAlcoTests(
+    @Query('page') page = '1',
+    @Query('limit') limit = '50',
+    @Query('positive') positive?: string,
+  ) {
+    return this.adminService.getAlcoTests({
+      page: +page,
+      limit: +limit,
+      positive: positive === 'true' ? true : positive === 'false' ? false : undefined,
+    });
+  }
+
   @Get('users')
   @ApiOperation({ summary: 'Список всех пользователей с пагинацией и фильтрами.' })
   getUsers(
