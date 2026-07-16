@@ -598,7 +598,7 @@ export function EuroStep2Screen() {
               label="Страховщик «В»"
               value={s.otherInsurer}
               onChangeText={(v) => s.patch({ otherInsurer: v })}
-              placeholder="Apex Insurance"
+              placeholder="Например: Гросс Иншуранс"
               maxLength={150}
               containerStyle={{ flex: 1.4 }}
             />

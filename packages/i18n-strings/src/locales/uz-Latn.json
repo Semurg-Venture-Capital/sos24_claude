@@ -1,77 +1,99 @@
 {
   "common": {
     "appName": "SOS24",
-    "tagline": "Помощник на дороге 24/7",
-    "next": "Далее",
-    "skip": "Пропустить",
-    "start": "Начать",
-    "back": "Назад",
-    "continue": "Продолжить",
-    "save": "Сохранить",
-    "cancel": "Отмена",
-    "retry": "Повторить",
-    "loading": "Загрузка..."
+    "tagline": "Yoʻlda 24/7 yordamchi",
+    "next": "Keyingi",
+    "skip": "Oʻtkazib yuborish",
+    "start": "Boshlash",
+    "back": "Orqaga",
+    "continue": "Davom etish",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "retry": "Qayta urinish",
+    "loading": "Yuklanmoqda..."
   },
   "auth": {
     "splash": {
-      "tagline": "Помощник на дороге 24/7"
+      "tagline": "Yoʻlda 24/7 yordamchi"
     },
     "onboarding": {
       "slide1": {
-        "title": "Полис ОСАГО или КАСКО — за 2 минуты",
-        "body": "Введите номер авто — данные подтянутся автоматически. Оплата картой Uzcard или Humo."
+        "title": "OSAGO yoki KASKO polisi — 2 daqiqada",
+        "body": "Avtomobil raqamini kiriting — maʼlumotlar avtomatik tortiladi. Uzcard yoki Humo karta bilan toʻlov."
       },
       "slide2": {
-        "title": "Помощь на дороге в любое время",
-        "body": "Вызовите аварийного инспектора или оформите электронный европротокол прямо с телефона."
+        "title": "Yoʻlda istalgan vaqtda yordam",
+        "body": "Avariya inspektorini chaqiring yoki elektron yevroprotokolni telefoningizdan rasmiylashtiring."
       },
       "slide3": {
-        "title": "Сеть партнёров рядом с вами",
-        "body": "СТО и медклиники по всему Узбекистану. Запись и оплата через приложение."
+        "title": "Yoningizdagi hamkorlar tarmogʻi",
+        "body": "Butun Oʻzbekiston boʻylab avtoservislar va tibbiyot klinikalari. Ilova orqali yozilish va toʻlov."
       }
     },
     "authChoose": {
-      "title": "Добро пожаловать",
-      "subtitle": "Войдите или создайте аккаунт",
-      "signIn": "Войти",
-      "signUp": "Зарегистрироваться",
-      "terms": "Продолжая, вы соглашаетесь с условиями оферты и политикой конфиденциальности"
+      "title": "Xush kelibsiz",
+      "subtitle": "Kiring yoki hisob yarating",
+      "signIn": "Kirish",
+      "signUp": "Roʻyxatdan oʻtish",
+      "terms": "Davom etish orqali siz oferta shartlari va maxfiylik siyosatiga rozilik bildirasiz"
     },
     "phone": {
-      "title": "Введите номер телефона",
-      "subtitle": "Отправим SMS с кодом подтверждения",
-      "label": "Номер телефона",
-      "submit": "Получить код",
+      "title": "Telefon raqamini kiriting",
+      "subtitle": "Tasdiqlash kodi bilan SMS yuboramiz",
+      "label": "Telefon raqami",
+      "submit": "Kod olish",
       "errors": {
-        "invalid": "Неверный формат номера",
-        "network": "Не удалось отправить код. Проверьте интернет."
+        "invalid": "Raqam formati notoʻgʻri",
+        "network": "Kod yuborilmadi. Internetni tekshiring."
       }
     },
     "otp": {
-      "title": "Введите код из SMS",
-      "subtitle": "Код отправлен на {{phone}}",
-      "resendIn": "Отправить код повторно через {{time}}",
-      "resend": "Отправить код повторно",
-      "changeNumber": "Изменить номер",
+      "title": "SMS dagi kodni kiriting",
+      "subtitle": "Kod {{phone}} raqamiga yuborildi",
+      "resendIn": "Kodni qayta yuborish {{time}} dan soʻng",
+      "resend": "Kodni qayta yuborish",
+      "changeNumber": "Raqamni oʻzgartirish",
       "errors": {
-        "invalid": "Неверный код, попробуйте снова",
-        "expired": "Срок действия кода истёк"
+        "invalid": "Kod notoʻgʻri, qayta urinib koʻring",
+        "expired": "Kod muddati tugagan"
       }
     },
     "profileSetup": {
-      "title": "Расскажите о себе",
-      "subtitle": "Нужно для оформления полисов",
-      "name": "Имя",
-      "surname": "Фамилия",
-      "patronymic": "Отчество (необязательно)",
-      "patronymicPlaceholder": "Не указано",
-      "birthDate": "Дата рождения",
-      "language": "Язык интерфейса",
-      "submit": "Продолжить"
+      "title": "Oʻzingiz haqingizda",
+      "subtitle": "Polislarni rasmiylashtirish uchun kerak",
+      "name": "Ism",
+      "surname": "Familiya",
+      "patronymic": "Otasining ismi (ixtiyoriy)",
+      "patronymicPlaceholder": "Koʻrsatilmagan",
+      "birthDate": "Tugʻilgan sana",
+      "language": "Interfeys tili",
+      "submit": "Davom etish"
     }
   },
+  "profile": {
+    "title": "Profil",
+    "guest": "Mehmon",
+    "myidVerified": "MyID tasdiqlangan",
+    "documents": "Mening hujjatlarim",
+    "passport": "Pasport",
+    "license": "Haydovchilik guvohnomasi",
+    "notFilledM": "toʻldirilmagan",
+    "notFilledF": "toʻldirilmagan",
+    "settings": "Sozlamalar",
+    "language": "Interfeys tili",
+    "chooseLanguage": "Tilni tanlang",
+    "theme": "Mavzu",
+    "notifications": "Bildirishnomalar",
+    "help": "Yordam",
+    "support": "Qoʻllab-quvvatlash",
+    "faq": "Koʻp beriladigan savollar",
+    "terms": "Oferta va siyosat",
+    "logout": "Hisobdan chiqish",
+    "version": "Versiya {{version}}",
+    "themes": { "system": "Tizim", "light": "Yorugʻ", "dark": "Qorongʻu" }
+  },
   "errors": {
-    "unknown": "Что-то пошло не так",
-    "offline": "Нет подключения к интернету"
+    "unknown": "Nimadir xato ketdi",
+    "offline": "Internet aloqasi yoʻq"
   }
 }

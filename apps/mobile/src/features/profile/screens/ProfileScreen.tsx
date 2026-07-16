@@ -3,7 +3,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Glass } from '../../../components/ui/Glass';
 import { useState } from 'react';
-import { Animated, Pressable, Text, View } from 'react-native';
+import { Alert, Animated, Pressable, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCollapsingHeader } from '../../../lib/useCollapsingHeader';
 import { useMe } from '../../../api/auth';
@@ -19,8 +20,18 @@ import { useCards } from '../../../api/cards';
 import { useWallet } from '../../../api/wallet';
 import { useAuthStore } from '../../../stores/authStore';
 import { tokens } from '../../../theme/colors';
-import { MOCK_USER, getLocaleLabel, getThemeLabel } from '../mockProfile';
+import { MOCK_USER, getLocaleLabel } from '../mockProfile';
+import { setLocale } from '../../../lib/i18n';
+import type { Locale } from '@sos24/i18n-strings';
 import type { MainStackParamList, ProfileStackParamList } from '../../../navigation/types';
+
+// Языки для переключателя — каждый подписан на своём языке.
+const LANGUAGES: { code: Locale; label: string }[] = [
+  { code: 'uz-Latn', label: "O'zbek (lotin)" },
+  { code: 'uz-Cyrl', label: 'Ўзбек (кирилл)' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'en', label: 'English' },
+];
 
 type Nav = NativeStackNavigationProp<ProfileStackParamList, 'ProfileMain'>;
 type RootNav = NativeStackNavigationProp<MainStackParamList>;
@@ -46,14 +57,24 @@ const FINANCE_ENABLED = false;
 // M2.1 — Главный экран профиля. Спецификация: SOS24_Mobile_Screens.md §M2.1.
 export function ProfileScreen() {
   const nav = useNavigation<Nav>();
+  const { t, i18n } = useTranslation();
   const signOut = useAuthStore((s) => s.signOut);
   // Отдел поддержки (M13) живёт на MainStack — открываем через родительский навигатор.
   const openSupport = () => nav.getParent<RootNav>()?.navigate('Support');
 
+  const currentLocale = i18n.language as Locale;
+  const openLanguagePicker = () => {
+    Alert.alert(t('profile.chooseLanguage'), undefined, [
+      ...LANGUAGES.map((l) => ({ text: l.label, onPress: () => void setLocale(l.code) })),
+      { text: t('common.cancel'), style: 'cancel' as const },
+    ]);
+  };
+
   // Версия приложения + git hash сборки (подставляется в app.config.js из git).
   const appVersion = Constants.expoConfig?.version ?? '—';
   const gitHash = (Constants.expoConfig?.extra as { gitHash?: string } | undefined)?.gitHash;
-  const appVersionLabel = gitHash ? `Версия ${appVersion} (${gitHash})` : `Версия ${appVersion}`;
+  const versionText = t('profile.version', { version: appVersion });
+  const appVersionLabel = gitHash ? `${versionText} (${gitHash})` : versionText;
   const [notifications, setNotifications] = useState(MOCK_USER.notificationsEnabled);
   const { data: me } = useMe();
   const { data: documents } = useDocuments();
@@ -66,7 +87,7 @@ export function ProfileScreen() {
   const fullName =
     me && (me.surname || me.name || me.patronymic)
       ? [me.surname, me.name, me.patronymic].filter(Boolean).join(' ')
-      : 'Гость';
+      : t('profile.guest');
   const isVerified = me?.verificationStatus === 'MYID_VERIFIED';
 
   return (
@@ -125,7 +146,7 @@ export function ProfileScreen() {
                 >
                   <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' }} />
                   <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#059669' }}>
-                    MyID верифицирован
+                    {t('profile.myidVerified')}
                   </Text>
                 </View>
               )}
@@ -149,18 +170,18 @@ export function ProfileScreen() {
           </Glass>
         </View>
 
-        <Section title="Мои документы">
+        <Section title={t('profile.documents')}>
           <ListRow
             icon={<IconPassport />}
-            title="Паспорт"
-            meta={passport ? `${passport.series} ${passport.number}` : 'не заполнен'}
+            title={t('profile.passport')}
+            meta={passport ? `${passport.series} ${passport.number}` : t('profile.notFilledM')}
             trailing={<StatusPill status={statusFromApi(passport?.status)} />}
             onPress={() => nav.navigate('Document', { kind: 'passport' })}
           />
           <ListRow
             icon={<IconLicense />}
-            title="Водительское удостоверение"
-            meta={license ? `${license.series} ${license.number}` : 'не заполнено'}
+            title={t('profile.license')}
+            meta={license ? `${license.series} ${license.number}` : t('profile.notFilledF')}
             trailing={<StatusPill status={statusFromApi(license?.status)} />}
             onPress={() => nav.navigate('Document', { kind: 'license' })}
           />
@@ -177,36 +198,36 @@ export function ProfileScreen() {
           </Section>
         )}
 
-        <Section title="Настройки">
+        <Section title={t('profile.settings')}>
           <ListRow
             icon={<IconLanguage />}
-            title="Язык интерфейса"
-            value={getLocaleLabel(MOCK_USER.locale)}
-            onPress={() => {}}
+            title={t('profile.language')}
+            value={getLocaleLabel(currentLocale)}
+            onPress={openLanguagePicker}
           />
           <ListRow
             icon={<IconPalette />}
-            title="Тема"
-            value={getThemeLabel(MOCK_USER.themeMode)}
+            title={t('profile.theme')}
+            value={t(`profile.themes.${MOCK_USER.themeMode}`)}
             onPress={() => {}}
           />
           <ListRow
             icon={<IconChat />}
-            title="Уведомления"
+            title={t('profile.notifications')}
             trailing={<Toggle value={notifications} onChange={setNotifications} />}
           />
         </Section>
 
-        <Section title="Помощь">
-          <ListRow icon={<IconChat />} title="Поддержка" onPress={openSupport} />
-          <ListRow icon={<IconQuestion />} title="Частые вопросы" onPress={openSupport} />
-          <ListRow icon={<IconFile />} title="Оферта и политика" onPress={() => {}} />
+        <Section title={t('profile.help')}>
+          <ListRow icon={<IconChat />} title={t('profile.support')} onPress={openSupport} />
+          <ListRow icon={<IconQuestion />} title={t('profile.faq')} onPress={openSupport} />
+          <ListRow icon={<IconFile />} title={t('profile.terms')} onPress={() => {}} />
         </Section>
 
         <View style={{ marginTop: 4 }}>
           <ListRow
             icon={<IconLogout color={tokens.red} />}
-            title="Выйти из аккаунта"
+            title={t('profile.logout')}
             destructive
             trailing="none"
             onPress={() => void signOut()}
@@ -241,7 +262,7 @@ export function ProfileScreen() {
           ]}
         >
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 28, letterSpacing: -0.28, color: tokens.ink }}>
-            Профиль
+            {t('profile.title')}
           </Text>
         </Animated.View>
 

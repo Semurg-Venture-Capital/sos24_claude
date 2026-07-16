@@ -70,6 +70,28 @@
       "submit": "Продолжить"
     }
   },
+  "profile": {
+    "title": "Профиль",
+    "guest": "Гость",
+    "myidVerified": "MyID верифицирован",
+    "documents": "Мои документы",
+    "passport": "Паспорт",
+    "license": "Водительское удостоверение",
+    "notFilledM": "не заполнен",
+    "notFilledF": "не заполнено",
+    "settings": "Настройки",
+    "language": "Язык интерфейса",
+    "chooseLanguage": "Выберите язык",
+    "theme": "Тема",
+    "notifications": "Уведомления",
+    "help": "Помощь",
+    "support": "Поддержка",
+    "faq": "Частые вопросы",
+    "terms": "Оферта и политика",
+    "logout": "Выйти из аккаунта",
+    "version": "Версия {{version}}",
+    "themes": { "system": "Системная", "light": "Светлая", "dark": "Тёмная" }
+  },
   "errors": {
     "unknown": "Что-то пошло не так",
     "offline": "Нет подключения к интернету"

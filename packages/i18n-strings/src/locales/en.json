@@ -1,77 +1,99 @@
 {
   "common": {
     "appName": "SOS24",
-    "tagline": "Помощник на дороге 24/7",
-    "next": "Далее",
-    "skip": "Пропустить",
-    "start": "Начать",
-    "back": "Назад",
-    "continue": "Продолжить",
-    "save": "Сохранить",
-    "cancel": "Отмена",
-    "retry": "Повторить",
-    "loading": "Загрузка..."
+    "tagline": "Your 24/7 road assistant",
+    "next": "Next",
+    "skip": "Skip",
+    "start": "Start",
+    "back": "Back",
+    "continue": "Continue",
+    "save": "Save",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "loading": "Loading..."
   },
   "auth": {
     "splash": {
-      "tagline": "Помощник на дороге 24/7"
+      "tagline": "Your 24/7 road assistant"
     },
     "onboarding": {
       "slide1": {
-        "title": "Полис ОСАГО или КАСКО — за 2 минуты",
-        "body": "Введите номер авто — данные подтянутся автоматически. Оплата картой Uzcard или Humo."
+        "title": "OSAGO or KASKO policy — in 2 minutes",
+        "body": "Enter your car number — the data fills in automatically. Pay with Uzcard or Humo."
       },
       "slide2": {
-        "title": "Помощь на дороге в любое время",
-        "body": "Вызовите аварийного инспектора или оформите электронный европротокол прямо с телефона."
+        "title": "Road assistance anytime",
+        "body": "Call an accident inspector or file an electronic euro-protocol right from your phone."
       },
       "slide3": {
-        "title": "Сеть партнёров рядом с вами",
-        "body": "СТО и медклиники по всему Узбекистану. Запись и оплата через приложение."
+        "title": "A partner network near you",
+        "body": "Auto services and medical clinics across Uzbekistan. Book and pay in the app."
       }
     },
     "authChoose": {
-      "title": "Добро пожаловать",
-      "subtitle": "Войдите или создайте аккаунт",
-      "signIn": "Войти",
-      "signUp": "Зарегистрироваться",
-      "terms": "Продолжая, вы соглашаетесь с условиями оферты и политикой конфиденциальности"
+      "title": "Welcome",
+      "subtitle": "Sign in or create an account",
+      "signIn": "Sign in",
+      "signUp": "Sign up",
+      "terms": "By continuing, you agree to the offer terms and privacy policy"
     },
     "phone": {
-      "title": "Введите номер телефона",
-      "subtitle": "Отправим SMS с кодом подтверждения",
-      "label": "Номер телефона",
-      "submit": "Получить код",
+      "title": "Enter your phone number",
+      "subtitle": "We'll send an SMS with a verification code",
+      "label": "Phone number",
+      "submit": "Get code",
       "errors": {
-        "invalid": "Неверный формат номера",
-        "network": "Не удалось отправить код. Проверьте интернет."
+        "invalid": "Invalid number format",
+        "network": "Failed to send the code. Check your internet."
       }
     },
     "otp": {
-      "title": "Введите код из SMS",
-      "subtitle": "Код отправлен на {{phone}}",
-      "resendIn": "Отправить код повторно через {{time}}",
-      "resend": "Отправить код повторно",
-      "changeNumber": "Изменить номер",
+      "title": "Enter the code from SMS",
+      "subtitle": "Code sent to {{phone}}",
+      "resendIn": "Resend code in {{time}}",
+      "resend": "Resend code",
+      "changeNumber": "Change number",
       "errors": {
-        "invalid": "Неверный код, попробуйте снова",
-        "expired": "Срок действия кода истёк"
+        "invalid": "Invalid code, please try again",
+        "expired": "The code has expired"
       }
     },
     "profileSetup": {
-      "title": "Расскажите о себе",
-      "subtitle": "Нужно для оформления полисов",
-      "name": "Имя",
-      "surname": "Фамилия",
-      "patronymic": "Отчество (необязательно)",
-      "patronymicPlaceholder": "Не указано",
-      "birthDate": "Дата рождения",
-      "language": "Язык интерфейса",
-      "submit": "Продолжить"
+      "title": "Tell us about yourself",
+      "subtitle": "Needed to issue policies",
+      "name": "First name",
+      "surname": "Last name",
+      "patronymic": "Middle name (optional)",
+      "patronymicPlaceholder": "Not specified",
+      "birthDate": "Date of birth",
+      "language": "Interface language",
+      "submit": "Continue"
     }
   },
+  "profile": {
+    "title": "Profile",
+    "guest": "Guest",
+    "myidVerified": "MyID verified",
+    "documents": "My documents",
+    "passport": "Passport",
+    "license": "Driver's license",
+    "notFilledM": "not filled in",
+    "notFilledF": "not filled in",
+    "settings": "Settings",
+    "language": "Interface language",
+    "chooseLanguage": "Choose language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "help": "Help",
+    "support": "Support",
+    "faq": "FAQ",
+    "terms": "Offer & policy",
+    "logout": "Log out",
+    "version": "Version {{version}}",
+    "themes": { "system": "System", "light": "Light", "dark": "Dark" }
+  },
   "errors": {
-    "unknown": "Что-то пошло не так",
-    "offline": "Нет подключения к интернету"
+    "unknown": "Something went wrong",
+    "offline": "No internet connection"
   }
 }
