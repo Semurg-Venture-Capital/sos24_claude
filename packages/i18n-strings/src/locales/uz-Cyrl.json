@@ -102,6 +102,24 @@
       "dark": "Қоронғу"
     }
   },
+  "policies": {
+    "title": "Менинг полисларим",
+    "statActive": "Фаол",
+    "statExpiring": "Тугаяпти",
+    "statArchived": "Архивда",
+    "tabActive": "Фаол",
+    "tabArchive": "Архив",
+    "emptyActive": "Фаол полислар йўқ",
+    "emptyArchive": "Архив бўш",
+    "expiring": "Муддати тугаган"
+  },
+  "productTypes": {
+    "OSAGO": "ОСАГО",
+    "KASKO": "КАСКО",
+    "HEALTH": "Саломатлик",
+    "HOME": "Уй",
+    "FINANCE": "Молия"
+  },
   "errors": {
     "unknown": "Нимадир хато кетди",
     "offline": "Интернет алоқаси йўқ"

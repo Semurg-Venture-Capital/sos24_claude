@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,14 +24,6 @@ import type { MainStackParamList, PoliciesStackParamList } from '../../../naviga
 type Nav = NativeStackNavigationProp<PoliciesStackParamList, 'PoliciesList'>;
 type RootNav = NativeStackNavigationProp<MainStackParamList>;
 
-const TYPE_LABELS: Record<ProductType, string> = {
-  OSAGO: 'ОСАГО',
-  KASKO: 'КАСКО',
-  HEALTH: 'Здоровье',
-  HOME: 'Дом',
-  FINANCE: 'Финансы',
-};
-
 function formatDate(iso: string): string {
   const [y, m, d] = iso.slice(0, 10).split('-');
   return `${d}.${m}.${y}`;
@@ -49,16 +42,18 @@ function formatPolicyNumber(n: string | null): string {
   return `№ ${parts.join(' ')}`;
 }
 
-function policyVehicle(p: Policy): { car: string; plate: string } {
+function policyVehicle(p: Policy, typeLabel: (ty: ProductType) => string): { car: string; plate: string } {
   if (p.vehicle) {
     return { car: `${p.vehicle.brand} ${p.vehicle.model}`, plate: p.vehicle.plate };
   }
-  return { car: TYPE_LABELS[p.type] ?? p.type, plate: '—' };
+  return { car: typeLabel(p.type), plate: '—' };
 }
 
 // M8.1 — список полисов. Эталон: SOS24/screens-policies.jsx → ScreenPoliciesList.
 export function PoliciesListScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
+  const typeLabel = (ty: ProductType) => t(`productTypes.${ty}`);
   const [tab, setTab] = useState(0);
 
   const { data: allPolicies, isLoading, refetch } = usePolicies();
@@ -118,14 +113,14 @@ export function PoliciesListScreen() {
           >
           {/* Stats */}
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <StatPill label="Активных" value={String(active.length)} tone="ink" />
-            <StatPill label="Истекает" value={String(expiring)} tone="warn" />
-            <StatPill label="В архиве" value={String(expired.length)} tone="glass" />
+            <StatPill label={t('policies.statActive')} value={String(active.length)} tone="ink" />
+            <StatPill label={t('policies.statExpiring')} value={String(expiring)} tone="warn" />
+            <StatPill label={t('policies.statArchived')} value={String(expired.length)} tone="glass" />
           </View>
 
           {/* Tabs */}
           <Segmented
-            options={[`Активные · ${active.length}`, `Архив · ${expired.length}`]}
+            options={[`${t('policies.tabActive')} · ${active.length}`, `${t('policies.tabArchive')} · ${expired.length}`]}
             active={tab}
             onChange={setTab}
           />
@@ -135,14 +130,14 @@ export function PoliciesListScreen() {
             {tab === 0 ? (
               <>
                 {active.map((p, i) => {
-                  const { car, plate } = policyVehicle(p);
+                  const { car, plate } = policyVehicle(p, typeLabel);
                   const days = computeDaysLeft(p.endDate);
                   const cardStatus = days < 30 ? 'expiring' : 'active';
                   return (
                     <PolicyListCard
                       key={p.id}
                       tone={i === 0 ? 'dark' : 'light'}
-                      type={TYPE_LABELS[p.type] ?? p.type}
+                      type={typeLabel(p.type)}
                       car={car}
                       plate={plate}
                       period={`${formatDate(p.startDate)} — ${formatDate(p.endDate)}`}
@@ -158,7 +153,7 @@ export function PoliciesListScreen() {
                 {active.length === 0 && (
                   <View style={{ paddingVertical: 40, alignItems: 'center' }}>
                     <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
-                      Нет активных полисов
+                      {t('policies.emptyActive')}
                     </Text>
                   </View>
                 )}
@@ -176,16 +171,16 @@ export function PoliciesListScreen() {
                           textTransform: 'uppercase',
                         }}
                       >
-                        Истекли
+                        {t('policies.expiring')}
                       </Text>
                       <View style={{ flex: 1, height: 1, backgroundColor: tokens.hairline }} />
                     </View>
                     {expired.map((p) => {
-                      const { car, plate } = policyVehicle(p);
+                      const { car, plate } = policyVehicle(p, typeLabel);
                       return (
                         <PolicyListCardCompact
                           key={p.id}
-                          type={TYPE_LABELS[p.type] ?? p.type}
+                          type={typeLabel(p.type)}
                           car={car}
                           plate={plate}
                           expiredAt={formatDate(p.endDate)}
@@ -199,11 +194,11 @@ export function PoliciesListScreen() {
             ) : (
               <>
                 {expired.map((p) => {
-                  const { car, plate } = policyVehicle(p);
+                  const { car, plate } = policyVehicle(p, typeLabel);
                   return (
                     <PolicyListCardCompact
                       key={p.id}
-                      type={TYPE_LABELS[p.type] ?? p.type}
+                      type={typeLabel(p.type)}
                       car={car}
                       plate={plate}
                       expiredAt={formatDate(p.endDate)}
@@ -214,7 +209,7 @@ export function PoliciesListScreen() {
                 {expired.length === 0 && (
                   <View style={{ paddingVertical: 40, alignItems: 'center' }}>
                     <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
-                      Архив пуст
+                      {t('policies.emptyArchive')}
                     </Text>
                   </View>
                 )}
@@ -250,7 +245,7 @@ export function PoliciesListScreen() {
           ]}
         >
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 28, letterSpacing: -0.28, color: tokens.ink }}>
-            Мои полисы
+            {t('policies.title')}
           </Text>
           <IconButton>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={tokens.inkDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">

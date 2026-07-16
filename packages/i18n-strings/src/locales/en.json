@@ -102,6 +102,24 @@
       "dark": "Dark"
     }
   },
+  "policies": {
+    "title": "My policies",
+    "statActive": "Active",
+    "statExpiring": "Expiring",
+    "statArchived": "Archived",
+    "tabActive": "Active",
+    "tabArchive": "Archive",
+    "emptyActive": "No active policies",
+    "emptyArchive": "Archive is empty",
+    "expiring": "Expired"
+  },
+  "productTypes": {
+    "OSAGO": "OSAGO",
+    "KASKO": "KASKO",
+    "HEALTH": "Health",
+    "HOME": "Home",
+    "FINANCE": "Finance"
+  },
   "errors": {
     "unknown": "Something went wrong",
     "offline": "No internet connection"

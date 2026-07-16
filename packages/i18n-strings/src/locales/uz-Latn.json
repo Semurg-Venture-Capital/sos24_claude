@@ -102,6 +102,24 @@
       "dark": "Qorongʻu"
     }
   },
+  "policies": {
+    "title": "Mening polislarim",
+    "statActive": "Faol",
+    "statExpiring": "Tugayapti",
+    "statArchived": "Arxivda",
+    "tabActive": "Faol",
+    "tabArchive": "Arxiv",
+    "emptyActive": "Faol polislar yoʻq",
+    "emptyArchive": "Arxiv boʻsh",
+    "expiring": "Muddati tugagan"
+  },
+  "productTypes": {
+    "OSAGO": "OSAGO",
+    "KASKO": "KASKO",
+    "HEALTH": "Salomatlik",
+    "HOME": "Uy",
+    "FINANCE": "Moliya"
+  },
   "errors": {
     "unknown": "Nimadir xato ketdi",
     "offline": "Internet aloqasi yoʻq"

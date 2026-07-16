@@ -102,6 +102,24 @@
       "dark": "Тёмная"
     }
   },
+  "policies": {
+    "title": "Мои полисы",
+    "statActive": "Активных",
+    "statExpiring": "Истекает",
+    "statArchived": "В архиве",
+    "tabActive": "Активные",
+    "tabArchive": "Архив",
+    "emptyActive": "Нет активных полисов",
+    "emptyArchive": "Архив пуст",
+    "expiring": "Истекли"
+  },
+  "productTypes": {
+    "OSAGO": "ОСАГО",
+    "KASKO": "КАСКО",
+    "HEALTH": "Здоровье",
+    "HOME": "Дом",
+    "FINANCE": "Финансы"
+  },
   "errors": {
     "unknown": "Что-то пошло не так",
     "offline": "Нет подключения к интернету"
