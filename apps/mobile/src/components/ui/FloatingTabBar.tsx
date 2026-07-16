@@ -1,5 +1,6 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TabIconCar, TabIconHeart, TabIconHome, TabIconShield, TabIconUser } from '../icons/TabIcons';
@@ -16,12 +17,12 @@ const ICONS: Record<string, (p: { size?: number; color?: string; active?: boolea
   Garage: TabIconCar,
   Profile: TabIconUser,
 };
-const LABELS: Record<string, string> = {
-  Home: 'Главная',
-  Policies: 'Полисы',
-  Health: 'Здоровье',
-  Garage: 'Гараж',
-  Profile: 'Профиль',
+const LABEL_KEYS: Record<string, string> = {
+  Home: 'tabs.home',
+  Policies: 'tabs.policies',
+  Health: 'tabs.health',
+  Garage: 'tabs.garage',
+  Profile: 'profile.title',
 };
 
 const H_MARGIN = 16;
@@ -31,6 +32,7 @@ const PILL_INSET = 6;
 export function FloatingTabBar({ state, navigation, descriptors }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const { t } = useTranslation();
 
   // Скрываем бар, если активная вкладка попросила tabBarStyle.display:'none'
   // (например, детальная страница авто внутри стека Гаража).
@@ -99,7 +101,7 @@ export function FloatingTabBar({ state, navigation, descriptors }: BottomTabBarP
         {state.routes.map((route, i) => {
           const focused = state.index === i;
           const Icon = ICONS[route.name];
-          const label = LABELS[route.name] ?? route.name;
+          const label = LABEL_KEYS[route.name] ? t(LABEL_KEYS[route.name]) : route.name;
           const color = focused ? tokens.red : tokens.inkMuted;
           return (
             <Pressable

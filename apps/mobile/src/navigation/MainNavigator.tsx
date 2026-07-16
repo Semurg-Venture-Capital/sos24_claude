@@ -3,6 +3,7 @@ import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/un
 import { getFocusedRouteNameFromRoute, type RouteProp } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Platform } from 'react-native';
 import { AdjusterNavigator } from './AdjusterNavigator';
 import { EuroNavigator } from './EuroNavigator';
@@ -43,6 +44,7 @@ function tabBarStyleFor(
 const Tab = createNativeBottomTabNavigator<MainTabParamList>();
 
 function IosTabs() {
+  const { t } = useTranslation();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -53,7 +55,7 @@ function IosTabs() {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarLabel: 'Главная',
+          tabBarLabel: t('tabs.home'),
           tabBarIcon: isIOS
             ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'house.fill' : 'house' })
             : undefined,
@@ -63,7 +65,7 @@ function IosTabs() {
         name="Policies"
         component={PoliciesNavigator}
         options={({ route }) => ({
-          tabBarLabel: 'Полисы',
+          tabBarLabel: t('tabs.policies'),
           tabBarIcon: isIOS
             ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'shield.fill' : 'shield' })
             : undefined,
@@ -74,7 +76,7 @@ function IosTabs() {
         name="Garage"
         component={GarageNavigator}
         options={({ route }) => ({
-          tabBarLabel: 'Гараж',
+          tabBarLabel: t('tabs.garage'),
           tabBarIcon: isIOS
             ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'car.fill' : 'car' })
             : undefined,
@@ -85,7 +87,7 @@ function IosTabs() {
         name="Health"
         component={HealthNavigator}
         options={({ route }) => ({
-          tabBarLabel: 'Здоровье',
+          tabBarLabel: t('tabs.health'),
           tabBarIcon: isIOS
             ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? 'heart.fill' : 'heart' })
             : undefined,

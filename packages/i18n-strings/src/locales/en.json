@@ -12,6 +12,12 @@
     "retry": "Retry",
     "loading": "Loading..."
   },
+  "tabs": {
+    "home": "Home",
+    "policies": "Policies",
+    "garage": "Garage",
+    "health": "Health"
+  },
   "auth": {
     "splash": {
       "tagline": "Your 24/7 road assistant"
@@ -90,7 +96,11 @@
     "terms": "Offer & policy",
     "logout": "Log out",
     "version": "Version {{version}}",
-    "themes": { "system": "System", "light": "Light", "dark": "Dark" }
+    "themes": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    }
   },
   "errors": {
     "unknown": "Something went wrong",

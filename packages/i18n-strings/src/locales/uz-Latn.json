@@ -12,6 +12,12 @@
     "retry": "Qayta urinish",
     "loading": "Yuklanmoqda..."
   },
+  "tabs": {
+    "home": "Asosiy",
+    "policies": "Polislar",
+    "garage": "Garaj",
+    "health": "Salomatlik"
+  },
   "auth": {
     "splash": {
       "tagline": "Yoʻlda 24/7 yordamchi"
@@ -90,7 +96,11 @@
     "terms": "Oferta va siyosat",
     "logout": "Hisobdan chiqish",
     "version": "Versiya {{version}}",
-    "themes": { "system": "Tizim", "light": "Yorugʻ", "dark": "Qorongʻu" }
+    "themes": {
+      "system": "Tizim",
+      "light": "Yorugʻ",
+      "dark": "Qorongʻu"
+    }
   },
   "errors": {
     "unknown": "Nimadir xato ketdi",
