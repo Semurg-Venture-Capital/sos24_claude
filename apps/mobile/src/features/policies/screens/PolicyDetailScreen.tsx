@@ -112,7 +112,7 @@ export function PolicyDetailScreen() {
 
   const menuItems = [
     { label: 'Скачать PDF', icon: <PdfIcon />, onPress: () => Alert.alert('Скоро', 'Скачивание электронного полиса') },
-    { label: 'Продлить', icon: <RenewIcon />, onPress: () => (nav as any).navigate('PolicyQrFullscreen', { id: policy.id }) },
+    { label: 'Продлить', icon: <RenewIcon />, onPress: () => Alert.alert('Скоро', 'Продление полиса будет доступно позже') },
     { label: 'Заявить убыток', icon: <ClaimIcon />, onPress: () => Alert.alert('Скоро', 'Оформление страхового случая'), destructive: true },
   ];
 
@@ -284,12 +284,19 @@ export function PolicyDetailScreen() {
           gap: 8,
         }}
       >
-        <RedButton trailing={false} onPress={() => {}}>
-          ! Сообщить о ДТП
+        <RedButton trailing={false} onPress={() => (nav as any).navigate('SosAssistant')}>
+          Сообщить о ДТП
         </RedButton>
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <OutlineButton style={{ flex: 1, height: 52 }}>↓ PDF</OutlineButton>
-          <OutlineButton style={{ flex: 1, height: 52 }}>Продлить</OutlineButton>
+          <OutlineButton
+            style={{ flex: 1, height: 52 }}
+            onPress={() => Alert.alert('Скоро', 'Скачивание электронного полиса')}
+          >
+            Скачать PDF
+          </OutlineButton>
+          <OutlineButton style={{ flex: 1, height: 52 }} disabled>
+            Скоро
+          </OutlineButton>
         </View>
       </View>
     </PhoneFrame>

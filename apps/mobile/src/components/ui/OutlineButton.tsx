@@ -7,17 +7,23 @@ interface Props {
   onPress?: () => void;
   tone?: 'dark' | 'red';
   style?: ViewStyle;
+  disabled?: boolean;
 }
 
-export function OutlineButton({ children, onPress, tone = 'dark', style }: Props) {
-  const color = tone === 'red' ? tokens.red : tokens.inkDark;
-  const borderColor = tone === 'red' ? 'rgba(230,20,40,0.5)' : 'rgba(20,20,20,0.16)';
+export function OutlineButton({ children, onPress, tone = 'dark', style, disabled = false }: Props) {
+  const color = disabled ? tokens.inkMuted : tone === 'red' ? tokens.red : tokens.inkDark;
+  const borderColor = disabled
+    ? 'rgba(20,20,20,0.1)'
+    : tone === 'red'
+      ? 'rgba(230,20,40,0.5)'
+      : 'rgba(20,20,20,0.16)';
   return (
     <Pressable
-      onPress={onPress}
+      onPress={disabled ? undefined : onPress}
+      disabled={disabled}
       style={({ pressed }) => [
         {
-          backgroundColor: 'transparent',
+          backgroundColor: disabled ? 'rgba(20,20,20,0.04)' : 'transparent',
           borderRadius: 999,
           height: 64,
           paddingHorizontal: 28,
@@ -27,7 +33,7 @@ export function OutlineButton({ children, onPress, tone = 'dark', style }: Props
           alignItems: 'center',
           justifyContent: 'center',
           gap: 10,
-          opacity: pressed ? 0.7 : 1,
+          opacity: pressed && !disabled ? 0.7 : 1,
         },
         style,
       ]}
