@@ -9,7 +9,7 @@ export interface UploadedMedia {
   contentType: string;
 }
 
-type FileKind = 'image' | 'video' | 'pdf' | 'doc' | 'audio';
+type FileKind = 'image' | 'video' | 'pdf' | 'doc' | 'audio' | 'passport';
 
 interface PresignUploadResp {
   url: string;
@@ -29,6 +29,8 @@ function inferContentType(uri: string, kind: FileKind): string {
     return ext === 'wav' ? 'audio/wav' : ext === 'mp3' ? 'audio/mpeg' : ext === 'aac' ? 'audio/aac' : 'audio/mp4';
   }
   if (kind === 'pdf') return 'application/pdf';
+  // Скан паспорта — фото или PDF: определяем по расширению.
+  if (kind === 'passport' && ext === 'pdf') return 'application/pdf';
   return ext === 'png'
     ? 'image/png'
     : ext === 'webp'
@@ -48,7 +50,7 @@ export async function uploadFileToS3(uri: string, kind: FileKind): Promise<Uploa
   // браузеры (админка) и Android. JPEG понимают везде.
   let finalUri = uri;
   let contentType = inferContentType(uri, kind);
-  if (kind === 'image') {
+  if ((kind === 'image' || kind === 'passport') && contentType.startsWith('image/')) {
     try {
       const IM = await import('expo-image-manipulator');
       const out = await IM.manipulateAsync(uri, [], { compress: 0.8, format: IM.SaveFormat.JPEG });

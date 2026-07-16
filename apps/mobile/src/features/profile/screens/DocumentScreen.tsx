@@ -2,10 +2,11 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Glass } from '../../../components/ui/Glass';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useMe } from '../../../api/auth';
-import { useDocument, useUpsertDocument } from '../../../api/documents';
+import { useDocument, useUpdateDocumentScans, useUpsertDocument } from '../../../api/documents';
+import { uploadFileToS3 } from '../../../api/files';
 import { CalendarIcon } from '../../../components/icons/CalendarIcon';
 import { IconCamera } from '../../../components/icons/LineIcons';
 import { BackButton } from '../../../components/ui/BackButton';
@@ -50,6 +51,8 @@ export function DocumentScreen() {
   const { data: me } = useMe();
   const { data: doc, isLoading } = useDocument(kind);
   const upsert = useUpsertDocument(kind);
+  const updateScans = useUpdateDocumentScans(kind);
+  const [uploadingSide, setUploadingSide] = useState<'front' | 'back' | null>(null);
 
   // Паспорт блокируется только если верифицирован через MyID.
   // ВУ всегда редактируемо — MyID его не верифицирует.
@@ -83,6 +86,76 @@ export function DocumentScreen() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Не удалось сохранить';
       Alert.alert('Ошибка', msg);
+    }
+  };
+
+  // Загрузить скан документа (лицевая/обратная). Источник: камера, галерея или PDF.
+  const uploadScan = async (side: 'front' | 'back', uri: string) => {
+    setUploadingSide(side);
+    try {
+      const { key } = await uploadFileToS3(uri, 'passport');
+      const field = side === 'front' ? 'frontImageKey' : 'backImageKey';
+      if (doc) {
+        await updateScans.mutateAsync({ [field]: key });
+      } else {
+        // Ручной ввод: документа ещё нет — сохраняем данные вместе со сканом.
+        if (!series || !number || !issuedAt || (isPassport && !pinfl)) {
+          Alert.alert('Заполните данные', 'Сначала укажите серию, номер, дату выдачи и ПИНФЛ.');
+          return;
+        }
+        await upsert.mutateAsync({
+          series,
+          number,
+          issuedAt,
+          issuedBy: issuedBy || undefined,
+          pinfl: isPassport ? pinfl || undefined : undefined,
+          [field]: key,
+        });
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Не удалось загрузить скан';
+      Alert.alert('Ошибка загрузки', msg);
+    } finally {
+      setUploadingSide(null);
+    }
+  };
+
+  // Выбор источника скана → получить uri → загрузить.
+  const pickScan = (side: 'front' | 'back') => {
+    Alert.alert('Скан документа', 'Откуда загрузить?', [
+      { text: 'Камера', onPress: () => pickImage(side, 'camera') },
+      { text: 'Из галереи', onPress: () => pickImage(side, 'gallery') },
+      { text: 'PDF-файл', onPress: () => pickPdf(side) },
+      { text: 'Отмена', style: 'cancel' },
+    ]);
+  };
+
+  const pickImage = async (side: 'front' | 'back', source: 'camera' | 'gallery') => {
+    const ImagePicker = await import('expo-image-picker');
+    const perm =
+      source === 'camera'
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Нет доступа', source === 'camera' ? 'Разрешите доступ к камере.' : 'Разрешите доступ к галерее.');
+      return;
+    }
+    const opts = { mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.85 } as const;
+    const res = source === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
+    if (!res.canceled && res.assets?.[0]?.uri) {
+      await uploadScan(side, res.assets[0].uri);
+    }
+  };
+
+  const pickPdf = async (side: 'front' | 'back') => {
+    try {
+      const DocumentPicker = await import('expo-document-picker');
+      const res = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
+      if (!res.canceled && res.assets?.[0]?.uri) {
+        await uploadScan(side, res.assets[0].uri);
+      }
+    } catch {
+      Alert.alert('PDF недоступен', 'Загрузка PDF появится после обновления приложения. Пока используйте фото.');
     }
   };
 
@@ -122,15 +195,19 @@ export function DocumentScreen() {
           <View style={{ gap: 12 }}>
             <ScreenHeading title={TITLE[kind]} subtitle={INFO_TEXT[kind]} />
             <View style={{ flexDirection: 'row' }}>
-              <StatusPill
-                status={
-                  doc?.status === 'VERIFIED'
-                    ? 'verified'
-                    : doc?.status === 'REJECTED'
-                      ? 'rejected'
-                      : 'pending'
-                }
-              />
+              {isPassport && doc && !doc.isComplete ? (
+                <ScanNeededChip />
+              ) : (
+                <StatusPill
+                  status={
+                    doc?.status === 'VERIFIED'
+                      ? 'verified'
+                      : doc?.status === 'REJECTED'
+                        ? 'rejected'
+                        : 'pending'
+                  }
+                />
+              )}
             </View>
           </View>
 
@@ -217,24 +294,33 @@ export function DocumentScreen() {
             )}
           </View>
 
-          {/* Photo upload — скрываем для заблокированного паспорта */}
-          {!isLocked && (
+          {/* Скан документа — для паспорта обязателен (нужен в европротоколе),
+              показываем всегда (в т.ч. для MyID-паспорта). Для ВУ — как раньше. */}
+          {isPassport ? (
             <View style={{ gap: 10 }}>
-              <Text
-                style={{
-                  fontFamily: 'Manrope_500Medium',
-                  fontSize: 13,
-                  color: tokens.inkMuted,
-                  letterSpacing: -0.065,
-                }}
-              >
-                Фото документа
+              <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.065 }}>
+                Скан паспорта · обязательно
+              </Text>
+              <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 17 }}>
+                Загрузите обе стороны (фото или PDF). Без скана паспорт не считается оформленным и его нельзя приложить к европротоколу.
               </Text>
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <UploadTile label="Лицевая" />
-                <UploadTile label="Обратная" />
+                <UploadTile label="Лицевая" imageUrl={doc?.frontImageUrl ?? null} uploading={uploadingSide === 'front'} onPress={() => pickScan('front')} />
+                <UploadTile label="Обратная" imageUrl={doc?.backImageUrl ?? null} uploading={uploadingSide === 'back'} onPress={() => pickScan('back')} />
               </View>
             </View>
+          ) : (
+            !isLocked && (
+              <View style={{ gap: 10 }}>
+                <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.065 }}>
+                  Фото документа
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <UploadTile label="Лицевая" imageUrl={doc?.frontImageUrl ?? null} uploading={uploadingSide === 'front'} onPress={() => pickScan('front')} />
+                  <UploadTile label="Обратная" imageUrl={doc?.backImageUrl ?? null} uploading={uploadingSide === 'back'} onPress={() => pickScan('back')} />
+                </View>
+              </View>
+            )
           )}
         </ScrollView>
 
@@ -255,9 +341,40 @@ export function DocumentScreen() {
   );
 }
 
-function UploadTile({ label }: { label: string }) {
+// Чип «Требуется скан» — паспорт с данными, но без загруженного скана.
+function ScanNeededChip() {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 999,
+        backgroundColor: 'rgba(245,200,80,0.2)',
+      }}
+    >
+      <View style={{ width: 7, height: 7, borderRadius: 999, backgroundColor: '#b8860b' }} />
+      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: '#8a6d0b' }}>Требуется скан</Text>
+    </View>
+  );
+}
+
+function UploadTile({
+  label,
+  imageUrl,
+  uploading,
+  onPress,
+}: {
+  label: string;
+  imageUrl?: string | null;
+  uploading?: boolean;
+  onPress?: () => void;
+}) {
   return (
     <Pressable
+      onPress={uploading ? undefined : onPress}
       style={({ pressed }) => ({
         flex: 1,
         height: 120,
@@ -266,26 +383,50 @@ function UploadTile({ label }: { label: string }) {
         opacity: pressed ? 0.7 : 1,
       })}
     >
-      <Glass
-        intensity={20}
-        tint="light"
-        style={{
-          flex: 1,
-          backgroundColor: 'rgba(255,255,255,0.5)',
-          borderWidth: 1.5,
-          borderColor: 'rgba(20,20,20,0.18)',
-          borderStyle: 'dashed',
-          borderRadius: 20,
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-        }}
-      >
-        <IconCamera size={24} color={tokens.inkSubtle} />
-        <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkSubtle }}>
-          {label}
-        </Text>
-      </Glass>
+      {imageUrl && !uploading ? (
+        // Загруженный скан — превью + подпись «Заменить».
+        <View style={{ flex: 1, borderRadius: 20, overflow: 'hidden' }}>
+          <Image source={{ uri: imageUrl }} style={{ flex: 1 }} resizeMode="cover" />
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              paddingVertical: 6,
+              alignItems: 'center',
+              backgroundColor: 'rgba(0,0,0,0.45)',
+            }}
+          >
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#fff' }}>{label} · заменить</Text>
+          </View>
+        </View>
+      ) : (
+        <Glass
+          intensity={20}
+          tint="light"
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(255,255,255,0.5)',
+            borderWidth: 1.5,
+            borderColor: 'rgba(20,20,20,0.18)',
+            borderStyle: 'dashed',
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+          }}
+        >
+          {uploading ? (
+            <ActivityIndicator color={tokens.red} />
+          ) : (
+            <>
+              <IconCamera size={24} color={tokens.inkSubtle} />
+              <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 12, color: tokens.inkSubtle }}>{label}</Text>
+            </>
+          )}
+        </Glass>
+      )}
     </Pressable>
   );
 }

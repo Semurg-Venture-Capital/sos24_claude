@@ -16,6 +16,12 @@ export interface DocumentApi {
   status: DocumentStatus;
   createdAt: string;
   updatedAt: string;
+  // Скан документа (для паспорта обязателен — нужен в европротоколе).
+  frontImageKey: string | null;
+  backImageKey: string | null;
+  frontImageUrl: string | null; // presigned GET (TTL ~10 мин)
+  backImageUrl: string | null;
+  isComplete: boolean; // паспорт: данные + оба скана; ВУ: данные
 }
 
 export interface UpsertDocumentInput {
@@ -26,6 +32,13 @@ export interface UpsertDocumentInput {
   pinfl?: string;
   expiresAt?: string;
   categories?: string;
+  frontImageKey?: string;
+  backImageKey?: string;
+}
+
+export interface UpdateScansInput {
+  frontImageKey?: string;
+  backImageKey?: string;
 }
 
 // На бэке kind через URL — 'passport' | 'license'.
@@ -48,6 +61,10 @@ export async function upsertDocument(kind: DocumentSlug, input: UpsertDocumentIn
   const { data } = await api.put<DocumentApi>(`/me/documents/${kind}`, input);
   return data;
 }
+export async function updateDocumentScans(kind: DocumentSlug, input: UpdateScansInput) {
+  const { data } = await api.patch<DocumentApi>(`/me/documents/${kind}/scans`, input);
+  return data;
+}
 
 export function useDocuments() {
   return useQuery({ queryKey: KEYS.all, queryFn: listDocuments });
@@ -65,6 +82,17 @@ export function useUpsertDocument(kind: DocumentSlug) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: UpsertDocumentInput) => upsertDocument(kind, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.all });
+      qc.invalidateQueries({ queryKey: KEYS.one(kind) });
+    },
+  });
+}
+
+export function useUpdateDocumentScans(kind: DocumentSlug) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateScansInput) => updateDocumentScans(kind, input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.all });
       qc.invalidateQueries({ queryKey: KEYS.one(kind) });
