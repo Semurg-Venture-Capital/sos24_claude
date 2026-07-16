@@ -181,7 +181,7 @@ export default function AdjusterPage() {
           <div className="relative">
             <MapView
               items={mapItems}
-              onSelect={(item) => { setSelectedItem(item); }}
+              onSelect={(item: any) => { setSelectedItem(item); }}
             />
             <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-1.5 pointer-events-none">
               {[
