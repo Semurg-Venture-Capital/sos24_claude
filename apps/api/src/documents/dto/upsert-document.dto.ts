@@ -38,4 +38,31 @@ export class UpsertDocumentDto {
   @IsString()
   @MaxLength(40)
   categories?: string;
+
+  @ApiPropertyOptional({ description: 'Ключ скана лицевой стороны в MinIO' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(256)
+  frontImageKey?: string;
+
+  @ApiPropertyOptional({ description: 'Ключ скана обратной стороны в MinIO' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(256)
+  backImageKey?: string;
+}
+
+// Обновление только скана (для MyID-паспорта: данные read-only, грузим лишь фото).
+export class UpdateDocumentScansDto {
+  @ApiPropertyOptional({ description: 'Ключ скана лицевой стороны в MinIO' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(256)
+  frontImageKey?: string;
+
+  @ApiPropertyOptional({ description: 'Ключ скана обратной стороны в MinIO' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(256)
+  backImageKey?: string;
 }

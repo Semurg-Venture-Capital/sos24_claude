@@ -26,6 +26,7 @@ const KIND_PREFIX: Record<string, string> = {
   audio: 'europrotocol/audio',
   pdf: 'documents/pdf',
   doc: 'documents/doc',
+  passport: 'documents/passport', // скан паспорта (фото или PDF)
 };
 
 function extFromContentType(ct: string): string {
@@ -53,8 +54,8 @@ function extFromContentType(ct: string): string {
 }
 
 class PresignUploadDto {
-  @IsIn(['image', 'video', 'audio', 'pdf', 'doc'])
-  kind!: 'image' | 'video' | 'audio' | 'pdf' | 'doc';
+  @IsIn(['image', 'video', 'audio', 'pdf', 'doc', 'passport'])
+  kind!: 'image' | 'video' | 'audio' | 'pdf' | 'doc' | 'passport';
 
   @IsString()
   @Matches(ALLOWED, { message: 'Недопустимый content-type (только изображения, видео, pdf)' })

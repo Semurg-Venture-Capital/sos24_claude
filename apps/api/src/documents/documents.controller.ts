@@ -1,11 +1,11 @@
-import { BadRequestException, Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Patch, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { DocumentKind } from '@prisma/client';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { DocumentsService } from './documents.service';
-import { UpsertDocumentDto } from './dto/upsert-document.dto';
+import { UpdateDocumentScansDto, UpsertDocumentDto } from './dto/upsert-document.dto';
 
 // Принимаем 'passport' / 'license' от мобайла, маппим в enum.
 const KIND_MAP: Record<string, DocumentKind> = {
@@ -48,5 +48,16 @@ export class DocumentsController {
     @Body() dto: UpsertDocumentDto,
   ) {
     return this.documents.upsert(user.sub, parseKind(kind), dto);
+  }
+
+  @Patch(':kind/scans')
+  @ApiParam({ name: 'kind', enum: ['passport', 'license'] })
+  @ApiOperation({ summary: 'Обновить только скан документа (лицевая/обратная).' })
+  updateScans(
+    @CurrentUser() user: JwtPayload,
+    @Param('kind') kind: string,
+    @Body() dto: UpdateDocumentScansDto,
+  ) {
+    return this.documents.updateScans(user.sub, parseKind(kind), dto);
   }
 }
