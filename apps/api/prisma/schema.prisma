@@ -933,13 +933,22 @@ model AiUsageLog {
 model AlcoTest {
   id            String    @id @default(cuid())
   deviceType    String? // модель прибора (8000S)
+  deviceNo      String? // серийник прибора (напр. A604171)
+  number        Int? // порядковый номер записи на приборе
   carLicense    String? // госномер авто
   checkValue    String? // сырое значение: "0.000" или "Нет алкоголя"
   checkValueNum Float? // распарсенное число (если числовое)
+  checkValueUnit String? // единица (напр. mg/L)
+  checkMode     String? // режим: Активный/Пассивный
   positive      Boolean   @default(false) // обнаружен алкоголь (> 0)
   checkDateTime DateTime? // время теста
   uploadTime    DateTime? // время отправки прибором
+  latitude      Float? // широта (WEIDU), null если GPS не зафиксирован
+  longitude     Float? // долгота (JINGDU)
+  sourceType    String? // тип связи (GPRS/WIFI…)
   driverName    String?
+  driverNo      String?
+  licenseType   String?
   officerName   String?
   officerId     String?
   officerUnit   String?
@@ -948,6 +957,8 @@ model AlcoTest {
   raw           String?   @db.Text // сырой SOAP (на случай доразбора)
   createdAt     DateTime  @default(now())
 
+  // Дедуп: одна запись на (прибор + время теста) — прибор перешлёт очередь повторно.
+  @@unique([deviceNo, checkDateTime])
   @@index([checkDateTime])
   @@index([createdAt])
   @@map("alco_tests")

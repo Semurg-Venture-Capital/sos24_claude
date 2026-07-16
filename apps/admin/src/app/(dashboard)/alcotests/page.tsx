@@ -68,6 +68,7 @@ export default function AlcoTestsPage() {
                 <th className="px-4 py-3 font-medium">Статус</th>
                 <th className="px-4 py-3 font-medium">Водитель</th>
                 <th className="px-4 py-3 font-medium">Оператор</th>
+                <th className="px-4 py-3 font-medium">Координаты</th>
                 <th className="px-4 py-3 font-medium">Прибор</th>
                 <th className="px-4 py-3 font-medium">Фото</th>
               </tr>
@@ -75,7 +76,7 @@ export default function AlcoTestsPage() {
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
                     Загрузка…
                   </td>
                 </tr>
@@ -84,7 +85,10 @@ export default function AlcoTestsPage() {
                   <tr key={it.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap text-gray-600">{fmtDate(it.checkDateTime)}</td>
                     <td className="px-4 py-3 whitespace-nowrap font-medium">{it.carLicense || '—'}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{it.checkValue || '—'}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {it.checkValue || '—'}
+                      {it.checkValueUnit ? <span className="text-gray-400"> {it.checkValueUnit}</span> : null}
+                    </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       {it.positive ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">
@@ -100,7 +104,24 @@ export default function AlcoTestsPage() {
                     <td className="px-4 py-3 whitespace-nowrap text-gray-600">
                       {it.officerName || it.officerId || '—'}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-gray-400">{it.deviceType || '—'}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {it.latitude != null && it.longitude != null ? (
+                        <a
+                          href={`https://maps.google.com/?q=${it.latitude},${it.longitude}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {it.latitude.toFixed(5)}, {it.longitude.toFixed(5)}
+                        </a>
+                      ) : (
+                        <span className="text-gray-300">нет GPS</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-400">
+                      {it.deviceNo || it.deviceType || '—'}
+                      {it.number != null ? <span className="text-gray-300"> · №{it.number}</span> : null}
+                    </td>
                     <td className="px-4 py-3">
                       {it.photoUrl ? (
                         <button onClick={() => setPhoto(it.photoUrl)}>
@@ -119,7 +140,7 @@ export default function AlcoTestsPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
                     Пока нет тестов
                   </td>
                 </tr>

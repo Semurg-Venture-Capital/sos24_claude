@@ -57,13 +57,21 @@ export function useAiUsage(page = 1, feature = '') {
 export interface AlcoTestItem {
   id: string;
   deviceType: string | null;
+  deviceNo: string | null;
+  number: number | null;
   carLicense: string | null;
   checkValue: string | null;
   checkValueNum: number | null;
+  checkValueUnit: string | null;
+  checkMode: string | null;
   positive: boolean;
   checkDateTime: string | null;
   uploadTime: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  sourceType: string | null;
   driverName: string | null;
+  driverNo: string | null;
   officerName: string | null;
   officerId: string | null;
   officerUnit: string | null;

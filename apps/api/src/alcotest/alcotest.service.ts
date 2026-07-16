@@ -20,22 +20,44 @@ export class AlcoTestService {
       return;
     }
     const deviceType = this.field(xml, 'DEVICETYPE');
+    const deviceNo = this.field(xml, 'DEVICENO');
     const carLicense = this.field(xml, 'CARLICENSE');
     const checkValue = this.field(xml, 'CHECKVALUE');
+    const checkValueUnit = this.field(xml, 'CHECKVALUEUNIT');
+    const checkMode = this.field(xml, 'CHECKMODE');
     const checkDateTime = this.parseDate(this.field(xml, 'CHECKDATETIME'));
     const uploadTime = this.parseDate(this.field(xml, 'UPLOADTIME'));
+    const number = this.parseInt(this.field(xml, 'NUMBER'));
+    const sourceType = this.field(xml, 'SOURCETYPE');
     const driverName = this.field(xml, 'DRIVERNAME');
+    const driverNo = this.field(xml, 'DRIVERNO');
+    const licenseType = this.field(xml, 'LICENSE_TYPE');
     const officerName = this.field(xml, 'OFFICERNAME');
     const officerId = this.field(xml, 'OFFICERID');
     const officerUnit = this.field(xml, 'OFFICERUNITNAME');
     const address = this.field(xml, 'ADDRESS');
+    // Координаты (WEIDU=широта, JINGDU=долгота). 0/пусто = GPS не зафиксирован → null.
+    const latitude = this.parseCoord(this.field(xml, 'WEIDU'));
+    const longitude = this.parseCoord(this.field(xml, 'JINGDU'));
 
     // Значение: либо число («0.000»), либо фраза («Нет алкоголя»).
     const norm = checkValue.replace(',', '.');
     const checkValueNum = /^-?\d+(\.\d+)?$/.test(norm) ? parseFloat(norm) : null;
     const positive = checkValueNum != null ? checkValueNum > 0 : false;
 
-    // Фото испытуемого (AUTOGRAPH2, base64 JPEG) — опционально.
+    // Дедуп: прибор периодически перешлёт всю очередь. Один тест = (прибор + время).
+    if (deviceNo && checkDateTime) {
+      const dup = await this.prisma.alcoTest.findFirst({
+        where: { deviceNo, checkDateTime },
+        select: { id: true },
+      });
+      if (dup) {
+        this.logger.log(`alcotest: дубликат (${deviceNo} №${number} ${checkDateTime.toISOString()}) — пропуск`);
+        return;
+      }
+    }
+
+    // Фото испытуемого (AUTOGRAPH2, base64 JPEG) — опционально. Грузим ПОСЛЕ дедупа.
     let photoKey: string | null = null;
     const b64 = this.field(xml, 'AUTOGRAPH2');
     if (b64 && b64.length > 100) {
@@ -47,27 +69,57 @@ export class AlcoTestService {
       }
     }
 
-    await this.prisma.alcoTest.create({
-      data: {
-        deviceType: deviceType || null,
-        carLicense: carLicense || null,
-        checkValue: checkValue || null,
-        checkValueNum,
-        positive,
-        checkDateTime,
-        uploadTime,
-        driverName: driverName || null,
-        officerName: officerName || null,
-        officerId: officerId || null,
-        officerUnit: officerUnit || null,
-        address: address || null,
-        photoKey,
-        raw: xml.length < 400_000 ? xml : null,
-      },
-    });
+    try {
+      await this.prisma.alcoTest.create({
+        data: {
+          deviceType: deviceType || null,
+          deviceNo: deviceNo || null,
+          number,
+          carLicense: carLicense || null,
+          checkValue: checkValue || null,
+          checkValueNum,
+          checkValueUnit: checkValueUnit || null,
+          checkMode: checkMode || null,
+          positive,
+          checkDateTime,
+          uploadTime,
+          latitude,
+          longitude,
+          sourceType: sourceType || null,
+          driverName: driverName || null,
+          driverNo: driverNo || null,
+          licenseType: licenseType || null,
+          officerName: officerName || null,
+          officerId: officerId || null,
+          officerUnit: officerUnit || null,
+          address: address || null,
+          photoKey,
+          raw: xml.length < 400_000 ? xml : null,
+        },
+      });
+    } catch (e) {
+      // Гонка: unique(deviceNo, checkDateTime) — дубликат прилетел параллельно.
+      if ((e as { code?: string }).code === 'P2002') {
+        this.logger.log(`alcotest: дубликат (гонка) — пропуск`);
+        return;
+      }
+      throw e;
+    }
     this.logger.log(
-      `alcotest: принят тест ${deviceType} value="${checkValue}" plate="${carLicense}" фото=${photoKey ? 'да' : 'нет'}`,
+      `alcotest: принят тест ${deviceType}/${deviceNo} №${number} value="${checkValue}" ${checkValueUnit} plate="${carLicense}" gps=${latitude ?? '-'},${longitude ?? '-'} фото=${photoKey ? 'да' : 'нет'}`,
     );
+  }
+
+  private parseInt(s: string): number | null {
+    const n = parseInt(s, 10);
+    return isNaN(n) ? null : n;
+  }
+
+  // WEIDU/JINGDU: число ≠ 0 → координата, иначе (0/пусто) — GPS не зафиксирован → null.
+  private parseCoord(s: string): number | null {
+    if (!s) return null;
+    const n = parseFloat(s.replace(',', '.'));
+    return isNaN(n) || n === 0 ? null : n;
   }
 
   // Значение тега из SOAP + раскодировка XML-сущностей (не-ASCII приходит как &#NNN;).
