@@ -39,6 +39,10 @@ function formatPhone(phone: string): string {
   return phone;
 }
 
+// Временно скрываем раздел «Финансы» (кошелёк/карты) — запускаем приложение без
+// финансов, включим в следующих версиях. Вернуть → поставить true.
+const FINANCE_ENABLED = false;
+
 // M2.1 — Главный экран профиля. Спецификация: SOS24_Mobile_Screens.md §M2.1.
 export function ProfileScreen() {
   const nav = useNavigation<Nav>();
@@ -167,14 +171,16 @@ export function ProfileScreen() {
           <MyIdDataSection me={me} />
         )}
 
-        <Section title="Финансы">
-          <ListRow
-            icon={<IconWallet />}
-            title="Кошелёк и карты"
-            meta={wallet ? `${wallet.balance.toLocaleString('ru-RU')} сум · ${cards?.length ?? 0} карт` : undefined}
-            onPress={() => nav.navigate('Finance')}
-          />
-        </Section>
+        {FINANCE_ENABLED && (
+          <Section title="Финансы">
+            <ListRow
+              icon={<IconWallet />}
+              title="Кошелёк и карты"
+              meta={wallet ? `${wallet.balance.toLocaleString('ru-RU')} сум · ${cards?.length ?? 0} карт` : undefined}
+              onPress={() => nav.navigate('Finance')}
+            />
+          </Section>
+        )}
 
         <Section title="Настройки">
           <ListRow
