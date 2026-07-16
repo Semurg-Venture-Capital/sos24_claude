@@ -1,6 +1,8 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   ActivityIndicator,
   AppState,
@@ -39,6 +41,7 @@ function time(iso: string) {
 
 export function SupportChatScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { params } = useRoute<Rt>();
   const { ticketId, subject } = params;
   const qc = useQueryClient();
@@ -205,12 +208,12 @@ export function SupportChatScreen() {
         <Avatar name="SOS 24" size={40} />
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }} numberOfLines={1}>
-            Поддержка SOS24
+            {t('support.chat.headerTitle')}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             <View style={{ width: 6, height: 6, borderRadius: 999, backgroundColor: tokens.green }} />
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#0a9466' }} numberOfLines={1}>
-              {subject ? subject : 'онлайн · отвечаем 24/7'}
+              {subject ? subject : t('support.chat.online')}
             </Text>
           </View>
         </View>
@@ -230,7 +233,7 @@ export function SupportChatScreen() {
             data={msgs}
             inverted
             keyExtractor={(m) => m.id}
-            renderItem={({ item }) => <Bubble m={item} />}
+            renderItem={({ item }) => <Bubble m={item} t={t} />}
             contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}
             onEndReached={loadMore}
             onEndReachedThreshold={0.3}
@@ -238,7 +241,7 @@ export function SupportChatScreen() {
             ListHeaderComponent={
               typing ? (
                 <View style={{ alignSelf: 'flex-start', backgroundColor: '#fff', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18, borderTopLeftRadius: 6, marginBottom: 4, borderWidth: 1, borderColor: tokens.hairline }}>
-                  <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>печатает…</Text>
+                  <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>{t('support.chat.typing')}</Text>
                 </View>
               ) : null
             }
@@ -273,7 +276,7 @@ export function SupportChatScreen() {
             <TextInput
               value={text}
               onChangeText={onChangeText}
-              placeholder="Сообщение…"
+              placeholder={t('support.chat.inputPlaceholder')}
               placeholderTextColor={tokens.inkMuted}
               multiline
               style={{ fontFamily: 'Manrope_400Regular', fontSize: 15, color: tokens.ink, paddingVertical: Platform.OS === 'ios' ? 12 : 8 }}
@@ -301,7 +304,7 @@ export function SupportChatScreen() {
   );
 }
 
-function Bubble({ m }: { m: SupportMessage }) {
+function Bubble({ m, t }: { m: SupportMessage; t: TFunction }) {
   if (m.senderRole === 'SYSTEM') {
     return (
       <View style={{ alignSelf: 'center', backgroundColor: 'rgba(20,20,20,0.05)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999 }}>
@@ -317,7 +320,7 @@ function Bubble({ m }: { m: SupportMessage }) {
     <View style={{ maxWidth: '82%', alignSelf: me ? 'flex-end' : 'flex-start', alignItems: me ? 'flex-end' : 'flex-start', gap: 2 }}>
       {!me && (
         <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 11, color: tokens.inkMuted, paddingLeft: 12 }}>
-          Оператор
+          {t('support.chat.operator')}
         </Text>
       )}
       <View
@@ -338,7 +341,7 @@ function Bubble({ m }: { m: SupportMessage }) {
         )}
         {m.attachment && !isImage && (
           <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: me ? '#fff' : tokens.blue }}>
-            📎 {m.attachment.name ?? 'Файл'}
+            📎 {m.attachment.name ?? t('support.chat.file')}
           </Text>
         )}
         {m.body ? (

@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Glass } from '../../../components/ui/Glass';
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Animated, Image, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -76,6 +77,7 @@ function VehicleCard({ v, onPress }: { v: Vehicle; onPress: () => void }) {
 // M3.1 — Список автомобилей. Пустое состояние или карточки.
 export function GarageListScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { data: vehicles, isLoading, refetch } = useVehicles();
   const isEmpty = !isLoading && (vehicles?.length ?? 0) === 0;
 
@@ -124,7 +126,7 @@ export function GarageListScreen() {
             color: tokens.ink,
           }}
         >
-          Гараж
+          {t('garage.title')}
         </Text>
       </Animated.View>
 
@@ -156,7 +158,7 @@ export function GarageListScreen() {
                 textAlign: 'center',
               }}
             >
-              Добавьте свой автомобиль
+              {t('garage.emptyTitle')}
             </Text>
             <Text
               style={{
@@ -167,11 +169,11 @@ export function GarageListScreen() {
                 maxWidth: 280,
               }}
             >
-              Автомобили сохраняются для быстрого оформления полисов
+              {t('garage.emptySubtitle')}
             </Text>
           </View>
           <View style={{ width: 240, marginTop: 8 }}>
-            <RedButton onPress={() => nav.navigate('GarageEdit', {})}>Добавить автомобиль</RedButton>
+            <RedButton onPress={() => nav.navigate('GarageEdit', {})}>{t('garage.addVehicle')}</RedButton>
           </View>
         </View>
       ) : (

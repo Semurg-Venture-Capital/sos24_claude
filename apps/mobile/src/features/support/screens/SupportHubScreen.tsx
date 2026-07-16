@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { BackButton } from '../../../components/ui/BackButton';
@@ -17,6 +18,7 @@ const SUPPORT_PHONE = '+998993286300';
 
 export function SupportHubScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const [cat, setCat] = useState<string>('Все');
   const [open, setOpen] = useState<number | null>(0);
 
@@ -32,7 +34,7 @@ export function SupportHubScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 60, gap: 20 }}
         showsVerticalScrollIndicator={false}
       >
-        <ScreenHeading title="Поддержка" subtitle="Ответим в среднем за 5 минут · 24/7" style={{ marginTop: 8 }} />
+        <ScreenHeading title={t('support.hub.title')} subtitle={t('support.hub.subtitle')} style={{ marginTop: 8 }} />
 
         {/* Hero — написать в чат */}
         <Pressable
@@ -70,12 +72,12 @@ export function SupportHubScreen() {
           </View>
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: '#fff', letterSpacing: -0.1 }}>
-              Написать в чат
+              {t('support.hub.chatCta')}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <View style={{ width: 6, height: 6, borderRadius: 999, backgroundColor: tokens.green }} />
               <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: tokens.green, letterSpacing: 0.2 }}>
-                онлайн · отвечаем 24/7
+                {t('support.hub.online')}
               </Text>
             </View>
           </View>
@@ -88,8 +90,8 @@ export function SupportHubScreen() {
         <View style={{ gap: 8 }}>
           <SupportRow
             icon={<PhoneIcon color={tokens.red} />}
-            title="Позвонить в SOS24"
-            meta={`${SUPPORT_PHONE} · бесплатно`}
+            title={t('support.hub.call')}
+            meta={t('support.hub.callMeta', { phone: SUPPORT_PHONE })}
             onPress={() => Linking.openURL(`tel:${SUPPORT_PHONE}`)}
           />
         </View>
@@ -97,7 +99,7 @@ export function SupportHubScreen() {
         {/* FAQ */}
         <View style={{ gap: 14 }}>
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink, letterSpacing: -0.1 }}>
-            Частые вопросы
+            {t('support.hub.faqTitle')}
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {FAQ_CATEGORIES.map((c) => {

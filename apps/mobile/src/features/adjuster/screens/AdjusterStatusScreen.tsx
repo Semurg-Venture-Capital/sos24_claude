@@ -2,6 +2,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
@@ -18,20 +19,11 @@ type Route = RouteProp<AdjusterStackParamList, 'AdjusterStatus'>;
 
 const DISPATCHER_PHONE = '+998712345600';
 
-const STEPS: { key: AdjusterStatus; label: string; desc: string }[] = [
-  { key: 'NEW', label: 'Заявка принята', desc: 'Ищем свободного специалиста' },
-  { key: 'ACCEPTED', label: 'Специалист назначен', desc: 'Готовится к выезду' },
-  { key: 'EN_ROUTE', label: 'В пути', desc: 'Едет к вам · ≈25–40 мин' },
-  { key: 'COMPLETED', label: 'Прибыл', desc: 'Специалист на месте' },
-];
+const STEP_KEYS: AdjusterStatus[] = ['NEW', 'ACCEPTED', 'EN_ROUTE', 'COMPLETED'];
 
 const STATUS_ORDER: AdjusterStatus[] = ['NEW', 'ACCEPTED', 'EN_ROUTE', 'COMPLETED'];
 
-const INCIDENT_LABEL: Record<string, string> = {
-  ACCIDENT: 'ДТП',
-  DAMAGE: 'Повреждение',
-  THEFT: 'Угон',
-};
+const INCIDENT_KEYS = ['ACCIDENT', 'DAMAGE', 'THEFT'];
 
 function PulsingDot({ color }: { color: string }) {
   const pulse = useRef(new Animated.Value(1)).current;
@@ -124,6 +116,7 @@ function StepRow({
 
 export function AdjusterStatusScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const route = useRoute<Route>();
   const { requestId } = route.params;
   const { data: req } = useAdjusterRequest(requestId);
@@ -146,7 +139,7 @@ export function AdjusterStatusScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8, gap: 12 }}>
         <BackButton onPress={() => nav.goBack()} />
         <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink, letterSpacing: -0.09 }}>
-          Статус заявки
+          {t('adjuster.statusTitle')}
         </Text>
       </View>
 
@@ -166,11 +159,15 @@ export function AdjusterStatusScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               {!isCancelled && <PulsingDot color={req.status === 'COMPLETED' ? tokens.green : tokens.red} />}
               <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: isCancelled ? tokens.red : tokens.ink, letterSpacing: 0.3, textTransform: 'uppercase' }}>
-                {isCancelled ? 'Отменено' : STEPS.find(s => s.key === req.status)?.label ?? req.status}
+                {isCancelled
+                  ? t('adjuster.cancelled')
+                  : STEP_KEYS.includes(req.status as AdjusterStatus)
+                    ? t(`adjuster.steps.${req.status}.label`)
+                    : req.status}
               </Text>
             </View>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
-              {INCIDENT_LABEL[req.incidentType] ?? req.incidentType} · {req.address}
+              {INCIDENT_KEYS.includes(req.incidentType) ? t(`adjuster.incident.${req.incidentType}.label`) : req.incidentType} · {req.address}
             </Text>
           </View>
         )}
@@ -183,20 +180,20 @@ export function AdjusterStatusScreen() {
             borderWidth: 1.5, borderColor: tokens.hairline,
           }}>
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 16 }}>
-              Прогресс
+              {t('adjuster.progress')}
             </Text>
-            {STEPS.map((step, idx) => {
+            {STEP_KEYS.map((stepKey, idx) => {
               const state =
                 idx < currentIdx ? 'done' :
                 idx === currentIdx ? 'active' :
                 'pending';
               return (
                 <StepRow
-                  key={step.key}
-                  label={step.label}
-                  desc={step.desc}
+                  key={stepKey}
+                  label={t(`adjuster.steps.${stepKey}.label`)}
+                  desc={t(`adjuster.steps.${stepKey}.desc`)}
                   state={state}
-                  isLast={idx === STEPS.length - 1}
+                  isLast={idx === STEP_KEYS.length - 1}
                 />
               );
             })}
@@ -220,7 +217,7 @@ export function AdjusterStatusScreen() {
               </Svg>
             </View>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center', lineHeight: 20 }}>
-              Заявка была отменена. Если вам нужна помощь, вызовите её повторно.
+              {t('adjuster.cancelledInfo')}
             </Text>
           </View>
         )}
@@ -247,7 +244,7 @@ export function AdjusterStatusScreen() {
                 {req.adjusterDisplayName}
               </Text>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>
-                {req.adjusterDisplayPhone ?? 'Специалист назначен'}
+                {req.adjusterDisplayPhone ?? t('adjuster.specialistAssigned')}
               </Text>
               {req.adjusterNote && (
                 <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted, marginTop: 2 }}>
@@ -291,7 +288,7 @@ export function AdjusterStatusScreen() {
           </View>
           <View style={{ flex: 1, gap: 1 }}>
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>
-              Диспетчер SOS24
+              {t('adjuster.dispatcher')}
             </Text>
             <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 16, color: tokens.ink, letterSpacing: 0.4 }}>
               {DISPATCHER_PHONE}
@@ -313,22 +310,22 @@ export function AdjusterStatusScreen() {
         {req?.status !== 'COMPLETED' && (
           adjusterHasPhone ? (
             <RedButton trailing={false} onPress={handleCallAdjuster}>
-              Позвонить специалисту
+              {t('adjuster.callSpecialist')}
             </RedButton>
           ) : (
             <OutlineButton style={{ height: 52 }} onPress={handleCallDispatcher}>
-              Позвонить диспетчеру
+              {t('adjuster.callDispatcher')}
             </OutlineButton>
           )
         )}
         {/* Secondary: always show dispatcher when adjuster is assigned */}
         {req?.status !== 'COMPLETED' && hasAdjuster && adjusterHasPhone && (
           <OutlineButton style={{ height: 52 }} onPress={handleCallDispatcher}>
-            Позвонить диспетчеру
+            {t('adjuster.callDispatcher')}
           </OutlineButton>
         )}
         <OutlineButton style={{ height: 52 }} onPress={handleHome}>
-          На главную
+          {t('adjuster.toHome')}
         </OutlineButton>
         </View>
       </View>

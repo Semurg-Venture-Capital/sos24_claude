@@ -2,6 +2,8 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useId, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -26,7 +28,7 @@ import {
   useVehicleTypeLabel,
 } from '../../../api/vehicles';
 import { usePolicies } from '../../../api/policies';
-import type { ProductType, PolicyStatus } from '../../../api/types';
+import type { PolicyStatus } from '../../../api/types';
 import { BackButton } from '../../../components/ui/BackButton';
 import { Glass } from '../../../components/ui/Glass';
 import { IconCarSimple, IconPencil } from '../../../components/icons/LineIcons';
@@ -47,14 +49,6 @@ type ParentNav = NativeStackNavigationProp<{
   Purchase: { screen: 'CompanySelect' };
 }>;
 
-const POLICY_TYPE_LABEL: Record<ProductType, string> = {
-  OSAGO: 'ОСАГО',
-  KASKO: 'КАСКО',
-  HEALTH: 'Здоровье',
-  HOME: 'Дом',
-  FINANCE: 'Финансы',
-};
-
 function formatDate(iso: string | null): string {
   if (!iso) return '—';
   const [y, m, d] = iso.slice(0, 10).split('-');
@@ -73,16 +67,9 @@ function statusTone(status: PolicyStatus): 'green' | 'yellow' | 'glass' {
   return 'glass';
 }
 
-const STATUS_LABEL: Record<PolicyStatus, string> = {
-  DRAFT: 'Черновик',
-  PENDING_PAYMENT: 'Ожидает оплаты',
-  ACTIVE: 'Активен',
-  EXPIRED: 'Истёк',
-  CANCELLED: 'Отменён',
-};
-
 export function VehicleDetailScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const route = useRoute<R>();
   const { id } = route.params;
 
@@ -107,7 +94,7 @@ export function VehicleDetailScreen() {
         ? await ImagePicker.requestCameraPermissionsAsync()
         : await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('Доступ', 'Нужно разрешение на камеру/галерею.');
+        Alert.alert(t('garage.detail.permTitle'), t('garage.detail.permMessage'));
         return;
       }
       const res = fromCamera
@@ -118,18 +105,18 @@ export function VehicleDetailScreen() {
       setPhotoBusy(true);
       await uploadPhoto.mutateAsync({ id, asset: { uri: a.uri, mimeType: a.mimeType, fileName: a.fileName ?? undefined } });
     } catch (e) {
-      Alert.alert('Фото', (e as Error).message || 'Не удалось загрузить фото.');
+      Alert.alert(t('garage.detail.photo'), (e as Error).message || t('garage.detail.photoError'));
     } finally {
       setPhotoBusy(false);
     }
   };
 
   const onPhotoPress = () => {
-    Alert.alert('Фото авто', undefined, [
-      { text: 'Сделать фото', onPress: () => pickPhoto(true) },
-      { text: 'Выбрать из галереи', onPress: () => pickPhoto(false) },
-      ...(vehicle?.photoKey ? [{ text: 'Удалить фото', style: 'destructive' as const, onPress: () => { setPhotoBusy(true); removePhoto.mutateAsync(id).finally(() => setPhotoBusy(false)); } }] : []),
-      { text: 'Отмена', style: 'cancel' as const },
+    Alert.alert(t('garage.detail.photoTitle'), undefined, [
+      { text: t('garage.detail.takePhoto'), onPress: () => pickPhoto(true) },
+      { text: t('garage.detail.pickGallery'), onPress: () => pickPhoto(false) },
+      ...(vehicle?.photoKey ? [{ text: t('garage.detail.deletePhoto'), style: 'destructive' as const, onPress: () => { setPhotoBusy(true); removePhoto.mutateAsync(id).finally(() => setPhotoBusy(false)); } }] : []),
+      { text: t('common.cancel'), style: 'cancel' as const },
     ]);
   };
 
@@ -149,7 +136,7 @@ export function VehicleDetailScreen() {
       <PhoneFrame bottomSafeArea={false}>
         <Header onBack={() => nav.goBack()} />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: tokens.inkMuted, fontFamily: 'Manrope_400Regular' }}>Авто не найдено</Text>
+          <Text style={{ color: tokens.inkMuted, fontFamily: 'Manrope_400Regular' }}>{t('garage.detail.notFound')}</Text>
         </View>
       </PhoneFrame>
     );
@@ -164,29 +151,29 @@ export function VehicleDetailScreen() {
       {
         onSuccess: (res) => {
           if (res.found) {
-            Alert.alert('Готово', 'Данные обновлены из госреестра.');
+            Alert.alert(t('garage.detail.syncDoneTitle'), t('garage.detail.syncDoneMessage'));
           } else {
-            Alert.alert('Не найдено', 'Реестр не вернул данные по этому техпаспорту. Проверьте серию и номер.');
+            Alert.alert(t('garage.detail.syncNotFoundTitle'), t('garage.detail.syncNotFoundMessage'));
           }
         },
         onError: (e: unknown) => {
           const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-          Alert.alert('Ошибка', msg || 'Не удалось обратиться к реестру. Попробуйте позже.');
+          Alert.alert(t('garage.errorTitle'), msg || t('garage.detail.syncError'));
         },
       },
     );
   };
 
   const onDelete = () => {
-    Alert.alert('Удалить авто?', `${vehicle.brand} ${vehicle.model} · ${vehicle.plate}`, [
-      { text: 'Отмена', style: 'cancel' },
+    Alert.alert(t('garage.detail.deleteTitle'), `${vehicle.brand} ${vehicle.model} · ${vehicle.plate}`, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Удалить',
+        text: t('garage.detail.delete'),
         style: 'destructive',
         onPress: () =>
           deleteVehicle.mutate(vehicle.id, {
             onSuccess: () => nav.goBack(),
-            onError: () => Alert.alert('Ошибка', 'Не удалось удалить авто.'),
+            onError: () => Alert.alert(t('garage.errorTitle'), t('garage.detail.deleteError')),
           }),
       },
     ]);
@@ -242,7 +229,7 @@ export function VehicleDetailScreen() {
               <View style={{ position: 'absolute', right: 12, bottom: 12, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(20,20,20,0.78)', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999 }}>
                 <IconPencil size={14} color="#fff" />
                 <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: '#fff' }}>
-                  {vehicle.photoKey ? 'Изменить фото' : 'Добавить фото'}
+                  {vehicle.photoKey ? t('garage.detail.changePhoto') : t('garage.detail.addPhoto')}
                 </Text>
               </View>
             )}
@@ -258,62 +245,62 @@ export function VehicleDetailScreen() {
         </View>
 
         {/* Характеристики */}
-        <Section title="Характеристики">
-          <InfoRow label="Марка" value={vehicle.brand} />
-          <InfoRow label="Модель" value={vehicle.model} />
-          <InfoRow label="Год выпуска" value={String(vehicle.year)} />
-          <InfoRow label="Цвет" value={vehicle.color} />
-          <InfoRow label="Мощность" value={vehicle.power} />
-          <InfoRow label="Объём двигателя" value={vehicle.engine} />
-          <InfoRow label="VIN" value={vehicle.vin} last />
+        <Section title={t('garage.detail.specs')}>
+          <InfoRow label={t('garage.detail.brand')} value={vehicle.brand} />
+          <InfoRow label={t('garage.detail.model')} value={vehicle.model} />
+          <InfoRow label={t('garage.detail.year')} value={String(vehicle.year)} />
+          <InfoRow label={t('garage.detail.color')} value={vehicle.color} />
+          <InfoRow label={t('garage.detail.power')} value={vehicle.power} />
+          <InfoRow label={t('garage.detail.engine')} value={vehicle.engine} />
+          <InfoRow label={t('garage.detail.vin')} value={vehicle.vin} last />
         </Section>
 
         {/* Техпаспорт */}
         {hasNapp ? (
           <Section
-            title="Техпаспорт"
+            title={t('garage.detail.techPassport')}
             footer={
               <SyncFooter
                 syncedAt={vehicle.nappSyncedAt}
                 loading={syncNapp.isPending}
                 onPress={() => runSync({})}
+                t={t}
               />
             }
           >
             <InfoRow
-              label="Серия и номер ТП"
+              label={t('garage.detail.tpSeriaNumber')}
               value={
                 vehicle.techPassportSeria || vehicle.techPassportNumber
                   ? `${vehicle.techPassportSeria ?? ''} ${vehicle.techPassportNumber ?? ''}`.trim()
                   : null
               }
             />
-            <InfoRow label="Дата выдачи" value={formatDate(vehicle.techPassportDate)} />
-            <InfoRow label="Тип ТС" value={vehicleTypeLabel(vehicle.vehicleTypeId) ?? labelOrCode(vehicle.vehicleTypeId)} />
-            <InfoRow label="Номер кузова" value={vehicle.bodyNumber} />
-            <InfoRow label="Номер двигателя" value={vehicle.engineNumber} />
-            <InfoRow label="Топливо" value={vehicle.fuelType} />
-            <InfoRow label="Мест" value={vehicle.seats != null ? String(vehicle.seats) : null} />
-            <InfoRow label="Полная масса" value={vehicle.fullWeight ? `${vehicle.fullWeight} кг` : null} />
-            <InfoRow label="Снаряжённая масса" value={vehicle.emptyWeight ? `${vehicle.emptyWeight} кг` : null} />
-            <InfoRow label="Отдел регистрации" value={vehicle.division} last />
+            <InfoRow label={t('garage.detail.issueDate')} value={formatDate(vehicle.techPassportDate)} />
+            <InfoRow label={t('garage.detail.vehicleType')} value={vehicleTypeLabel(vehicle.vehicleTypeId) ?? labelOrCode(vehicle.vehicleTypeId, t)} />
+            <InfoRow label={t('garage.detail.bodyNumber')} value={vehicle.bodyNumber} />
+            <InfoRow label={t('garage.detail.engineNumber')} value={vehicle.engineNumber} />
+            <InfoRow label={t('garage.detail.fuel')} value={vehicle.fuelType} />
+            <InfoRow label={t('garage.detail.seats')} value={vehicle.seats != null ? String(vehicle.seats) : null} />
+            <InfoRow label={t('garage.detail.fullWeight')} value={vehicle.fullWeight ? `${vehicle.fullWeight} ${t('garage.detail.kg')}` : null} />
+            <InfoRow label={t('garage.detail.emptyWeight')} value={vehicle.emptyWeight ? `${vehicle.emptyWeight} ${t('garage.detail.kg')}` : null} />
+            <InfoRow label={t('garage.detail.division')} value={vehicle.division} last />
           </Section>
         ) : (
-          <Section title="Техпаспорт">
+          <Section title={t('garage.detail.techPassport')}>
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, lineHeight: 20 }}>
-              Данные из госреестра не загружены. Укажите серию и номер техпаспорта — подтянем характеристики и владельца
-              автоматически.
+              {t('garage.detail.tpEmpty')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-              <Field label="Серия ТП" value={seria} onChange={setSeria} placeholder="AAF" flex={1} autoCapitalize="characters" />
-              <Field label="Номер ТП" value={number} onChange={setNumber} placeholder="2949568" flex={1.6} keyboardType="number-pad" />
+              <Field label={t('garage.detail.tpSeria')} value={seria} onChange={setSeria} placeholder="AAF" flex={1} autoCapitalize="characters" t={t} />
+              <Field label={t('garage.detail.tpNumber')} value={number} onChange={setNumber} placeholder="2949568" flex={1.6} keyboardType="number-pad" t={t} />
             </View>
             <View style={{ marginTop: 14 }}>
               <RedButton
                 disabled={!seria.trim() || !number.trim() || syncNapp.isPending}
                 onPress={() => runSync({ techPassportSeria: seria.trim(), techPassportNumber: number.trim() })}
               >
-                {syncNapp.isPending ? 'Запрос…' : 'Обновить данные'}
+                {syncNapp.isPending ? t('garage.detail.requesting') : t('garage.detail.updateData')}
               </RedButton>
             </View>
           </Section>
@@ -321,18 +308,18 @@ export function VehicleDetailScreen() {
 
         {/* Владелец */}
         {hasNapp && (vehicle.ownerName || vehicle.ownerInn || vehicle.ownerPinfl) && (
-          <Section title="Владелец">
-            <InfoRow label="ФИО / организация" value={vehicle.ownerName} />
-            {vehicle.ownerInn ? <InfoRow label="ИНН" value={vehicle.ownerInn} last={!vehicle.ownerPinfl} /> : null}
-            {vehicle.ownerPinfl ? <InfoRow label="ПИНФЛ" value={vehicle.ownerPinfl} last /> : null}
+          <Section title={t('garage.detail.owner')}>
+            <InfoRow label={t('garage.detail.ownerName')} value={vehicle.ownerName} />
+            {vehicle.ownerInn ? <InfoRow label={t('garage.detail.inn')} value={vehicle.ownerInn} last={!vehicle.ownerPinfl} /> : null}
+            {vehicle.ownerPinfl ? <InfoRow label={t('garage.detail.pinfl')} value={vehicle.ownerPinfl} last /> : null}
           </Section>
         )}
 
         {/* Полисы на это авто */}
-        <Section title="Полисы на это авто">
+        <Section title={t('garage.detail.policiesTitle')}>
           {carPolicies.length === 0 ? (
             <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
-              Пока нет оформленных полисов на это авто.
+              {t('garage.detail.policiesEmpty')}
             </Text>
           ) : (
             <View style={{ gap: 10 }}>
@@ -353,13 +340,13 @@ export function VehicleDetailScreen() {
                 >
                   <View style={{ gap: 3 }}>
                     <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 15, color: tokens.ink }}>
-                      {POLICY_TYPE_LABEL[p.type] ?? p.type}
+                      {t(`productTypes.${p.type}`)}
                     </Text>
                     <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>
                       {formatPolicyNumber(p.policyNumber)}
                     </Text>
                   </View>
-                  <Tag tone={statusTone(p.status)}>{STATUS_LABEL[p.status] ?? p.status}</Tag>
+                  <Tag tone={statusTone(p.status)}>{t(`garage.policyStatus.${p.status}`)}</Tag>
                 </Pressable>
               ))}
             </View>
@@ -374,9 +361,9 @@ export function VehicleDetailScreen() {
           style={{ position: 'absolute', top: -32, left: 0, right: 0, height: 32 }}
         />
         <View style={{ backgroundColor: tokens.pageBg, paddingHorizontal: 24, paddingTop: 6, paddingBottom: 34, gap: 10 }}>
-          <RedButton onPress={openPurchase}>Оформить полис</RedButton>
+          <RedButton onPress={openPurchase}>{t('garage.detail.buyPolicy')}</RedButton>
           <OutlineButton tone="red" onPress={onDelete}>
-            Удалить авто
+            {t('garage.detail.deleteVehicle')}
           </OutlineButton>
         </View>
       </View>
@@ -385,8 +372,8 @@ export function VehicleDetailScreen() {
 }
 
 // vehicleTypeId без справочника — показываем код (а не «—»), если он есть.
-function labelOrCode(id: number | null): string | null {
-  return id != null ? `Код ${id}` : null;
+function labelOrCode(id: number | null, t: TFunction): string | null {
+  return id != null ? t('garage.detail.code', { id }) : null;
 }
 
 function Header({ onBack, onEdit }: { onBack: () => void; onEdit?: () => void }) {
@@ -497,10 +484,12 @@ function SyncFooter({
   syncedAt,
   loading,
   onPress,
+  t,
 }: {
   syncedAt: string | null;
   loading: boolean;
   onPress: () => void;
+  t: TFunction;
 }) {
   return (
     <View
@@ -515,7 +504,7 @@ function SyncFooter({
       }}
     >
       <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>
-        {syncedAt ? `Обновлено ${formatDate(syncedAt)}` : 'Не синхронизировано'}
+        {syncedAt ? t('garage.detail.syncedAt', { date: formatDate(syncedAt) }) : t('garage.detail.notSynced')}
       </Text>
       <Pressable onPress={onPress} disabled={loading} style={({ pressed }) => ({ opacity: pressed || loading ? 0.5 : 1 })}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -525,7 +514,7 @@ function SyncFooter({
             <RefreshIcon size={15} color={tokens.red} />
           )}
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red }}>
-            {loading ? 'Обновляем…' : 'Обновить данные'}
+            {loading ? t('garage.detail.updating') : t('garage.detail.updateData')}
           </Text>
         </View>
       </Pressable>
@@ -541,6 +530,7 @@ function Field({
   flex,
   keyboardType,
   autoCapitalize,
+  t,
 }: {
   label: string;
   value: string;
@@ -549,6 +539,7 @@ function Field({
   flex?: number;
   keyboardType?: 'number-pad' | 'default';
   autoCapitalize?: 'characters' | 'none';
+  t: TFunction;
 }) {
   const wrap: ViewStyle = { flex: flex ?? 1, gap: 6 };
   const accId = useId();
@@ -590,7 +581,7 @@ function Field({
             }}
           >
             <Pressable onPress={() => Keyboard.dismiss()} hitSlop={10}>
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>Готово</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>{t('garage.detail.done')}</Text>
             </Pressable>
           </View>
         </InputAccessoryView>

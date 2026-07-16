@@ -2,6 +2,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Glass } from '../../../components/ui/Glass';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useMe } from '../../../api/auth';
@@ -22,16 +23,6 @@ import type { ProfileStackParamList } from '../../../navigation/types';
 type Nav = NativeStackNavigationProp<ProfileStackParamList, 'Document'>;
 type R = RouteProp<ProfileStackParamList, 'Document'>;
 
-const INFO_TEXT: Record<string, string> = {
-  passport: 'Данные паспорта используются для оформления полисов и идентификации.',
-  license: 'Требуется для расчёта стоимости с учётом стажа водителя.',
-};
-
-const TITLE: Record<string, string> = {
-  passport: 'Паспорт',
-  license: 'Водительское удостоверение',
-};
-
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return '';
   return iso.slice(0, 10);
@@ -41,6 +32,7 @@ function formatDate(iso: string | null | undefined): string {
 // Паспорт заблокирован для редактирования если пользователь верифицирован через MyID —
 // данные заполнены из государственной системы автоматически.
 export function DocumentScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const route = useRoute<R>();
   const kbHeight = useKeyboardHeight();
@@ -83,8 +75,8 @@ export function DocumentScreen() {
       });
       nav.goBack();
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Не удалось сохранить';
-      Alert.alert('Ошибка', msg);
+      const msg = e instanceof Error ? e.message : t('profileExtra.saveFailed');
+      Alert.alert(t('profileExtra.error'), msg);
     }
   };
 
@@ -99,7 +91,7 @@ export function DocumentScreen() {
       } else {
         // Ручной ввод: документа ещё нет — сохраняем данные вместе со сканом.
         if (!series || !number || !issuedAt || (isPassport && !pinfl)) {
-          Alert.alert('Заполните данные', 'Сначала укажите серию, номер, дату выдачи и ПИНФЛ.');
+          Alert.alert(t('profileExtra.fillDataTitle'), t('profileExtra.fillDataMsg'));
           return;
         }
         await upsert.mutateAsync({
@@ -112,8 +104,8 @@ export function DocumentScreen() {
         });
       }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Не удалось загрузить скан';
-      Alert.alert('Ошибка загрузки', msg);
+      const msg = e instanceof Error ? e.message : t('profileExtra.uploadFailed');
+      Alert.alert(t('profileExtra.uploadErrorTitle'), msg);
     } finally {
       setUploadingSide(null);
     }
@@ -121,11 +113,11 @@ export function DocumentScreen() {
 
   // Выбор источника скана → получить uri → загрузить.
   const pickScan = (side: 'front' | 'back') => {
-    Alert.alert('Скан документа', 'Откуда загрузить?', [
-      { text: 'Камера', onPress: () => pickImage(side, 'camera') },
-      { text: 'Из галереи', onPress: () => pickImage(side, 'gallery') },
-      { text: 'PDF-файл', onPress: () => pickPdf(side) },
-      { text: 'Отмена', style: 'cancel' },
+    Alert.alert(t('profileExtra.scanTitle'), t('profileExtra.scanSource'), [
+      { text: t('profileExtra.camera'), onPress: () => pickImage(side, 'camera') },
+      { text: t('profileExtra.gallery'), onPress: () => pickImage(side, 'gallery') },
+      { text: t('profileExtra.pdfFile'), onPress: () => pickPdf(side) },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
   };
 
@@ -136,7 +128,7 @@ export function DocumentScreen() {
         ? await ImagePicker.requestCameraPermissionsAsync()
         : await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Нет доступа', source === 'camera' ? 'Разрешите доступ к камере.' : 'Разрешите доступ к галерее.');
+      Alert.alert(t('profileExtra.noAccess'), source === 'camera' ? t('profileExtra.allowCamera') : t('profileExtra.allowGallery'));
       return;
     }
     const opts = { mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.85 } as const;
@@ -154,7 +146,7 @@ export function DocumentScreen() {
         await uploadScan(side, res.assets[0].uri);
       }
     } catch {
-      Alert.alert('PDF недоступен', 'Загрузка PDF появится после обновления приложения. Пока используйте фото.');
+      Alert.alert(t('profileExtra.pdfUnavailableTitle'), t('profileExtra.pdfUnavailableMsg'));
     }
   };
 
@@ -196,7 +188,7 @@ export function DocumentScreen() {
         >
           {/* Title + status */}
           <View style={{ gap: 12 }}>
-            <ScreenHeading title={TITLE[kind]} subtitle={INFO_TEXT[kind]} />
+            <ScreenHeading title={t(`profileExtra.docTitle.${kind}`)} subtitle={t(`profileExtra.docInfo.${kind}`)} />
             <View style={{ flexDirection: 'row' }}>
               {isPassport && doc && !doc.isComplete ? (
                 <ScanNeededChip />
@@ -234,10 +226,10 @@ export function DocumentScreen() {
               </Svg>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#0a9466', marginBottom: 2 }}>
-                  Данные подтверждены MyID
+                  {t('profileExtra.myIdConfirmed')}
                 </Text>
                 <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: '#0a9466', opacity: 0.85, lineHeight: 17 }}>
-                  Паспортные данные получены из государственной системы и защищены от изменений.
+                  {t('profileExtra.myIdPassportNote')}
                 </Text>
               </View>
             </View>
@@ -248,7 +240,7 @@ export function DocumentScreen() {
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={{ flex: 1 }}>
                 <TextField
-                  label="Серия"
+                  label={t('profileExtra.series')}
                   value={series}
                   onChangeText={setSeries}
                   placeholder="AA"
@@ -259,7 +251,7 @@ export function DocumentScreen() {
               </View>
               <View style={{ flex: 2 }}>
                 <TextField
-                  label="Номер"
+                  label={t('profileExtra.docNumber')}
                   value={number}
                   onChangeText={setNumber}
                   placeholder="1234567"
@@ -269,19 +261,19 @@ export function DocumentScreen() {
               </View>
             </View>
             <TextField
-              label="Дата выдачи"
+              label={t('profileExtra.issuedAt')}
               value={issuedAt}
               onChangeText={setIssuedAt}
-              placeholder="ГГГГ-ММ-ДД"
+              placeholder={t('profileExtra.datePlaceholder')}
               keyboardType="numbers-and-punctuation"
               suffix={<CalendarIcon />}
               editable={!isLocked}
             />
             <TextField
-              label="Кем выдан"
+              label={t('profileExtra.issuedBy')}
               value={issuedBy}
               onChangeText={setIssuedBy}
-              placeholder="УВД..."
+              placeholder={t('profileExtra.issuedByPlaceholder')}
               editable={!isLocked}
             />
             {isPassport && (
@@ -289,7 +281,7 @@ export function DocumentScreen() {
                 label="ПИНФЛ"
                 value={pinfl}
                 onChangeText={setPinfl}
-                placeholder="14 цифр"
+                placeholder={t('profileExtra.pinflPlaceholder')}
                 keyboardType="number-pad"
                 maxLength={14}
                 editable={!isLocked}
@@ -302,25 +294,25 @@ export function DocumentScreen() {
           {isPassport ? (
             <View style={{ gap: 10 }}>
               <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.065 }}>
-                Скан паспорта · обязательно
+                {t('profileExtra.passportScanRequired')}
               </Text>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkSubtle, lineHeight: 17 }}>
-                Загрузите обе стороны (фото или PDF). Без скана паспорт не считается оформленным и его нельзя приложить к европротоколу.
+                {t('profileExtra.scanHint')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <UploadTile label="Лицевая" imageUrl={doc?.frontImageUrl ?? null} uploading={uploadingSide === 'front'} onPress={() => pickScan('front')} />
-                <UploadTile label="Обратная" imageUrl={doc?.backImageUrl ?? null} uploading={uploadingSide === 'back'} onPress={() => pickScan('back')} />
+                <UploadTile label={t('profileExtra.front')} imageUrl={doc?.frontImageUrl ?? null} uploading={uploadingSide === 'front'} onPress={() => pickScan('front')} />
+                <UploadTile label={t('profileExtra.back')} imageUrl={doc?.backImageUrl ?? null} uploading={uploadingSide === 'back'} onPress={() => pickScan('back')} />
               </View>
             </View>
           ) : (
             !isLocked && (
               <View style={{ gap: 10 }}>
                 <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted, letterSpacing: -0.065 }}>
-                  Фото документа
+                  {t('profileExtra.docPhoto')}
                 </Text>
                 <View style={{ flexDirection: 'row', gap: 10 }}>
-                  <UploadTile label="Лицевая" imageUrl={doc?.frontImageUrl ?? null} uploading={uploadingSide === 'front'} onPress={() => pickScan('front')} />
-                  <UploadTile label="Обратная" imageUrl={doc?.backImageUrl ?? null} uploading={uploadingSide === 'back'} onPress={() => pickScan('back')} />
+                  <UploadTile label={t('profileExtra.front')} imageUrl={doc?.frontImageUrl ?? null} uploading={uploadingSide === 'front'} onPress={() => pickScan('front')} />
+                  <UploadTile label={t('profileExtra.back')} imageUrl={doc?.backImageUrl ?? null} uploading={uploadingSide === 'back'} onPress={() => pickScan('back')} />
                 </View>
               </View>
             )
@@ -331,11 +323,11 @@ export function DocumentScreen() {
         <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 + kbHeight }}>
           {isLocked ? (
             <RedButton onPress={() => nav.goBack()}>
-              Закрыть
+              {t('profileExtra.close')}
             </RedButton>
           ) : (
             <RedButton onPress={onSave} disabled={upsert.isPending}>
-              {upsert.isPending ? 'Сохранение...' : 'Сохранить'}
+              {upsert.isPending ? t('profileExtra.saving') : t('common.save')}
             </RedButton>
           )}
         </View>
@@ -346,6 +338,7 @@ export function DocumentScreen() {
 
 // Чип «Требуется скан» — паспорт с данными, но без загруженного скана.
 function ScanNeededChip() {
+  const { t } = useTranslation();
   return (
     <View
       style={{
@@ -359,7 +352,7 @@ function ScanNeededChip() {
       }}
     >
       <View style={{ width: 7, height: 7, borderRadius: 999, backgroundColor: '#b8860b' }} />
-      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: '#8a6d0b' }}>Требуется скан</Text>
+      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: '#8a6d0b' }}>{t('profileExtra.scanNeeded')}</Text>
     </View>
   );
 }
@@ -375,6 +368,7 @@ function UploadTile({
   uploading?: boolean;
   onPress?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Pressable
       onPress={uploading ? undefined : onPress}
@@ -401,7 +395,7 @@ function UploadTile({
               backgroundColor: 'rgba(0,0,0,0.45)',
             }}
           >
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#fff' }}>{label} · заменить</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#fff' }}>{label} · {t('profileExtra.replace')}</Text>
           </View>
         </View>
       ) : (

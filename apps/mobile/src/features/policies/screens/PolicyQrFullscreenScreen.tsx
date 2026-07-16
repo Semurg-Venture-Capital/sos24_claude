@@ -2,24 +2,16 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Glass } from '../../../components/ui/Glass';
 import { StatusBar } from 'expo-status-bar';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Share, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { usePolicy } from '../../../api/policies';
-import type { ProductType } from '../../../api/types';
 import { SosLogo } from '../../../components/ui/SosLogo';
 import { PolicyQR } from '../../../components/ui/PolicyQR';
 import type { MainStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<MainStackParamList, 'PolicyQrFullscreen'>;
 type R = RouteProp<MainStackParamList, 'PolicyQrFullscreen'>;
-
-const TYPE_LABELS: Record<ProductType, string> = {
-  OSAGO: 'ОСАГО',
-  KASKO: 'КАСКО',
-  HEALTH: 'Здоровье',
-  HOME: 'Дом',
-  FINANCE: 'Финансы',
-};
 
 function formatPolicyNumberFull(n: string | null): string {
   if (!n) return '—';
@@ -30,6 +22,7 @@ function formatPolicyNumberFull(n: string | null): string {
 
 // M8.3 — QR на весь экран, тёмный фон, максимум контраста для инспектора.
 export function PolicyQrFullscreenScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const route = useRoute<R>();
 
@@ -46,12 +39,12 @@ export function PolicyQrFullscreenScreen() {
   if (!policy) {
     return (
       <View style={{ flex: 1, backgroundColor: '#121212', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: 'rgba(255,255,255,0.6)' }}>Полис не найден</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.6)' }}>{t('policyDetail.notFound')}</Text>
       </View>
     );
   }
 
-  const typeLabel = TYPE_LABELS[policy.type] ?? policy.type;
+  const typeLabel = t(`productTypes.${policy.type}`, { defaultValue: policy.type });
   const plate = policy.vehicle?.plate ?? '—';
   const qrValue = policy.qrPayload ?? `sos24:${policy.policyNumber ?? policy.id}`;
   const formattedNumber = formatPolicyNumberFull(policy.policyNumber);
@@ -59,9 +52,9 @@ export function PolicyQrFullscreenScreen() {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Мой полис ${typeLabel}: ${formattedNumber} · ${plate}\nsos24.uz`,
+        message: t('policyDetail.shareMessage', { type: typeLabel, number: formattedNumber, plate }),
         url: qrValue,
-        title: `Полис ${typeLabel} · ${plate}`,
+        title: t('policyDetail.shareTitle', { type: typeLabel, plate }),
       });
     } catch {
       // пользователь отменил
@@ -151,7 +144,7 @@ export function PolicyQrFullscreenScreen() {
             textTransform: 'uppercase',
           }}
         >
-          Электронный полис
+          {t('policyDetail.eLabel')}
         </Text>
         <Text
           style={{
@@ -229,7 +222,7 @@ export function PolicyQrFullscreenScreen() {
               <Path d="M12 1v2M12 21v2M1 12h2M21 12h2" />
             </Svg>
             <Text style={{ color: 'rgba(255,255,255,0.85)', fontFamily: 'Manrope_400Regular', fontSize: 13 }}>
-              Покажите инспектору или сохраните
+              {t('policyDetail.showToInspector')}
             </Text>
           </Glass>
         </View>

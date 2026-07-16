@@ -1152,5 +1152,503 @@
       "pdfSoon": "Downloading the PDF policy will be available in the next update.",
       "toHome": "To home"
     }
+  },
+  "adjuster": {
+    "title": "On-site help",
+    "errorTitle": "Error",
+    "submitError": "Failed to send the request. Please try again.",
+    "submitting": "Sending...",
+    "callHelp": "Call for help",
+    "whatHappened": "What happened",
+    "address": "Address",
+    "addressPlaceholder": "Enter a street or landmark...",
+    "policyOptional": "Policy (optional)",
+    "comment": "Comment",
+    "commentPlaceholder": "Additional details (optional)...",
+    "geo": {
+      "disabledTitle": "Location is turned off",
+      "disabledMessage": "To detect the address automatically, allow access in Settings.",
+      "openSettings": "Open Settings",
+      "error": "Could not determine the location. Enter the address manually."
+    },
+    "incident": {
+      "ACCIDENT": {
+        "label": "Accident",
+        "desc": "Collision with another car"
+      },
+      "DAMAGE": {
+        "label": "Damage",
+        "desc": "Scratch, dent, glass"
+      },
+      "THEFT": {
+        "label": "Theft",
+        "desc": "Theft or attempted theft"
+      }
+    },
+    "sent": {
+      "title": "Request accepted",
+      "subtitle": "A specialist is already on the way.\nAverage arrival time — 25–40 minutes."
+    },
+    "dispatcher": "SOS24 dispatcher",
+    "dispatcherHours": "Available 24/7",
+    "trackStatus": "Track status",
+    "callDispatcher": "Call the dispatcher",
+    "toHome": "To home",
+    "statusTitle": "Request status",
+    "cancelled": "Cancelled",
+    "cancelledInfo": "The request was cancelled. If you need help, request it again.",
+    "progress": "Progress",
+    "steps": {
+      "NEW": {
+        "label": "Request accepted",
+        "desc": "Looking for an available specialist"
+      },
+      "ACCEPTED": {
+        "label": "Specialist assigned",
+        "desc": "Getting ready to depart"
+      },
+      "EN_ROUTE": {
+        "label": "On the way",
+        "desc": "On the way to you · ≈25–40 min"
+      },
+      "COMPLETED": {
+        "label": "Arrived",
+        "desc": "The specialist is on site"
+      }
+    },
+    "specialistAssigned": "Specialist assigned",
+    "callSpecialist": "Call the specialist"
+  },
+  "garage": {
+    "title": "Garage",
+    "emptyTitle": "Add your car",
+    "emptySubtitle": "Cars are saved for quick policy issuance",
+    "addVehicle": "Add a car",
+    "editVehicle": "Edit car",
+    "editSubtitle": "Enter the tech passport details — the rest fills in automatically",
+    "errorTitle": "Error",
+    "saveError": "Failed to save the car. Please try again.",
+    "saving": "Saving...",
+    "find": "Find",
+    "vehicleData": "Car details",
+    "lookupFound": "Data found and filled in automatically",
+    "lookupNotFound": "Car not found — fill in the details manually below",
+    "field": {
+      "plate": "Plate number",
+      "techSeria": "Tech passport series",
+      "techNumber": "Tech passport number",
+      "brand": "Make",
+      "model": "Model",
+      "year": "Year",
+      "color": "Color",
+      "colorPlaceholder": "White",
+      "vin": "VIN / body",
+      "vinPlaceholder": "17 characters",
+      "engine": "Engine capacity, cc",
+      "power": "Power, hp"
+    },
+    "policyStatus": {
+      "DRAFT": "Draft",
+      "PENDING_PAYMENT": "Awaiting payment",
+      "ACTIVE": "Active",
+      "EXPIRED": "Expired",
+      "CANCELLED": "Cancelled"
+    },
+    "detail": {
+      "permTitle": "Access",
+      "permMessage": "Camera/gallery permission is required.",
+      "photo": "Photo",
+      "photoError": "Failed to upload the photo.",
+      "photoTitle": "Car photo",
+      "takePhoto": "Take a photo",
+      "pickGallery": "Choose from gallery",
+      "deletePhoto": "Delete photo",
+      "notFound": "Car not found",
+      "syncDoneTitle": "Done",
+      "syncDoneMessage": "Data updated from the state registry.",
+      "syncNotFoundTitle": "Not found",
+      "syncNotFoundMessage": "The registry returned no data for this tech passport. Check the series and number.",
+      "syncError": "Could not reach the registry. Please try again later.",
+      "deleteTitle": "Delete the car?",
+      "delete": "Delete",
+      "deleteError": "Failed to delete the car.",
+      "changePhoto": "Change photo",
+      "addPhoto": "Add photo",
+      "specs": "Specifications",
+      "brand": "Make",
+      "model": "Model",
+      "year": "Year of manufacture",
+      "color": "Color",
+      "power": "Power",
+      "engine": "Engine capacity",
+      "vin": "VIN",
+      "techPassport": "Tech passport",
+      "tpSeriaNumber": "Tech passport series and number",
+      "issueDate": "Issue date",
+      "vehicleType": "Vehicle type",
+      "bodyNumber": "Body number",
+      "engineNumber": "Engine number",
+      "fuel": "Fuel",
+      "seats": "Seats",
+      "fullWeight": "Gross weight",
+      "emptyWeight": "Curb weight",
+      "division": "Registration division",
+      "kg": "kg",
+      "tpEmpty": "Data from the state registry has not been loaded. Enter the tech passport series and number — we'll pull the specs and owner automatically.",
+      "tpSeria": "Tech passport series",
+      "tpNumber": "Tech passport number",
+      "requesting": "Requesting…",
+      "updateData": "Update data",
+      "owner": "Owner",
+      "ownerName": "Full name / organization",
+      "inn": "TIN",
+      "pinfl": "PINFL",
+      "policiesTitle": "Policies for this car",
+      "policiesEmpty": "No policies issued for this car yet.",
+      "buyPolicy": "Buy a policy",
+      "deleteVehicle": "Delete car",
+      "code": "Code {{id}}",
+      "syncedAt": "Updated {{date}}",
+      "notSynced": "Not synced",
+      "updating": "Updating…",
+      "done": "Done"
+    }
+  },
+  "partners": {
+    "title": "Partners",
+    "myBookings": "My bookings",
+    "searchPlaceholder": "Repair shop, clinic, service",
+    "categoryAll": "All",
+    "notFound": "Nothing found",
+    "openNow": "open",
+    "closed": "closed",
+    "map": {
+      "PENDING": "Awaiting confirmation",
+      "CONFIRMED": "Confirmed",
+      "CANCELLED": "Cancelled",
+      "COMPLETED": "Completed"
+    },
+    "day": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "date": {
+      "weekdayShort": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      },
+      "monthShort": {
+        "0": "Jan",
+        "1": "Feb",
+        "2": "Mar",
+        "3": "Apr",
+        "4": "May",
+        "5": "Jun",
+        "6": "Jul",
+        "7": "Aug",
+        "8": "Sep",
+        "9": "Oct",
+        "10": "Nov",
+        "11": "Dec"
+      }
+    },
+    "detail": {
+      "partnerBadge": "{{category}} · SOS24 partner",
+      "reviewsCount": "· {{count}} reviews",
+      "addressLabel": "ADDRESS",
+      "route": "Directions",
+      "workingHours": "Working hours",
+      "dayOff": "day off",
+      "services": "Services",
+      "reviews": "Reviews",
+      "noReviews": "No reviews yet",
+      "book": "Book"
+    },
+    "price": {
+      "onRequest": "on request",
+      "range": "{{from}}–{{to}} sum",
+      "from": "from {{price}} sum"
+    },
+    "booking": {
+      "title": "Booking at {{name}}",
+      "selectServices": "Select services",
+      "priceFrom": "from {{price}}",
+      "date": "Date",
+      "time": "Time",
+      "noSlots": "No free time on this day",
+      "commentLabel": "Comment (optional)",
+      "commentPlaceholder": "Describe the task…",
+      "createError": "Failed to create booking",
+      "submitting": "Creating…",
+      "submit": "Confirm booking"
+    },
+    "success": {
+      "title": "Booking created",
+      "hint": "The partner will confirm the booking — you'll get a notification.",
+      "toPartners": "To partners"
+    },
+    "bookings": {
+      "emptyTitle": "No bookings yet",
+      "emptySubtitle": "Book a partner from the catalog",
+      "leaveReview": "Leave a review",
+      "cancel": "Cancel"
+    },
+    "review": {
+      "title": "Review · {{name}}",
+      "placeholder": "Share your impression…",
+      "error": "Failed to send review",
+      "submitting": "Sending…",
+      "submit": "Send review"
+    }
+  },
+  "policyDetail": {
+    "notFound": "Policy not found",
+    "currency": "sum",
+    "daysLeft": "{{count}} days",
+    "expired": "Expired",
+    "active": "Active",
+    "shareMessage": "My {{type}} policy: {{number}} · {{plate}}\nsos24.uz",
+    "shareTitle": "{{type}} policy · {{plate}}",
+    "downloadPdf": "Download PDF",
+    "downloadPdfSoon": "Downloading the electronic policy",
+    "renew": "Renew",
+    "renewSoon": "Policy renewal will be available later",
+    "fileClaim": "File a claim",
+    "claimSoon": "Filing an insurance claim",
+    "periodMonths": "{{count}} mo",
+    "expand": "Expand",
+    "summaryTitle": "Policy",
+    "number": "Number",
+    "holder": "Policyholder",
+    "period": "Period",
+    "premium": "Insurance premium",
+    "discount": "Discount",
+    "reportAccident": "Report an accident",
+    "eLabel": "Electronic policy",
+    "showToInspector": "Show to the inspector or save"
+  },
+  "profileExtra": {
+    "error": "Error",
+    "saveFailed": "Failed to save",
+    "uploadFailed": "Failed to upload the scan",
+    "uploadErrorTitle": "Upload error",
+    "fillDataTitle": "Fill in the details",
+    "fillDataMsg": "First enter the series, number, issue date and PINFL.",
+    "scanTitle": "Document scan",
+    "scanSource": "Where to upload from?",
+    "camera": "Camera",
+    "gallery": "From gallery",
+    "pdfFile": "PDF file",
+    "noAccess": "No access",
+    "allowCamera": "Please allow camera access.",
+    "allowGallery": "Please allow gallery access.",
+    "pdfUnavailableTitle": "PDF unavailable",
+    "pdfUnavailableMsg": "PDF upload will appear after an app update. For now, use a photo.",
+    "myIdConfirmed": "Data confirmed via MyID",
+    "myIdPassportNote": "Passport data was obtained from the government system and is protected from changes.",
+    "myIdNameNote": "Full name and date of birth were obtained from the government system and cannot be changed manually.",
+    "series": "Series",
+    "docNumber": "Number",
+    "issuedAt": "Issue date",
+    "datePlaceholder": "YYYY-MM-DD",
+    "issuedBy": "Issued by",
+    "issuedByPlaceholder": "Police dept...",
+    "pinflPlaceholder": "14 digits",
+    "passportScanRequired": "Passport scan · required",
+    "scanHint": "Upload both sides (photo or PDF). Without a scan, the passport is not considered complete and cannot be attached to a europrotocol.",
+    "docPhoto": "Document photo",
+    "front": "Front",
+    "back": "Back",
+    "replace": "replace",
+    "scanNeeded": "Scan required",
+    "close": "Close",
+    "saving": "Saving...",
+    "docTitle": {
+      "passport": "Passport",
+      "license": "Driver's license"
+    },
+    "docInfo": {
+      "passport": "Passport data is used to issue policies and for identification.",
+      "license": "Required to calculate the price based on driving experience."
+    },
+    "editTitle": "Edit",
+    "changePhoto": "Change photo",
+    "firstName": "First name",
+    "firstNamePlaceholder": "Aziz",
+    "lastName": "Last name",
+    "lastNamePlaceholder": "Karimov",
+    "patronymic": "Patronymic (optional)",
+    "patronymicPlaceholder": "Erkinovich",
+    "birthDate": "Date of birth",
+    "addCardFailed": "Failed to add the card",
+    "deleteCardTitle": "Delete card",
+    "deleteCardMsg": "Card •••• {{last4}} will be deleted",
+    "delete": "Delete",
+    "minTopup": "Minimum top-up amount is 1,000 sum",
+    "topupFailed": "Failed to top up the wallet",
+    "financeTitle": "Finance",
+    "financeSubtitle": "Wallet, cards and payment history",
+    "walletCardLabel": "SOS24 Wallet",
+    "currency": "sum",
+    "topup": "Top up",
+    "myCards": "My cards",
+    "balanceMsg": "Balance: {{amount}} sum",
+    "makeDefault": "Set as default",
+    "defaultCard": "Default card",
+    "noCards": "No saved cards",
+    "addCard": "Add card",
+    "cardsHint": "Uzcard and Humo are supported. Press and hold a card to manage it.",
+    "txHistory": "Transaction history",
+    "policyPayment": "Policy payment",
+    "paymentMethod": {
+      "WALLET": "Wallet",
+      "CARD": "Card",
+      "PAYME": "Payme",
+      "CLICK": "Click"
+    },
+    "noTx": "No transactions yet",
+    "last4Label": "Last 4 digits",
+    "expiryLabel": "Expiry (MM/YY)",
+    "topupTitle": "Top up wallet",
+    "topupAmountLabel": "Top-up amount",
+    "toppingUp": "Topping up..."
+  },
+  "sos": {
+    "greeting": "Hello! I'm the SOS24 assistant. I'll help you handle any situation — pick a category below or describe it in your own words.",
+    "headerTitle": "SOS24 · AI Assistant",
+    "headerStatus": "online · SOS 24/7",
+    "emergencyCall": "Emergency call — dispatcher 1024",
+    "placeholder": "Describe the situation…",
+    "restart": "Start over",
+    "restartTitle": "Start a new chat?",
+    "restartMsg": "The current conversation will be deleted.",
+    "restartConfirm": "Start over",
+    "callFailTitle": "Couldn't make the call",
+    "callFailMsg": "Dial {{number}} manually.",
+    "errorReply": "Couldn't process your request. Please try again or call dispatcher 1024.",
+    "errorAction": "Call the dispatcher",
+    "cat": {
+      "accident": {
+        "title": "Accident",
+        "sub": "collision, impact, damage"
+      },
+      "medical": {
+        "title": "Medical help",
+        "sub": "injury, feeling unwell"
+      },
+      "theft": {
+        "title": "Theft / stolen car",
+        "sub": "car is missing"
+      },
+      "property": {
+        "title": "Property",
+        "sub": "fire, flooding, natural disaster"
+      },
+      "other": {
+        "title": "Other",
+        "sub": "describe the situation"
+      }
+    }
+  },
+  "myidOb": {
+    "errorTitle": "Verification error",
+    "errorMsg": "MyID verification failed. Check the lighting and try again.",
+    "tryAgain": "Try again",
+    "simErrorTitle": "Error",
+    "simErrorMsg": "Simulation failed. Make sure MYID_MOCK=true on the backend.",
+    "heading": "Identity verification",
+    "intro": "To issue insurance policies, we need to verify your identity through the state MyID system.",
+    "infoPill": "Data is transmitted over a secure channel. State GNKR system.",
+    "submit": "Complete MyID verification",
+    "simulate": "Simulate MyID (DEV)",
+    "steps": {
+      "passport": {
+        "title": "Enter your passport details",
+        "desc": "Series/number or PINFL — filled in the MyID interface"
+      },
+      "face": {
+        "title": "Face scan",
+        "desc": "Liveness check: good lighting, look straight into the camera"
+      },
+      "data": {
+        "title": "Data is saved",
+        "desc": "Full name, date of birth and passport details are filled in automatically"
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAll": "Mark all read",
+    "empty": "No notifications yet",
+    "longPressTitle": "Notification",
+    "delete": "Delete",
+    "groups": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "earlier": "Earlier"
+    }
+  },
+  "ui": {
+    "done": "Done",
+    "card": {
+      "primary": "Primary",
+      "holder": "Holder",
+      "expiry": "Expiry",
+      "sum": "sum"
+    }
+  },
+  "support": {
+    "hub": {
+      "title": "Support",
+      "subtitle": "We reply in 5 minutes on average · 24/7",
+      "chatCta": "Start a chat",
+      "online": "online · we reply 24/7",
+      "call": "Call SOS24",
+      "callMeta": "{{phone}} · free",
+      "faqTitle": "Frequently asked questions"
+    },
+    "tickets": {
+      "title": "My requests",
+      "emptyTitle": "No requests yet",
+      "emptySubtitle": "Ask a question — an agent will reply in the chat"
+    },
+    "newTicket": {
+      "title": "New request",
+      "categoryLabel": "Request topic",
+      "subjectLabel": "Title",
+      "subjectPlaceholder": "Briefly about the issue",
+      "bodyLabel": "Message",
+      "bodyPlaceholder": "Describe your question in more detail (optional)",
+      "creating": "Creating…",
+      "submit": "Create request"
+    },
+    "chat": {
+      "headerTitle": "SOS24 Support",
+      "online": "online · we reply 24/7",
+      "typing": "typing…",
+      "inputPlaceholder": "Message…",
+      "operator": "Agent",
+      "file": "File"
+    },
+    "map": {
+      "POLICY": "Policies",
+      "PAYMENT": "Payment",
+      "ACCIDENT": "Accident",
+      "ACCOUNT": "Account",
+      "OTHER": "Other",
+      "OPEN": "Open",
+      "PENDING": "Pending",
+      "CLOSED": "Closed"
+    }
   }
 }

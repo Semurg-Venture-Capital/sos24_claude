@@ -1,6 +1,7 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { createBooking, fetchSlots, usePartnerDetail, type Slot } from '../../../api/partners';
 import { BackButton } from '../../../components/ui/BackButton';
@@ -13,15 +14,13 @@ import type { PartnersStackParamList } from '../../../navigation/types';
 type Nav = NativeStackNavigationProp<PartnersStackParamList, 'PartnerBooking'>;
 type Rt = RouteProp<PartnersStackParamList, 'PartnerBooking'>;
 
-const WEEKDAY_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-const MONTH_SHORT = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-
 function dateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export function PartnerBookingScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { params } = useRoute<Rt>();
   const { partnerId, partnerName } = params;
   const { data: partner } = usePartnerDetail(partnerId);
@@ -78,7 +77,7 @@ export function PartnerBookingScreen() {
       nav.replace('PartnerBookingSuccess', { partnerName, scheduledAt: slotIso });
     } catch (e: unknown) {
       const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg || 'Не удалось создать запись');
+      alert(msg || t('partners.booking.createError'));
     } finally {
       setSubmitting(false);
     }
@@ -89,7 +88,7 @@ export function PartnerBookingScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 12 }}>
         <BackButton onPress={() => nav.goBack()} />
         <Text numberOfLines={1} style={{ flex: 1, fontFamily: 'NeueMontreal-Medium', fontSize: 22, letterSpacing: -0.22, color: tokens.ink }}>
-          Запись в {partnerName}
+          {t('partners.booking.title', { name: partnerName })}
         </Text>
       </View>
 
@@ -97,7 +96,7 @@ export function PartnerBookingScreen() {
         {/* Услуги */}
         {partner && partner.services.length > 0 && (
           <View style={{ gap: 10 }}>
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted }}>Выберите услуги</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted }}>{t('partners.booking.selectServices')}</Text>
             {partner.services.map((s) => {
               const on = selectedServices.includes(s.id);
               return (
@@ -107,7 +106,7 @@ export function PartnerBookingScreen() {
                       {on && <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>✓</Text>}
                     </View>
                     <Text style={{ flex: 1, fontFamily: 'Manrope_500Medium', fontSize: 14, color: tokens.ink }}>{s.name}</Text>
-                    {s.priceFrom != null && <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: tokens.inkDark }}>от {s.priceFrom.toLocaleString('ru-RU')}</Text>}
+                    {s.priceFrom != null && <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: tokens.inkDark }}>{t('partners.booking.priceFrom', { price: s.priceFrom.toLocaleString('ru-RU') })}</Text>}
                   </Glass>
                 </Pressable>
               );
@@ -117,7 +116,7 @@ export function PartnerBookingScreen() {
 
         {/* Дата */}
         <View style={{ gap: 10 }}>
-          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted }}>Дата</Text>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted }}>{t('partners.booking.date')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {days.map((d) => {
               const on = dateKey(d) === dateKey(date);
@@ -127,9 +126,9 @@ export function PartnerBookingScreen() {
                   onPress={() => setDate(d)}
                   style={{ width: 60, paddingVertical: 12, borderRadius: 16, alignItems: 'center', gap: 4, backgroundColor: on ? tokens.inkDark : tokens.glass, borderWidth: on ? 0 : 1, borderColor: tokens.hairline }}
                 >
-                  <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 11, color: on ? 'rgba(255,255,255,0.7)' : tokens.inkMuted }}>{WEEKDAY_SHORT[d.getDay()]}</Text>
+                  <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 11, color: on ? 'rgba(255,255,255,0.7)' : tokens.inkMuted }}>{t('partners.date.weekdayShort.' + d.getDay())}</Text>
                   <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: on ? '#fff' : tokens.ink }}>{d.getDate()}</Text>
-                  <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 10, color: on ? 'rgba(255,255,255,0.7)' : tokens.inkMuted }}>{MONTH_SHORT[d.getMonth()]}</Text>
+                  <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 10, color: on ? 'rgba(255,255,255,0.7)' : tokens.inkMuted }}>{t('partners.date.monthShort.' + d.getMonth())}</Text>
                 </Pressable>
               );
             })}
@@ -138,11 +137,11 @@ export function PartnerBookingScreen() {
 
         {/* Слоты */}
         <View style={{ gap: 10 }}>
-          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted }}>Время</Text>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted }}>{t('partners.booking.time')}</Text>
           {loadingSlots ? (
             <ActivityIndicator color={tokens.red} style={{ alignSelf: 'flex-start' }} />
           ) : slots.length === 0 ? (
-            <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>В этот день нет свободного времени</Text>
+            <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>{t('partners.booking.noSlots')}</Text>
           ) : (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {slots.map((s) => {
@@ -164,16 +163,16 @@ export function PartnerBookingScreen() {
 
         {/* Комментарий */}
         <View style={{ gap: 10 }}>
-          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted }}>Комментарий (необязательно)</Text>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted }}>{t('partners.booking.commentLabel')}</Text>
           <View style={{ backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: tokens.hairline, padding: 14, minHeight: 80 }}>
-            <TextInput value={comment} onChangeText={setComment} placeholder="Опишите задачу…" placeholderTextColor={tokens.inkMuted} multiline style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.ink }} />
+            <TextInput value={comment} onChangeText={setComment} placeholder={t('partners.booking.commentPlaceholder')} placeholderTextColor={tokens.inkMuted} multiline style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.ink }} />
           </View>
         </View>
       </ScrollView>
 
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 24, paddingTop: 12, paddingBottom: 32, backgroundColor: 'rgba(237,237,237,0.96)', borderTopWidth: 1, borderTopColor: tokens.hairline }}>
         <RedButton onPress={submit} disabled={!canSubmit}>
-          {submitting ? 'Создаём…' : 'Подтвердить запись'}
+          {submitting ? t('partners.booking.submitting') : t('partners.booking.submit')}
         </RedButton>
       </View>
     </PhoneFrame>

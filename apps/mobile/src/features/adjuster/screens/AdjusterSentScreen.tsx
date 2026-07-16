@@ -2,6 +2,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Linking, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { OutlineButton } from '../../../components/ui/OutlineButton';
@@ -16,6 +17,7 @@ const DISPATCHER_PHONE = '+998712345600';
 
 export function AdjusterSentScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
 
   const scale = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -78,7 +80,7 @@ export function AdjusterSentScreen() {
             textAlign: 'center',
             lineHeight: 32,
           }}>
-            Заявка принята
+            {t('adjuster.sent.title')}
           </Text>
           <Text style={{
             fontFamily: 'Manrope_400Regular',
@@ -87,7 +89,7 @@ export function AdjusterSentScreen() {
             textAlign: 'center',
             lineHeight: 22,
           }}>
-            Специалист уже едет к вам.{'\n'}Среднее время прибытия — 25–40 минут.
+            {t('adjuster.sent.subtitle')}
           </Text>
 
           {/* Dispatcher info */}
@@ -114,10 +116,10 @@ export function AdjusterSentScreen() {
               </View>
               <View>
                 <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.ink }}>
-                  Диспетчер SOS24
+                  {t('adjuster.dispatcher')}
                 </Text>
                 <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>
-                  Работает 24/7
+                  {t('adjuster.dispatcherHours')}
                 </Text>
               </View>
             </View>
@@ -131,13 +133,13 @@ export function AdjusterSentScreen() {
       {/* Buttons */}
       <View style={{ padding: 24, paddingTop: 0, gap: 10 }}>
         <RedButton trailing={false} onPress={handleStatus}>
-          Отследить статус
+          {t('adjuster.trackStatus')}
         </RedButton>
         <OutlineButton style={{ height: 52 }} onPress={handleCall}>
-          Позвонить диспетчеру
+          {t('adjuster.callDispatcher')}
         </OutlineButton>
         <OutlineButton style={{ height: 52 }} onPress={handleHome}>
-          На главную
+          {t('adjuster.toHome')}
         </OutlineButton>
       </View>
     </PhoneFrame>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { startMyIdSdk } from '@sos24/myid-sdk';
@@ -11,6 +12,7 @@ import { tokens } from '../../../theme/colors';
 
 // M1.7 — Верификация личности через MyID (обязательный шаг после OTP).
 export function MyIdOnboardingScreen() {
+  const { t } = useTranslation();
   const setVerified = useAuthStore((s) => s.setVerified);
   const [loading, setLoading] = useState(false);
 
@@ -40,9 +42,9 @@ export function MyIdOnboardingScreen() {
       if (msg.includes('MYID_CANCELLED') || msg.includes('отменил')) return;
 
       Alert.alert(
-        'Ошибка верификации',
-        'Не удалось пройти MyID. Проверьте освещение и попробуйте снова.',
-        [{ text: 'Попробовать снова' }],
+        t('myidOb.errorTitle'),
+        t('myidOb.errorMsg'),
+        [{ text: t('myidOb.tryAgain') }],
       );
     } finally {
       setLoading(false);
@@ -56,7 +58,7 @@ export function MyIdOnboardingScreen() {
       await verifyMyId('mock-code');
       setVerified();
     } catch {
-      Alert.alert('Ошибка', 'Симуляция не удалась. Убедитесь что MYID_MOCK=true на бэке.');
+      Alert.alert(t('myidOb.simErrorTitle'), t('myidOb.simErrorMsg'));
     } finally {
       setLoading(false);
     }
@@ -100,7 +102,7 @@ export function MyIdOnboardingScreen() {
             marginBottom: 12,
           }}
         >
-          Подтверждение личности
+          {t('myidOb.heading')}
         </Text>
         <Text
           style={{
@@ -111,13 +113,12 @@ export function MyIdOnboardingScreen() {
             marginBottom: 32,
           }}
         >
-          Для оформления страховых полисов нам нужно верифицировать вашу личность через
-          государственную систему MyID.
+          {t('myidOb.intro')}
         </Text>
 
         {/* Steps */}
         <View style={{ gap: 16, marginBottom: 32 }}>
-          {STEPS.map((step, i) => (
+          {STEPS.map((stepKey, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14 }}>
               <View
                 style={{
@@ -137,7 +138,7 @@ export function MyIdOnboardingScreen() {
               </View>
               <View style={{ flex: 1, gap: 2 }}>
                 <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkDark }}>
-                  {step.title}
+                  {t('myidOb.steps.' + stepKey + '.title')}
                 </Text>
                 <Text
                   style={{
@@ -147,7 +148,7 @@ export function MyIdOnboardingScreen() {
                     lineHeight: 18,
                   }}
                 >
-                  {step.desc}
+                  {t('myidOb.steps.' + stepKey + '.desc')}
                 </Text>
               </View>
             </View>
@@ -187,7 +188,7 @@ export function MyIdOnboardingScreen() {
               lineHeight: 17,
             }}
           >
-            Данные передаются по защищённому каналу. Государственная система ГНКР.
+            {t('myidOb.infoPill')}
           </Text>
         </View>
       </ScrollView>
@@ -195,7 +196,7 @@ export function MyIdOnboardingScreen() {
       {/* Bottom actions */}
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36, gap: 12 }}>
         <RedButton onPress={startMyId} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : 'Пройти идентификацию MyID'}
+          {loading ? <ActivityIndicator color="#fff" /> : t('myidOb.submit')}
         </RedButton>
 
         {/* DEV: симуляция без реального SDK (только __DEV__ + MYID_MOCK=true на бэке) */}
@@ -213,7 +214,7 @@ export function MyIdOnboardingScreen() {
             })}
           >
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.inkMuted }}>
-              Симулировать MyID (DEV)
+              {t('myidOb.simulate')}
             </Text>
           </Pressable>
         )}
@@ -222,20 +223,8 @@ export function MyIdOnboardingScreen() {
   );
 }
 
-const STEPS = [
-  {
-    title: 'Введите паспортные данные',
-    desc: 'Серия/номер или ПИНФЛ — заполняются в интерфейсе MyID',
-  },
-  {
-    title: 'Сканирование лица',
-    desc: 'Liveness-проверка: хорошее освещение, смотрите прямо в камеру',
-  },
-  {
-    title: 'Данные сохраняются',
-    desc: 'ФИО, дата рождения и паспортные данные заполнятся автоматически',
-  },
-];
+// Ключи шагов — тексты в i18n: myidOb.steps.<key>.title / .desc
+const STEPS = ['passport', 'face', 'data'];
 
 function MyIdIcon() {
   return (

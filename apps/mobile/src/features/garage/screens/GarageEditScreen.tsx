@@ -1,6 +1,8 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
 import { mapTechPassportToForm, useCreateVehicle, useNappLookup, useUpdateVehicle, useVehicle } from '../../../api/vehicles';
 import { IconSearch } from '../../../components/icons/LineIcons';
@@ -20,6 +22,7 @@ type R = RouteProp<GarageStackParamList, 'GarageEdit'>;
 // M3.2 — Добавление/редактирование авто. Большое поле гос. номера + автозаполнение NAPP.
 export function GarageEditScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const route = useRoute<R>();
   const kbHeight = useKeyboardHeight();
 
@@ -103,7 +106,7 @@ export function GarageEditScreen() {
       }
       nav.goBack();
     } catch {
-      Alert.alert('Ошибка', 'Не удалось сохранить автомобиль. Попробуйте ещё раз.');
+      Alert.alert(t('garage.errorTitle'), t('garage.saveError'));
     }
   };
 
@@ -133,14 +136,14 @@ export function GarageEditScreen() {
         automaticallyAdjustKeyboardInsets
       >
         <ScreenHeading
-          title={isEdit ? 'Редактировать авто' : 'Добавить автомобиль'}
-          subtitle="Введите данные техпаспорта — остальное подтянется автоматически"
+          title={isEdit ? t('garage.editVehicle') : t('garage.addVehicle')}
+          subtitle={t('garage.editSubtitle')}
         />
 
         {/* NAPP lookup: техпаспорт (серия + номер) + госномер */}
         <View style={{ gap: 10 }}>
           <TextField
-            label="Гос. номер"
+            label={t('garage.field.plate')}
             value={plate}
             onChangeText={(t) => {
               setPlate(t.toUpperCase());
@@ -159,7 +162,7 @@ export function GarageEditScreen() {
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 1 }}>
               <TextField
-                label="Серия техпаспорта"
+                label={t('garage.field.techSeria')}
                 value={techSeria}
                 onChangeText={(t) => {
                   setTechSeria(t.toUpperCase());
@@ -172,7 +175,7 @@ export function GarageEditScreen() {
             </View>
             <View style={{ flex: 1.4 }}>
               <TextField
-                label="Номер техпаспорта"
+                label={t('garage.field.techNumber')}
                 value={techNumber}
                 onChangeText={(t) => {
                   setTechNumber(t);
@@ -195,7 +198,7 @@ export function GarageEditScreen() {
                   paddingLeft: 4,
                 }}
               >
-                Данные найдены и заполнены автоматически
+                {t('garage.lookupFound')}
               </Text>
             )}
             {lookupStatus === 'notFound' && (
@@ -208,11 +211,11 @@ export function GarageEditScreen() {
                   paddingLeft: 4,
                 }}
               >
-                Не нашли авто — заполните данные вручную ниже
+                {t('garage.lookupNotFound')}
               </Text>
             )}
             <View style={{ flex: lookupStatus === 'idle' ? 1 : undefined }}>
-              <FindButton onPress={onLookup} disabled={!canLookup || lookupStatus === 'loading'} />
+              <FindButton onPress={onLookup} disabled={!canLookup || lookupStatus === 'loading'} t={t} />
             </View>
           </View>
         </View>
@@ -228,22 +231,22 @@ export function GarageEditScreen() {
             marginTop: 4,
           }}
         >
-          Данные автомобиля
+          {t('garage.vehicleData')}
         </Text>
 
         <View style={{ gap: 12 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 1 }}>
-              <TextField label="Марка" value={brand} onChangeText={setBrand} placeholder="Chevrolet" />
+              <TextField label={t('garage.field.brand')} value={brand} onChangeText={setBrand} placeholder="Chevrolet" />
             </View>
             <View style={{ flex: 1 }}>
-              <TextField label="Модель" value={model} onChangeText={setModel} placeholder="Cobalt" />
+              <TextField label={t('garage.field.model')} value={model} onChangeText={setModel} placeholder="Cobalt" />
             </View>
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 1 }}>
               <TextField
-                label="Год"
+                label={t('garage.field.year')}
                 value={year}
                 onChangeText={setYear}
                 placeholder="2021"
@@ -252,21 +255,21 @@ export function GarageEditScreen() {
               />
             </View>
             <View style={{ flex: 1 }}>
-              <TextField label="Цвет" value={color} onChangeText={setColor} placeholder="Белый" />
+              <TextField label={t('garage.field.color')} value={color} onChangeText={setColor} placeholder={t('garage.field.colorPlaceholder')} />
             </View>
           </View>
           <TextField
-            label="VIN / кузов"
+            label={t('garage.field.vin')}
             value={vin}
-            onChangeText={(t) => setVin(t.toUpperCase())}
-            placeholder="17 символов"
+            onChangeText={(txt) => setVin(txt.toUpperCase())}
+            placeholder={t('garage.field.vinPlaceholder')}
             autoCapitalize="characters"
             maxLength={17}
           />
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 1 }}>
               <TextField
-                label="Объём двигателя, см³"
+                label={t('garage.field.engine')}
                 value={engine}
                 onChangeText={setEngine}
                 placeholder="1500"
@@ -275,7 +278,7 @@ export function GarageEditScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <TextField
-                label="Мощность, л.с."
+                label={t('garage.field.power')}
                 value={power}
                 onChangeText={setPower}
                 placeholder="105"
@@ -288,7 +291,7 @@ export function GarageEditScreen() {
 
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: 36 + kbHeight }}>
         <RedButton onPress={onSave} disabled={!canSubmit || submitting}>
-          {submitting ? 'Сохранение...' : 'Сохранить'}
+          {submitting ? t('garage.saving') : t('common.save')}
         </RedButton>
       </View>
       </DismissKeyboardView>
@@ -296,7 +299,7 @@ export function GarageEditScreen() {
   );
 }
 
-function FindButton({ onPress, disabled }: { onPress: () => void; disabled?: boolean }) {
+function FindButton({ onPress, disabled, t }: { onPress: () => void; disabled?: boolean; t: TFunction }) {
   return (
     <View style={{ opacity: disabled ? 0.5 : 1 }}>
       <Text
@@ -308,7 +311,7 @@ function FindButton({ onPress, disabled }: { onPress: () => void; disabled?: boo
           textDecorationLine: 'underline',
         }}
       >
-        Найти
+        {t('garage.find')}
       </Text>
     </View>
   );

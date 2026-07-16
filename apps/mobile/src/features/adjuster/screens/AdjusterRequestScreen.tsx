@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -23,16 +24,15 @@ import type { AdjusterStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<AdjusterStackParamList, 'AdjusterRequest'>;
 
-const INCIDENT_TYPES: { value: IncidentType; label: string; desc: string }[] = [
-  { value: 'ACCIDENT', label: 'ДТП', desc: 'Столкновение с другим авто' },
-  { value: 'DAMAGE', label: 'Повреждение', desc: 'Царапина, вмятина, стекло' },
-  { value: 'THEFT', label: 'Угон', desc: 'Кража или попытка угона' },
+const INCIDENT_TYPES: { value: IncidentType }[] = [
+  { value: 'ACCIDENT' },
+  { value: 'DAMAGE' },
+  { value: 'THEFT' },
 ];
-
-const PRODUCT_LABEL: Record<string, string> = { OSAGO: 'ОСАГО', KASKO: 'КАСКО' };
 
 export function AdjusterRequestScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { data: policies = [] } = usePolicies('ACTIVE');
   const { mutateAsync: createRequest, isPending } = useCreateAdjusterRequest();
 
@@ -53,11 +53,11 @@ export function AdjusterRequestScreen() {
       if (status === 'denied') {
         // Уже отклонено — iOS не покажет диалог повторно, ведём в Настройки
         Alert.alert(
-          'Геолокация отключена',
-          'Чтобы определять адрес автоматически, разрешите доступ в Настройках.',
+          t('adjuster.geo.disabledTitle'),
+          t('adjuster.geo.disabledMessage'),
           [
-            { text: 'Отмена', style: 'cancel' },
-            { text: 'Открыть Настройки', onPress: () => void Linking.openURL('app-settings:') },
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('adjuster.geo.openSettings'), onPress: () => void Linking.openURL('app-settings:') },
           ],
         );
         setGeoLoading(false);
@@ -90,7 +90,7 @@ export function AdjusterRequestScreen() {
         setAddress(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
       }
     } catch {
-      Alert.alert('Ошибка', 'Не удалось определить геопозицию. Введите адрес вручную.');
+      Alert.alert(t('adjuster.errorTitle'), t('adjuster.geo.error'));
     } finally {
       setGeoLoading(false);
     }
@@ -109,7 +109,7 @@ export function AdjusterRequestScreen() {
       });
       nav.replace('AdjusterSent', { requestId: req.id });
     } catch {
-      Alert.alert('Ошибка', 'Не удалось отправить заявку. Попробуйте ещё раз.');
+      Alert.alert(t('adjuster.errorTitle'), t('adjuster.submitError'));
     }
   };
 
@@ -118,7 +118,7 @@ export function AdjusterRequestScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 }}>
         <BackButton onPress={() => nav.goBack()} />
         <Text style={{ marginLeft: 12, fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink, letterSpacing: -0.09 }}>
-          Помощь на месте
+          {t('adjuster.title')}
         </Text>
       </View>
 
@@ -131,15 +131,15 @@ export function AdjusterRequestScreen() {
         {/* Incident type */}
         <View style={{ gap: 10 }}>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-            Что случилось
+            {t('adjuster.whatHappened')}
           </Text>
           <View style={{ gap: 8 }}>
-            {INCIDENT_TYPES.map((t) => {
-              const active = incident === t.value;
+            {INCIDENT_TYPES.map((item) => {
+              const active = incident === item.value;
               return (
                 <Pressable
-                  key={t.value}
-                  onPress={() => setIncident(t.value)}
+                  key={item.value}
+                  onPress={() => setIncident(item.value)}
                   style={({ pressed }) => ({
                     flexDirection: 'row', alignItems: 'center', padding: 16,
                     borderRadius: 16,
@@ -157,10 +157,10 @@ export function AdjusterRequestScreen() {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 15, color: active ? '#fff' : tokens.ink }}>
-                      {t.label}
+                      {t(`adjuster.incident.${item.value}.label`)}
                     </Text>
                     <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: active ? 'rgba(255,255,255,0.55)' : tokens.inkMuted, marginTop: 1 }}>
-                      {t.desc}
+                      {t(`adjuster.incident.${item.value}.desc`)}
                     </Text>
                   </View>
                 </Pressable>
@@ -172,7 +172,7 @@ export function AdjusterRequestScreen() {
         {/* Address */}
         <View style={{ gap: 10 }}>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-            Адрес
+            {t('adjuster.address')}
           </Text>
           <View style={{
             flexDirection: 'row', alignItems: 'center',
@@ -188,8 +188,8 @@ export function AdjusterRequestScreen() {
 
             <TextInput
               value={address}
-              onChangeText={(t) => { setAddress(t); setCoords(undefined); }}
-              placeholder="Введите улицу или ориентир..."
+              onChangeText={(txt) => { setAddress(txt); setCoords(undefined); }}
+              placeholder={t('adjuster.addressPlaceholder')}
               placeholderTextColor={tokens.inkMuted}
               style={{ flex: 1, fontFamily: 'Manrope_400Regular', fontSize: 15, color: tokens.ink }}
               returnKeyType="done"
@@ -230,12 +230,12 @@ export function AdjusterRequestScreen() {
         {policies.length > 0 && (
           <View style={{ gap: 10 }}>
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-              Полис (необязательно)
+              {t('adjuster.policyOptional')}
             </Text>
             <View style={{ gap: 8 }}>
               {policies.map((p) => {
                 const active = policyId === p.id;
-                const label = `${PRODUCT_LABEL[p.type] ?? p.type} · ${p.vehicle?.plate ?? '—'}`;
+                const label = `${t(`productTypes.${p.type}`)} · ${p.vehicle?.plate ?? '—'}`;
                 return (
                   <Pressable
                     key={p.id}
@@ -273,12 +273,12 @@ export function AdjusterRequestScreen() {
         {/* Comment */}
         <View style={{ gap: 10 }}>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkMuted, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-            Комментарий
+            {t('adjuster.comment')}
           </Text>
           <TextInput
             value={comment}
             onChangeText={setComment}
-            placeholder="Дополнительные детали (необязательно)..."
+            placeholder={t('adjuster.commentPlaceholder')}
             placeholderTextColor={tokens.inkMuted}
             multiline
             numberOfLines={3}
@@ -299,10 +299,10 @@ export function AdjusterRequestScreen() {
           {isPending ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <ActivityIndicator color="#fff" size="small" />
-              <Text style={{ color: '#fff', fontFamily: 'Manrope_600SemiBold', fontSize: 16 }}>Отправляем...</Text>
+              <Text style={{ color: '#fff', fontFamily: 'Manrope_600SemiBold', fontSize: 16 }}>{t('adjuster.submitting')}</Text>
             </View>
           ) : (
-            'Вызвать помощь'
+            t('adjuster.callHelp')
           )}
         </RedButton>
       </View>

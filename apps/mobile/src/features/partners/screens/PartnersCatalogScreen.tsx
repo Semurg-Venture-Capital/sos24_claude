@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -16,6 +17,7 @@ type Nav = NativeStackNavigationProp<PartnersStackParamList, 'PartnersCatalog'>;
 
 export function PartnersCatalogScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | undefined>(undefined);
@@ -59,10 +61,10 @@ export function PartnersCatalogScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
           <BackButton onPress={() => nav.goBack()} />
-          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 24, letterSpacing: -0.24, color: tokens.ink }}>Партнёры</Text>
+          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 24, letterSpacing: -0.24, color: tokens.ink }}>{t('partners.title')}</Text>
         </View>
         <Pressable onPress={() => nav.navigate('MyBookings')}>
-          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red }}>Мои записи</Text>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.red }}>{t('partners.myBookings')}</Text>
         </Pressable>
       </View>
 
@@ -77,7 +79,7 @@ export function PartnersCatalogScreen() {
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder="СТО, клиника, услуга"
+              placeholder={t('partners.searchPlaceholder')}
               placeholderTextColor={tokens.inkMuted}
               style={{ flex: 1, fontFamily: 'Manrope_400Regular', fontSize: 15, color: tokens.ink }}
             />
@@ -100,7 +102,7 @@ export function PartnersCatalogScreen() {
 
         {/* Категории */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          <Chip label="Все" active={!categoryId} onPress={() => setCategoryId(undefined)} />
+          <Chip label={t('partners.categoryAll')} active={!categoryId} onPress={() => setCategoryId(undefined)} />
           {categories.map((c) => (
             <Chip key={c.id} label={`${c.icon ?? ''} ${c.name}`.trim()} active={categoryId === c.id} onPress={() => setCategoryId(c.id)} />
           ))}
@@ -130,7 +132,7 @@ export function PartnersCatalogScreen() {
         </View>
       ) : partners.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 }}>
-          <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center' }}>Ничего не найдено</Text>
+          <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center' }}>{t('partners.notFound')}</Text>
         </View>
       ) : (
         <ScrollView style={{ flex: 1, marginTop: 12 }} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120, gap: 10 }} showsVerticalScrollIndicator={false}>
@@ -155,6 +157,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
 }
 
 function PartnerRow({ p, onPress }: { p: PartnerCard; onPress: () => void }) {
+  const { t } = useTranslation();
   return (
     <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 24, overflow: 'hidden', opacity: pressed ? 0.7 : 1 })}>
       <Glass intensity={20} tint="light" style={{ backgroundColor: 'rgba(255,255,255,0.55)', padding: 14, borderWidth: 1, borderColor: tokens.hairline, flexDirection: 'row', gap: 14 }}>
@@ -170,7 +173,7 @@ function PartnerRow({ p, onPress }: { p: PartnerCard; onPress: () => void }) {
             <Text numberOfLines={1} style={{ flex: 1, fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>{p.name}</Text>
             {p.openNow != null && (
               <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: p.openNow ? 'rgba(105,228,183,0.85)' : 'rgba(20,20,20,0.06)' }}>
-                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 10, color: p.openNow ? '#0a3a26' : tokens.inkMuted }}>{p.openNow ? 'открыто' : 'закрыто'}</Text>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 10, color: p.openNow ? '#0a3a26' : tokens.inkMuted }}>{p.openNow ? t('partners.openNow') : t('partners.closed')}</Text>
               </View>
             )}
           </View>

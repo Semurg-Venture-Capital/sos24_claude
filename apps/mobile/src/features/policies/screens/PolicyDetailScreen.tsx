@@ -2,11 +2,12 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useMe } from '../../../api/auth';
 import { usePolicy } from '../../../api/policies';
-import type { ProductType } from '../../../api/types';
 import { BackButton } from '../../../components/ui/BackButton';
 import { IconButton } from '../../../components/ui/IconButton';
 import { OutlineButton } from '../../../components/ui/OutlineButton';
@@ -22,14 +23,6 @@ import type { PoliciesStackParamList } from '../../../navigation/types';
 
 type Nav = NativeStackNavigationProp<PoliciesStackParamList, 'PolicyDetail'>;
 type R = RouteProp<PoliciesStackParamList, 'PolicyDetail'>;
-
-const TYPE_LABELS: Record<ProductType, string> = {
-  OSAGO: 'ОСАГО',
-  KASKO: 'КАСКО',
-  HEALTH: 'Здоровье',
-  HOME: 'Дом',
-  FINANCE: 'Финансы',
-};
 
 function formatDate(iso: string): string {
   const [y, m, d] = iso.slice(0, 10).split('-');
@@ -49,12 +42,13 @@ function formatPolicyNumber(n: string | null): string {
   return parts.join(' ');
 }
 
-function formatMoney(amount: number): string {
-  return amount.toLocaleString('ru-RU') + ' сум';
+function formatMoney(amount: number, t: TFunction): string {
+  return amount.toLocaleString('ru-RU') + ' ' + t('policyDetail.currency');
 }
 
 // M8.2 — детальная карточка полиса. Эталон: ScreenPolicyDetail.
 export function PolicyDetailScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const route = useRoute<R>();
 
@@ -76,13 +70,13 @@ export function PolicyDetailScreen() {
     return (
       <PhoneFrame>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: tokens.inkMuted, fontFamily: 'Manrope_400Regular' }}>Полис не найден</Text>
+          <Text style={{ color: tokens.inkMuted, fontFamily: 'Manrope_400Regular' }}>{t('policyDetail.notFound')}</Text>
         </View>
       </PhoneFrame>
     );
   }
 
-  const typeLabel = TYPE_LABELS[policy.type] ?? policy.type;
+  const typeLabel = t(`productTypes.${policy.type}`, { defaultValue: policy.type });
   const plate = policy.vehicle?.plate ?? '—';
   const car = policy.vehicle ? `${policy.vehicle.brand} ${policy.vehicle.model}` : typeLabel;
   const carYear = policy.vehicle?.year;
@@ -96,14 +90,22 @@ export function PolicyDetailScreen() {
       : '—';
 
   const tagTone = isExpiring ? 'yellow' : isExpired ? 'glass' : 'green';
-  const tagLabel = isExpiring ? `${daysLeft} дн.` : isExpired ? 'Истёк' : 'Активен';
+  const tagLabel = isExpiring
+    ? t('policyDetail.daysLeft', { count: daysLeft })
+    : isExpired
+      ? t('policyDetail.expired')
+      : t('policyDetail.active');
 
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Мой полис ${typeLabel}: ${formatPolicyNumber(policy.policyNumber)} · ${plate}\nsos24.uz`,
+        message: t('policyDetail.shareMessage', {
+          type: typeLabel,
+          number: formatPolicyNumber(policy.policyNumber),
+          plate,
+        }),
         url: qrValue,
-        title: `Полис ${typeLabel} · ${plate}`,
+        title: t('policyDetail.shareTitle', { type: typeLabel, plate }),
       });
     } catch {
       // пользователь отменил — ничего не делаем
@@ -111,9 +113,9 @@ export function PolicyDetailScreen() {
   };
 
   const menuItems = [
-    { label: 'Скачать PDF', icon: <PdfIcon />, onPress: () => Alert.alert('Скоро', 'Скачивание электронного полиса') },
-    { label: 'Продлить', icon: <RenewIcon />, onPress: () => Alert.alert('Скоро', 'Продление полиса будет доступно позже') },
-    { label: 'Заявить убыток', icon: <ClaimIcon />, onPress: () => Alert.alert('Скоро', 'Оформление страхового случая'), destructive: true },
+    { label: t('policyDetail.downloadPdf'), icon: <PdfIcon />, onPress: () => Alert.alert(t('common.comingSoon'), t('policyDetail.downloadPdfSoon')) },
+    { label: t('policyDetail.renew'), icon: <RenewIcon />, onPress: () => Alert.alert(t('common.comingSoon'), t('policyDetail.renewSoon')) },
+    { label: t('policyDetail.fileClaim'), icon: <ClaimIcon />, onPress: () => Alert.alert(t('common.comingSoon'), t('policyDetail.claimSoon')), destructive: true },
   ];
 
   return (
@@ -217,7 +219,7 @@ export function PolicyDetailScreen() {
                   textTransform: 'uppercase',
                 }}
               >
-                {typeLabel} · {policy.periodMonths} мес
+                {typeLabel} · {t('policyDetail.periodMonths', { count: policy.periodMonths })}
               </Text>
               <Text
                 style={{
@@ -253,7 +255,7 @@ export function PolicyDetailScreen() {
                 <Path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
               </Svg>
               <Text style={{ color: '#fff', fontFamily: 'Manrope_500Medium', fontSize: 12 }}>
-                Развернуть
+                {t('policyDetail.expand')}
               </Text>
             </Pressable>
           </View>
@@ -261,13 +263,13 @@ export function PolicyDetailScreen() {
 
         {/* Summary blocks */}
         <SummaryBlock
-          eyebrow="Полис"
+          eyebrow={t('policyDetail.summaryTitle')}
           rows={[
-            { label: 'Номер', value: formatPolicyNumber(policy.policyNumber) },
-            { label: 'Страхователь', value: holderName },
-            { label: 'Период', value: `${formatDate(policy.startDate)} — ${formatDate(policy.endDate)}` },
-            { label: 'Страховая премия', value: formatMoney(policy.totalPrice) },
-            ...(policy.discount > 0 ? [{ label: 'Скидка', value: `−${formatMoney(policy.discount)}` }] : []),
+            { label: t('policyDetail.number'), value: formatPolicyNumber(policy.policyNumber) },
+            { label: t('policyDetail.holder'), value: holderName },
+            { label: t('policyDetail.period'), value: `${formatDate(policy.startDate)} — ${formatDate(policy.endDate)}` },
+            { label: t('policyDetail.premium'), value: formatMoney(policy.totalPrice, t) },
+            ...(policy.discount > 0 ? [{ label: t('policyDetail.discount'), value: `−${formatMoney(policy.discount, t)}` }] : []),
           ]}
         />
       </ScrollView>
@@ -285,17 +287,17 @@ export function PolicyDetailScreen() {
         }}
       >
         <RedButton trailing={false} onPress={() => (nav as any).navigate('SosAssistant')}>
-          Сообщить о ДТП
+          {t('policyDetail.reportAccident')}
         </RedButton>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <OutlineButton
             style={{ flex: 1, height: 52 }}
-            onPress={() => Alert.alert('Скоро', 'Скачивание электронного полиса')}
+            onPress={() => Alert.alert(t('common.comingSoon'), t('policyDetail.downloadPdfSoon'))}
           >
-            Скачать PDF
+            {t('policyDetail.downloadPdf')}
           </OutlineButton>
           <OutlineButton style={{ flex: 1, height: 52 }} disabled>
-            Скоро
+            {t('common.comingSoon')}
           </OutlineButton>
         </View>
       </View>

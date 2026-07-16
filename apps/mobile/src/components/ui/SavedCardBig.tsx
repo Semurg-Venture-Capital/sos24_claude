@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import type { CardBrand } from './CardOption';
 import { Tag } from './Tag';
@@ -21,6 +22,7 @@ const brandLabels: Record<CardBrand, string> = { uzcard: 'Uzcard', humo: 'Humo' 
 
 // Большая «реальная» карточка платёжного инструмента (M7.3 Мои карты).
 export function SavedCardBig({ brand, last4, expiry, holder, primary, balance }: Props) {
+  const { t } = useTranslation();
   const s = brandStyles[brand];
 
   return (
@@ -68,7 +70,7 @@ export function SavedCardBig({ brand, last4, expiry, holder, primary, balance }:
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View style={{ gap: 4 }}>
-            {primary && <Tag tone="glass">Основная</Tag>}
+            {primary && <Tag tone="glass">{t('ui.card.primary')}</Tag>}
           </View>
           <View
             style={{
@@ -105,7 +107,7 @@ export function SavedCardBig({ brand, last4, expiry, holder, primary, balance }:
             </Text>
             {balance !== undefined && (
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
-                {balance.toLocaleString('ru-RU')} сум
+                {balance.toLocaleString('ru-RU')} {t('ui.card.sum')}
               </Text>
             )}
           </View>
@@ -120,7 +122,7 @@ export function SavedCardBig({ brand, last4, expiry, holder, primary, balance }:
                   textTransform: 'uppercase',
                 }}
               >
-                Владелец
+                {t('ui.card.holder')}
               </Text>
               <Text
                 style={{
@@ -143,7 +145,7 @@ export function SavedCardBig({ brand, last4, expiry, holder, primary, balance }:
                   textTransform: 'uppercase',
                 }}
               >
-                Срок
+                {t('ui.card.expiry')}
               </Text>
               <Text
                 style={{

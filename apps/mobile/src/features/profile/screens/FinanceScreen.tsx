@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -38,15 +39,9 @@ const TX_ICONS: Record<string, string> = {
   BONUS: '★',
 };
 
-const PAYMENT_METHOD_LABEL: Record<string, string> = {
-  WALLET: 'Кошелёк',
-  CARD: 'Карта',
-  PAYME: 'Payme',
-  CLICK: 'Click',
-};
-
 // M-Finance — Финансы: кошелёк + карты + история операций
 export function FinanceScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const { data: wallet, isLoading: walletLoading } = useWallet();
   const { data: cards, isLoading: cardsLoading } = useCards();
@@ -79,14 +74,14 @@ export function FinanceScreen() {
       setAddLast4('');
       setAddExpiry('');
     } catch {
-      Alert.alert('Ошибка', 'Не удалось добавить карту');
+      Alert.alert(t('profileExtra.error'), t('profileExtra.addCardFailed'));
     }
   };
 
   const handleDeleteCard = (id: string, last4: string) => {
-    Alert.alert('Удалить карту', `Карта •••• ${last4} будет удалена`, [
-      { text: 'Отмена', style: 'cancel' },
-      { text: 'Удалить', style: 'destructive', onPress: () => deleteCard.mutate(id) },
+    Alert.alert(t('profileExtra.deleteCardTitle'), t('profileExtra.deleteCardMsg', { last4 }), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('profileExtra.delete'), style: 'destructive', onPress: () => deleteCard.mutate(id) },
     ]);
   };
 
@@ -97,7 +92,7 @@ export function FinanceScreen() {
   const handleTopup = async () => {
     const amount = parseInt(topupAmount.replace(/\D/g, ''), 10);
     if (!amount || amount < 1000) {
-      Alert.alert('Ошибка', 'Минимальная сумма пополнения 1 000 сум');
+      Alert.alert(t('profileExtra.error'), t('profileExtra.minTopup'));
       return;
     }
     try {
@@ -105,7 +100,7 @@ export function FinanceScreen() {
       setShowTopup(false);
       setTopupAmount('');
     } catch {
-      Alert.alert('Ошибка', 'Не удалось пополнить кошелёк');
+      Alert.alert(t('profileExtra.error'), t('profileExtra.topupFailed'));
     }
   };
 
@@ -120,7 +115,7 @@ export function FinanceScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 60, gap: 28 }}
         showsVerticalScrollIndicator={false}
       >
-        <ScreenHeading title="Финансы" subtitle="Кошелёк, карты и история платежей" />
+        <ScreenHeading title={t('profileExtra.financeTitle')} subtitle={t('profileExtra.financeSubtitle')} />
 
         {/* Wallet card */}
         <View style={{ borderRadius: 28, overflow: 'hidden' }}>
@@ -136,7 +131,7 @@ export function FinanceScreen() {
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: 'rgba(255,255,255,0.5)', letterSpacing: 1, textTransform: 'uppercase' }}>
-                SOS24 Кошелёк
+                {t('profileExtra.walletCardLabel')}
               </Text>
             </View>
 
@@ -149,7 +144,7 @@ export function FinanceScreen() {
                     {(wallet?.balance ?? 0).toLocaleString('ru-RU')}
                   </Text>
                   <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>
-                    сум
+                    {t('profileExtra.currency')}
                   </Text>
                 </View>
               </View>
@@ -167,7 +162,7 @@ export function FinanceScreen() {
               })}
             >
               <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#fff' }}>
-                Пополнить
+                {t('profileExtra.topup')}
               </Text>
             </Pressable>
           </LinearGradient>
@@ -176,7 +171,7 @@ export function FinanceScreen() {
         {/* Cards section */}
         <View style={{ gap: 12 }}>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: tokens.inkSubtle, letterSpacing: 0.88, textTransform: 'uppercase' }}>
-            Мои карты
+            {t('profileExtra.myCards')}
           </Text>
 
           {cardsLoading ? (
@@ -189,13 +184,13 @@ export function FinanceScreen() {
                   onLongPress={() =>
                     Alert.alert(
                       `•••• ${card.last4}`,
-                      `Баланс: ${card.balance.toLocaleString('ru-RU')} сум`,
+                      t('profileExtra.balanceMsg', { amount: card.balance.toLocaleString('ru-RU') }),
                       [
-                        { text: 'Отмена', style: 'cancel' },
+                        { text: t('common.cancel'), style: 'cancel' },
                         !card.isDefault
-                          ? { text: 'Сделать основной', onPress: () => handleSetDefault(card.id) }
-                          : { text: 'Основная карта', style: 'destructive' },
-                        { text: 'Удалить', style: 'destructive', onPress: () => handleDeleteCard(card.id, card.last4) },
+                          ? { text: t('profileExtra.makeDefault'), onPress: () => handleSetDefault(card.id) }
+                          : { text: t('profileExtra.defaultCard'), style: 'destructive' },
+                        { text: t('profileExtra.delete'), style: 'destructive', onPress: () => handleDeleteCard(card.id, card.last4) },
                       ],
                     )
                   }
@@ -217,16 +212,16 @@ export function FinanceScreen() {
               {supportedCards.length === 0 && (
                 <View style={{ paddingVertical: 16, alignItems: 'center' }}>
                   <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
-                    Нет сохранённых карт
+                    {t('profileExtra.noCards')}
                   </Text>
                 </View>
               )}
 
-              <AddTile onPress={() => setShowAddCard(true)}>Добавить карту</AddTile>
+              <AddTile onPress={() => setShowAddCard(true)}>{t('profileExtra.addCard')}</AddTile>
 
               <View style={{ borderRadius: 14, backgroundColor: 'rgba(20,20,20,0.04)', padding: 14 }}>
                 <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted, lineHeight: 18 }}>
-                  Поддерживаются Uzcard и Humo. Удержите карту для управления.
+                  {t('profileExtra.cardsHint')}
                 </Text>
               </View>
             </View>
@@ -236,7 +231,7 @@ export function FinanceScreen() {
         {/* Transaction history */}
         <View style={{ gap: 12 }}>
           <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: tokens.inkSubtle, letterSpacing: 0.88, textTransform: 'uppercase' }}>
-            История операций
+            {t('profileExtra.txHistory')}
           </Text>
 
           {/* Wallet transactions */}
@@ -314,7 +309,7 @@ export function FinanceScreen() {
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 14, color: tokens.ink }}>
-                      Оплата полиса · {PAYMENT_METHOD_LABEL[p.method]}
+                      {t('profileExtra.policyPayment')} · {t(`profileExtra.paymentMethod.${p.method}`, { defaultValue: p.method })}
                     </Text>
                     <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>
                       {new Date(p.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
@@ -332,7 +327,7 @@ export function FinanceScreen() {
             (!payments || payments.filter((p) => p.method === 'CARD' && p.status === 'SUCCESS').length === 0) && (
             <View style={{ paddingVertical: 24, alignItems: 'center' }}>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted }}>
-                Операций пока нет
+                {t('profileExtra.noTx')}
               </Text>
             </View>
           )}
@@ -347,7 +342,7 @@ export function FinanceScreen() {
         >
           <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40, gap: 16 }}>
             <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 22, letterSpacing: -0.11, color: tokens.ink }}>
-              Добавить карту
+              {t('profileExtra.addCard')}
             </Text>
             <Segmented
               options={['Uzcard', 'Humo']}
@@ -355,7 +350,7 @@ export function FinanceScreen() {
               onChange={(i) => setAddBrand(i === 0 ? 'UZCARD' : 'HUMO')}
             />
             <TextField
-              label="Последние 4 цифры"
+              label={t('profileExtra.last4Label')}
               value={addLast4}
               onChangeText={setAddLast4}
               placeholder="1234"
@@ -363,7 +358,7 @@ export function FinanceScreen() {
               maxLength={4}
             />
             <TextField
-              label="Срок действия (ММ/ГГ)"
+              label={t('profileExtra.expiryLabel')}
               value={addExpiry}
               onChangeText={setAddExpiry}
               placeholder="08/27"
@@ -374,12 +369,12 @@ export function FinanceScreen() {
                 onPress={handleAddCard}
                 disabled={addLast4.length < 4 || addExpiry.length < 5 || createCard.isPending}
               >
-                {createCard.isPending ? 'Сохранение...' : 'Сохранить'}
+                {createCard.isPending ? t('profileExtra.saving') : t('common.save')}
               </RedButton>
             </View>
             <Pressable onPress={() => setShowAddCard(false)}>
               <Text style={{ textAlign: 'center', color: tokens.inkMuted, fontFamily: 'Manrope_500Medium', fontSize: 14 }}>
-                Отмена
+                {t('common.cancel')}
               </Text>
             </Pressable>
           </View>
@@ -394,10 +389,10 @@ export function FinanceScreen() {
         >
           <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: 40, gap: 16 }}>
             <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 22, letterSpacing: -0.11, color: tokens.ink }}>
-              Пополнить кошелёк
+              {t('profileExtra.topupTitle')}
             </Text>
             <TextField
-              label="Сумма пополнения"
+              label={t('profileExtra.topupAmountLabel')}
               value={topupAmount}
               onChangeText={setTopupAmount}
               placeholder="100 000"
@@ -408,12 +403,12 @@ export function FinanceScreen() {
                 onPress={handleTopup}
                 disabled={!topupAmount || topup.isPending}
               >
-                {topup.isPending ? 'Пополнение...' : 'Пополнить'}
+                {topup.isPending ? t('profileExtra.toppingUp') : t('profileExtra.topup')}
               </RedButton>
             </View>
             <Pressable onPress={() => setShowTopup(false)}>
               <Text style={{ textAlign: 'center', color: tokens.inkMuted, fontFamily: 'Manrope_500Medium', fontSize: 14 }}>
-                Отмена
+                {t('common.cancel')}
               </Text>
             </Pressable>
           </View>

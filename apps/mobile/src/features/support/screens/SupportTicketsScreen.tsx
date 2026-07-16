@@ -1,8 +1,10 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
-import { STATUS_LABEL, useMyTickets, type SupportTicket, type TicketStatus } from '../../../api/support';
+import { useMyTickets, type SupportTicket, type TicketStatus } from '../../../api/support';
 import { BackButton } from '../../../components/ui/BackButton';
 import { FAB } from '../../../components/ui/FAB';
 import { Glass } from '../../../components/ui/Glass';
@@ -25,6 +27,7 @@ function time(iso: string) {
 
 export function SupportTicketsScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { data, isLoading, refetch } = useMyTickets();
 
   useFocusEffect(
@@ -41,7 +44,7 @@ export function SupportTicketsScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 12 }}>
         <BackButton onPress={() => nav.goBack()} />
         <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 26, letterSpacing: -0.26, color: tokens.ink }}>
-          Мои обращения
+          {t('support.tickets.title')}
         </Text>
       </View>
 
@@ -52,13 +55,13 @@ export function SupportTicketsScreen() {
       ) : isEmpty ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 8 }}>
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink, textAlign: 'center' }}>
-            Обращений пока нет
+            {t('support.tickets.emptyTitle')}
           </Text>
           <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center' }}>
-            Задайте вопрос — оператор ответит в чате
+            {t('support.tickets.emptySubtitle')}
           </Text>
           <View style={{ width: 260, marginTop: 12 }}>
-            <RedButton onPress={() => nav.navigate('SupportNewTicket')}>Новое обращение</RedButton>
+            <RedButton onPress={() => nav.navigate('SupportNewTicket')}>{t('support.newTicket.title')}</RedButton>
           </View>
         </View>
       ) : (
@@ -68,8 +71,8 @@ export function SupportTicketsScreen() {
             contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 160, gap: 10 }}
             showsVerticalScrollIndicator={false}
           >
-            {tickets.map((t) => (
-              <TicketCard key={t.id} item={t} onPress={() => nav.navigate('SupportChat', { ticketId: t.id, subject: t.subject })} />
+            {tickets.map((ticket) => (
+              <TicketCard key={ticket.id} item={ticket} t={t} onPress={() => nav.navigate('SupportChat', { ticketId: ticket.id, subject: ticket.subject })} />
             ))}
           </ScrollView>
           <FAB onPress={() => nav.navigate('SupportNewTicket')} bottom={32} />
@@ -79,7 +82,7 @@ export function SupportTicketsScreen() {
   );
 }
 
-function TicketCard({ item, onPress }: { item: SupportTicket; onPress: () => void }) {
+function TicketCard({ item, t, onPress }: { item: SupportTicket; t: TFunction; onPress: () => void }) {
   const tone = STATUS_TONE[item.status];
   return (
     <Pressable onPress={onPress} style={({ pressed }) => ({ borderRadius: 24, overflow: 'hidden', opacity: pressed ? 0.7 : 1 })}>
@@ -95,7 +98,7 @@ function TicketCard({ item, onPress }: { item: SupportTicket; onPress: () => voi
               </View>
             )}
             <View style={{ paddingVertical: 4, paddingHorizontal: 9, borderRadius: 999, backgroundColor: tone.bg }}>
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 10, color: tone.fg }}>{STATUS_LABEL[item.status]}</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 10, color: tone.fg }}>{t('support.map.' + item.status)}</Text>
             </View>
           </View>
         </View>

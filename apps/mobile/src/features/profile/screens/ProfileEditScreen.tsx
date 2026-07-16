@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useMe, useUpdateProfile } from '../../../api/auth';
 import { CalendarIcon } from '../../../components/icons/CalendarIcon';
@@ -27,6 +28,7 @@ function formatBirthDate(iso: string | null | undefined): string {
 // Поля ФИО + дата рождения заблокированы если verificationStatus === MYID_VERIFIED —
 // данные заполнены из государственной системы и не могут быть изменены вручную.
 export function ProfileEditScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const kbHeight = useKeyboardHeight();
   const { data: me, isLoading } = useMe();
@@ -89,7 +91,7 @@ export function ProfileEditScreen() {
         >
           <BackButton onPress={() => nav.goBack()} />
           <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink }}>
-            Редактировать
+            {t('profileExtra.editTitle')}
           </Text>
           <View style={{ width: 48, height: 48 }} />
         </View>
@@ -132,7 +134,7 @@ export function ProfileEditScreen() {
               </Pressable>
             </View>
             <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 14, color: tokens.inkSubtle }}>
-              Изменить фото
+              {t('profileExtra.changePhoto')}
             </Text>
           </View>
 
@@ -149,10 +151,10 @@ export function ProfileEditScreen() {
               }}
             >
               <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: '#0a9466' }}>
-                Данные подтверждены MyID
+                {t('profileExtra.myIdConfirmed')}
               </Text>
               <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: '#0a9466', opacity: 0.8 }}>
-                ФИО и дата рождения получены из государственной системы и не могут быть изменены вручную.
+                {t('profileExtra.myIdNameNote')}
               </Text>
             </View>
           )}
@@ -160,37 +162,37 @@ export function ProfileEditScreen() {
           <View style={{ gap: 14 }}>
             <View style={{ opacity: isVerified ? 0.5 : 1 }}>
               <TextField
-                label="Имя"
+                label={t('profileExtra.firstName')}
                 value={name}
                 onChangeText={setName}
-                placeholder="Азиз"
+                placeholder={t('profileExtra.firstNamePlaceholder')}
                 editable={!isVerified}
               />
             </View>
             <View style={{ opacity: isVerified ? 0.5 : 1 }}>
               <TextField
-                label="Фамилия"
+                label={t('profileExtra.lastName')}
                 value={surname}
                 onChangeText={setSurname}
-                placeholder="Каримов"
+                placeholder={t('profileExtra.lastNamePlaceholder')}
                 editable={!isVerified}
               />
             </View>
             <View style={{ opacity: isVerified ? 0.5 : 1 }}>
               <TextField
-                label="Отчество (необязательно)"
+                label={t('profileExtra.patronymic')}
                 value={patronymic}
                 onChangeText={setPatronymic}
-                placeholder="Эркинович"
+                placeholder={t('profileExtra.patronymicPlaceholder')}
                 editable={!isVerified}
               />
             </View>
             <View style={{ opacity: isVerified ? 0.5 : 1 }}>
               <TextField
-                label="Дата рождения"
+                label={t('profileExtra.birthDate')}
                 value={birthDate}
                 onChangeText={setBirthDate}
-                placeholder="ГГГГ-ММ-ДД"
+                placeholder={t('profileExtra.datePlaceholder')}
                 keyboardType="numbers-and-punctuation"
                 suffix={<CalendarIcon />}
                 editable={!isVerified}
@@ -204,7 +206,7 @@ export function ProfileEditScreen() {
             onPress={isVerified ? () => nav.goBack() : onSave}
             disabled={submitting || (!isVerified && (!name.trim() || !surname.trim()))}
           >
-            {isVerified ? 'Закрыть' : submitting ? 'Сохранение...' : 'Сохранить'}
+            {isVerified ? t('profileExtra.close') : submitting ? t('profileExtra.saving') : t('common.save')}
           </RedButton>
         </View>
       </DismissKeyboardView>

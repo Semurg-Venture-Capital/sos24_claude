@@ -1,5 +1,6 @@
 import { Glass } from './Glass';
 import { forwardRef, useId, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   InputAccessoryView,
   Keyboard,
@@ -31,6 +32,7 @@ export const TextField = forwardRef<RNTextInput, Props>(function TextField(
   { label, prefix, suffix, hint, error, focused, containerStyle, ...rest },
   ref,
 ) {
+  const { t } = useTranslation();
   const ringColor = error
     ? tokens.red
     : focused
@@ -123,7 +125,7 @@ export const TextField = forwardRef<RNTextInput, Props>(function TextField(
             }}
           >
             <Pressable onPress={() => Keyboard.dismiss()} hitSlop={10}>
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>Готово</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 16, color: tokens.red }}>{t('ui.done')}</Text>
             </Pressable>
           </View>
         </InputAccessoryView>

@@ -1152,5 +1152,503 @@
       "pdfSoon": "PDF-polisni yuklab olish keyingi yangilanishda mavjud boʻladi.",
       "toHome": "Bosh sahifaga"
     }
+  },
+  "adjuster": {
+    "title": "Joyida yordam",
+    "errorTitle": "Xatolik",
+    "submitError": "Ariza yuborilmadi. Yana urinib ko'ring.",
+    "submitting": "Yuborilmoqda...",
+    "callHelp": "Yordam chaqirish",
+    "whatHappened": "Nima yuz berdi",
+    "address": "Manzil",
+    "addressPlaceholder": "Ko'cha yoki mo'ljalni kiriting...",
+    "policyOptional": "Polis (ixtiyoriy)",
+    "comment": "Izoh",
+    "commentPlaceholder": "Qo'shimcha tafsilotlar (ixtiyoriy)...",
+    "geo": {
+      "disabledTitle": "Geolokatsiya o'chirilgan",
+      "disabledMessage": "Manzilni avtomatik aniqlash uchun Sozlamalarda ruxsat bering.",
+      "openSettings": "Sozlamalarni ochish",
+      "error": "Joylashuvni aniqlab bo'lmadi. Manzilni qo'lda kiriting."
+    },
+    "incident": {
+      "ACCIDENT": {
+        "label": "YTH",
+        "desc": "Boshqa avtomobil bilan to'qnashuv"
+      },
+      "DAMAGE": {
+        "label": "Shikast",
+        "desc": "Tirnalish, ezilish, oyna"
+      },
+      "THEFT": {
+        "label": "O'g'irlash",
+        "desc": "O'g'irlik yoki o'g'irlashga urinish"
+      }
+    },
+    "sent": {
+      "title": "Ariza qabul qilindi",
+      "subtitle": "Mutaxassis siz tomon yo'lda.\nO'rtacha yetib kelish vaqti — 25–40 daqiqa."
+    },
+    "dispatcher": "SOS24 dispetcheri",
+    "dispatcherHours": "24/7 ishlaydi",
+    "trackStatus": "Holatni kuzatish",
+    "callDispatcher": "Dispetcherga qo'ng'iroq qilish",
+    "toHome": "Bosh sahifaga",
+    "statusTitle": "Ariza holati",
+    "cancelled": "Bekor qilindi",
+    "cancelledInfo": "Ariza bekor qilindi. Agar sizga yordam kerak bo'lsa, uni qayta chaqiring.",
+    "progress": "Jarayon",
+    "steps": {
+      "NEW": {
+        "label": "Ariza qabul qilindi",
+        "desc": "Bo'sh mutaxassis qidirilmoqda"
+      },
+      "ACCEPTED": {
+        "label": "Mutaxassis tayinlandi",
+        "desc": "Chiqishga tayyorlanmoqda"
+      },
+      "EN_ROUTE": {
+        "label": "Yo'lda",
+        "desc": "Siz tomon yo'lda · ≈25–40 daq"
+      },
+      "COMPLETED": {
+        "label": "Yetib keldi",
+        "desc": "Mutaxassis joyida"
+      }
+    },
+    "specialistAssigned": "Mutaxassis tayinlandi",
+    "callSpecialist": "Mutaxassisga qo'ng'iroq qilish"
+  },
+  "garage": {
+    "title": "Garaj",
+    "emptyTitle": "Avtomobilingizni qo'shing",
+    "emptySubtitle": "Avtomobillar polislarni tez rasmiylashtirish uchun saqlanadi",
+    "addVehicle": "Avtomobil qo'shish",
+    "editVehicle": "Avtomobilni tahrirlash",
+    "editSubtitle": "Texpasport ma'lumotlarini kiriting — qolgani avtomatik to'ldiriladi",
+    "errorTitle": "Xatolik",
+    "saveError": "Avtomobilni saqlab bo'lmadi. Yana urinib ko'ring.",
+    "saving": "Saqlanmoqda...",
+    "find": "Topish",
+    "vehicleData": "Avtomobil ma'lumotlari",
+    "lookupFound": "Ma'lumotlar topildi va avtomatik to'ldirildi",
+    "lookupNotFound": "Avtomobil topilmadi — ma'lumotlarni quyida qo'lda to'ldiring",
+    "field": {
+      "plate": "Davlat raqami",
+      "techSeria": "Texpasport seriyasi",
+      "techNumber": "Texpasport raqami",
+      "brand": "Marka",
+      "model": "Model",
+      "year": "Yil",
+      "color": "Rang",
+      "colorPlaceholder": "Oq",
+      "vin": "VIN / kuzov",
+      "vinPlaceholder": "17 ta belgi",
+      "engine": "Dvigatel hajmi, sm³",
+      "power": "Quvvat, o.k."
+    },
+    "policyStatus": {
+      "DRAFT": "Qoralama",
+      "PENDING_PAYMENT": "To'lov kutilmoqda",
+      "ACTIVE": "Faol",
+      "EXPIRED": "Muddati tugagan",
+      "CANCELLED": "Bekor qilingan"
+    },
+    "detail": {
+      "permTitle": "Ruxsat",
+      "permMessage": "Kamera/galereyaga ruxsat kerak.",
+      "photo": "Foto",
+      "photoError": "Fotoni yuklab bo'lmadi.",
+      "photoTitle": "Avtomobil fotosi",
+      "takePhoto": "Foto olish",
+      "pickGallery": "Galereyadan tanlash",
+      "deletePhoto": "Fotoni o'chirish",
+      "notFound": "Avtomobil topilmadi",
+      "syncDoneTitle": "Tayyor",
+      "syncDoneMessage": "Ma'lumotlar davlat reyestridan yangilandi.",
+      "syncNotFoundTitle": "Topilmadi",
+      "syncNotFoundMessage": "Reyestr ushbu texpasport bo'yicha ma'lumot qaytarmadi. Seriya va raqamni tekshiring.",
+      "syncError": "Reyestrga murojaat qilib bo'lmadi. Keyinroq urinib ko'ring.",
+      "deleteTitle": "Avtomobil o'chirilsinmi?",
+      "delete": "O'chirish",
+      "deleteError": "Avtomobilni o'chirib bo'lmadi.",
+      "changePhoto": "Fotoni o'zgartirish",
+      "addPhoto": "Foto qo'shish",
+      "specs": "Xususiyatlar",
+      "brand": "Marka",
+      "model": "Model",
+      "year": "Ishlab chiqarilgan yili",
+      "color": "Rang",
+      "power": "Quvvat",
+      "engine": "Dvigatel hajmi",
+      "vin": "VIN",
+      "techPassport": "Texpasport",
+      "tpSeriaNumber": "TP seriyasi va raqami",
+      "issueDate": "Berilgan sana",
+      "vehicleType": "Transport turi",
+      "bodyNumber": "Kuzov raqami",
+      "engineNumber": "Dvigatel raqami",
+      "fuel": "Yoqilg'i",
+      "seats": "O'rindiqlar",
+      "fullWeight": "To'liq massa",
+      "emptyWeight": "Bo'sh massa",
+      "division": "Ro'yxatga olish bo'limi",
+      "kg": "kg",
+      "tpEmpty": "Davlat reyestridan ma'lumotlar yuklanmagan. Texpasport seriyasi va raqamini kiriting — xususiyatlar va egasini avtomatik yuklaymiz.",
+      "tpSeria": "TP seriyasi",
+      "tpNumber": "TP raqami",
+      "requesting": "So'rov…",
+      "updateData": "Ma'lumotlarni yangilash",
+      "owner": "Egasi",
+      "ownerName": "F.I.Sh. / tashkilot",
+      "inn": "STIR",
+      "pinfl": "JSHSHIR",
+      "policiesTitle": "Ushbu avtomobil polislari",
+      "policiesEmpty": "Bu avtomobil uchun hali rasmiylashtirilgan polis yo'q.",
+      "buyPolicy": "Polis rasmiylashtirish",
+      "deleteVehicle": "Avtomobilni o'chirish",
+      "code": "Kod {{id}}",
+      "syncedAt": "{{date}} yangilangan",
+      "notSynced": "Sinxronlanmagan",
+      "updating": "Yangilanmoqda…",
+      "done": "Tayyor"
+    }
+  },
+  "partners": {
+    "title": "Hamkorlar",
+    "myBookings": "Mening yozuvlarim",
+    "searchPlaceholder": "STO, klinika, xizmat",
+    "categoryAll": "Barchasi",
+    "notFound": "Hech narsa topilmadi",
+    "openNow": "ochiq",
+    "closed": "yopiq",
+    "map": {
+      "PENDING": "Tasdiq kutilmoqda",
+      "CONFIRMED": "Tasdiqlangan",
+      "CANCELLED": "Bekor qilingan",
+      "COMPLETED": "Bajarilgan"
+    },
+    "day": {
+      "mon": "Du",
+      "tue": "Se",
+      "wed": "Cho",
+      "thu": "Pa",
+      "fri": "Ju",
+      "sat": "Sha",
+      "sun": "Ya"
+    },
+    "date": {
+      "weekdayShort": {
+        "0": "Ya",
+        "1": "Du",
+        "2": "Se",
+        "3": "Cho",
+        "4": "Pa",
+        "5": "Ju",
+        "6": "Sha"
+      },
+      "monthShort": {
+        "0": "yan",
+        "1": "fev",
+        "2": "mar",
+        "3": "apr",
+        "4": "may",
+        "5": "iyn",
+        "6": "iyl",
+        "7": "avg",
+        "8": "sen",
+        "9": "okt",
+        "10": "noy",
+        "11": "dek"
+      }
+    },
+    "detail": {
+      "partnerBadge": "{{category}} · SOS24 hamkori",
+      "reviewsCount": "· {{count}} ta sharh",
+      "addressLabel": "MANZIL",
+      "route": "Yoʻnalish",
+      "workingHours": "Ish vaqti",
+      "dayOff": "dam olish",
+      "services": "Xizmatlar",
+      "reviews": "Sharhlar",
+      "noReviews": "Hozircha sharhlar yoʻq",
+      "book": "Yozilish"
+    },
+    "price": {
+      "onRequest": "soʻrov boʻyicha",
+      "range": "{{from}}–{{to}} soʻm",
+      "from": "{{price}} soʻmdan"
+    },
+    "booking": {
+      "title": "{{name}}ga yozilish",
+      "selectServices": "Xizmatlarni tanlang",
+      "priceFrom": "{{price}} dan",
+      "date": "Sana",
+      "time": "Vaqt",
+      "noSlots": "Bu kuni boʻsh vaqt yoʻq",
+      "commentLabel": "Izoh (ixtiyoriy)",
+      "commentPlaceholder": "Vazifani tavsiflang…",
+      "createError": "Yozuvni yaratib boʻlmadi",
+      "submitting": "Yaratilmoqda…",
+      "submit": "Yozuvni tasdiqlash"
+    },
+    "success": {
+      "title": "Yozuv yaratildi",
+      "hint": "Hamkor yozuvni tasdiqlaydi — bildirishnoma keladi.",
+      "toPartners": "Hamkorlarga"
+    },
+    "bookings": {
+      "emptyTitle": "Hozircha yozuvlar yoʻq",
+      "emptySubtitle": "Katalogdan hamkorga yoziling",
+      "leaveReview": "Sharh qoldirish",
+      "cancel": "Bekor qilish"
+    },
+    "review": {
+      "title": "Sharh · {{name}}",
+      "placeholder": "Taassurotlaringizni ulashing…",
+      "error": "Sharh yuborib boʻlmadi",
+      "submitting": "Yuborilmoqda…",
+      "submit": "Sharh yuborish"
+    }
+  },
+  "policyDetail": {
+    "notFound": "Polis topilmadi",
+    "currency": "so'm",
+    "daysLeft": "{{count}} kun",
+    "expired": "Muddati tugagan",
+    "active": "Amalda",
+    "shareMessage": "Mening {{type}} polisim: {{number}} · {{plate}}\nsos24.uz",
+    "shareTitle": "{{type}} polisi · {{plate}}",
+    "downloadPdf": "PDF yuklab olish",
+    "downloadPdfSoon": "Elektron polisni yuklab olish",
+    "renew": "Uzaytirish",
+    "renewSoon": "Polisni uzaytirish keyinroq mavjud bo'ladi",
+    "fileClaim": "Zarar to'g'risida ariza",
+    "claimSoon": "Sug'urta hodisasini rasmiylashtirish",
+    "periodMonths": "{{count}} oy",
+    "expand": "Kengaytirish",
+    "summaryTitle": "Polis",
+    "number": "Raqami",
+    "holder": "Sug'urtalanuvchi",
+    "period": "Muddat",
+    "premium": "Sug'urta mukofoti",
+    "discount": "Chegirma",
+    "reportAccident": "YTH haqida xabar berish",
+    "eLabel": "Elektron polis",
+    "showToInspector": "Inspektorga ko'rsating yoki saqlang"
+  },
+  "profileExtra": {
+    "error": "Xatolik",
+    "saveFailed": "Saqlab bo'lmadi",
+    "uploadFailed": "Skanni yuklab bo'lmadi",
+    "uploadErrorTitle": "Yuklashda xatolik",
+    "fillDataTitle": "Ma'lumotlarni to'ldiring",
+    "fillDataMsg": "Avval seriya, raqam, berilgan sana va JSHSHIRni kiriting.",
+    "scanTitle": "Hujjat skani",
+    "scanSource": "Qayerdan yuklaysiz?",
+    "camera": "Kamera",
+    "gallery": "Galereyadan",
+    "pdfFile": "PDF-fayl",
+    "noAccess": "Ruxsat yo'q",
+    "allowCamera": "Kameraga ruxsat bering.",
+    "allowGallery": "Galereyaga ruxsat bering.",
+    "pdfUnavailableTitle": "PDF mavjud emas",
+    "pdfUnavailableMsg": "PDF yuklash ilova yangilangandan so'ng paydo bo'ladi. Hozircha rasmdan foydalaning.",
+    "myIdConfirmed": "Ma'lumotlar MyID orqali tasdiqlangan",
+    "myIdPassportNote": "Pasport ma'lumotlari davlat tizimidan olingan va o'zgartirishdan himoyalangan.",
+    "myIdNameNote": "F.I.Sh. va tug'ilgan sana davlat tizimidan olingan va qo'lda o'zgartirib bo'lmaydi.",
+    "series": "Seriya",
+    "docNumber": "Raqami",
+    "issuedAt": "Berilgan sana",
+    "datePlaceholder": "YYYY-OO-KK",
+    "issuedBy": "Kim tomonidan berilgan",
+    "issuedByPlaceholder": "IIB...",
+    "pinflPlaceholder": "14 raqam",
+    "passportScanRequired": "Pasport skani · majburiy",
+    "scanHint": "Ikkala tomonini yuklang (rasm yoki PDF). Skansiz pasport rasmiylashtirilgan hisoblanmaydi va uni yevroprotokolga biriktirib bo'lmaydi.",
+    "docPhoto": "Hujjat rasmi",
+    "front": "Old tomoni",
+    "back": "Orqa tomoni",
+    "replace": "almashtirish",
+    "scanNeeded": "Skan talab qilinadi",
+    "close": "Yopish",
+    "saving": "Saqlanmoqda...",
+    "docTitle": {
+      "passport": "Pasport",
+      "license": "Haydovchilik guvohnomasi"
+    },
+    "docInfo": {
+      "passport": "Pasport ma'lumotlari polislarni rasmiylashtirish va identifikatsiya uchun ishlatiladi.",
+      "license": "Haydovchilik tajribasini hisobga olib narxni hisoblash uchun talab qilinadi."
+    },
+    "editTitle": "Tahrirlash",
+    "changePhoto": "Rasmni o'zgartirish",
+    "firstName": "Ism",
+    "firstNamePlaceholder": "Aziz",
+    "lastName": "Familiya",
+    "lastNamePlaceholder": "Karimov",
+    "patronymic": "Otasining ismi (ixtiyoriy)",
+    "patronymicPlaceholder": "Erkinovich",
+    "birthDate": "Tug'ilgan sana",
+    "addCardFailed": "Kartani qo'shib bo'lmadi",
+    "deleteCardTitle": "Kartani o'chirish",
+    "deleteCardMsg": "•••• {{last4}} karta o'chiriladi",
+    "delete": "O'chirish",
+    "minTopup": "Minimal to'ldirish summasi 1 000 so'm",
+    "topupFailed": "Hamyonni to'ldirib bo'lmadi",
+    "financeTitle": "Moliya",
+    "financeSubtitle": "Hamyon, kartalar va to'lovlar tarixi",
+    "walletCardLabel": "SOS24 Hamyon",
+    "currency": "so'm",
+    "topup": "To'ldirish",
+    "myCards": "Mening kartalarim",
+    "balanceMsg": "Balans: {{amount}} so'm",
+    "makeDefault": "Asosiy qilib belgilash",
+    "defaultCard": "Asosiy karta",
+    "noCards": "Saqlangan kartalar yo'q",
+    "addCard": "Karta qo'shish",
+    "cardsHint": "Uzcard va Humo qo'llab-quvvatlanadi. Boshqarish uchun kartani bosib turing.",
+    "txHistory": "Operatsiyalar tarixi",
+    "policyPayment": "Polis to'lovi",
+    "paymentMethod": {
+      "WALLET": "Hamyon",
+      "CARD": "Karta",
+      "PAYME": "Payme",
+      "CLICK": "Click"
+    },
+    "noTx": "Hozircha operatsiyalar yo'q",
+    "last4Label": "Oxirgi 4 raqam",
+    "expiryLabel": "Amal qilish muddati (OO/YY)",
+    "topupTitle": "Hamyonni to'ldirish",
+    "topupAmountLabel": "To'ldirish summasi",
+    "toppingUp": "To'ldirilmoqda..."
+  },
+  "sos": {
+    "greeting": "Assalomu alaykum! Men SOS24-yordamchisiman. Har qanday vaziyatni hal qilishga yordam beraman — quyidagi turkumni tanlang yoki holatni yozing.",
+    "headerTitle": "SOS24 · AI-yordamchi",
+    "headerStatus": "aloqada · SOS 24/7",
+    "emergencyCall": "Favqulodda qoʻngʻiroq — dispetcher 1024",
+    "placeholder": "Vaziyatni tasvirlang…",
+    "restart": "Boshidan boshlash",
+    "restartTitle": "Yangi suhbat boshlansinmi?",
+    "restartMsg": "Joriy yozishmalar oʻchiriladi.",
+    "restartConfirm": "Boshidan boshlash",
+    "callFailTitle": "Qoʻngʻiroq qilib boʻlmadi",
+    "callFailMsg": "{{number}} raqamini qoʻlda tering.",
+    "errorReply": "Soʻrovni qayta ishlab boʻlmadi. Yana urinib koʻring yoki dispetcher 1024 raqamiga qoʻngʻiroq qiling.",
+    "errorAction": "Dispetcherga qoʻngʻiroq qilish",
+    "cat": {
+      "accident": {
+        "title": "YTH",
+        "sub": "toʻqnashuv, urilish, shikast"
+      },
+      "medical": {
+        "title": "Tibbiy yordam",
+        "sub": "jarohat, yomon ahvol"
+      },
+      "theft": {
+        "title": "Oʻgʻirlik / talon",
+        "sub": "avtomobil joyida yoʻq"
+      },
+      "property": {
+        "title": "Mulk",
+        "sub": "yongʻin, suv toshqini, tabiiy ofat"
+      },
+      "other": {
+        "title": "Boshqa",
+        "sub": "vaziyatni tasvirlang"
+      }
+    }
+  },
+  "myidOb": {
+    "errorTitle": "Tekshiruv xatosi",
+    "errorMsg": "MyID dan oʻtib boʻlmadi. Yorugʻlikni tekshiring va qaytadan urinib koʻring.",
+    "tryAgain": "Qayta urinish",
+    "simErrorTitle": "Xatolik",
+    "simErrorMsg": "Simulyatsiya muvaffaqiyatsiz tugadi. Backendda MYID_MOCK=true ekaniga ishonch hosil qiling.",
+    "heading": "Shaxsni tasdiqlash",
+    "intro": "Sugʻurta polislarini rasmiylashtirish uchun shaxsingizni davlat MyID tizimi orqali tasdiqlashimiz kerak.",
+    "infoPill": "Maʼlumotlar himoyalangan kanal orqali uzatiladi. Davlat GNKR tizimi.",
+    "submit": "MyID identifikatsiyasidan oʻtish",
+    "simulate": "MyID ni simulyatsiya qilish (DEV)",
+    "steps": {
+      "passport": {
+        "title": "Pasport maʼlumotlarini kiriting",
+        "desc": "Seriya/raqam yoki JSHSHIR — MyID interfeysida toʻldiriladi"
+      },
+      "face": {
+        "title": "Yuzni skanerlash",
+        "desc": "Liveness-tekshiruv: yaxshi yorugʻlik, toʻgʻridan-toʻgʻri kameraga qarang"
+      },
+      "data": {
+        "title": "Maʼlumotlar saqlanadi",
+        "desc": "FISH, tugʻilgan sana va pasport maʼlumotlari avtomatik toʻldiriladi"
+      }
+    }
+  },
+  "notifications": {
+    "title": "Bildirishnomalar",
+    "markAll": "Hammasini oʻqilgan deb belgilash",
+    "empty": "Hozircha bildirishnomalar yoʻq",
+    "longPressTitle": "Bildirishnoma",
+    "delete": "Oʻchirish",
+    "groups": {
+      "today": "Bugun",
+      "yesterday": "Kecha",
+      "earlier": "Avvalroq"
+    }
+  },
+  "ui": {
+    "done": "Tayyor",
+    "card": {
+      "primary": "Asosiy",
+      "holder": "Egasi",
+      "expiry": "Muddat",
+      "sum": "soʻm"
+    }
+  },
+  "support": {
+    "hub": {
+      "title": "Qo'llab-quvvatlash",
+      "subtitle": "O'rtacha 5 daqiqada javob beramiz · 24/7",
+      "chatCta": "Chatga yozish",
+      "online": "onlayn · 24/7 javob beramiz",
+      "call": "SOS24 ga qo'ng'iroq qilish",
+      "callMeta": "{{phone}} · bepul",
+      "faqTitle": "Ko'p beriladigan savollar"
+    },
+    "tickets": {
+      "title": "Mening murojaatlarim",
+      "emptyTitle": "Hozircha murojaatlar yo'q",
+      "emptySubtitle": "Savol bering — operator chatda javob beradi"
+    },
+    "newTicket": {
+      "title": "Yangi murojaat",
+      "categoryLabel": "Murojaat mavzusi",
+      "subjectLabel": "Sarlavha",
+      "subjectPlaceholder": "Muammo haqida qisqacha",
+      "bodyLabel": "Xabar",
+      "bodyPlaceholder": "Savolni batafsilroq yozing (ixtiyoriy)",
+      "creating": "Yaratilmoqda…",
+      "submit": "Murojaat yaratish"
+    },
+    "chat": {
+      "headerTitle": "SOS24 qo'llab-quvvatlash",
+      "online": "onlayn · 24/7 javob beramiz",
+      "typing": "yozmoqda…",
+      "inputPlaceholder": "Xabar…",
+      "operator": "Operator",
+      "file": "Fayl"
+    },
+    "map": {
+      "POLICY": "Polislar",
+      "PAYMENT": "To'lov",
+      "ACCIDENT": "YTH",
+      "ACCOUNT": "Hisob",
+      "OTHER": "Boshqa",
+      "OPEN": "Ochiq",
+      "PENDING": "Kutilmoqda",
+      "CLOSED": "Yopiq"
+    }
   }
 }

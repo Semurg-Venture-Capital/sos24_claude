@@ -1,9 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import {
-  BOOKING_STATUS_LABEL,
   useCancelBooking,
   useCreateReview,
   useMyBookings,
@@ -29,6 +29,7 @@ const STATUS_TONE: Record<BookingStatus, { bg: string; fg: string }> = {
 
 export function MyBookingsScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { data: bookings = [], isLoading } = useMyBookings();
   const cancel = useCancelBooking();
   const [reviewFor, setReviewFor] = useState<Booking | null>(null);
@@ -37,7 +38,7 @@ export function MyBookingsScreen() {
     <PhoneFrame>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 12 }}>
         <BackButton onPress={() => nav.goBack()} />
-        <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 24, letterSpacing: -0.24, color: tokens.ink }}>Мои записи</Text>
+        <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 24, letterSpacing: -0.24, color: tokens.ink }}>{t('partners.myBookings')}</Text>
       </View>
 
       {isLoading ? (
@@ -46,8 +47,8 @@ export function MyBookingsScreen() {
         </View>
       ) : bookings.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 8 }}>
-          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink, textAlign: 'center' }}>Записей пока нет</Text>
-          <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center' }}>Запишитесь к партнёру из каталога</Text>
+          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink, textAlign: 'center' }}>{t('partners.bookings.emptyTitle')}</Text>
+          <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.inkMuted, textAlign: 'center' }}>{t('partners.bookings.emptySubtitle')}</Text>
         </View>
       ) : (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 60, gap: 10 }} showsVerticalScrollIndicator={false}>
@@ -61,7 +62,7 @@ export function MyBookingsScreen() {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                   <Text style={{ flex: 1, fontFamily: 'NeueMontreal-Medium', fontSize: 16, color: tokens.ink }} numberOfLines={1}>{b.partnerName}</Text>
                   <View style={{ paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, backgroundColor: tone.bg }}>
-                    <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 10, color: tone.fg }}>{BOOKING_STATUS_LABEL[b.status]}</Text>
+                    <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 10, color: tone.fg }}>{t('partners.map.' + b.status)}</Text>
                   </View>
                 </View>
                 <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkDark }}>{when}</Text>
@@ -72,12 +73,12 @@ export function MyBookingsScreen() {
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
                     {canReview && (
                       <Pressable onPress={() => setReviewFor(b)} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: tokens.inkDark }}>
-                        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: '#fff' }}>Оставить отзыв</Text>
+                        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: '#fff' }}>{t('partners.bookings.leaveReview')}</Text>
                       </Pressable>
                     )}
                     {canCancel && (
                       <Pressable onPress={() => cancel.mutate(b.id)} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: tokens.hairline }}>
-                        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: tokens.red }}>Отменить</Text>
+                        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: tokens.red }}>{t('partners.bookings.cancel')}</Text>
                       </Pressable>
                     )}
                   </View>
@@ -94,6 +95,7 @@ export function MyBookingsScreen() {
 }
 
 function ReviewModal({ booking, onClose }: { booking: Booking | null; onClose: () => void }) {
+  const { t } = useTranslation();
   const createReview = useCreateReview();
   const [rating, setRating] = useState(5);
   const [text, setText] = useState('');
@@ -107,7 +109,7 @@ function ReviewModal({ booking, onClose }: { booking: Booking | null; onClose: (
       onClose();
     } catch (e: unknown) {
       const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg || 'Не удалось отправить отзыв');
+      alert(msg || t('partners.review.error'));
     }
   };
 
@@ -115,7 +117,7 @@ function ReviewModal({ booking, onClose }: { booking: Booking | null; onClose: (
     <Modal visible={!!booking} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }} onPress={onClose}>
         <Pressable style={{ backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 36, gap: 16 }} onPress={(e) => e.stopPropagation()}>
-          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink }}>Отзыв · {booking?.partnerName}</Text>
+          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink }}>{t('partners.review.title', { name: booking?.partnerName })}</Text>
           <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center' }}>
             {[1, 2, 3, 4, 5].map((n) => (
               <Pressable key={n} onPress={() => setRating(n)}>
@@ -124,10 +126,10 @@ function ReviewModal({ booking, onClose }: { booking: Booking | null; onClose: (
             ))}
           </View>
           <View style={{ backgroundColor: tokens.glass, borderRadius: 16, borderWidth: 1, borderColor: tokens.hairline, padding: 14, minHeight: 90 }}>
-            <TextInput value={text} onChangeText={setText} placeholder="Поделитесь впечатлением…" placeholderTextColor={tokens.inkMuted} multiline style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.ink }} />
+            <TextInput value={text} onChangeText={setText} placeholder={t('partners.review.placeholder')} placeholderTextColor={tokens.inkMuted} multiline style={{ fontFamily: 'Manrope_400Regular', fontSize: 14, color: tokens.ink }} />
           </View>
           <RedButton onPress={submit} disabled={createReview.isPending}>
-            {createReview.isPending ? 'Отправка…' : 'Отправить отзыв'}
+            {createReview.isPending ? t('partners.review.submitting') : t('partners.review.submit')}
           </RedButton>
         </Pressable>
       </Pressable>

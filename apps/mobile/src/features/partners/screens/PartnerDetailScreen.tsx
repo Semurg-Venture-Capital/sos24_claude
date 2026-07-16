@@ -1,5 +1,7 @@
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Linking, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { usePartnerDetail, type PartnerReview, type PartnerService } from '../../../api/partners';
 import { BackButton } from '../../../components/ui/BackButton';
@@ -13,25 +15,18 @@ import type { PartnersStackParamList } from '../../../navigation/types';
 type Nav = NativeStackNavigationProp<PartnersStackParamList, 'PartnerDetail'>;
 type Rt = RouteProp<PartnersStackParamList, 'PartnerDetail'>;
 
-const DAYS: { key: string; label: string }[] = [
-  { key: 'mon', label: 'Пн' },
-  { key: 'tue', label: 'Вт' },
-  { key: 'wed', label: 'Ср' },
-  { key: 'thu', label: 'Чт' },
-  { key: 'fri', label: 'Пт' },
-  { key: 'sat', label: 'Сб' },
-  { key: 'sun', label: 'Вс' },
-];
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
-function fmtPrice(from: number | null, to: number | null): string {
-  if (from == null && to == null) return 'по запросу';
+function fmtPrice(from: number | null, to: number | null, t: TFunction): string {
+  if (from == null && to == null) return t('partners.price.onRequest');
   const f = (n: number) => n.toLocaleString('ru-RU');
-  if (from != null && to != null) return `${f(from)}–${f(to)} сум`;
-  return `от ${f((from ?? to)!)} сум`;
+  if (from != null && to != null) return t('partners.price.range', { from: f(from), to: f(to) });
+  return t('partners.price.from', { price: f((from ?? to)!) });
 }
 
 export function PartnerDetailScreen() {
   const nav = useNavigation<Nav>();
+  const { t } = useTranslation();
   const { params } = useRoute<Rt>();
   const { data: p, isLoading } = usePartnerDetail(params.id);
 
@@ -74,14 +69,14 @@ export function PartnerDetailScreen() {
             <View style={{ gap: 6, flex: 1 }}>
               {p.category && (
                 <View style={{ alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: tokens.inkDark }}>
-                  <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#fff' }}>{p.category.name} · партнёр SOS24</Text>
+                  <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#fff' }}>{t('partners.detail.partnerBadge', { category: p.category.name })}</Text>
                 </View>
               )}
               <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 24, color: tokens.ink, letterSpacing: -0.24 }}>{p.name}</Text>
             </View>
             {p.openNow != null && (
               <View style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: p.openNow ? 'rgba(105,228,183,0.85)' : 'rgba(20,20,20,0.06)' }}>
-                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: p.openNow ? '#0a3a26' : tokens.inkMuted }}>{p.openNow ? 'открыто' : 'закрыто'}</Text>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: p.openNow ? '#0a3a26' : tokens.inkMuted }}>{p.openNow ? t('partners.openNow') : t('partners.closed')}</Text>
               </View>
             )}
           </View>
@@ -89,18 +84,18 @@ export function PartnerDetailScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <StarIcon size={13} />
             <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkDark }}>{p.rating.toFixed(1)}</Text>
-            <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>· {p.reviewCount} отзывов</Text>
+            <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>{t('partners.detail.reviewsCount', { count: p.reviewCount })}</Text>
           </View>
 
           {/* Адрес + маршрут */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 16, backgroundColor: 'rgba(20,20,20,0.04)' }}>
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 10, color: tokens.inkMuted, letterSpacing: 0.4 }}>АДРЕС</Text>
+              <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 10, color: tokens.inkMuted, letterSpacing: 0.4 }}>{t('partners.detail.addressLabel')}</Text>
               <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkDark }}>{p.address}</Text>
             </View>
             {p.lat != null && p.lng != null && (
               <Pressable onPress={route} style={{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, backgroundColor: tokens.inkDark }}>
-                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: '#fff' }}>Маршрут</Text>
+                <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12, color: '#fff' }}>{t('partners.detail.route')}</Text>
               </Pressable>
             )}
           </View>
@@ -116,14 +111,14 @@ export function PartnerDetailScreen() {
         {/* Часы работы */}
         {p.workingHours && (
           <View style={{ marginTop: 20, marginHorizontal: 24, gap: 8 }}>
-            <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink }}>Часы работы</Text>
+            <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink }}>{t('partners.detail.workingHours')}</Text>
             <Glass intensity={20} tint="light" style={{ backgroundColor: tokens.glass, borderRadius: 18, borderWidth: 1, borderColor: tokens.hairline, padding: 14, gap: 6 }}>
-              {DAYS.map((d) => {
-                const h = p.workingHours?.[d.key];
+              {DAY_KEYS.map((key) => {
+                const h = p.workingHours?.[key];
                 return (
-                  <View key={d.key} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>{d.label}</Text>
-                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.ink }}>{h ? `${h.open}–${h.close}` : 'выходной'}</Text>
+                  <View key={key} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkMuted }}>{t('partners.day.' + key)}</Text>
+                    <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.ink }}>{h ? `${h.open}–${h.close}` : t('partners.detail.dayOff')}</Text>
                   </View>
                 );
               })}
@@ -134,7 +129,7 @@ export function PartnerDetailScreen() {
         {/* Услуги */}
         {p.services.length > 0 && (
           <View style={{ marginTop: 20, marginHorizontal: 24, gap: 10 }}>
-            <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink }}>Услуги</Text>
+            <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink }}>{t('partners.detail.services')}</Text>
             {p.services.map((s) => (
               <ServiceRow key={s.id} s={s} />
             ))}
@@ -143,9 +138,9 @@ export function PartnerDetailScreen() {
 
         {/* Отзывы */}
         <View style={{ marginTop: 20, marginHorizontal: 24, gap: 10 }}>
-          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink }}>Отзывы</Text>
+          <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 18, color: tokens.ink }}>{t('partners.detail.reviews')}</Text>
           {p.reviews.length === 0 ? (
-            <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>Пока нет отзывов</Text>
+            <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 13, color: tokens.inkMuted }}>{t('partners.detail.noReviews')}</Text>
           ) : (
             p.reviews.map((r) => <ReviewRow key={r.id} r={r} />)
           )}
@@ -154,20 +149,21 @@ export function PartnerDetailScreen() {
 
       {/* CTA */}
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 24, paddingTop: 12, paddingBottom: 32, backgroundColor: 'rgba(237,237,237,0.96)', borderTopWidth: 1, borderTopColor: tokens.hairline }}>
-        <RedButton onPress={() => nav.navigate('PartnerBooking', { partnerId: p.id, partnerName: p.name })}>Записаться</RedButton>
+        <RedButton onPress={() => nav.navigate('PartnerBooking', { partnerId: p.id, partnerName: p.name })}>{t('partners.detail.book')}</RedButton>
       </View>
     </PhoneFrame>
   );
 }
 
 function ServiceRow({ s }: { s: PartnerService }) {
+  const { t } = useTranslation();
   return (
     <Glass intensity={20} tint="light" style={{ backgroundColor: tokens.glass, borderRadius: 18, borderWidth: 1, borderColor: tokens.hairline, padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>{s.name}</Text>
         {s.description && <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>{s.description}</Text>}
       </View>
-      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkDark }}>{fmtPrice(s.priceFrom, s.priceTo)}</Text>
+      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 13, color: tokens.inkDark }}>{fmtPrice(s.priceFrom, s.priceTo, t)}</Text>
     </Glass>
   );
 }

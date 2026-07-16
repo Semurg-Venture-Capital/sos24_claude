@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -39,27 +41,24 @@ const SOS_HOTLINE = '1024';
 
 // Локальные категории для стартового экрана (до первого сообщения). Тап →
 // отправляем сид-фразу, дальше LLM-роутер ведёт диалог.
+// title/sub локализуются по key: sos.cat.<key>.title / .sub
 const CATEGORIES: {
   key: string;
-  title: string;
-  sub: string;
   seed: string;
   tone: { bg: string; fg: string };
   Icon: (p: { size?: number; color?: string }) => React.ReactElement;
 }[] = [
-  { key: 'accident', title: 'ДТП', sub: 'столкновение, наезд, повреждение', seed: 'Я попал в ДТП', tone: { bg: 'rgba(230,20,40,0.12)', fg: tokens.red }, Icon: BenefitCarHit },
-  { key: 'medical', title: 'Мед. помощь', sub: 'травма, плохое самочувствие', seed: 'Нужна медицинская помощь', tone: { bg: 'rgba(105,228,183,0.55)', fg: '#0a3a26' }, Icon: StethoscopeIcon },
-  { key: 'theft', title: 'Угон / кража', sub: 'нет авто на месте', seed: 'У меня угнали машину', tone: { bg: 'rgba(245,200,80,0.55)', fg: '#503a07' }, Icon: BenefitCarLock },
-  { key: 'property', title: 'Имущество', sub: 'пожар, залив, стихия', seed: 'Проблема с имуществом', tone: { bg: 'rgba(86,140,255,0.18)', fg: '#1a3577' }, Icon: BenefitProperty },
-  { key: 'other', title: 'Другое', sub: 'опишите ситуацию', seed: '', tone: { bg: 'rgba(20,20,20,0.08)', fg: tokens.inkDark }, Icon: IconQuestion },
+  { key: 'accident', seed: 'Я попал в ДТП', tone: { bg: 'rgba(230,20,40,0.12)', fg: tokens.red }, Icon: BenefitCarHit },
+  { key: 'medical', seed: 'Нужна медицинская помощь', tone: { bg: 'rgba(105,228,183,0.55)', fg: '#0a3a26' }, Icon: StethoscopeIcon },
+  { key: 'theft', seed: 'У меня угнали машину', tone: { bg: 'rgba(245,200,80,0.55)', fg: '#503a07' }, Icon: BenefitCarLock },
+  { key: 'property', seed: 'Проблема с имуществом', tone: { bg: 'rgba(86,140,255,0.18)', fg: '#1a3577' }, Icon: BenefitProperty },
+  { key: 'other', seed: '', tone: { bg: 'rgba(20,20,20,0.08)', fg: tokens.inkDark }, Icon: IconQuestion },
 ];
-
-const GREETING =
-  'Здравствуйте! Я SOS24-помощник. Помогу разобраться в любой ситуации — выберите категорию ниже или опишите словами.';
 
 // SOS-ассистент (центральный ИИ-роутер). Вход — красная SOS-кнопка на Home.
 // См. docs/SOS_ASSISTANT_SPEC.md.
 export function SosAssistantScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const scrollRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput>(null);
@@ -116,9 +115,9 @@ export function SosAssistantScreen() {
       appendAi(
         {
           role: 'ai',
-          text: 'Не удалось обработать запрос. Попробуйте ещё раз или позвоните диспетчеру 1024.',
+          text: t('sos.errorReply'),
           at: new Date().toISOString(),
-          actions: [{ type: 'emergency_call', label: 'Позвонить диспетчеру', hint: SOS_HOTLINE, param: SOS_HOTLINE }],
+          actions: [{ type: 'emergency_call', label: t('sos.errorAction'), hint: SOS_HOTLINE, param: SOS_HOTLINE }],
           quickReplies: [],
         },
         useAssistantStore.getState().sessionId ?? '',
@@ -135,14 +134,14 @@ export function SosAssistantScreen() {
 
   const callHotline = () =>
     Linking.openURL(`tel:${SOS_HOTLINE}`).catch(() =>
-      Alert.alert('Не удалось позвонить', `Наберите ${SOS_HOTLINE} вручную.`),
+      Alert.alert(t('sos.callFailTitle'), t('sos.callFailMsg', { number: SOS_HOTLINE })),
     );
 
   const restart = () => {
-    Alert.alert('Начать новый диалог?', 'Текущая переписка будет удалена.', [
-      { text: 'Отмена', style: 'cancel' },
+    Alert.alert(t('sos.restartTitle'), t('sos.restartMsg'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Начать сначала',
+        text: t('sos.restartConfirm'),
         style: 'destructive',
         onPress: async () => {
           reset(); // мгновенно чистим локально
@@ -180,10 +179,10 @@ export function SosAssistantScreen() {
           <View style={{ position: 'absolute', right: -1, bottom: -1, width: 13, height: 13, borderRadius: 999, backgroundColor: tokens.green, borderWidth: 2.5, borderColor: tokens.pageBg }} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>SOS24 · ИИ-помощник</Text>
+          <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>{t('sos.headerTitle')}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             <View style={{ width: 6, height: 6, borderRadius: 999, backgroundColor: tokens.green }} />
-            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#0a3a26' }}>на связи · SOS 24/7</Text>
+            <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#0a3a26' }}>{t('sos.headerStatus')}</Text>
           </View>
         </View>
         <Pressable onPress={callHotline} hitSlop={8} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 999, backgroundColor: 'rgba(20,20,20,0.05)', alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
@@ -200,11 +199,11 @@ export function SosAssistantScreen() {
             {!started ? (
               <>
                 <AiCard>
-                  <Text style={cardText}>{GREETING}</Text>
+                  <Text style={cardText}>{t('sos.greeting')}</Text>
                 </AiCard>
                 <View style={{ gap: 6, marginTop: 2 }}>
                   {CATEGORIES.map((c) => (
-                    <CategoryRow key={c.key} c={c} onPress={() => onCategory(c)} />
+                    <CategoryRow key={c.key} c={c} t={t} onPress={() => onCategory(c)} />
                   ))}
                 </View>
               </>
@@ -234,7 +233,7 @@ export function SosAssistantScreen() {
               </View>
             ) : null}
             <Pressable onPress={restart} hitSlop={8} style={{ alignSelf: 'center', paddingVertical: 4, paddingHorizontal: 12 }}>
-              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: tokens.inkMuted }}>↺ Начать сначала</Text>
+              <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 12.5, color: tokens.inkMuted }}>↺ {t('sos.restart')}</Text>
             </Pressable>
           </View>
         ) : null}
@@ -243,7 +242,7 @@ export function SosAssistantScreen() {
         <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 20, gap: 10 }}>
           <Pressable onPress={callHotline} style={({ pressed }) => ({ height: 44, borderRadius: 999, backgroundColor: 'rgba(20,20,20,0.06)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: pressed ? 0.8 : 1 })}>
             <PhoneFillIcon size={14} color={tokens.red} />
-            <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkDark }}>Экстренный звонок — диспетчер 1024</Text>
+            <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: tokens.inkDark }}>{t('sos.emergencyCall')}</Text>
           </Pressable>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <View style={{ flex: 1, minHeight: 44, borderRadius: 22, backgroundColor: '#fff', borderWidth: 1, borderColor: tokens.hairline, paddingHorizontal: 18, justifyContent: 'center' }}>
@@ -251,7 +250,7 @@ export function SosAssistantScreen() {
                 ref={inputRef}
                 value={input}
                 onChangeText={setInput}
-                placeholder="Опишите ситуацию…"
+                placeholder={t('sos.placeholder')}
                 placeholderTextColor={tokens.inkMuted}
                 onSubmitEditing={() => send(input)}
                 returnKeyType="send"
@@ -313,7 +312,7 @@ function ActionButton({ action, primary, onPress }: { action: AssistantAction; p
   );
 }
 
-function CategoryRow({ c, onPress }: { c: (typeof CATEGORIES)[number]; onPress: () => void }) {
+function CategoryRow({ c, t, onPress }: { c: (typeof CATEGORIES)[number]; t: TFunction; onPress: () => void }) {
   const { Icon } = c;
   return (
     <Pressable onPress={onPress} style={({ pressed }) => ({ alignSelf: 'stretch', maxWidth: '92%', flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 18, backgroundColor: '#fff', borderWidth: 1, borderColor: tokens.hairline, opacity: pressed ? 0.9 : 1 })}>
@@ -321,8 +320,8 @@ function CategoryRow({ c, onPress }: { c: (typeof CATEGORIES)[number]; onPress: 
         <Icon size={18} color={c.tone.fg} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>{c.title}</Text>
-        <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>{c.sub}</Text>
+        <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 14, color: tokens.ink }}>{t('sos.cat.' + c.key + '.title')}</Text>
+        <Text style={{ fontFamily: 'Manrope_400Regular', fontSize: 12, color: tokens.inkMuted }}>{t('sos.cat.' + c.key + '.sub')}</Text>
       </View>
       <ChevronRight size={14} color="rgba(20,20,20,0.32)" />
     </Pressable>

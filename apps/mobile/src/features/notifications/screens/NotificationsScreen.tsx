@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
@@ -39,13 +41,14 @@ const TYPE_TONE: Record<NotificationType, Tone> = {
 };
 
 export function NotificationsScreen() {
+  const { t } = useTranslation();
   const nav = useNavigation<Nav>();
   const { data: items, isLoading } = useNotifications();
   const markRead = useMarkRead();
   const markAllRead = useMarkAllRead();
   const removeNotif = useRemoveNotification();
 
-  const groups = groupByDay(items ?? []);
+  const groups = groupByDay(items ?? [], t);
   const hasUnread = (items ?? []).some((n) => !n.readAt);
 
   const onPress = (n: AppNotification) => {
@@ -53,9 +56,9 @@ export function NotificationsScreen() {
     navigateFromNotification(n.data);
   };
   const onLongPress = (n: AppNotification) => {
-    Alert.alert('Уведомление', n.title, [
-      { text: 'Удалить', style: 'destructive', onPress: () => removeNotif.mutate(n.id) },
-      { text: 'Отмена', style: 'cancel' },
+    Alert.alert(t('notifications.longPressTitle'), n.title, [
+      { text: t('notifications.delete'), style: 'destructive', onPress: () => removeNotif.mutate(n.id) },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
   };
 
@@ -63,10 +66,10 @@ export function NotificationsScreen() {
     <PhoneFrame>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 8, paddingBottom: 12 }}>
         <BackButton onPress={() => nav.goBack()} />
-        <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink }}>Уведомления</Text>
+        <Text style={{ fontFamily: 'NeueMontreal-Medium', fontSize: 20, color: tokens.ink }}>{t('notifications.title')}</Text>
         <Pressable onPress={() => hasUnread && markAllRead.mutate()} hitSlop={8}>
           <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 13, color: hasUnread ? tokens.inkSubtle : 'rgba(20,20,20,0.25)' }}>
-            Прочитать все
+            {t('notifications.markAll')}
           </Text>
         </Pressable>
       </View>
@@ -78,7 +81,7 @@ export function NotificationsScreen() {
       ) : !items?.length ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 40 }}>
           <BellBig />
-          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 15, color: tokens.inkMuted }}>Уведомлений пока нет</Text>
+          <Text style={{ fontFamily: 'Manrope_500Medium', fontSize: 15, color: tokens.inkMuted }}>{t('notifications.empty')}</Text>
         </View>
       ) : (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40, gap: 22 }} showsVerticalScrollIndicator={false}>
@@ -164,7 +167,7 @@ function BellBig() {
 }
 
 // ── Группировка по дням ──
-function groupByDay(items: AppNotification[]): { label: string; items: AppNotification[] }[] {
+function groupByDay(items: AppNotification[], t: TFunction): { label: string; items: AppNotification[] }[] {
   const today: AppNotification[] = [];
   const yesterday: AppNotification[] = [];
   const earlier: AppNotification[] = [];
@@ -178,9 +181,9 @@ function groupByDay(items: AppNotification[]): { label: string; items: AppNotifi
     else earlier.push(n);
   }
   return [
-    { label: 'Сегодня', items: today },
-    { label: 'Вчера', items: yesterday },
-    { label: 'Раньше', items: earlier },
+    { label: t('notifications.groups.today'), items: today },
+    { label: t('notifications.groups.yesterday'), items: yesterday },
+    { label: t('notifications.groups.earlier'), items: earlier },
   ].filter((g) => g.items.length > 0);
 }
 
