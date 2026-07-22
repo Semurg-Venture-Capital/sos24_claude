@@ -57,7 +57,10 @@ docker build --platform linux/amd64 \
   --build-context pnpmstore="$(dirname "$(pnpm store path)")" \
   -f apps/api/Dockerfile -t $REG/sos24-api:latest .
 
-docker build --platform linux/amd64 -f apps/admin/Dockerfile -t $REG/sos24-admin:latest \
+# admin тоже ставит зависимости офлайн из pnpm-store → нужен тот же --build-context pnpmstore
+docker build --platform linux/amd64 \
+       --build-context pnpmstore="$(dirname "$(pnpm store path)")" \
+       -f apps/admin/Dockerfile -t $REG/sos24-admin:latest \
        --build-arg NEXT_PUBLIC_API_URL=https://api.sos24.uz .
 docker push $REG/sos24-api:latest
 docker push $REG/sos24-admin:latest

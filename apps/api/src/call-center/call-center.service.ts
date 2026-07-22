@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { createHmac } from 'node:crypto';
 import type { Prisma } from '@prisma/client';
 import { MinioService } from '../files/minio.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -81,6 +82,14 @@ export class CallCenterService implements OnModuleInit {
     if (!ext || !password) return { configured: false as const, reason: 'no_extension' as const };
 
     const name = [op?.surname, op?.name].filter(Boolean).join(' ') || `Оператор ${ext}`;
+    const iceServers = this.buildIceServers(operatorId);
+    const hasTurn = iceServers.some((s) =>
+      (Array.isArray(s.urls) ? s.urls : [s.urls]).some((u) => u.startsWith('turn')),
+    );
+    this.logger.log(
+      `SIP-креды оператору ${operatorId}: ext=${ext} personal=${personal} ws=${wsServer} ` +
+        `iceServers=${iceServers.length} turn=${hasTurn ? 'да' : 'НЕТ'}`,
+    );
     return {
       configured: true as const,
       personal,
@@ -91,7 +100,38 @@ export class CallCenterService implements OnModuleInit {
       uri: `sip:${ext}@${domain}`,
       displayName: name,
       operatorId,
+      // ICE-серверы для WebRTC-медиа: STUN + TURN (coturn на sip.sos24.uz).
+      // TURN-креды эфемерные (use-auth-secret): username=<ts>:<op>, credential=HMAC-SHA1.
+      iceServers,
     };
+  }
+
+  // Формирует iceServers с временными TURN-кредами по схеме coturn use-auth-secret
+  // (TURN REST API): username = "<expiryUnix>:<user>", credential = base64(HMAC-SHA1(secret, username)).
+  // Без TURN_HOST — пусто; без TURN_SECRET — только STUN.
+  private buildIceServers(operatorId: string): Array<{ urls: string | string[]; username?: string; credential?: string }> {
+    const host = this.config.get<string>('TURN_HOST');
+    if (!host) return [];
+    const servers: Array<{ urls: string | string[]; username?: string; credential?: string }> = [
+      { urls: `stun:${host}:3478` },
+    ];
+    const secret = this.config.get<string>('TURN_SECRET');
+    if (secret) {
+      const ttl = Number(this.config.get<string>('TURN_TTL_SEC') ?? 43200); // 12ч
+      const expiry = Math.floor(Date.now() / 1000) + (Number.isFinite(ttl) ? ttl : 43200);
+      const username = `${expiry}:${operatorId}`;
+      const credential = createHmac('sha1', secret).update(username).digest('base64');
+      servers.push({
+        urls: [
+          `turn:${host}:3478?transport=udp`,
+          `turn:${host}:3478?transport=tcp`,
+          `turns:${host}:5349?transport=tcp`,
+        ],
+        username,
+        credential,
+      });
+    }
+    return servers;
   }
 
   // Персональный extension оператора (или общий тестовый из env).
