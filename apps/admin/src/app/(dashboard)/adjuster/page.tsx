@@ -105,7 +105,7 @@ export default function AdjusterPage() {
   return (
     <div className="flex flex-col flex-1 overflow-auto">
       <Header
-        title="Аджастер"
+        title="Помощь на месте"
         subtitle={isLoading ? 'Загрузка...' : `${total} заявок`}
       />
 
@@ -204,7 +204,7 @@ export default function AdjusterPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[rgba(20,20,40,0.06)]">
-                  {['Клиент', 'Инцидент', 'Адрес', 'Полис', 'Статус', 'Аджастер', 'Действие', 'Дата'].map((h) => (
+                  {['Клиент', 'Инцидент', 'Адрес', 'Полис', 'Статус', 'Специалист', 'Действие', 'Дата'].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-[#9a9a9a] uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -332,7 +332,7 @@ export default function AdjusterPage() {
                                   href={`tel:${item.adjusterDisplayPhone}`}
                                   onClick={(e) => e.stopPropagation()}
                                   className="text-[#0a9466] hover:text-[#076b48]"
-                                  title="Позвонить аджастеру"
+                                  title="Позвонить специалисту"
                                 >
                                   <Phone size={11} />
                                 </a>

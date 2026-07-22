@@ -36,7 +36,7 @@ const NAV = [
   { href: '/policies', label: 'Полисы', icon: ShieldCheck },
   { href: '/insurance', label: 'Страховые компании', icon: Building2 },
   { href: '/vehicles', label: 'Автомобили', icon: Car },
-  { href: '/adjuster', label: 'Аджастер', icon: Siren },
+  { href: '/adjuster', label: 'Помощь на месте', icon: Siren },
   { href: '/europrotocols', label: 'Европротоколы', icon: FileWarning },
   { href: '/support', label: 'Поддержка', icon: MessageCircle },
   { href: '/call-center', label: 'Колл-центр', icon: Phone },

@@ -102,7 +102,8 @@
       "system": "System",
       "light": "Light",
       "dark": "Dark"
-    }
+    },
+    "needScan": "Scan required"
   },
   "policies": {
     "title": "My policies",
@@ -181,7 +182,10 @@
       "inspectorCta": "Call",
       "inspectorStatus": "Available now",
       "regularClaim": "Submit a regular claim",
-      "regularClaimSoon": "Regular insurance claim application (M9.4)."
+      "regularClaimSoon": "Regular insurance claim application (M9.4).",
+      "needPassportTitle": "Passport scan required",
+      "needPassportMsg": "Upload your passport scan in profile before filing a euro-protocol.",
+      "needPassportCta": "Open passport"
     },
     "step1": {
       "eyebrow": "Step 1 of 5 · Details",

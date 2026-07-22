@@ -148,6 +148,25 @@ export default function EuroprotocolDetailPage() {
                 <Field label="Авто" value={p.vehicle ? `${p.vehicle.brand} ${p.vehicle.model}` : '—'} />
                 <Field label="Госномер" value={p.vehicle?.plate} />
                 <Field label="Вод. удостоверение" value={dlText(p.aDriverLicense?.series, p.aDriverLicense?.number, p.aDriverLicense?.categories, p.aDriverLicense?.issuedAt)} />
+                <Field label="Паспорт" value={p.aPassport ? `${p.aPassport.series} ${p.aPassport.number}` : '—'} />
+                {p.aPassport && (p.aPassport.frontUrl || p.aPassport.backUrl) ? (
+                  <div className="flex gap-2 pt-1 pb-1">
+                    {(['frontUrl', 'backUrl'] as const).map((k) =>
+                      p.aPassport[k] ? (
+                        <a key={k} href={p.aPassport[k]} target="_blank" rel="noreferrer" title="Скан паспорта">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={p.aPassport[k]}
+                            alt={k === 'frontUrl' ? 'паспорт лицевая' : 'паспорт обратная'}
+                            className="h-20 w-28 rounded-md object-cover border border-[rgba(20,20,40,0.1)] hover:opacity-80"
+                          />
+                        </a>
+                      ) : null,
+                    )}
+                  </div>
+                ) : (
+                  <Field label="Скан паспорта" value="не загружен" />
+                )}
                 <Field label="Страховщик" value={p.aOsago ? 'SOS24 Sugʻurta' : '—'} />
                 <Field label="Полис ОСАГО" value={policyText(null, p.aOsago?.policyNumber, p.aOsago?.status === 'ACTIVE', p.aOsago?.endDate)} />
                 <Field label="Зона удара" value={zone(p.impactZoneA)} />

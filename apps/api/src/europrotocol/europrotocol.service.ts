@@ -263,7 +263,24 @@ export class EuroprotocolService {
           select: { policyNumber: true, status: true, endDate: true },
         })
       : null;
-    return { ...p, aDriverLicense, aOsago };
+    // Скан паспорта инициатора (сторона A) — вложение для оператора.
+    const passportDoc = await this.prisma.document.findUnique({
+      where: { userId_kind: { userId: p.userId, kind: 'PASSPORT' } },
+      select: { series: true, number: true, frontImageKey: true, backImageKey: true },
+    });
+    const aPassport = passportDoc
+      ? {
+          series: passportDoc.series,
+          number: passportDoc.number,
+          frontUrl: passportDoc.frontImageKey
+            ? await this.minio.presignedGetUrl(passportDoc.frontImageKey, 600).catch(() => null)
+            : null,
+          backUrl: passportDoc.backImageKey
+            ? await this.minio.presignedGetUrl(passportDoc.backImageKey, 600).catch(() => null)
+            : null,
+        }
+      : null;
+    return { ...p, aDriverLicense, aOsago, aPassport };
   }
 
   // ── Админ: KPI ──

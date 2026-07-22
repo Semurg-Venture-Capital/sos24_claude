@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, Text, View } from 'react-native';
+import { useDocuments } from '../../../api/documents';
 import { QuickIconAdjuster, QuickIconEuroProtocol } from '../../../components/icons/QuickActionIcons';
 import { BackButton } from '../../../components/ui/BackButton';
 import { Glass } from '../../../components/ui/Glass';
@@ -21,8 +22,24 @@ type Nav = NativeStackNavigationProp<EuroStackParamList, 'EuroStart'>;
 export function EuroStartScreen() {
   const nav = useNavigation<Nav>();
   const { t } = useTranslation();
+  const { data: documents } = useDocuments();
 
   const openEuroWizard = () => {
+    // Гейт: для европротокола нужен загруженный скан паспорта (нужен как вложение).
+    const passport = documents?.find((d) => d.kind === 'PASSPORT');
+    if (!passport || !passport.isComplete) {
+      Alert.alert(t('euro.start.needPassportTitle'), t('euro.start.needPassportMsg'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('euro.start.needPassportCta'),
+          onPress: () =>
+            nav
+              .getParent<NativeStackNavigationProp<MainStackParamList>>()
+              ?.navigate('Profile', { screen: 'Document', params: { kind: 'passport' } }),
+        },
+      ]);
+      return;
+    }
     nav.navigate('EuroCheck');
   };
 

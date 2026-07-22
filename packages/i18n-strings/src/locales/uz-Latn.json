@@ -102,7 +102,8 @@
       "system": "Tizim",
       "light": "Yorugʻ",
       "dark": "Qorongʻu"
-    }
+    },
+    "needScan": "Skan kerak"
   },
   "policies": {
     "title": "Mening polislarim",
@@ -181,7 +182,10 @@
       "inspectorCta": "Chaqirish",
       "inspectorStatus": "Hozir mavjud",
       "regularClaim": "Oddiy ariza topshirish",
-      "regularClaimSoon": "Sugʻurta hodisasi boʻyicha oddiy ariza (M9.4)."
+      "regularClaimSoon": "Sugʻurta hodisasi boʻyicha oddiy ariza (M9.4).",
+      "needPassportTitle": "Pasport skani kerak",
+      "needPassportMsg": "Yevroprotokol uchun avval profilda pasport skanini yuklang.",
+      "needPassportCta": "Pasportni ochish"
     },
     "step1": {
       "eyebrow": "1-qadam / 5 · Holatlar",

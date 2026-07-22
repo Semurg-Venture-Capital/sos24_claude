@@ -9,7 +9,7 @@ import { partnersApi } from '@/lib/partners';
 export const ROLE_OPTIONS = [
   { value: 'USER', label: 'Пользователь' },
   { value: 'SUPPORT', label: 'Поддержка' },
-  { value: 'ADJUSTER', label: 'Аджастер' },
+  { value: 'ADJUSTER', label: 'Специалист' },
   { value: 'ADMIN', label: 'Администратор' },
   { value: 'PARTNER', label: 'Партнёр (B2B-кабинет)' },
 ];

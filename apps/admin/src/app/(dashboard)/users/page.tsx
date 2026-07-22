@@ -10,7 +10,7 @@ import { UserFormModal, ROLE_OPTIONS, type EditUser } from './UserFormModal';
 const ROLE_LABEL: Record<string, string> = {
   USER: 'Пользователь',
   ADMIN: 'Администратор',
-  ADJUSTER: 'Аджастер',
+  ADJUSTER: 'Специалист',
   SUPPORT: 'Поддержка',
   PARTNER: 'Партнёр',
 };

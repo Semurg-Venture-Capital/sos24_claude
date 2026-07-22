@@ -78,8 +78,8 @@ export function AcceptModal({ onConfirm, onCancel, isPending }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(20,20,40,0.07)]">
           <div>
-            <h2 className="text-base font-semibold text-[#151515]">Назначить аджастера</h2>
-            <p className="text-xs text-[#9a9a9a] mt-0.5">Выберите аджастера для выезда</p>
+            <h2 className="text-base font-semibold text-[#151515]">Назначить специалиста</h2>
+            <p className="text-xs text-[#9a9a9a] mt-0.5">Выберите специалиста для выезда</p>
           </div>
           <button onClick={onCancel} className="w-7 h-7 rounded-lg flex items-center justify-center text-[#9a9a9a] hover:bg-[#f4f4f6] transition-colors">
             <X size={14} />
@@ -115,14 +115,14 @@ export function AcceptModal({ onConfirm, onCancel, isPending }: Props) {
           {mode === 'system' && (
             <div className="flex flex-col gap-3">
               <label className="text-xs font-semibold text-[#5f5e5e] uppercase tracking-wide">
-                Аджастер <span className="text-[#e61428]">*</span>
+                Специалист <span className="text-[#e61428]">*</span>
               </label>
 
               {loadingUsers ? (
                 <div className="h-10 bg-[#f0f0f2] rounded-xl animate-pulse" />
               ) : adjusterUsers.length === 0 ? (
                 <div className="text-sm text-[#9a9a9a] text-center py-3">
-                  Нет зарегистрированных аджастеров
+                  Нет зарегистрированных специалистов
                 </div>
               ) : (
                 <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto">
@@ -170,11 +170,11 @@ export function AcceptModal({ onConfirm, onCancel, isPending }: Props) {
                   className="flex items-center gap-1.5 text-xs text-[#3670d4] hover:text-[#1a4fa0] transition-colors"
                 >
                   <Plus size={12} />
-                  Добавить нового аджастера
+                  Добавить нового специалиста
                 </button>
               ) : (
                 <div className="flex flex-col gap-2 p-3 bg-[#f8f8f8] rounded-xl border border-[rgba(20,20,40,0.08)]">
-                  <p className="text-xs font-semibold text-[#5f5e5e] uppercase tracking-wide">Новый аджастер</p>
+                  <p className="text-xs font-semibold text-[#5f5e5e] uppercase tracking-wide">Новый специалист</p>
                   <input
                     value={addName}
                     onChange={(e) => setAddName(e.target.value)}

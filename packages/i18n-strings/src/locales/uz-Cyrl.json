@@ -102,7 +102,8 @@
       "system": "Тизим",
       "light": "Ёруғ",
       "dark": "Қоронғу"
-    }
+    },
+    "needScan": "Скан керак"
   },
   "policies": {
     "title": "Менинг полисларим",
@@ -181,7 +182,10 @@
       "inspectorCta": "Чақириш",
       "inspectorStatus": "Ҳозир мавжуд",
       "regularClaim": "Оддий ариза топшириш",
-      "regularClaimSoon": "Суғурта ҳодисаси бўйича оддий ариза (M9.4)."
+      "regularClaimSoon": "Суғурта ҳодисаси бўйича оддий ариза (M9.4).",
+      "needPassportTitle": "Паспорт скани керак",
+      "needPassportMsg": "Европротокол учун аввал профилда паспорт сканини юкланг.",
+      "needPassportCta": "Паспортни очиш"
     },
     "step1": {
       "eyebrow": "1-қадам / 5 · Ҳолатлар",

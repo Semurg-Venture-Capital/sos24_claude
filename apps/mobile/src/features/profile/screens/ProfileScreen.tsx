@@ -175,7 +175,13 @@ export function ProfileScreen() {
             icon={<IconPassport />}
             title={t('profile.passport')}
             meta={passport ? `${passport.series} ${passport.number}` : t('profile.notFilledM')}
-            trailing={<StatusPill status={statusFromApi(passport?.status)} />}
+            trailing={
+              passport && !passport.isComplete ? (
+                <NeedScanPill label={t('profile.needScan')} />
+              ) : (
+                <StatusPill status={statusFromApi(passport?.status)} />
+              )
+            }
             onPress={() => nav.navigate('Document', { kind: 'passport' })}
           />
           <ListRow
@@ -274,6 +280,17 @@ export function ProfileScreen() {
         />
       </View>
     </PhoneFrame>
+  );
+}
+
+// Жёлтый бейдж «Требуется скан» — паспорт есть, но скан не загружен (isComplete=false).
+function NeedScanPill({ label }: { label: string }) {
+  return (
+    <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(245,200,80,0.28)' }}>
+      <Text style={{ fontFamily: 'Manrope_600SemiBold', fontSize: 11, color: '#8a6d0b', letterSpacing: 0.11 }}>
+        {label}
+      </Text>
+    </View>
   );
 }
 

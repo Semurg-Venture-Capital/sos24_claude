@@ -208,7 +208,7 @@ export function AdjusterDetailDrawer({ item, isUpdating, onClose, onStatusChange
 
           {/* Assigned adjuster */}
           {(item.adjusterDisplayName || item.adjusterDisplayPhone) && (
-            <Section title="Назначен аджастер">
+            <Section title="Назначен специалист">
               <div className="flex items-center gap-3 bg-[rgba(245,200,80,0.08)] border border-[rgba(245,200,80,0.3)] rounded-xl p-3">
                 <div className="w-9 h-9 rounded-full bg-[rgba(245,200,80,0.25)] flex items-center justify-center text-sm font-semibold text-[#b07d00] shrink-0">
                   {item.adjusterDisplayName?.[0] ?? '?'}
