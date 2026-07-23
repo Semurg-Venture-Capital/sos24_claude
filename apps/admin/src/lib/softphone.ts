@@ -54,6 +54,7 @@ export class Softphone {
   private registerer: Registerer | null = null;
   private session: Session | null = null;
   private invitation: Invitation | null = null;
+  private domain = ''; // SIP-домен для сборки URI исходящего вызова
 
   constructor(
     private readonly audioEl: HTMLAudioElement,
@@ -61,6 +62,7 @@ export class Softphone {
   ) {}
 
   async start(creds: SipCreds) {
+    this.domain = creds.domain;
     this.handlers.onStatus?.('connecting');
     // Диагностика: конфиг софтфона (без паролей) — видно в консоли браузера при тесте.
     slog(`старт: ws=${creds.wsServer} uri=${creds.uri} display="${creds.displayName}"`);
@@ -159,6 +161,12 @@ export class Softphone {
     if (!pc || this.pcWired) return;
     this.pcWired = true;
     slog(`peerConnection создан (iceConnectionState=${pc.iceConnectionState})`);
+    // Ранний/ответный аудио-трек подключаем к <audio> сразу, как он появился —
+    // чтобы гудок и автоответы сети (early media из 183) звучали до ответа.
+    pc.addEventListener('track', () => {
+      slog('получен медиа-трек — подключаю аудио');
+      this.attachMedia();
+    });
     pc.addEventListener('iceconnectionstatechange', () => {
       slog(`iceConnectionState=${pc.iceConnectionState}`);
       if (pc.iceConnectionState === 'failed') slog('✗ ICE FAILED — медиа не установилось (проверь TURN/relay)');
@@ -196,6 +204,61 @@ export class Softphone {
     if (tracks.length === 0) slog('⚠️ входящих треков нет — оператор не услышит абонента');
     this.audioEl.srcObject = remote;
     void this.audioEl.play().catch((e) => slog(`✗ audio.play(): ${(e as Error)?.message ?? e}`));
+  }
+
+  // Исходящий вызов, инициируемый браузером (client-originated). Переиспользует
+  // уже зарегистрированный UA (ext оператора) и тот же WebRTC/TURN-путь, что и на
+  // входящих. number: внутренний ext («101», «7000») или внешний («+998…» → цифры).
+  async call(number: string) {
+    if (!this.ua) {
+      slog('✗ вызов невозможен: UA не запущен');
+      return;
+    }
+    if (this.session) {
+      slog('✗ вызов невозможен: уже есть активный звонок');
+      return;
+    }
+    // Оставляем только цифры и служебные * # (плюс и форматирование убираем).
+    let clean = number.replace(/[^\d*#]/g, '');
+    // УЗ-провайдер (транк 2050855 → 10.10.0.3) принимает НАЦИОНАЛЬНЫЙ формат без
+    // кода страны 998. Номера в журнале/от CallerID часто приходят как 998XXXXXXXXX
+    // или +998… — срезаем ведущие 998 (полный межнар. номер = 998 + 9 цифр = 12).
+    // Внутренние ext (101, 7000) короче и не начинаются на 998 — их не трогаем.
+    if (clean.startsWith('998') && clean.length > 9) clean = clean.slice(3);
+    if (!clean) {
+      slog('✗ пустой номер');
+      return;
+    }
+    const target = UserAgent.makeURI(`sip:${clean}@${this.domain}`);
+    if (!target) {
+      slog(`✗ неверный номер: ${clean}`);
+      return;
+    }
+    // Для исходящего ВСЕГДА запрашиваем микрофон (audio:true): оффер строим мы,
+    // и без аудио-дорожки SIP.js шлёт SDP без m=audio → Asterisk отвечает 488
+    // Not Acceptable Here. Проверку enumerateDevices НЕ используем — до выдачи
+    // прав на микрофон браузер отдаёт устройства с пустым kind, и она ложно
+    // возвращает «микрофона нет» → пустой оффер. Нет микрофона → getUserMedia
+    // бросит, звонок не состоится (для исходящего это ожидаемо: нечем говорить).
+    slog(`исходящий вызов на ${clean}`);
+    const inviter = new Inviter(this.ua, target, {
+      // Early media: применять SDP из ответа 183 Session Progress, чтобы оператор
+      // слышал гудок вызова и автоответы сети («абонент недоступен», «неверный
+      // номер») ещё ДО ответа (200 OK). Без этого до ответа тишина.
+      earlyMedia: true,
+      sessionDescriptionHandlerOptions: { constraints: { audio: true, video: false } },
+    });
+    this.session = inviter;
+    this.handlers.onCall?.('outgoing', { number: clean, displayName: null });
+    inviter.stateChange.addListener((state) => this.onSessionState(state));
+    try {
+      await inviter.invite();
+      slog('INVITE отправлен');
+    } catch (e) {
+      slog(`✗ исходящий не удался: ${(e as Error)?.message ?? e}`);
+      this.cleanupSession();
+      this.handlers.onCall?.('ended');
+    }
   }
 
   private answering = false;
@@ -242,6 +305,51 @@ export class Softphone {
       /* состояние могло измениться */
     }
     this.cleanupSession();
+  }
+
+  // Перевод активного разговора на другой extension (слепой перевод, SIP REFER).
+  // ВАЖНО: как только АТС приняла REFER (202) и соединяет абонента с целью, мы
+  // завершаем СВОЮ ногу — иначе переводящий оператор остаётся «занят» и на него
+  // нельзя перевести обратно (АТС отвечает 503). Так работает обычный телефон:
+  // нажал «перевести» → твой звонок кончился, двое соединились.
+  async transfer(number: string) {
+    if (!this.session || this.session.state !== SessionState.Established) {
+      slog('✗ перевод: нет активного разговора');
+      return;
+    }
+    const clean = number.replace(/[^\d*#]/g, '');
+    const target = UserAgent.makeURI(`sip:${clean}@${this.domain}`);
+    if (!target) {
+      slog(`✗ перевод: неверный номер ${clean}`);
+      return;
+    }
+    slog(`перевод звонка на ${clean}`);
+    try {
+      await this.session.refer(target, {
+        requestDelegate: {
+          onAccept: () => {
+            slog('REFER принят (202) — завершаю свою ногу, оператор свободен');
+            void this.hangup();
+          },
+          onReject: (response) => {
+            slog(`✗ перевод отклонён: ${response.message.statusCode} — разговор продолжается`);
+          },
+        },
+      });
+    } catch (e) {
+      slog(`✗ перевод не удался: ${(e as Error)?.message ?? e}`);
+    }
+  }
+
+  // Отправить DTMF-тон в активном разговоре (клавиатура во время звонка — IVR).
+  sendDtmf(tone: string) {
+    const sdh = this.session?.sessionDescriptionHandler as
+      | { sendDtmf?: (tones: string) => boolean }
+      | undefined;
+    if (sdh?.sendDtmf) {
+      slog(`DTMF: ${tone}`);
+      sdh.sendDtmf(tone);
+    }
   }
 
   setMuted(muted: boolean) {

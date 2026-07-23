@@ -167,6 +167,7 @@ export interface AriEvent {
   application?: string;
   timestamp?: string;
   channel?: AriChannel;
+  bridge?: { id: string; channels?: string[] };
   args?: string[];
   [k: string]: unknown;
 }

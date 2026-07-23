@@ -33,6 +33,12 @@ export class CallCenterController {
     return this.service.queueStatus();
   }
 
+  @Get('operators')
+  @ApiOperation({ summary: 'Операторы с extension — для перевода звонка (transfer).' })
+  operators(@CurrentUser() user: JwtPayload) {
+    return this.service.listOperators(user.sub);
+  }
+
   @Post('operator/pause')
   @ApiOperation({ summary: 'Поставить оператора на перерыв / снять (пауза в очереди).' })
   pause(@CurrentUser() user: JwtPayload, @Body() dto: PauseDto) {

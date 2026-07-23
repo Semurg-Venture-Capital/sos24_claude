@@ -67,6 +67,8 @@ export const callcenterApi = {
   sipCredentials: () => api.get('/admin/call-center/sip-credentials').then((r) => r.data),
   queueStatus: () =>
     api.get('/admin/call-center/queue').then((r) => r.data as { enabled: boolean; connected: boolean; waiting: number; available: number; loggedIn: number }),
+  operators: () =>
+    api.get('/admin/call-center/operators').then((r) => r.data as { id: string; name: string; ext: string }[]),
   operatorPause: (paused: boolean) =>
     api.post('/admin/call-center/operator/pause', { paused }).then((r) => r.data),
 };

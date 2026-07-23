@@ -1,4 +1,11 @@
-import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHmac } from 'node:crypto';
 import type { Prisma } from '@prisma/client';
@@ -106,6 +113,21 @@ export class CallCenterService implements OnModuleInit {
     };
   }
 
+  // Список операторов с extension — для перевода звонка (blind transfer) на коллегу.
+  // Исключаем самого оператора; только у кого задан sipExtension.
+  async listOperators(currentUserId: string) {
+    const ops = await this.prisma.user.findMany({
+      where: { sipExtension: { not: null }, id: { not: currentUserId } },
+      select: { id: true, name: true, surname: true, sipExtension: true },
+      orderBy: [{ surname: 'asc' }, { name: 'asc' }],
+    });
+    return ops.map((o) => ({
+      id: o.id,
+      name: [o.surname, o.name].filter(Boolean).join(' ') || `Оператор ${o.sipExtension}`,
+      ext: o.sipExtension as string,
+    }));
+  }
+
   // Формирует iceServers с временными TURN-кредами по схеме coturn use-auth-secret
   // (TURN REST API): username = "<expiryUnix>:<user>", credential = base64(HMAC-SHA1(secret, username)).
   // Без TURN_HOST — пусто; без TURN_SECRET — только STUN.
@@ -161,12 +183,28 @@ export class CallCenterService implements OnModuleInit {
         if (ch) await this.registerInbound(ch, this.direction(ch));
         break;
       case 'ChannelCreated':
+        // [ВРЕМЕННЫЙ ДИАГ] — подтвердить имя входящего канала с .29 (удалить после проверки).
+        if (ch?.name?.startsWith('PJSIP/')) this.logger.log(`[DIAG] ChannelCreated: ${ch.name}`);
         // Нативный входящий с нашего транка (по префиксу имени канала).
         if (ch && this.isInboundTrunk(ch)) await this.registerInbound(ch, 'INBOUND_EXTERNAL');
+        // Исходящий оператора: плечо к провайдеру (PJSIP/2050855-…).
+        else if (ch && this.isOutboundTrunk(ch)) await this.registerOutbound(ch);
         break;
       case 'ChannelStateChange':
-        if (ch?.state === 'Up') await this.onAnswered(ch);
+        // [ВРЕМЕННЫЙ ДИАГ] — состояние канала. Удалить после проверки.
+        if (ch?.name?.startsWith('PJSIP/')) this.logger.log(`[DIAG] StateChange: ${ch.name} -> ${ch.state}`);
+        // Раньше «Up = ответ», но при маршруте через .29 входящий канал (from-29) уходит в Up
+        // мгновенно (внутренний транк отвечает сразу) — это не ответ оператора. Ответ ловим по бриджу.
         break;
+      case 'ChannelEnteredBridge': {
+        // Оператор ответил = наш входящий канал соединён в бридж с оператором (в бридже ≥2 канала).
+        const chans = e.bridge?.channels ?? [];
+        this.logger.log(`[DIAG] EnteredBridge: ${ch?.name} (в бридже ${chans.length} каналов)`);
+        if (chans.length >= 2) {
+          for (const cid of chans) await this.onAnswered(cid, chans);
+        }
+        break;
+      }
       case 'StasisEnd':
       case 'ChannelDestroyed':
         if (ch) await this.onCallEnd(ch);
@@ -182,10 +220,37 @@ export class CallCenterService implements OnModuleInit {
     return appUser ? 'INBOUND_APP' : 'INBOUND_EXTERNAL';
   }
 
-  // Канал входящего внешнего звонка = имя начинается с префикса транка (напр. PJSIP/2050855).
+  // Канал входящего внешнего звонка = имя начинается с префикса транка (PJSIP/from-29).
   private isInboundTrunk(ch: AriChannel): boolean {
     const prefix = this.config.get<string>('ASTERISK_TRUNK_PREFIX');
     return !!prefix && !!ch.name && ch.name.startsWith(prefix);
+  }
+
+  // Канал исходящего звонка оператора = плечо к провайдеру (PJSIP/2050855-…).
+  private isOutboundTrunk(ch: AriChannel): boolean {
+    const prefix = this.config.get<string>('ASTERISK_OUTBOUND_TRUNK_PREFIX');
+    return !!prefix && !!ch.name && ch.name.startsWith(prefix);
+  }
+
+  // Регистрирует исходящий звонок оператора в журнале (по плечу к провайдеру).
+  // Ответ ловится тем же ChannelEnteredBridge, завершение — ChannelDestroyed.
+  private async registerOutbound(ch: AriChannel) {
+    const existing = await this.prisma.call.findUnique({ where: { channelId: ch.id }, select: { id: true } });
+    if (existing) return;
+    // Набранный номер: exten плеча / connected-line (caller.number здесь = CID 2050855, не берём).
+    const number = ch.dialplan?.exten || ch.connected?.number || undefined;
+    const userId = number ? await this.matchUserByPhone(number) : null;
+    const call = await this.prisma.call.create({
+      data: {
+        channelId: ch.id,
+        direction: 'OUTBOUND',
+        status: 'RINGING',
+        externalNumber: number ?? null,
+        userId: userId ?? null,
+      },
+    });
+    this.gateway.emitUpdate({ callId: call.id, status: 'RINGING' });
+    this.logger.log(`исходящий ${call.id} на ${number ?? 'неизвестно'} (канал ${ch.name})`);
   }
 
   // Регистрирует входящий звонок в журнале + screen-pop операторам (идемпотентно по channelId).
@@ -219,12 +284,17 @@ export class CallCenterService implements OnModuleInit {
     this.logger.log(`звонок ${call.id} (${call.direction}) от ${screen?.name ?? number ?? 'неизвестно'}`);
   }
 
-  private async onAnswered(ch: AriChannel) {
-    const call = await this.prisma.call.findUnique({ where: { channelId: ch.id } });
+  // Ответ фиксируем по channelId зарегистрированного канала (входящий from-29 или
+  // исходящее плечо 2050855). bridgeChannels — все каналы бриджа: MixMonitor мог
+  // стартовать на любом из них (для исходящего — на канале оператора), поэтому ключ
+  // записи ищем по всем.
+  private async onAnswered(channelId: string, bridgeChannels?: string[]) {
+    const call = await this.prisma.call.findUnique({ where: { channelId } });
     if (!call || call.answeredAt) return;
     const now = new Date();
     // К моменту ответа FreePBX-запись (MixMonitor) уже стартовала → ключ записи доступен.
-    const recordingKey = call.recordingKey ?? (await this.captureRecordingKey(ch.id));
+    const recordingKey =
+      call.recordingKey ?? (await this.captureRecordingKeyFrom(bridgeChannels ?? [channelId]));
     const updated = await this.prisma.call.update({
       where: { id: call.id },
       data: {
@@ -244,6 +314,16 @@ export class CallCenterService implements OnModuleInit {
     if (!path) return null;
     const base = path.split('/').pop();
     return base ? `${REC_PREFIX}/${base}` : null;
+  }
+
+  // Пробуем достать ключ записи с любого канала бриджа (MixMonitor мог стартовать
+  // не на том канале, по которому зарегистрирован звонок — так на исходящих).
+  private async captureRecordingKeyFrom(channelIds: string[]): Promise<string | null> {
+    for (const id of channelIds) {
+      const key = await this.captureRecordingKey(id);
+      if (key) return key;
+    }
+    return null;
   }
 
   private async onCallEnd(ch: AriChannel) {
@@ -372,6 +452,15 @@ export class CallCenterService implements OnModuleInit {
     if (!call?.recordingKey) throw new NotFoundException('Записи нет');
     const client = this.getRecClient();
     if (!client) throw new NotFoundException('Хранилище записей не настроено (REC_S3_*)');
+    // Файл записи заливает аплоадер на Asterisk (cron ~1/мин) — сразу после звонка
+    // объекта в MinIO может ещё не быть. Проверяем наличие: если нет — «обрабатывается» (425),
+    // фронт покажет статус вместо тихого провала воспроизведения.
+    try {
+      await client.statObject(this.recBucket, call.recordingKey);
+    } catch {
+      // 425 Too Early — запись ещё не залита в MinIO.
+      throw new HttpException({ message: 'Запись ещё обрабатывается', code: 'RECORDING_PROCESSING' }, 425);
+    }
     const url = await client.presignedGetObject(this.recBucket, call.recordingKey, 3600);
     return { url };
   }

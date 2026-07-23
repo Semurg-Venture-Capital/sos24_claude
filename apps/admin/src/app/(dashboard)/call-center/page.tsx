@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Phone, PhoneIncoming, PhoneMissed, ShieldCheck, FileText, Volume2, Play } from 'lucide-react';
+import { Phone, PhoneIncoming, PhoneMissed, PhoneOutgoing, ShieldCheck, FileText, Volume2, Play, Loader2, ChevronUp } from 'lucide-react';
+import { RecordingPlayer } from './RecordingPlayer';
+import type { CallState, PhoneStatus } from '@/lib/softphone';
 import { Header } from '@/components/layout/Header';
 import {
   useCalls,
@@ -17,7 +19,7 @@ import {
 } from '@/lib/callcenter';
 import { ensureAudioUnlocked, playPing, requestNotifyPermission, showDesktopNotification } from '@/lib/agentAlerts';
 import { formatPhone } from '@/lib/utils';
-import { SoftphoneBar } from './SoftphoneBar';
+import { IphoneCaller } from './IphoneCaller';
 import { CallTicketModal } from './CallTicketModal';
 import { FileSignature } from 'lucide-react';
 
@@ -59,12 +61,30 @@ export default function CallCenterPage() {
   const [incoming, setIncoming] = useState<IncomingCall[]>([]);
   const [audioOn, setAudioOn] = useState(false);
 
+  // Дозвон живёт в SoftphoneBar (там инстанс Softphone). Забираем его функцию
+  // дозвона и состояние сюда, чтобы кнопки «Перезвонить» в журнале/карточках
+  // могли звонить и гаснуть, когда телефон занят/не зарегистрирован.
+  const dialRef = useRef<((n: string) => void) | null>(null);
+  const [phone, setPhone] = useState<{ status: PhoneStatus; callState: CallState }>({
+    status: 'idle',
+    callState: 'none',
+  });
+  const registerDial = useCallback((fn: (n: string) => void) => {
+    dialRef.current = fn;
+  }, []);
+  const canDial = phone.status === 'registered' && phone.callState === 'none';
+  const dial = (n?: string | null) => {
+    if (n && canDial) dialRef.current?.(n);
+  };
+
   useEffect(() => {
     requestNotifyPermission();
     const socket = callsSocket();
 
     socket.on('call:incoming', (c: IncomingCall) => {
       setIncoming((prev) => [c, ...prev.filter((x) => x.callId !== c.callId)].slice(0, 6));
+      // Глушим прослушку записи, чтобы оператор слышал входящий звонок.
+      setOpenRec(null);
       playPing();
       const who = c.user?.name || c.number || 'Неизвестный';
       showDesktopNotification('Входящий звонок', who);
@@ -91,19 +111,9 @@ export default function CallCenterPage() {
     setAudioOn(true);
   };
 
-  const [playingId, setPlayingId] = useState<string | null>(null);
-  const playRecording = async (id: string) => {
-    try {
-      const { url } = await callcenterApi.recording(id);
-      const audio = new Audio(url);
-      setPlayingId(id);
-      audio.onended = () => setPlayingId(null);
-      audio.onerror = () => setPlayingId(null);
-      await audio.play();
-    } catch {
-      setPlayingId(null);
-    }
-  };
+  // Раскрытая запись (инлайн-плеер под строкой). Только одна за раз.
+  // Закрытие плеера = остановка звука (RecordingPlayer глушит при размонтировании).
+  const [openRec, setOpenRec] = useState<string | null>(null);
 
   const [ticketCall, setTicketCall] = useState<Call | null>(null);
 
@@ -136,10 +146,9 @@ export default function CallCenterPage() {
         }
       />
 
-      <main className="flex-1 p-6 flex flex-col gap-6">
-        {/* Софтфон оператора */}
-        <SoftphoneBar />
-
+      <main className="flex-1 p-6">
+        <div className="flex gap-6 items-start">
+          <div className="flex-1 min-w-0 flex flex-col gap-6">
         {/* Статус + включить звук */}
         <div className="flex items-center gap-3">
           <span
@@ -206,6 +215,20 @@ export default function CallCenterPage() {
                       <p className="text-sm text-[#5f5e5e]">{c.number ? formatPhone(c.number) : '—'}</p>
                     </>
                   )}
+                  {(() => {
+                    const num = c.user?.phone ?? c.number ?? null;
+                    if (!num) return null;
+                    return (
+                      <button
+                        onClick={() => dial(num)}
+                        disabled={!canDial}
+                        title={canDial ? 'Перезвонить' : 'Софтфон занят или не готов'}
+                        className="mt-3 inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium text-white bg-[#0a9466] hover:bg-[#087e57] disabled:bg-[#0a9466]/40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <PhoneOutgoing size={13} /> Перезвонить
+                      </button>
+                    );
+                  })()}
                 </div>
               ))}
             </div>
@@ -257,8 +280,15 @@ export default function CallCenterPage() {
                     const who = c.user
                       ? [c.user.surname, c.user.name].filter(Boolean).join(' ') || c.user.phone
                       : c.externalNumber;
+                    const recOpen = openRec === c.id;
+                    // Запись заливается ~в течение минуты после звонка — недавно завершённые
+                    // помечаем «Обрабатывается» (клик всё равно откроет плеер и покажет точный статус).
+                    const recProcessing =
+                      !recOpen && !!c.endedAt && Date.now() - new Date(c.endedAt).getTime() < 90_000;
+                    const dialNum = c.externalNumber ?? c.user?.phone ?? null;
                     return (
-                      <tr key={c.id} className="hover:bg-[#fafafa] transition-colors">
+                      <Fragment key={c.id}>
+                      <tr className="hover:bg-[#fafafa] transition-colors">
                         <td className="px-5 py-3.5 text-sm text-[#5f5e5e] whitespace-nowrap">{fmtTime(c.startedAt)}</td>
                         <td className="px-5 py-3.5 text-sm text-[#5f5e5e]">{DIR_LABEL[c.direction]}</td>
                         <td className="px-5 py-3.5">
@@ -279,14 +309,41 @@ export default function CallCenterPage() {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1.5">
+                            {dialNum && (
+                              <button
+                                onClick={() => dial(dialNum)}
+                                disabled={!canDial}
+                                title={canDial ? 'Перезвонить' : 'Софтфон занят или не готов'}
+                                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs text-[#0a9466] hover:bg-[rgba(10,148,102,0.1)] disabled:text-[#9a9a9a] disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
+                              >
+                                <PhoneOutgoing size={13} /> Перезвонить
+                              </button>
+                            )}
                             {c.recordingKey && (
                               <button
-                                onClick={() => playRecording(c.id)}
-                                disabled={playingId === c.id}
-                                title="Прослушать запись"
-                                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs text-[#5f5e5e] hover:bg-[#f0f0f2] transition-colors disabled:opacity-50"
+                                onClick={() => setOpenRec(recOpen ? null : c.id)}
+                                title={recProcessing ? 'Запись обрабатывается' : recOpen ? 'Скрыть плеер' : 'Прослушать запись'}
+                                className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs transition-colors ${
+                                  recOpen
+                                    ? 'bg-[rgba(10,148,102,0.1)] text-[#0a9466]'
+                                    : recProcessing
+                                      ? 'text-[#9a7400] hover:bg-[rgba(245,200,80,0.14)]'
+                                      : 'text-[#5f5e5e] hover:bg-[#f0f0f2]'
+                                }`}
                               >
-                                <Play size={13} /> {playingId === c.id ? 'Играет…' : 'Запись'}
+                                {recOpen ? (
+                                  <>
+                                    <ChevronUp size={13} /> Скрыть
+                                  </>
+                                ) : recProcessing ? (
+                                  <>
+                                    <Loader2 size={13} className="animate-spin" /> Обрабатывается
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play size={13} /> Запись
+                                  </>
+                                )}
                               </button>
                             )}
                             <button
@@ -299,12 +356,25 @@ export default function CallCenterPage() {
                           </div>
                         </td>
                       </tr>
+                      {recOpen && (
+                        <tr>
+                          <td colSpan={7} className="px-5 pb-3.5 pt-0 bg-[#fafafa]">
+                            <RecordingPlayer callId={c.id} />
+                          </td>
+                        </tr>
+                      )}
+                      </Fragment>
                     );
                   })
                 )}
               </tbody>
             </table>
           </div>
+        </div>
+          </div>
+          <aside className="w-[340px] shrink-0 sticky top-0">
+            <IphoneCaller onReady={registerDial} onStateChange={setPhone} />
+          </aside>
         </div>
       </main>
 
