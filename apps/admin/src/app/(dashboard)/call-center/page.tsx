@@ -1,10 +1,9 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Phone, PhoneIncoming, PhoneMissed, PhoneOutgoing, ShieldCheck, FileText, Volume2, Play, Loader2, ChevronUp } from 'lucide-react';
 import { RecordingPlayer } from './RecordingPlayer';
-import type { CallState, PhoneStatus } from '@/lib/softphone';
 import { Header } from '@/components/layout/Header';
 import {
   useCalls,
@@ -17,9 +16,10 @@ import {
   type IncomingCall,
   type CallUpdate,
 } from '@/lib/callcenter';
-import { ensureAudioUnlocked, playPing, requestNotifyPermission, showDesktopNotification } from '@/lib/agentAlerts';
+import { ensureAudioUnlocked, playPing, requestNotifyPermission } from '@/lib/agentAlerts';
 import { formatPhone } from '@/lib/utils';
-import { IphoneCaller } from './IphoneCaller';
+import { IphoneCaller } from '@/components/softphone/IphoneCaller';
+import { useSoftphone } from '@/components/softphone/SoftphoneProvider';
 import { CallTicketModal } from './CallTicketModal';
 import { FileSignature } from 'lucide-react';
 
@@ -61,20 +61,12 @@ export default function CallCenterPage() {
   const [incoming, setIncoming] = useState<IncomingCall[]>([]);
   const [audioOn, setAudioOn] = useState(false);
 
-  // Дозвон живёт в SoftphoneBar (там инстанс Softphone). Забираем его функцию
-  // дозвона и состояние сюда, чтобы кнопки «Перезвонить» в журнале/карточках
-  // могли звонить и гаснуть, когда телефон занят/не зарегистрирован.
-  const dialRef = useRef<((n: string) => void) | null>(null);
-  const [phone, setPhone] = useState<{ status: PhoneStatus; callState: CallState }>({
-    status: 'idle',
-    callState: 'none',
-  });
-  const registerDial = useCallback((fn: (n: string) => void) => {
-    dialRef.current = fn;
-  }, []);
-  const canDial = phone.status === 'registered' && phone.callState === 'none';
-  const dial = (n?: string | null) => {
-    if (n && canDial) dialRef.current?.(n);
+  // Дозвон берём из глобального софтфона (контекст). Кнопки «Перезвонить» звонят
+  // и гаснут, когда телефон занят/не зарегистрирован.
+  const { dial: sipDial, status: phoneStatus, callState: phoneCallState } = useSoftphone();
+  const canDial = phoneStatus === 'registered' && phoneCallState === 'none';
+  const dialTo = (n?: string | null) => {
+    if (n && canDial) sipDial(n);
   };
 
   useEffect(() => {
@@ -85,9 +77,7 @@ export default function CallCenterPage() {
       setIncoming((prev) => [c, ...prev.filter((x) => x.callId !== c.callId)].slice(0, 6));
       // Глушим прослушку записи, чтобы оператор слышал входящий звонок.
       setOpenRec(null);
-      playPing();
-      const who = c.user?.name || c.number || 'Неизвестный';
-      showDesktopNotification('Входящий звонок', who);
+      // Рингтон и десктоп-уведомление даёт глобальный SoftphoneProvider (по SIP).
       qc.invalidateQueries({ queryKey: ['cc', 'calls'] });
     });
 
@@ -220,7 +210,7 @@ export default function CallCenterPage() {
                     if (!num) return null;
                     return (
                       <button
-                        onClick={() => dial(num)}
+                        onClick={() => dialTo(num)}
                         disabled={!canDial}
                         title={canDial ? 'Перезвонить' : 'Софтфон занят или не готов'}
                         className="mt-3 inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium text-white bg-[#0a9466] hover:bg-[#087e57] disabled:bg-[#0a9466]/40 disabled:cursor-not-allowed transition-colors"
@@ -311,7 +301,7 @@ export default function CallCenterPage() {
                           <div className="flex items-center gap-1.5">
                             {dialNum && (
                               <button
-                                onClick={() => dial(dialNum)}
+                                onClick={() => dialTo(dialNum)}
                                 disabled={!canDial}
                                 title={canDial ? 'Перезвонить' : 'Софтфон занят или не готов'}
                                 className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs text-[#0a9466] hover:bg-[rgba(10,148,102,0.1)] disabled:text-[#9a9a9a] disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
@@ -373,7 +363,7 @@ export default function CallCenterPage() {
         </div>
           </div>
           <aside className="w-[340px] shrink-0 sticky top-0">
-            <IphoneCaller onReady={registerDial} onStateChange={setPhone} />
+            <IphoneCaller />
           </aside>
         </div>
       </main>

@@ -93,7 +93,9 @@ export function useCalls(status = '') {
   return useQuery({
     queryKey: ['cc', 'calls', status],
     queryFn: () => callcenterApi.list(status ? { status } : undefined),
-    refetchInterval: 20_000,
+    // Частый поллинг: сокет живёт ~15 мин (TTL токена), дальше только это держит
+    // журнал свежим. 5с — приемлемо для колл-центра.
+    refetchInterval: 5_000,
   });
 }
 

@@ -184,11 +184,12 @@ export class CallCenterService implements OnModuleInit {
         break;
       case 'ChannelCreated':
         // [ВРЕМЕННЫЙ ДИАГ] — подтвердить имя входящего канала с .29 (удалить после проверки).
-        if (ch?.name?.startsWith('PJSIP/')) this.logger.log(`[DIAG] ChannelCreated: ${ch.name}`);
+        if (ch?.name?.startsWith('PJSIP/'))
+          this.logger.log(`[DIAG] ChannelCreated: ${ch.name} ctx=${ch.dialplan?.context} exten=${ch.dialplan?.exten}`);
         // Нативный входящий с нашего транка (по префиксу имени канала).
         if (ch && this.isInboundTrunk(ch)) await this.registerInbound(ch, 'INBOUND_EXTERNAL');
-        // Исходящий оператора: плечо к провайдеру (PJSIP/2050855-…).
-        else if (ch && this.isOutboundTrunk(ch)) await this.registerOutbound(ch);
+        // Исходящий оператора: канал оператора, набирающий внешний номер.
+        else if (ch && this.isOutboundOrigin(ch)) await this.registerOutbound(ch);
         break;
       case 'ChannelStateChange':
         // [ВРЕМЕННЫЙ ДИАГ] — состояние канала. Удалить после проверки.
@@ -226,19 +227,22 @@ export class CallCenterService implements OnModuleInit {
     return !!prefix && !!ch.name && ch.name.startsWith(prefix);
   }
 
-  // Канал исходящего звонка оператора = плечо к провайдеру (PJSIP/2050855-…).
-  private isOutboundTrunk(ch: AriChannel): boolean {
-    const prefix = this.config.get<string>('ASTERISK_OUTBOUND_TRUNK_PREFIX');
-    return !!prefix && !!ch.name && ch.name.startsWith(prefix);
+  // Канал исходящего звонка оператора = канал во внутреннем контексте (from-internal),
+  // набирающий ВНЕШНИЙ номер (≥7 цифр). У него в exten — реальный набранный номер.
+  // Плечо к провайдеру (PJSIP/2050855, exten='s', другой контекст) сюда НЕ попадает;
+  // внутренние (ext 3-4 цифры, очередь 7000) — тоже отсекаются по длине.
+  private isOutboundOrigin(ch: AriChannel): boolean {
+    const ctx = this.config.get<string>('ASTERISK_INTERNAL_CONTEXT') || 'from-internal';
+    const exten = ch.dialplan?.exten ?? '';
+    return ch.dialplan?.context === ctx && /^\d{7,}$/.test(exten);
   }
 
-  // Регистрирует исходящий звонок оператора в журнале (по плечу к провайдеру).
-  // Ответ ловится тем же ChannelEnteredBridge, завершение — ChannelDestroyed.
+  // Регистрирует исходящий звонок оператора (по каналу оператора — в его exten
+  // набранный номер). Ответ — ChannelEnteredBridge, завершение — ChannelDestroyed.
   private async registerOutbound(ch: AriChannel) {
     const existing = await this.prisma.call.findUnique({ where: { channelId: ch.id }, select: { id: true } });
     if (existing) return;
-    // Набранный номер: exten плеча / connected-line (caller.number здесь = CID 2050855, не берём).
-    const number = ch.dialplan?.exten || ch.connected?.number || undefined;
+    const number = ch.dialplan?.exten || undefined; // набранный номер
     const userId = number ? await this.matchUserByPhone(number) : null;
     const call = await this.prisma.call.create({
       data: {

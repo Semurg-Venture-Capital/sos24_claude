@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Phone, PhoneOff, Mic, MicOff, Delete, Grid3x3, Loader2, User, PhoneForwarded, ArrowLeft } from 'lucide-react';
 import { callcenterApi } from '@/lib/callcenter';
-import { Softphone, type CallState, type IncomingInfo, type PhoneStatus, type SipCreds } from '@/lib/softphone';
+import { type PhoneStatus } from '@/lib/softphone';
 import { formatPhone } from '@/lib/utils';
+import { useSoftphone } from './SoftphoneProvider';
 
 // Раскладка дайлпада как на iPhone: цифра + буквы под ней.
 const PAD: { d: string; s: string }[] = [
@@ -26,11 +27,6 @@ function initials(name?: string | null): string | null {
   if (!name) return null;
   const p = name.trim().split(/\s+/);
   return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase() || null;
-}
-
-interface Props {
-  onReady?: (dial: (n: string) => void) => void;
-  onStateChange?: (s: { status: PhoneStatus; callState: CallState }) => void;
 }
 
 // Круглая аватарка iOS: инициалы или иконка.
@@ -56,128 +52,58 @@ function PadKey({ d, s, onPress }: { d: string; s: string; onPress: (d: string) 
   );
 }
 
-export function IphoneCaller({ onReady, onStateChange }: Props) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const phoneRef = useRef<Softphone | null>(null);
-  const [status, setStatus] = useState<PhoneStatus>('idle');
-  const [callState, setCallState] = useState<CallState>('none');
-  const [peer, setPeer] = useState<IncomingInfo | null>(null);
-  const [muted, setMuted] = useState(false);
-  const [notConfigured, setNotConfigured] = useState(false);
-  const [seconds, setSeconds] = useState(0);
-  const [answering, setAnswering] = useState(false);
+export function IphoneCaller() {
+  const {
+    status, callState, peer, muted, seconds, notConfigured, answering,
+    dial, answer, hangup, toggleMute, sendDtmf, transfer,
+  } = useSoftphone();
+
   const [dialValue, setDialValue] = useState('');
   const [padOpen, setPadOpen] = useState(false); // DTMF-клавиатура во время разговора
-  // Перевод звонка на другого оператора (blind transfer).
   const [transferOpen, setTransferOpen] = useState(false);
   const [operators, setOperators] = useState<{ id: string; name: string; ext: string }[] | null>(null);
   const [transferManual, setTransferManual] = useState('');
 
-  useEffect(() => {
-    let phone: Softphone | null = null;
-    (async () => {
-      const creds = await callcenterApi.sipCredentials();
-      if (!creds?.configured || !audioRef.current) {
-        setNotConfigured(true);
-        return;
-      }
-      phone = new Softphone(audioRef.current, {
-        onStatus: setStatus,
-        onCall: (s, info) => {
-          setCallState(s);
-          if (s === 'incoming' || s === 'outgoing') setPeer(info ?? null);
-          if (s === 'in-call') setSeconds(0); // старт таймера разговора
-          if (s === 'in-call' || s === 'ended' || s === 'none') setAnswering(false);
-          if (s === 'ended' || s === 'none') {
-            setPeer(null);
-            setMuted(false);
-            setPadOpen(false);
-            setTransferOpen(false);
-            setTransferManual('');
-          }
-        },
-      });
-      phoneRef.current = phone;
-      await phone.start(creds as SipCreds);
-    })();
-    return () => {
-      void phone?.stop();
-    };
-  }, []);
-
-  // Тик таймера разговора (сброс — в onCall при 'in-call'/'ended').
-  useEffect(() => {
-    if (callState !== 'in-call') return;
-    const t = setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => clearInterval(t);
-  }, [callState]);
-
-  const dial = useCallback((n: string) => {
-    void phoneRef.current?.call(n);
-  }, []);
-  useEffect(() => {
-    onReady?.(dial);
-  }, [dial, onReady]);
-  useEffect(() => {
-    onStateChange?.({ status, callState });
-  }, [status, callState, onStateChange]);
-
-  const answer = async () => {
-    if (answering) return;
-    setAnswering(true);
-    try {
-      await phoneRef.current?.answer();
-    } catch {
-      setAnswering(false);
+  // Сброс локального UI при завершении звонка — паттерн «правка состояния при
+  // изменении входных данных» (без эффекта, чтобы не плодить каскадные рендеры).
+  const [prevCall, setPrevCall] = useState(callState);
+  if (prevCall !== callState) {
+    setPrevCall(callState);
+    if (callState === 'none' || callState === 'ended') {
+      setPadOpen(false);
+      setTransferOpen(false);
+      setTransferManual('');
     }
-  };
-  const hangup = () => {
-    setAnswering(false);
-    phoneRef.current?.hangup();
-  };
-  const toggleMute = () => {
-    const m = !muted;
-    setMuted(m);
-    phoneRef.current?.setMuted(m);
-  };
+  }
+
   const callManual = () => {
     const n = dialValue.trim();
     if (!n) return;
-    void phoneRef.current?.call(n);
+    dial(n);
     setDialValue('');
   };
-  const onPad = (d: string) => setDialValue((v) => v + d);
-  const onDtmf = (d: string) => phoneRef.current?.sendDtmf(d);
-
   const openTransfer = () => {
     setPadOpen(false);
     setTransferOpen(true);
     if (operators === null) {
-      callcenterApi
-        .operators()
-        .then(setOperators)
-        .catch(() => setOperators([]));
+      callcenterApi.operators().then(setOperators).catch(() => setOperators([]));
     }
   };
   const doTransfer = (ext: string) => {
     const clean = ext.trim();
     if (!clean) return;
-    void phoneRef.current?.transfer(clean);
+    transfer(clean);
     setTransferOpen(false);
     setTransferManual('');
-    // Разговор завершится сам после REFER (onCall 'ended').
   };
 
   const dur = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
   const peerLabel = peer?.displayName || (peer?.number ? formatPhone(peer.number) : 'Неизвестный');
-
   const dotColor =
     status === 'registered' ? 'bg-[#34c759]' : status === 'connecting' ? 'bg-[#ff9f0a]' : 'bg-[#ff3b30]';
 
   return (
     <div className="w-full rounded-[28px] bg-white border border-[rgba(20,20,40,0.08)] shadow-[0_8px_40px_-12px_rgba(20,20,40,0.18)] overflow-hidden flex flex-col min-h-[600px]">
-      <audio ref={audioRef} autoPlay hidden />
-
       {/* Шапка со статусом */}
       <div className="flex items-center justify-center gap-2 py-3.5 border-b border-[rgba(20,20,40,0.05)] bg-[#fbfbfd]">
         <span className={`w-2 h-2 rounded-full ${dotColor}`} />
@@ -278,7 +204,7 @@ export function IphoneCaller({ onReady, onStateChange }: Props) {
               {callState === 'in-call' && padOpen && (
                 <div className="grid grid-cols-3 gap-x-5 gap-y-2.5 mt-6">
                   {PAD.map((k) => (
-                    <PadKey key={k.d} d={k.d} s={k.s} onPress={onDtmf} />
+                    <PadKey key={k.d} d={k.d} s={k.s} onPress={sendDtmf} />
                   ))}
                 </div>
               )}
@@ -341,7 +267,7 @@ export function IphoneCaller({ onReady, onStateChange }: Props) {
           {/* Клавиатура */}
           <div className="grid grid-cols-3 gap-x-6 gap-y-3 mt-4">
             {PAD.map((k) => (
-              <PadKey key={k.d} d={k.d} s={k.s} onPress={onPad} />
+              <PadKey key={k.d} d={k.d} s={k.s} onPress={(d) => setDialValue((v) => v + d)} />
             ))}
           </div>
 

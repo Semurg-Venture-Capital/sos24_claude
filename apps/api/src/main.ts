@@ -38,6 +38,11 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swagger);
   SwaggerModule.setup('api-docs', app, document);
 
+  // Грейсфул-шатдаун (SIGTERM/SIGINT) → вызывает onModuleDestroy. Критично для
+  // AriService: закрывает ARI-WebSocket корректно, иначе на Asterisk копятся мёртвые
+  // сессии и res_ari уходит в дедлок (особенно при частых рестартах nest-watch в dev).
+  app.enableShutdownHooks();
+
   const port = Number(process.env.PORT ?? 3030);
   await app.listen(port);
   console.log(`[sos24-api] listening on http://localhost:${port}`);
